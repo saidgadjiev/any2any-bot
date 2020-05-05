@@ -21,12 +21,12 @@ public class FileQueueDao {
 
     public void add(FileQueueItem queueItem) {
         jdbcTemplate.query(
-                "INSERT INTO file_queue (user_id, file_id, mime_type, size, message_id, file_name, target_format)\n" +
+                "INSERT INTO file_queue (user_id, file_id, format, size, message_id, file_name, target_format)\n" +
                         "    VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *",
                 ps -> {
                     ps.setInt(1, queueItem.getUserId());
                     ps.setString(2, queueItem.getFileId());
-                    ps.setString(3, queueItem.getMimeType());
+                    ps.setString(3, queueItem.getFormat().name());
                     ps.setInt(4, queueItem.getSize());
                     ps.setInt(5, queueItem.getMessageId());
                     if (queueItem.getFileName() != null) {
@@ -73,7 +73,7 @@ public class FileQueueDao {
                     fileQueueItem.setFileName(rs.getString(FileQueueItem.FILE_NAME));
                     fileQueueItem.setFileId(rs.getString(FileQueueItem.FILE_ID));
                     fileQueueItem.setUserId(rs.getInt(FileQueueItem.USER_ID));
-                    fileQueueItem.setMimeType(rs.getString(FileQueueItem.MIME_TYPE));
+                    fileQueueItem.setFormat(Format.valueOf(rs.getString(FileQueueItem.FORMAT)));
                     fileQueueItem.setTargetFormat(Format.valueOf(rs.getString(FileQueueItem.TARGET_FORMAT)));
 
                     return fileQueueItem;

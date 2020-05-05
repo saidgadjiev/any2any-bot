@@ -1,35 +1,45 @@
 package ru.gadjini.any2any.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.User;
+import ru.gadjini.any2any.bot.command.convert.ConvertState;
+import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.dao.FileQueueDao;
 import ru.gadjini.any2any.domain.FileQueueItem;
-import ru.gadjini.any2any.model.TgDocument;
 import ru.gadjini.any2any.service.converter.api.Format;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class FileQueueService {
 
     private FileQueueDao fileQueueDao;
 
+    private LocalisationService localisationService;
+
     @Autowired
-    public FileQueueService(FileQueueDao fileQueueDao) {
+    public FileQueueService(FileQueueDao fileQueueDao, LocalisationService localisationService) {
         this.fileQueueDao = fileQueueDao;
+        this.localisationService = localisationService;
     }
 
     @Transactional
-    public FileQueueItem add(User user, int messageId, TgDocument document, Format targetFormat) {
+    public FileQueueItem add(User user, ConvertState convertState, Format targetFormat) {
         FileQueueItem fileQueueItem = new FileQueueItem();
-        fileQueueItem.setFileId(document.getFileId());
-        fileQueueItem.setSize(document.getFileSize());
-        fileQueueItem.setMimeType(document.getMimeType());
+
+        fileQueueItem.setFileId(convertState.getFileId());
+        fileQueueItem.setSize(convertState.getFileSize());
+        fileQueueItem.setFormat(convertState.getFormat());
         fileQueueItem.setUserId(user.getId());
-        fileQueueItem.setMessageId(messageId);
-        fileQueueItem.setFileName(document.getFileName());
+        fileQueueItem.setMessageId(convertState.getMessageId());
+        fileQueueItem.setFileName(convertState.getFileName());
+        if (StringUtils.isBlank(fileQueueItem.getFileName())) {
+            fileQueueItem.setFileName(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, new Locale(convertState.getUserLanguage())));
+        }
         fileQueueItem.setTargetFormat(targetFormat);
 
         fileQueueDao.add(fileQueueItem);

@@ -8,7 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.converter.api.Format;
-import ru.gadjini.any2any.service.converter.api.FormatMapService;
+import ru.gadjini.any2any.service.converter.api.FormatService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,12 +18,12 @@ import java.util.Locale;
 @Service
 public class ReplyKeyboardService {
 
-    private FormatMapService formatMapService;
+    private FormatService formatMapService;
 
     private LocalisationService localisationService;
 
     @Autowired
-    public ReplyKeyboardService(FormatMapService formatMapService, LocalisationService localisationService) {
+    public ReplyKeyboardService(FormatService formatMapService, LocalisationService localisationService) {
         this.formatMapService = formatMapService;
         this.localisationService = localisationService;
     }

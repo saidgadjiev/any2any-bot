@@ -1,8 +1,10 @@
 package ru.gadjini.any2any.job;
 
+import com.aspose.words.License;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
@@ -10,11 +12,10 @@ import ru.gadjini.any2any.model.SendDocumentContext;
 import ru.gadjini.any2any.service.FileQueueService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.converter.api.Any2AnyConverter;
-import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
-import ru.gadjini.any2any.util.FormatUtils;
 
+import javax.annotation.PostConstruct;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,6 +40,11 @@ public class ConverterJob {
         any2AnyConvertersSet.forEach(any2AnyConverter -> any2AnyConverters.add(any2AnyConverter));
     }
 
+    @PostConstruct
+    public void init() {
+        applyLicenses();
+    }
+
     @Scheduled(cron = "* * * * * *")
     public void processConverts() {
         List<FileQueueItem> items = queueService.getItems(LIMIT);
@@ -52,15 +58,14 @@ public class ConverterJob {
                     LOGGER.error(ex.getMessage(), ex);
                 }
             } else {
-                LOGGER.debug("Candidate not found for: " + fileQueueItem.getMimeType());
+                LOGGER.debug("Candidate not found for: " + fileQueueItem.getFormat());
             }
         }
     }
 
     private Any2AnyConverter<ConvertResult> getCandidate(FileQueueItem fileQueueItem) {
-        Format format = FormatUtils.getFormat(fileQueueItem.getFileName(), fileQueueItem.getMimeType());
         for (Any2AnyConverter<ConvertResult> any2AnyConverter : any2AnyConverters) {
-            if (any2AnyConverter.accept(format)) {
+            if (any2AnyConverter.accept(fileQueueItem.getFormat(), fileQueueItem.getTargetFormat())) {
                 return any2AnyConverter;
             }
         }
@@ -75,6 +80,16 @@ public class ConverterJob {
                         .replyMessageId(fileQueueItem.getMessageId());
                 messageService.sendDocument(sendDocumentContext);
                 break;
+        }
+    }
+
+    private void applyLicenses() {
+        try {
+            new License().setLicense(new ClassPathResource("license/license-19.lic").getInputStream());
+            new com.aspose.pdf.License().setLicense(new ClassPathResource("license/license-19.lic").getInputStream());
+            new com.aspose.imaging.License().setLicense(new ClassPathResource("license/license-19.lic").getInputStream());
+        } catch (Exception ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
         }
     }
 }

@@ -7,5 +7,5 @@ public interface Any2AnyConverter<T extends ConvertResult> {
 
     T convert(FileQueueItem fileQueueItem, Format targetFormat);
 
-    boolean accept(Format format);
+    boolean accept(Format format, Format targetFormat);
 }
