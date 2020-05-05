@@ -1,0 +1,36 @@
+package ru.gadjini.any2any;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.telegram.telegrambots.ApiContextInitializer;
+import ru.gadjini.any2any.property.BotProperties;
+import ru.gadjini.any2any.property.ProxyProperties;
+
+@EnableConfigurationProperties(value = {
+        BotProperties.class,
+        ProxyProperties.class
+})
+@EnableScheduling
+@SpringBootApplication
+public class Any2AnyApplication {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Any2AnyApplication.class);
+
+    public static void main(String[] args) {
+        ApiContextInitializer.init();
+        try {
+            SpringApplication application = new SpringApplication(Any2AnyApplication.class);
+            application.setApplicationContextClass(AnnotationConfigApplicationContext.class);
+
+            application.run();
+        } catch (Exception ex) {
+            LOGGER.error(ex.getMessage(), ex);
+            throw ex;
+        }
+    }
+}
