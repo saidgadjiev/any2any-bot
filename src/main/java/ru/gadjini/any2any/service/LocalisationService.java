@@ -11,6 +11,8 @@ import java.util.Locale;
 @Service
 public class LocalisationService {
 
+    private static final String RU_LOCALE = "ru";
+
     private MessageSource messageSource;
 
     @Autowired
@@ -24,5 +26,9 @@ public class LocalisationService {
 
     public String getMessage(String messageCode, Object[] args, @Nonnull Locale locale) {
         return messageSource.getMessage(messageCode, args, locale);
+    }
+
+    public List<Locale> getSupportedLocales() {
+        return List.of(new Locale(RU_LOCALE));
     }
 }

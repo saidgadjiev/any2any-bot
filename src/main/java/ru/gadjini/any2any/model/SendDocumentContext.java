@@ -1,7 +1,5 @@
 package ru.gadjini.any2any.model;
 
-import org.telegram.telegrambots.meta.api.objects.Document;
-
 import java.io.File;
 
 public class SendDocumentContext {

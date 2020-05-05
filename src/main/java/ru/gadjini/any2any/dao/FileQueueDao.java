@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.service.converter.api.Format;
 
 import java.sql.Types;
 import java.util.List;
@@ -20,8 +21,8 @@ public class FileQueueDao {
 
     public void add(FileQueueItem queueItem) {
         jdbcTemplate.query(
-                "INSERT INTO file_queue (user_id, file_id, mime_type, size, message_id, file_name)\n" +
-                        "    VALUES (?, ?, ?, ?, ?, ?) RETURNING *",
+                "INSERT INTO file_queue (user_id, file_id, mime_type, size, message_id, file_name, target_format)\n" +
+                        "    VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *",
                 ps -> {
                     ps.setInt(1, queueItem.getUserId());
                     ps.setString(2, queueItem.getFileId());
@@ -33,6 +34,7 @@ public class FileQueueDao {
                     } else {
                         ps.setNull(6, Types.VARCHAR);
                     }
+                    ps.setString(7, queueItem.getTargetFormat().name());
                 },
                 rs -> {
                     if (rs.next()) {
@@ -72,6 +74,7 @@ public class FileQueueDao {
                     fileQueueItem.setFileId(rs.getString(FileQueueItem.FILE_ID));
                     fileQueueItem.setUserId(rs.getInt(FileQueueItem.USER_ID));
                     fileQueueItem.setMimeType(rs.getString(FileQueueItem.MIME_TYPE));
+                    fileQueueItem.setTargetFormat(Format.valueOf(rs.getString(FileQueueItem.TARGET_FORMAT)));
 
                     return fileQueueItem;
                 }

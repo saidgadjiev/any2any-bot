@@ -2,10 +2,12 @@ package ru.gadjini.any2any.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.Document;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.User;
 import ru.gadjini.any2any.dao.FileQueueDao;
 import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.model.TgDocument;
+import ru.gadjini.any2any.service.converter.api.Format;
 
 import java.util.List;
 
@@ -19,7 +21,8 @@ public class FileQueueService {
         this.fileQueueDao = fileQueueDao;
     }
 
-    public FileQueueItem add(User user, int messageId, Document document) {
+    @Transactional
+    public FileQueueItem add(User user, int messageId, TgDocument document, Format targetFormat) {
         FileQueueItem fileQueueItem = new FileQueueItem();
         fileQueueItem.setFileId(document.getFileId());
         fileQueueItem.setSize(document.getFileSize());
@@ -27,6 +30,7 @@ public class FileQueueService {
         fileQueueItem.setUserId(user.getId());
         fileQueueItem.setMessageId(messageId);
         fileQueueItem.setFileName(document.getFileName());
+        fileQueueItem.setTargetFormat(targetFormat);
 
         fileQueueDao.add(fileQueueItem);
         fileQueueItem.setPlaceInQueue(fileQueueDao.getPlaceInQueue(fileQueueItem.getId()));

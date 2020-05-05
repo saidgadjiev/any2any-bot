@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.domain;
 
+import ru.gadjini.any2any.service.converter.api.Format;
+
 import java.time.ZonedDateTime;
 
 public class FileQueueItem {
@@ -22,6 +24,8 @@ public class FileQueueItem {
 
     public static final String CREATED_AT = "created_at";
 
+    public static final String TARGET_FORMAT = "target_format";
+
     public static final String PLACE_IN_QUEUE = "place_in_queue";
 
     private int id;
@@ -41,6 +45,8 @@ public class FileQueueItem {
     private int size;
 
     private int placeInQueue;
+
+    private Format targetFormat;
 
     public int getId() {
         return id;
@@ -112,5 +118,13 @@ public class FileQueueItem {
 
     public void setPlaceInQueue(int placeInQueue) {
         this.placeInQueue = placeInQueue;
+    }
+
+    public Format getTargetFormat() {
+        return targetFormat;
+    }
+
+    public void setTargetFormat(Format targetFormat) {
+        this.targetFormat = targetFormat;
     }
 }

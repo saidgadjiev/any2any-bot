@@ -1,7 +1,5 @@
 package ru.gadjini.any2any.job;
 
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +10,10 @@ import ru.gadjini.any2any.model.SendDocumentContext;
 import ru.gadjini.any2any.service.FileQueueService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.converter.api.Any2AnyConverter;
+import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
-import ru.gadjini.any2any.util.MimeTypeUtils;
+import ru.gadjini.any2any.util.FormatUtils;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -46,7 +45,7 @@ public class ConverterJob {
         for (FileQueueItem fileQueueItem : items) {
             Any2AnyConverter<ConvertResult> candidate = getCandidate(fileQueueItem);
             if (candidate != null) {
-                try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
+                try (ConvertResult convertResult = candidate.convert(fileQueueItem, fileQueueItem.getTargetFormat())) {
                     sendResult(fileQueueItem, convertResult);
                     queueService.delete(fileQueueItem.getId());
                 } catch (Exception ex) {
@@ -59,9 +58,9 @@ public class ConverterJob {
     }
 
     private Any2AnyConverter<ConvertResult> getCandidate(FileQueueItem fileQueueItem) {
-        String extension = getExtension(fileQueueItem.getFileName(), fileQueueItem.getMimeType());
+        Format format = FormatUtils.getFormat(fileQueueItem.getFileName(), fileQueueItem.getMimeType());
         for (Any2AnyConverter<ConvertResult> any2AnyConverter : any2AnyConverters) {
-            if (any2AnyConverter.accept(extension)) {
+            if (any2AnyConverter.accept(format)) {
                 return any2AnyConverter;
             }
         }
@@ -77,15 +76,5 @@ public class ConverterJob {
                 messageService.sendDocument(sendDocumentContext);
                 break;
         }
-    }
-
-    private String getExtension(String fileName, String mimeType) {
-        String extension = MimeTypeUtils.getExtension(mimeType);
-
-        if (StringUtils.isNotBlank(extension)) {
-            return extension.substring(1);
-        }
-
-        return FilenameUtils.getExtension(fileName);
     }
 }

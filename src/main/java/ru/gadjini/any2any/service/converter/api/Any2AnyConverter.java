@@ -5,7 +5,7 @@ import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
 
 public interface Any2AnyConverter<T extends ConvertResult> {
 
-    T convert(FileQueueItem fileQueueItem);
+    T convert(FileQueueItem fileQueueItem, Format targetFormat);
 
-    boolean accept(String extension);
+    boolean accept(Format format);
 }

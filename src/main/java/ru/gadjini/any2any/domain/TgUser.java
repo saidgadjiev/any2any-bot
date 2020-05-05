@@ -4,7 +4,7 @@ import java.util.Locale;
 
 public class TgUser {
 
-    private static final String TYPE = "tg_user";
+    public static final String TYPE = "tg_user";
 
     public static final String USER_ID = "user_id";
 

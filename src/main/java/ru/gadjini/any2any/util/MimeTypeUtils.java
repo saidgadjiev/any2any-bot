@@ -4,11 +4,6 @@ import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypeException;
 import org.apache.tika.mime.MimeTypes;
 
-import javax.activation.MimetypesFileTypeMap;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
 public class MimeTypeUtils {
 
     private MimeTypeUtils() {}

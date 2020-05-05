@@ -12,6 +12,7 @@ import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Any2AnyConverter;
+import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
 
 import javax.annotation.PostConstruct;
@@ -21,7 +22,7 @@ import java.util.Set;
 @Component
 public class Word2AnyConverter implements Any2AnyConverter<FileResult> {
 
-    private static final Set<String> ACCEPT_EXTENSIONS = Set.of("doc", "docx");
+    private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.DOC, Format.DOCX);
 
     private TelegramService telegramService;
 
@@ -39,7 +40,20 @@ public class Word2AnyConverter implements Any2AnyConverter<FileResult> {
     }
 
     @Override
-    public FileResult convert(FileQueueItem queueItem) {
+    public FileResult convert(FileQueueItem queueItem, Format targetFormat) {
+        if (targetFormat == Format.PDF) {
+            return toPdf(queueItem);
+        }
+
+        throw new IllegalArgumentException();
+    }
+
+    @Override
+    public boolean accept(Format format) {
+        return ACCEPT_FORMATS.contains(format);
+    }
+
+    private FileResult toPdf(FileQueueItem queueItem) {
         File file = telegramService.downloadFileByFileId(queueItem.getFileId());
 
         try {
@@ -53,11 +67,6 @@ public class Word2AnyConverter implements Any2AnyConverter<FileResult> {
         } finally {
             FileUtils.deleteQuietly(file);
         }
-    }
-
-    @Override
-    public boolean accept(String extension) {
-        return ACCEPT_EXTENSIONS.contains(extension);
     }
 
     private String getPdfFileName(String fileName) {

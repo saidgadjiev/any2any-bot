@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.model.SendDocumentContext;
@@ -41,6 +42,13 @@ public class MessageService {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    public void sendBotRestartedMessage(long chatId, ReplyKeyboard replyKeyboard, Locale locale) {
+        sendMessage(
+                new SendMessageContext(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_BOT_RESTARTED, locale))
+                        .replyKeyboard(replyKeyboard)
+        );
     }
 
     public void sendDocument(SendDocumentContext sendDocumentContext) {
