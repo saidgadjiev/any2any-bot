@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS file_queue (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES tg_user(user_id) ON DELETE RESTRICT,
-    file_id VARCHAR(128) NOT NULL,
+    file_id TEXT NOT NULL,
     file_name VARCHAR(256),
     size INT NOT NULL,
     mime_type VARCHAR(256),

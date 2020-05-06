@@ -8,7 +8,6 @@ import ru.gadjini.any2any.util.MimeTypeUtils;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
 
 @Service
 public class FormatService {
@@ -16,7 +15,8 @@ public class FormatService {
     private final Map<List<Format>, List<Format>> formats = Map.of(
             List.of(Format.DOC, Format.DOCX), List.of(Format.PDF),
             List.of(Format.PNG, Format.JPEG, Format.JPG, Format.DEVICE_PHOTO), List.of(Format.PDF),
-            List.of(Format.URL), List.of(Format.PDF)
+            List.of(Format.URL), List.of(Format.PDF),
+            List.of(Format.TEXT), List.of(Format.PDF)
     );
 
     public List<Format> getTargetFormats(Format srcFormat) {
