@@ -37,6 +37,7 @@ public class FileQueueService {
         fileQueueItem.setUserId(user.getId());
         fileQueueItem.setMessageId(convertState.getMessageId());
         fileQueueItem.setFileName(convertState.getFileName());
+        fileQueueItem.setMimeType(convertState.getMimeType());
         if (StringUtils.isBlank(fileQueueItem.getFileName())) {
             fileQueueItem.setFileName(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, new Locale(convertState.getUserLanguage())));
         }

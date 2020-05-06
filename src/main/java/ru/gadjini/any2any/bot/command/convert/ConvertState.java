@@ -10,6 +10,8 @@ public class ConvertState {
 
     private String fileName;
 
+    private String mimeType;
+
     private Integer fileSize;
 
     private int messageId;
@@ -64,5 +66,13 @@ public class ConvertState {
 
     public void setUserLanguage(String userLanguage) {
         this.userLanguage = userLanguage;
+    }
+
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
     }
 }

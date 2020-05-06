@@ -2,7 +2,6 @@ package ru.gadjini.any2any.service.converter.impl;
 
 import com.aspose.words.SaveFormat;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
@@ -12,6 +11,7 @@ import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatService;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
+import ru.gadjini.any2any.util.Any2AnyFileNameUtils;
 
 import java.io.File;
 import java.util.Set;
@@ -46,7 +46,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
         try {
             com.aspose.words.Document asposeDocument = new com.aspose.words.Document(file.getAbsolutePath());
-            File pdfFile = fileService.createTempFile(getPdfFileName(queueItem.getFileName()));
+            File pdfFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), "pdf"));
             asposeDocument.save(pdfFile.getAbsolutePath(), SaveFormat.PDF);
 
             return new FileResult(pdfFile);
@@ -55,9 +55,5 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         } finally {
             FileUtils.deleteQuietly(file);
         }
-    }
-
-    private String getPdfFileName(String fileName) {
-        return FilenameUtils.removeExtension(fileName) + ".pdf";
     }
 }

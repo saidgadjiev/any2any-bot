@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS file_queue (
     file_id VARCHAR(128) NOT NULL,
     file_name VARCHAR(256),
     size INT NOT NULL,
+    mime_type VARCHAR(256),
     message_id INT NOT NULL,
     created_at TIMESTAMP(0) DEFAULT NOW(),
     format VARCHAR(32) NOT NULL,

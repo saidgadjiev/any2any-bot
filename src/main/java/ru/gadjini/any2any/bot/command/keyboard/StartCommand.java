@@ -131,6 +131,7 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
             convertState.setFileId(message.getDocument().getFileId());
             convertState.setFileSize(message.getDocument().getFileSize());
             convertState.setFileName(message.getDocument().getFileName());
+            convertState.setMimeType(message.getDocument().getMimeType());
             convertState.setFormat(formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType()));
         } else if (message.hasPhoto()) {
             PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();

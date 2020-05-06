@@ -21,4 +21,6 @@ public class MessagesProperties {
     public static final String MESSAGE_BOT_RESTARTED = "message.bot.restarted";
 
     public static final String MESSAGE_MAIN_MENU = "message.main.menu";
+
+    public static final String MESSAGE_UNSUPPORTED_FORMAT = "message.unsupported.format";
 }

@@ -2,11 +2,7 @@ package ru.gadjini.any2any.service.converter.impl;
 
 import com.aspose.imaging.Image;
 import com.aspose.imaging.fileformats.pdf.PdfDocumentInfo;
-import com.aspose.imaging.fileformats.png.PngImage;
 import com.aspose.imaging.imageoptions.PdfOptions;
-import com.aspose.imaging.internal.ls.P;
-import com.aspose.pdf.Document;
-import com.aspose.pdf.Page;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,6 +13,7 @@ import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatService;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
+import ru.gadjini.any2any.util.Any2AnyFileNameUtils;
 
 import java.io.*;
 import java.util.Set;
@@ -54,7 +51,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             PdfOptions pdfOptions = new PdfOptions();
             pdfOptions.setPdfDocumentInfo(new PdfDocumentInfo());
 
-            File tempFile = fileService.createTempFile(fileQueueItem.getFileName() + ".pdf");
+            File tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
             try (OutputStream outputStream = new FileOutputStream(tempFile)) {
                 image.save(outputStream, pdfOptions);
             }

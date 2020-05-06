@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.dao;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -21,7 +22,7 @@ public class FileQueueDao {
 
     public void add(FileQueueItem queueItem) {
         jdbcTemplate.query(
-                "INSERT INTO file_queue (user_id, file_id, format, size, message_id, file_name, target_format)\n" +
+                "INSERT INTO file_queue (user_id, file_id, format, size, message_id, file_name, target_format, mime_type)\n" +
                         "    VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *",
                 ps -> {
                     ps.setInt(1, queueItem.getUserId());
@@ -35,6 +36,11 @@ public class FileQueueDao {
                         ps.setNull(6, Types.VARCHAR);
                     }
                     ps.setString(7, queueItem.getTargetFormat().name());
+                    if (StringUtils.isNotBlank(queueItem.getMimeType())) {
+                        ps.setString(8, queueItem.getMimeType());
+                    } else {
+                        ps.setNull(8, Types.VARCHAR);
+                    }
                 },
                 rs -> {
                     if (rs.next()) {

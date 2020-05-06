@@ -18,6 +18,8 @@ public class FileQueueItem {
 
     public static final String FILE_NAME = "file_name";
 
+    public static final String MIME_TYPE = "mime_type";
+
     public static final String FORMAT = "format";
 
     public static final String SIZE = "size";
@@ -39,6 +41,8 @@ public class FileQueueItem {
     private String fileId;
 
     private String fileName;
+
+    private String mimeType;
 
     private Format format;
 
@@ -94,6 +98,14 @@ public class FileQueueItem {
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
+    }
+
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
     }
 
     public Format getFormat() {
