@@ -104,14 +104,10 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
 
     @Override
     public void restore(TgMessage message) {
+        states.remove(message.getUser().getId());
         Locale locale = userService.getLocale(message.getUser().getId());
         messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
                 .replyKeyboard(replyKeyboardService.removeKeyboard()));
-    }
-
-    @Override
-    public void leave(long chatId) {
-        states.remove((int) chatId);
     }
 
     @Override
