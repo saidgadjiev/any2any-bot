@@ -23,7 +23,7 @@ public class FileQueueDao {
     public void add(FileQueueItem queueItem) {
         jdbcTemplate.query(
                 "INSERT INTO file_queue (user_id, file_id, format, size, message_id, file_name, target_format, mime_type)\n" +
-                        "    VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *",
+                        "    VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *",
                 ps -> {
                     ps.setInt(1, queueItem.getUserId());
                     ps.setString(2, queueItem.getFileId());

@@ -10,10 +10,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.telegram.telegrambots.ApiContextInitializer;
 import ru.gadjini.any2any.property.BotProperties;
 import ru.gadjini.any2any.property.ProxyProperties;
+import ru.gadjini.any2any.property.WkhtmltopdfProperties;
 
 @EnableConfigurationProperties(value = {
         BotProperties.class,
-        ProxyProperties.class
+        ProxyProperties.class,
+        WkhtmltopdfProperties.class
 })
 @EnableScheduling
 @SpringBootApplication

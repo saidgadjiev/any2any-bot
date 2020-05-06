@@ -82,6 +82,7 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
         } else if (message.hasText()) {
             ConvertState convertState = states.get(message.getFrom().getId());
             FileQueueItem queueItem = fileQueueService.add(message.getFrom(), convertState, Format.valueOf(message.getText().toUpperCase()));
+            states.remove(message.getFrom().getId());
             sendQueuedMessage(queueItem, new Locale(convertState.getUserLanguage()));
         }
     }
@@ -138,6 +139,10 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
             convertState.setFileId(photoSize.getFileId());
             convertState.setFileSize(photoSize.getFileSize());
             convertState.setFormat(Format.DEVICE_PHOTO);
+        } else if (message.hasText()) {
+            convertState.setFileId(message.getText());
+            convertState.setFileSize(message.getText().length());
+            convertState.setFormat(formatService.getFormat(message.getText()));
         }
 
         return convertState;
