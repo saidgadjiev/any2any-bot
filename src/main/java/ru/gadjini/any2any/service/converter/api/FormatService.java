@@ -16,7 +16,8 @@ public class FormatService {
             List.of(Format.DOC, Format.DOCX), List.of(Format.PDF),
             List.of(Format.PNG, Format.JPEG, Format.JPG, Format.DEVICE_PHOTO), List.of(Format.PDF),
             List.of(Format.URL), List.of(Format.PDF),
-            List.of(Format.TEXT), List.of(Format.PDF)
+            List.of(Format.TEXT), List.of(Format.PDF),
+            List.of(Format.TXT), List.of(Format.PDF)
     );
 
     public List<Format> getTargetFormats(Format srcFormat) {

@@ -52,9 +52,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             pdfOptions.setPdfDocumentInfo(new PdfDocumentInfo());
 
             File tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
-            try (OutputStream outputStream = new FileOutputStream(tempFile)) {
-                image.save(outputStream, pdfOptions);
-            }
+            image.save(tempFile.getAbsolutePath(), pdfOptions);
 
             return new FileResult(tempFile);
         } catch (Exception ex) {

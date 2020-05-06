@@ -1,6 +1,9 @@
 package ru.gadjini.any2any.service.converter.impl;
 
-import com.aspose.pdf.*;
+import com.aspose.pdf.Document;
+import com.aspose.pdf.FontRepository;
+import com.aspose.pdf.Page;
+import com.aspose.pdf.TextFragment;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
@@ -11,15 +14,11 @@ import ru.gadjini.any2any.service.converter.api.FormatService;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.util.Any2AnyFileNameUtils;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.InputStream;
 import java.util.Set;
 
 @Component
 public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
-
-    private static final Position PDF_PAGE_START_POSITION = new Position(10, 762);
 
     private FileService fileService;
 
@@ -44,10 +43,8 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             Page page = document.getPages().add();
             TextFragment textFragment = new TextFragment(fileQueueItem.getFileId());
             textFragment.getTextState().setFont(FontRepository.findFont("Verdana"));
-            textFragment.getTextState().setFontSize(14);
-            textFragment.setPosition(PDF_PAGE_START_POSITION);
-            TextBuilder textBuilder = new TextBuilder(page);
-            textBuilder.appendText(textFragment);
+            textFragment.getTextState().setFontSize(12);
+            page.getParagraphs().add(textFragment);
 
             File file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
             document.save(file.getAbsolutePath());

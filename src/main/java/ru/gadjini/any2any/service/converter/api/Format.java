@@ -8,6 +8,7 @@ public enum Format {
     PNG,
     JPEG,
     JPG,
+    TXT,
     DEVICE_PHOTO,
     URL,
     TEXT
