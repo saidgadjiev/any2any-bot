@@ -45,17 +45,21 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             stopWatch.start();
 
             Document document = new Document();
-            Page page = document.getPages().add();
-            TextFragment textFragment = new TextFragment(fileQueueItem.getFileId());
-            textFragment.getTextState().setFont(FontRepository.findFont("Verdana"));
-            textFragment.getTextState().setFontSize(12);
-            page.getParagraphs().add(textFragment);
+            try {
+                Page page = document.getPages().add();
+                TextFragment textFragment = new TextFragment(fileQueueItem.getFileId());
+                textFragment.getTextState().setFont(FontRepository.findFont("Verdana"));
+                textFragment.getTextState().setFontSize(12);
+                page.getParagraphs().add(textFragment);
 
-            File file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
-            document.save(file.getAbsolutePath());
+                File file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
+                document.save(file.getAbsolutePath());
 
-            stopWatch.stop();
-            return new FileResult(file, stopWatch.getTime(TimeUnit.SECONDS));
+                stopWatch.stop();
+                return new FileResult(file, stopWatch.getTime(TimeUnit.SECONDS));
+            } finally {
+                document.dispose();
+            }
         } catch (Exception ex) {
             throw new ConvertException(ex);
         }

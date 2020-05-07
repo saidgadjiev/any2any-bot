@@ -59,16 +59,20 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             Document doc = new Document();
-            Page page = doc.getPages().add();
-            TextFragment text = new TextFragment(builder.toString());
+            try {
+                Page page = doc.getPages().add();
+                TextFragment text = new TextFragment(builder.toString());
 
-            page.getParagraphs().add(text);
+                page.getParagraphs().add(text);
 
-            File result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
-            doc.save(result.getAbsolutePath());
+                File result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
+                doc.save(result.getAbsolutePath());
 
-            stopWatch.stop();
-            return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+                stopWatch.stop();
+                return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+            } finally {
+                doc.dispose();
+            }
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {

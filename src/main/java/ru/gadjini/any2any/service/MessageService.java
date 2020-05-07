@@ -1,11 +1,14 @@
 package ru.gadjini.any2any.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.model.SendDocumentContext;
 import ru.gadjini.any2any.model.SendMessageContext;
@@ -14,6 +17,8 @@ import java.util.Locale;
 
 @Service
 public class MessageService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageService.class);
 
     private TelegramService telegramService;
 
@@ -62,6 +67,9 @@ public class MessageService {
 
         try {
             telegramService.execute(sendDocument);
+        } catch (TelegramApiRequestException e) {
+            LOGGER.error(e.getMessage() + ". " + e.getApiResponse() + "(" + e.getErrorCode() + "). Params " + e.getParameters(), e);
+            throw new RuntimeException(e);
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
