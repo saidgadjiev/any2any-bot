@@ -32,8 +32,8 @@ public class Url2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     @Override
-    public ConvertResult convert(FileQueueItem fileQueueItem, Format targetFormat) {
-        if (targetFormat == Format.PDF) {
+    public ConvertResult convert(FileQueueItem fileQueueItem) {
+        if (fileQueueItem.getTargetFormat() == Format.PDF) {
             return toPdf(fileQueueItem);
         }
         throw new UnsupportedOperationException();

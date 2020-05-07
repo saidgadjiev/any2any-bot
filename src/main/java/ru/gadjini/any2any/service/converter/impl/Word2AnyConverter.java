@@ -35,8 +35,8 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     @Override
-    public FileResult convert(FileQueueItem queueItem, Format targetFormat) {
-        if (targetFormat == Format.PDF) {
+    public FileResult convert(FileQueueItem queueItem) {
+        if (queueItem.getTargetFormat() == Format.PDF) {
             return toPdf(queueItem);
         }
 

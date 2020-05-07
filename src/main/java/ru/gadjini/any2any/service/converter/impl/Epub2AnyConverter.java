@@ -8,7 +8,6 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
-import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
@@ -36,52 +35,44 @@ public class Epub2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     @Override
-    public ConvertResult convert(FileQueueItem fileQueueItem, Format targetFormat) {
-        switch (targetFormat) {
+    public ConvertResult convert(FileQueueItem fileQueueItem) {
+        switch (fileQueueItem.getTargetFormat()) {
             case PDF:
-                return toPdf(fileQueueItem);
             case DOC:
             case DOCX:
-                return toWord(fileQueueItem, targetFormat);
+                return toPdfOrWord(fileQueueItem);
         }
 
         throw new UnsupportedOperationException();
     }
 
-    //Isn't working
-    private FileResult toWord(FileQueueItem fileQueueItem, Format targetFormat) {
-        File file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
-        try {
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
-
-            com.aspose.words.Document document = new com.aspose.words.Document(file.getAbsolutePath());
-            File result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), targetFormat.getExt()));
-            document.save(result.getAbsolutePath(), targetFormat == Format.DOC ? SaveFormat.Doc : SaveFormat.DocX);
-
-            stopWatch.stop();
-            return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
-        } catch (Exception e) {
-            throw new ConvertException(e);
-        } finally {
-            FileUtils.deleteQuietly(file);
-        }
-    }
-
-    private FileResult toPdf(FileQueueItem fileQueueItem) {
+    private FileResult toPdfOrWord(FileQueueItem fileQueueItem) {
         File file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
             Document document = new Document(file.getAbsolutePath(), new EpubLoadOptions());
-            File result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
-            document.save(result.getAbsolutePath(), SaveFormat.Pdf);
+            File result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+            document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
             stopWatch.stop();
             return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
         } finally {
             FileUtils.deleteQuietly(file);
         }
+    }
+
+    private int getSaveFormat(Format format) {
+        switch (format) {
+            case PDF:
+                return SaveFormat.Pdf;
+            case DOC:
+                return SaveFormat.Doc;
+            case DOCX:
+                return SaveFormat.DocX;
+        }
+
+        throw new UnsupportedOperationException();
     }
 }

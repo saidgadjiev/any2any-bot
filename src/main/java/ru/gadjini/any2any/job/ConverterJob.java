@@ -12,7 +12,6 @@ import ru.gadjini.any2any.model.SendDocumentContext;
 import ru.gadjini.any2any.service.FileQueueService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.converter.api.Any2AnyConverter;
-import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
 
@@ -52,7 +51,7 @@ public class ConverterJob {
         for (FileQueueItem fileQueueItem : items) {
             Any2AnyConverter<ConvertResult> candidate = getCandidate(fileQueueItem);
             if (candidate != null) {
-                try (ConvertResult convertResult = candidate.convert(fileQueueItem, fileQueueItem.getTargetFormat())) {
+                try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
                     logConvertFinished(fileQueueItem, convertResult.time());
                     sendResult(fileQueueItem, convertResult);
                     queueService.delete(fileQueueItem.getId());

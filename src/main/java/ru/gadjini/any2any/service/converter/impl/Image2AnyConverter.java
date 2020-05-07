@@ -37,8 +37,8 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     @Override
-    public FileResult convert(FileQueueItem fileQueueItem, Format targetFormat) {
-        switch (targetFormat) {
+    public FileResult convert(FileQueueItem fileQueueItem) {
+        switch (fileQueueItem.getTargetFormat()) {
             case PDF:
                 return toPdf(fileQueueItem);
         }
