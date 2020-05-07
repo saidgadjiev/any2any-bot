@@ -81,6 +81,7 @@ public class FileQueueDao {
                     fileQueueItem.setUserId(rs.getInt(FileQueueItem.USER_ID));
                     fileQueueItem.setFormat(Format.valueOf(rs.getString(FileQueueItem.FORMAT)));
                     fileQueueItem.setTargetFormat(Format.valueOf(rs.getString(FileQueueItem.TARGET_FORMAT)));
+                    fileQueueItem.setSize(rs.getInt(FileQueueItem.SIZE));
 
                     return fileQueueItem;
                 }

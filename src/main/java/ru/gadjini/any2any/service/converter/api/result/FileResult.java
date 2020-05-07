@@ -4,11 +4,12 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 
-public class FileResult implements ConvertResult {
+public class FileResult extends BaseConvertResult {
 
     private final File file;
 
-    public FileResult(File file) {
+    public FileResult(File file, long time) {
+        super(time);
         this.file = file;
     }
 
@@ -17,7 +18,7 @@ public class FileResult implements ConvertResult {
     }
 
     @Override
-    public ResultType getResultType() {
+    public ResultType resultType() {
         return ResultType.FILE;
     }
 

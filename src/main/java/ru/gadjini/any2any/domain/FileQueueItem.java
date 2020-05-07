@@ -139,4 +139,6 @@ public class FileQueueItem {
     public void setTargetFormat(Format targetFormat) {
         this.targetFormat = targetFormat;
     }
+
+
 }

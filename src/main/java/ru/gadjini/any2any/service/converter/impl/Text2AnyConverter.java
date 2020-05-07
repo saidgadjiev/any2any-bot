@@ -4,6 +4,7 @@ import com.aspose.pdf.Document;
 import com.aspose.pdf.FontRepository;
 import com.aspose.pdf.Page;
 import com.aspose.pdf.TextFragment;
+import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
@@ -16,6 +17,7 @@ import ru.gadjini.any2any.util.Any2AnyFileNameUtils;
 
 import java.io.File;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
@@ -39,6 +41,9 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult toPdf(FileQueueItem fileQueueItem) {
         try {
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+
             Document document = new Document();
             Page page = document.getPages().add();
             TextFragment textFragment = new TextFragment(fileQueueItem.getFileId());
@@ -49,7 +54,8 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             File file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
             document.save(file.getAbsolutePath());
 
-            return new FileResult(file);
+            stopWatch.stop();
+            return new FileResult(file, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
         }

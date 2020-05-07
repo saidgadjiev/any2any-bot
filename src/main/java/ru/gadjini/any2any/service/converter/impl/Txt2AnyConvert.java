@@ -5,6 +5,7 @@ import com.aspose.pdf.Page;
 import com.aspose.pdf.TextFragment;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
@@ -22,6 +23,7 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
@@ -47,12 +49,15 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toPdf(FileQueueItem fileQueueItem) {
-        File txt = telegramService.downloadFileByFileId(fileQueueItem.getFileId());
+        File txt = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
         try {
             List<String> lines = Files.readLines(txt, StandardCharsets.UTF_8);
             StringBuilder builder = new StringBuilder();
             lines.forEach(builder::append);
+
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
             Document doc = new Document();
             Page page = doc.getPages().add();
             TextFragment text = new TextFragment(builder.toString());
@@ -62,7 +67,8 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
             File result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
             doc.save(result.getAbsolutePath());
 
-            return new FileResult(result);
+            stopWatch.stop();
+            return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {

@@ -9,7 +9,17 @@ public enum Format {
     JPEG,
     JPG,
     TXT,
-    DEVICE_PHOTO,
+    EPUB,
+    DEVICE_PHOTO {
+        @Override
+        public String getExt() {
+            return "png";
+        }
+    },
     URL,
-    TEXT
+    TEXT;
+
+    public String getExt() {
+        return name().toLowerCase();
+    }
 }

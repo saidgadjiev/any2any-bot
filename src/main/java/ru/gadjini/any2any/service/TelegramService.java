@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.DefaultAbsSender;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
@@ -14,9 +15,13 @@ public class TelegramService extends DefaultAbsSender {
 
     private final BotProperties botProperties;
 
-    public TelegramService(BotProperties botProperties, DefaultBotOptions botOptions) {
+    private FileService fileService;
+
+    @Autowired
+    public TelegramService(BotProperties botProperties, DefaultBotOptions botOptions, FileService fileService) {
         super(botOptions);
         this.botProperties = botProperties;
+        this.fileService = fileService;
     }
 
     public String getBotToken() {
@@ -32,5 +37,20 @@ public class TelegramService extends DefaultAbsSender {
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public File downloadFileByFileId(String fileId, File outputFile) {
+        try {
+            GetFile getFile = new GetFile();
+            getFile.setFileId(fileId);
+            org.telegram.telegrambots.meta.api.objects.File file = execute(getFile);
+            return downloadFile(file, outputFile);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public File downloadFileByFileId(String fileId, String ext) {
+        return downloadFileByFileId(fileId, fileService.createTempFile(fileId, ext));
     }
 }

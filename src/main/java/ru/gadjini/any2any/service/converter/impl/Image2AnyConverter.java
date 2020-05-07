@@ -4,6 +4,7 @@ import com.aspose.imaging.Image;
 import com.aspose.imaging.fileformats.pdf.PdfDocumentInfo;
 import com.aspose.imaging.imageoptions.PdfOptions;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
@@ -15,8 +16,9 @@ import ru.gadjini.any2any.service.converter.api.FormatService;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.util.Any2AnyFileNameUtils;
 
-import java.io.*;
+import java.io.File;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
@@ -45,16 +47,19 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toPdf(FileQueueItem fileQueueItem) {
-        File file = telegramService.downloadFileByFileId(fileQueueItem.getFileId());
+        File file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
-        try (InputStream inputStream = new FileInputStream(file); Image image = Image.load(inputStream)) {
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        try (Image image = Image.load(file.getAbsolutePath())) {
             PdfOptions pdfOptions = new PdfOptions();
             pdfOptions.setPdfDocumentInfo(new PdfDocumentInfo());
 
             File tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
             image.save(tempFile.getAbsolutePath(), pdfOptions);
 
-            return new FileResult(tempFile);
+            stopWatch.stop();
+            return new FileResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {

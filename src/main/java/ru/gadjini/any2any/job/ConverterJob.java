@@ -12,6 +12,7 @@ import ru.gadjini.any2any.model.SendDocumentContext;
 import ru.gadjini.any2any.service.FileQueueService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.converter.api.Any2AnyConverter;
+import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
 
@@ -52,6 +53,7 @@ public class ConverterJob {
             Any2AnyConverter<ConvertResult> candidate = getCandidate(fileQueueItem);
             if (candidate != null) {
                 try (ConvertResult convertResult = candidate.convert(fileQueueItem, fileQueueItem.getTargetFormat())) {
+                    logConvertFinished(fileQueueItem, convertResult.time());
                     sendResult(fileQueueItem, convertResult);
                     queueService.delete(fileQueueItem.getId());
                 } catch (Exception ex) {
@@ -74,13 +76,24 @@ public class ConverterJob {
     }
 
     private void sendResult(FileQueueItem fileQueueItem, ConvertResult convertResult) {
-        switch (convertResult.getResultType()) {
+        switch (convertResult.resultType()) {
             case FILE:
                 SendDocumentContext sendDocumentContext = new SendDocumentContext(fileQueueItem.getUserId(), ((FileResult) convertResult).getFile())
                         .replyMessageId(fileQueueItem.getMessageId());
                 messageService.sendDocument(sendDocumentContext);
                 break;
         }
+    }
+
+    private void logConvertFinished(FileQueueItem fileQueueItem, long time) {
+        LOGGER.debug(
+                "Convert from {} to {} has taken {}. File size {} id {}",
+                fileQueueItem.getFormat(),
+                fileQueueItem.getTargetFormat(),
+                time,
+                fileQueueItem.getSize(),
+                fileQueueItem.getFileId()
+        );
     }
 
     private void applyLicenses() {

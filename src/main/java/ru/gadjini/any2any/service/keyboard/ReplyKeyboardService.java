@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service.keyboard;
 
+import com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -14,6 +15,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Service
 public class ReplyKeyboardService {
@@ -37,7 +40,10 @@ public class ReplyKeyboardService {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
         List<KeyboardRow> keyboard = replyKeyboardMarkup.getKeyboard();
-        targetFormats.forEach(s -> keyboard.add(keyboardRow(s.name())));
+        List<List<Format>> lists = Lists.partition(targetFormats, 2);
+        for (List<Format> list: lists) {
+            keyboard.add(keyboardRow(list.stream().map(Enum::name).toArray(String[]::new)));
+        }
         keyboard.add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
 
         return replyKeyboardMarkup;
