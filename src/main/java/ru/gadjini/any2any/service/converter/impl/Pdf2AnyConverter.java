@@ -50,7 +50,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 File result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
                 document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
-                stopWatch.start();
+                stopWatch.stop();
                 return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
                 document.dispose();
