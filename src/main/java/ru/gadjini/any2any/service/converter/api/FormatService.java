@@ -18,7 +18,7 @@ public class FormatService {
             List.of(Format.URL), List.of(Format.PDF),
             List.of(Format.TEXT), List.of(Format.PDF),
             List.of(Format.TXT), List.of(Format.PDF),
-            List.of(Format.EPUB), List.of(Format.PDF, Format.DOC, Format.DOCX)
+            List.of(Format.EPUB), List.of(Format.PDF, Format.DOC, Format.DOCX, Format.RTF)
     );
 
     public List<Format> getTargetFormats(Format srcFormat) {

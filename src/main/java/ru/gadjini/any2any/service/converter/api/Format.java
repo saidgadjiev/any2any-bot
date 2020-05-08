@@ -4,6 +4,7 @@ public enum Format {
 
     DOC,
     DOCX,
+    RTF,
     PDF,
     PNG,
     JPEG,
