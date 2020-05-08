@@ -11,7 +11,7 @@ public abstract class BaseAny2AnyConverter<T extends ConvertResult> implements A
 
     private final Set<Format> availableFormats;
 
-    private FormatService formatService;
+    FormatService formatService;
 
     protected BaseAny2AnyConverter(Set<Format> availableFormats, FormatService formatService) {
         this.availableFormats = availableFormats;

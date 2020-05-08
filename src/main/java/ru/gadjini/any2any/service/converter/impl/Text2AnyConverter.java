@@ -32,11 +32,7 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     @Override
     public FileResult convert(FileQueueItem fileQueueItem) {
-        if (fileQueueItem.getTargetFormat() == Format.PDF) {
-            return toPdf(fileQueueItem);
-        }
-
-        throw new UnsupportedOperationException();
+        return toPdf(fileQueueItem);
     }
 
     private FileResult toPdf(FileQueueItem fileQueueItem) {

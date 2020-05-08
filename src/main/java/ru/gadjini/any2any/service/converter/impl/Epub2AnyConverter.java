@@ -38,15 +38,11 @@ public class Epub2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     @Override
     public ConvertResult convert(FileQueueItem fileQueueItem) {
         switch (fileQueueItem.getTargetFormat()) {
-            case PDF:
-            case DOC:
-            case DOCX:
-                return toPdfOrWord(fileQueueItem);
             case RTF:
                 return toRtf(fileQueueItem);
+            default:
+                return doConvert(fileQueueItem);
         }
-
-        throw new UnsupportedOperationException();
     }
 
     private FileResult toRtf(FileQueueItem fileQueueItem) {
@@ -72,7 +68,7 @@ public class Epub2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult toPdfOrWord(FileQueueItem fileQueueItem) {
+    private FileResult doConvert(FileQueueItem fileQueueItem) {
         File file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
         try {
             StopWatch stopWatch = new StopWatch();

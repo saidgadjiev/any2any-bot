@@ -36,14 +36,10 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     @Override
     public FileResult convert(FileQueueItem queueItem) {
-        if (queueItem.getTargetFormat() == Format.PDF) {
-            return toPdf(queueItem);
-        }
-
-        throw new IllegalArgumentException();
+        return doConvert(queueItem);
     }
 
-    private FileResult toPdf(FileQueueItem queueItem) {
+    private FileResult doConvert(FileQueueItem queueItem) {
         File file = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
 
         try {
@@ -52,11 +48,11 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
             com.aspose.words.Document asposeDocument = new com.aspose.words.Document(file.getAbsolutePath());
             try {
-                File pdfFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), "pdf"));
-                asposeDocument.save(pdfFile.getAbsolutePath(), SaveFormat.PDF);
+                File result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), queueItem.getTargetFormat().getExt()));
+                asposeDocument.save(result.getAbsolutePath(), getSaveFormat(queueItem.getTargetFormat()));
 
                 stopWatch.stop();
-                return new FileResult(pdfFile, stopWatch.getTime(TimeUnit.SECONDS));
+                return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
                 asposeDocument.cleanup();
             }
@@ -65,5 +61,22 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         } finally {
             FileUtils.deleteQuietly(file);
         }
+    }
+
+    private int getSaveFormat(Format format) {
+        switch (format) {
+            case PDF:
+                return SaveFormat.PDF;
+            case EPUB:
+                return SaveFormat.EPUB;
+            case RTF:
+                return SaveFormat.RTF;
+            case DOCX:
+                return SaveFormat.DOCX;
+            case DOC:
+                return SaveFormat.DOC;
+        }
+
+        throw new UnsupportedOperationException();
     }
 }
