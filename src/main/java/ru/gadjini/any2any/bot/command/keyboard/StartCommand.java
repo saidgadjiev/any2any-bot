@@ -17,12 +17,12 @@ import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.domain.TgUser;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.model.TgMessage;
-import ru.gadjini.any2any.service.FileQueueService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatService;
+import ru.gadjini.any2any.service.filequeue.FileQueueService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 
 import java.util.Comparator;

@@ -26,6 +26,8 @@ public class FileQueueItem {
 
     public static final String CREATED_AT = "created_at";
 
+    public static final String LAST_RUN_AT = "last_run_at";
+
     public static final String STATUS = "status";
 
     public static final String TARGET_FORMAT = "target_format";

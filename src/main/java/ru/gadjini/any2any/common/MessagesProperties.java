@@ -23,4 +23,16 @@ public class MessagesProperties {
     public static final String MESSAGE_MAIN_MENU = "message.main.menu";
 
     public static final String MESSAGE_UNSUPPORTED_FORMAT = "message.unsupported.format";
+
+    public static final String MESSAGE_ACTIVE_QUERIES_HEADER = "message.active.queries.header";
+
+    public static final String MESSAGE_QUERY_STATUS = "message.query.status";
+
+    public static final String MESSAGE_STATUS_PROCESSING = "message.status.processing";
+
+    public static final String MESSAGE_STATUS_WAITING = "message.status.waiting";
+
+    public static final String MESSAGE_TARGET_FORMAT = "message.target.format";
+
+    public static final String MESSAGE_QUEUE_PLACE = "message.queue.place";
 }

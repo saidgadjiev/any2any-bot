@@ -6,9 +6,16 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.util.JdbcUtils;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public class FileQueueDao {
@@ -81,21 +88,7 @@ public class FileQueueDao {
                         "SELECT *\n" +
                         "FROM queue_items\n" +
                         "ORDER BY created_at;",
-                (rs, rowNum) -> {
-                    FileQueueItem fileQueueItem = new FileQueueItem();
-
-                    fileQueueItem.setId(rs.getInt(FileQueueItem.ID));
-                    fileQueueItem.setMessageId(rs.getInt(FileQueueItem.MESSAGE_ID));
-                    fileQueueItem.setFileName(rs.getString(FileQueueItem.FILE_NAME));
-                    fileQueueItem.setFileId(rs.getString(FileQueueItem.FILE_ID));
-                    fileQueueItem.setUserId(rs.getInt(FileQueueItem.USER_ID));
-                    fileQueueItem.setFormat(Format.valueOf(rs.getString(FileQueueItem.FORMAT)));
-                    fileQueueItem.setTargetFormat(Format.valueOf(rs.getString(FileQueueItem.TARGET_FORMAT)));
-                    fileQueueItem.setSize(rs.getInt(FileQueueItem.SIZE));
-                    fileQueueItem.setStatus(FileQueueItem.Status.fromCode(rs.getInt(FileQueueItem.STATUS)));
-
-                    return fileQueueItem;
-                }
+                (rs, rowNum) -> map(rs)
         );
     }
 
@@ -118,5 +111,44 @@ public class FileQueueDao {
                     ps.setInt(2, id);
                 }
         );
+    }
+
+    public List<FileQueueItem> getActiveQueries(int userId) {
+        return jdbcTemplate.query(
+                "SELECT f.*, queue_place.place_in_queue\n" +
+                        "FROM file_queue f\n" +
+                        "         LEFT JOIN (SELECT id, row_number() over (ORDER BY created_at) as place_in_queue\n" +
+                        "                     FROM file_queue\n" +
+                        "                     WHERE status = 0) queue_place ON f.id = queue_place.id\n" +
+                        "WHERE user_id = ?\n" +
+                        "  AND status IN (0, 1, 2)",
+                ps -> ps.setInt(1, userId),
+                (rs, rowNum) -> map(rs)
+        );
+    }
+
+    private FileQueueItem map(ResultSet rs) throws SQLException {
+        Set<String> columns = JdbcUtils.getColumnNames(rs.getMetaData());
+        FileQueueItem fileQueueItem = new FileQueueItem();
+
+        fileQueueItem.setId(rs.getInt(FileQueueItem.ID));
+        fileQueueItem.setMessageId(rs.getInt(FileQueueItem.MESSAGE_ID));
+        fileQueueItem.setFileName(rs.getString(FileQueueItem.FILE_NAME));
+        fileQueueItem.setFileId(rs.getString(FileQueueItem.FILE_ID));
+        fileQueueItem.setUserId(rs.getInt(FileQueueItem.USER_ID));
+        fileQueueItem.setFormat(Format.valueOf(rs.getString(FileQueueItem.FORMAT)));
+        fileQueueItem.setTargetFormat(Format.valueOf(rs.getString(FileQueueItem.TARGET_FORMAT)));
+        fileQueueItem.setSize(rs.getInt(FileQueueItem.SIZE));
+        Timestamp lastRunAt = rs.getTimestamp(FileQueueItem.LAST_RUN_AT);
+        if (lastRunAt != null) {
+            ZonedDateTime zonedDateTime = ZonedDateTime.of(lastRunAt.toLocalDateTime(), ZoneOffset.UTC);
+            fileQueueItem.setLastRunAt(zonedDateTime);
+        }
+        fileQueueItem.setStatus(FileQueueItem.Status.fromCode(rs.getInt(FileQueueItem.STATUS)));
+        if (columns.contains(FileQueueItem.PLACE_IN_QUEUE)) {
+            fileQueueItem.setPlaceInQueue(rs.getInt(FileQueueItem.PLACE_IN_QUEUE));
+        }
+
+        return fileQueueItem;
     }
 }

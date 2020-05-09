@@ -10,7 +10,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.model.SendDocumentContext;
-import ru.gadjini.any2any.service.FileQueueService;
+import ru.gadjini.any2any.service.filequeue.FileQueueBusinessService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.converter.api.Any2AnyConverter;
 import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
@@ -28,14 +28,14 @@ public class ConverterJob {
 
     private ThreadPoolTaskExecutor taskExecutor;
 
-    private FileQueueService queueService;
+    private FileQueueBusinessService queueService;
 
     private MessageService messageService;
 
     private Set<Any2AnyConverter<ConvertResult>> any2AnyConverters = new LinkedHashSet<>();
 
     @Autowired
-    public ConverterJob(FileQueueService queueService, Set<Any2AnyConverter> any2AnyConvertersSet,
+    public ConverterJob(FileQueueBusinessService queueService, Set<Any2AnyConverter> any2AnyConvertersSet,
                         ThreadPoolTaskExecutor taskExecutor, MessageService messageService) {
         this.queueService = queueService;
         this.taskExecutor = taskExecutor;
