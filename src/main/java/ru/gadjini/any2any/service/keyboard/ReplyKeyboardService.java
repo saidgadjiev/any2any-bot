@@ -29,8 +29,12 @@ public class ReplyKeyboardService {
         this.localisationService = localisationService;
     }
 
-    public ReplyKeyboardMarkup getMainMenu() {
-        return null;
+    public ReplyKeyboardMarkup getMainMenu(Locale locale) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.QUERIES_COMMAND_NAME, locale)));
+
+        return replyKeyboardMarkup;
     }
 
     public ReplyKeyboardMarkup getKeyboard(Format format, Locale locale) {
@@ -39,7 +43,7 @@ public class ReplyKeyboardService {
 
         List<KeyboardRow> keyboard = replyKeyboardMarkup.getKeyboard();
         List<List<Format>> lists = Lists.partition(targetFormats, 2);
-        for (List<Format> list: lists) {
+        for (List<Format> list : lists) {
             keyboard.add(keyboardRow(list.stream().map(Enum::name).toArray(String[]::new)));
         }
         keyboard.add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));

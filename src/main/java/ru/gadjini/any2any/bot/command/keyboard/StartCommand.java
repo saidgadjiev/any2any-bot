@@ -63,7 +63,10 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] strings) {
         TgUser tgUser = userService.save(user);
-        messageService.sendMessage(new SendMessageContext(chat.getId(), localisationService.getMessage(MessagesProperties.MESSAGE_WELCOME, tgUser.getLocale())));
+        messageService.sendMessage(
+                new SendMessageContext(chat.getId(), localisationService.getMessage(MessagesProperties.MESSAGE_WELCOME, tgUser.getLocale()))
+                        .replyKeyboard(replyKeyboardService.getMainMenu(tgUser.getLocale()))
+        );
     }
 
     @Override
@@ -107,7 +110,7 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
         states.remove(message.getUser().getId());
         Locale locale = userService.getLocale(message.getUser().getId());
         messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
-                .replyKeyboard(replyKeyboardService.removeKeyboard()));
+                .replyKeyboard(replyKeyboardService.getMainMenu(locale)));
     }
 
     @Override
@@ -117,7 +120,7 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
 
     private void sendQueuedMessage(FileQueueItem queueItem, Locale locale) {
         String text = localisationService.getMessage(MessagesProperties.MESSAGE_FILE_QUEUED, new Object[]{queueItem.getPlaceInQueue()}, locale);
-        messageService.sendMessage(new SendMessageContext(queueItem.getUserId(), text).replyKeyboard(replyKeyboardService.removeKeyboard()));
+        messageService.sendMessage(new SendMessageContext(queueItem.getUserId(), text).replyKeyboard(replyKeyboardService.getMainMenu(locale)));
     }
 
     private ConvertState createState(Message message) {

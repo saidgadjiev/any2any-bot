@@ -34,5 +34,19 @@ public class MessagesProperties {
 
     public static final String MESSAGE_TARGET_FORMAT = "message.target.format";
 
-    public static final String MESSAGE_QUEUE_PLACE = "message.queue.place";
+    public static final String QUERIES_COMMAND_NAME = "queries.command.name";
+
+    public static final String CANCEL_QUERY_COMMAND_DESCRIPTION = "cancel.query.command.description";
+
+    public static final String GO_BACK_CALLBACK_COMMAND_DESCRIPTION = "go.back.callback.command.description";
+
+    public static final String MESSAGE_QUERY_CANCELED = "message.query.canceled";
+
+    public static final String MESSAGE_QUERIES_EMPTY = "message.queries.empty";
+
+    public static final String MESSAGE_QUERY_ITEM_NOT_FOUND = "message.query.item.not.found";
+
+    public static final String HOUR_PART = "hour.part";
+
+    public static final String MINUTE_PART = "minute.part";
 }

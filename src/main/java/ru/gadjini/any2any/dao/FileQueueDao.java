@@ -62,7 +62,7 @@ public class FileQueueDao {
     public int getPlaceInQueue(int id) {
         return jdbcTemplate.query(
                 "SELECT place_in_queue\n" +
-                        "FROM (SELECT id, row_number() over (ORDER BY created_at) AS place_in_queue FROM file_queue) as file_q\n" +
+                        "FROM (SELECT id, row_number() over (ORDER BY created_at) AS place_in_queue FROM file_queue WHERE status = 0) as file_q\n" +
                         "WHERE id = ?",
                 ps -> ps.setInt(1, id),
                 rs -> {
@@ -109,6 +109,32 @@ public class FileQueueDao {
                 ps -> {
                     ps.setInt(1, status);
                     ps.setInt(2, id);
+                }
+        );
+    }
+
+    public void delete(int id) {
+        jdbcTemplate.update(
+                "DELETE FROM file_queue WHERE id = ?",
+                ps -> ps.setInt(1, id)
+        );
+    }
+
+    public FileQueueItem getById(int id) {
+        return jdbcTemplate.query(
+                "SELECT f.*, queue_place.place_in_queue\n" +
+                        "FROM file_queue f\n" +
+                        "         LEFT JOIN (SELECT id, row_number() over (ORDER BY created_at) as place_in_queue\n" +
+                        "                     FROM file_queue\n" +
+                        "                     WHERE status = 0) queue_place ON f.id = queue_place.id\n" +
+                        "WHERE f.id = ?\n",
+                ps -> ps.setInt(1, id),
+                rs -> {
+                    if (rs.next()) {
+                        return map(rs);
+                    }
+
+                    return null;
                 }
         );
     }

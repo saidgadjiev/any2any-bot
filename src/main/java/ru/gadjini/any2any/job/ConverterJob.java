@@ -4,27 +4,34 @@ import com.aspose.words.License;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.event.QueueItemCanceled;
 import ru.gadjini.any2any.model.SendDocumentContext;
-import ru.gadjini.any2any.service.filequeue.FileQueueBusinessService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.converter.api.Any2AnyConverter;
 import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
+import ru.gadjini.any2any.service.filequeue.FileQueueBusinessService;
 
 import javax.annotation.PostConstruct;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 @Component
 public class ConverterJob {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConverterJob.class);
+
+    private final Map<Integer, Future<?>> processing = new ConcurrentHashMap<>();
 
     private ThreadPoolTaskExecutor taskExecutor;
 
@@ -48,13 +55,27 @@ public class ConverterJob {
         applyLicenses();
     }
 
+    @EventListener
+    public void queueItemCanceled(QueueItemCanceled queueItemCanceled) {
+        Future<?> future = processing.get(queueItemCanceled.getId());
+        if (future != null && (!future.isCancelled() || !future.isDone())) {
+            future.cancel(true);
+        }
+    }
+
     @Scheduled(cron = "* * * * * *")
     public void processConverts() {
         int remainingCapacity = taskExecutor.getThreadPoolExecutor().getQueue().remainingCapacity();
         if (remainingCapacity > 0) {
             List<FileQueueItem> items = queueService.takeItems(remainingCapacity);
             for (FileQueueItem fileQueueItem : items) {
-                taskExecutor.execute(() -> convert(fileQueueItem));
+                processing.put(fileQueueItem.getId(), taskExecutor.submit(() -> {
+                    try {
+                        convert(fileQueueItem);
+                    } finally {
+                        processing.remove(fileQueueItem.getId());
+                    }
+                }));
             }
         }
     }
@@ -67,8 +88,13 @@ public class ConverterJob {
                 sendResult(fileQueueItem, convertResult);
                 queueService.complete(fileQueueItem.getId());
             } catch (Exception ex) {
-                queueService.exception(fileQueueItem.getId(), ex);
-                LOGGER.error(ex.getMessage(), ex);
+                Future<?> future = processing.get(fileQueueItem.getId());
+                if (future != null && future.isCancelled()) {
+                    LOGGER.debug("Task canceled");
+                } else {
+                    queueService.exception(fileQueueItem.getId(), ex);
+                    LOGGER.error(ex.getMessage(), ex);
+                }
             }
         } else {
             queueService.converterNotFound(fileQueueItem.getId());

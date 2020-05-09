@@ -50,7 +50,11 @@ public class FileQueueService {
         return fileQueueItem;
     }
 
-    public List<FileQueueItem> getActiveQueries(int userId) {
+    public List<FileQueueItem> getActiveItems(int userId) {
         return fileQueueDao.getActiveQueries(userId);
+    }
+
+    public FileQueueItem getItem(int id) {
+        return fileQueueDao.getById(id);
     }
 }

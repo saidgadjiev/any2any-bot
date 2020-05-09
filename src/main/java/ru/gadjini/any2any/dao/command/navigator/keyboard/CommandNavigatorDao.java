@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service.command.navigator;
+package ru.gadjini.any2any.dao.command.navigator.keyboard;
 
 public interface CommandNavigatorDao {
     void set(long chatId, String command);

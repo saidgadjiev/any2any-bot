@@ -13,6 +13,7 @@ import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.property.BotProperties;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
@@ -58,8 +59,8 @@ public class Any2AnyBot extends TelegramLongPollingBot {
     }
 
     public void onUpdateReceived(Update update) {
-        if (update.hasMessage()) {
-            try {
+        try {
+            if (update.hasMessage()) {
                 if (restoreCommand(
                         update.getMessage().getChatId(),
                         update.getMessage().hasText() ? update.getMessage().getText().trim() : null
@@ -81,10 +82,13 @@ public class Any2AnyBot extends TelegramLongPollingBot {
                     }
                 }
                 commandExecutor.processNonCommandUpdate(update.getMessage());
-            } catch (Exception ex) {
-                LOGGER.error(ex.getMessage(), ex);
-                messageService.sendErrorMessage(update.getMessage().getChatId(), userService.getLocale(update.getMessage().getFrom().getId()));
+            } else if (update.hasCallbackQuery()) {
+                commandExecutor.executeCallbackCommand(update.getCallbackQuery());
             }
+        } catch (Exception ex) {
+            LOGGER.error(ex.getMessage(), ex);
+            TgMessage tgMessage = TgMessage.from(update);
+            messageService.sendErrorMessage(tgMessage.getChatId(), userService.getLocale(tgMessage.getUser().getId()));
         }
     }
 
@@ -103,7 +107,7 @@ public class Any2AnyBot extends TelegramLongPollingBot {
         if (commandNavigator.isEmpty(chatId)) {
             commandNavigator.zeroRestore(chatId, (NavigableBotCommand) commandExecutor.getBotCommand(CommandNames.START_COMMAND));
             Locale locale = userService.getLocale((int) chatId);
-            messageService.sendBotRestartedMessage(chatId, replyKeyboardService.removeKeyboard(), locale);
+            messageService.sendBotRestartedMessage(chatId, replyKeyboardService.getMainMenu(locale), locale);
 
             return true;
         }

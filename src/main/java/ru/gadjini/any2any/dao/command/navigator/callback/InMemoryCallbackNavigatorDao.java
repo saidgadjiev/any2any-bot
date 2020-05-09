@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service.command.navigator;
+package ru.gadjini.any2any.dao.command.navigator.callback;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
@@ -8,11 +8,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @Qualifier("inMemory")
-public class InMemoryNavigatorDao implements CommandNavigatorDao {
+public class InMemoryCallbackNavigatorDao implements CallbackCommandNavigatorDao {
 
     private Map<Long, String> commands = new ConcurrentHashMap<>();
-
-    private Map<Long, String> parentCommands = new ConcurrentHashMap<>();
 
     @Override
     public void set(long chatId, String command) {
@@ -25,12 +23,7 @@ public class InMemoryNavigatorDao implements CommandNavigatorDao {
     }
 
     @Override
-    public void pushParent(long chatId, String command) {
-        parentCommands.put(chatId, command);
-    }
-
-    @Override
-    public String popParent(long chatId, String defaultCommand) {
-        return parentCommands.get(chatId);
+    public void delete(long chatId) {
+        commands.remove(chatId);
     }
 }

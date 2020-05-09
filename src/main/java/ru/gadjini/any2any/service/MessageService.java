@@ -6,10 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.model.EditMessageContext;
 import ru.gadjini.any2any.model.SendDocumentContext;
 import ru.gadjini.any2any.model.SendMessageContext;
 
@@ -46,6 +48,26 @@ public class MessageService {
             telegramService.execute(sendMessage);
         } catch (Exception ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    public void editMessage(EditMessageContext messageContext) {
+        EditMessageText editMessageText = new EditMessageText();
+
+        editMessageText.setMessageId(messageContext.messageId());
+        editMessageText.enableHtml(true);
+        editMessageText.setChatId(messageContext.chatId());
+        editMessageText.setText(messageContext.text());
+        if (messageContext.hasKeyboard()) {
+            editMessageText.setReplyMarkup(messageContext.replyKeyboard());
+        }
+
+        try {
+            telegramService.execute(editMessageText);
+        } catch (TelegramApiRequestException ex) {
+            LOGGER.error(ex.getApiResponse(), ex);
+        } catch (TelegramApiException ex) {
+            LOGGER.error(ex.getMessage(), ex);
         }
     }
 

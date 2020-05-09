@@ -1,8 +1,11 @@
 package ru.gadjini.any2any.service.command;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import ru.gadjini.any2any.request.RequestParams;
+import ru.gadjini.any2any.request.RequestParamsParser;
 
 import java.util.Arrays;
 
@@ -13,11 +16,23 @@ public class CommandParser {
 
     public static final String COMMAND_NAME_SEPARATOR = ":";
 
-    public String parseCallbackCommandName(CallbackQuery callbackQuery) {
+    private RequestParamsParser requestParamsParser;
+
+    @Autowired
+    public CommandParser(RequestParamsParser requestParamsParser) {
+        this.requestParamsParser = requestParamsParser;
+    }
+
+    public CommandParseResult parseCallbackCommand(CallbackQuery callbackQuery) {
         String text = callbackQuery.getData();
         String[] commandSplit = text.split(COMMAND_NAME_SEPARATOR);
+        RequestParams requestParams = new RequestParams();
 
-        return commandSplit[0];
+        if (commandSplit.length > 1) {
+            requestParams = requestParamsParser.parse(commandSplit[1]);
+        }
+
+        return new CommandParseResult(commandSplit[0], requestParams);
     }
 
     public CommandParseResult parseBotCommand(Message message) {
@@ -41,9 +56,16 @@ public class CommandParser {
 
         private String[] parameters;
 
+        private RequestParams requestParams;
+
         public CommandParseResult(String commandName, String[] parameters) {
             this.commandName = commandName;
             this.parameters = parameters;
+        }
+
+        public CommandParseResult(String commandName, RequestParams requestParams) {
+            this.commandName = commandName;
+            this.requestParams = requestParams;
         }
 
         public String getCommandName() {
@@ -52,6 +74,10 @@ public class CommandParser {
 
         public String[] getParameters() {
             return parameters;
+        }
+
+        public RequestParams getRequestParams() {
+            return requestParams;
         }
     }
 }
