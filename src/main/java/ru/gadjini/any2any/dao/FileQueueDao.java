@@ -68,9 +68,19 @@ public class FileQueueDao {
         );
     }
 
-    public List<FileQueueItem> getItems(int limit) {
+    public List<FileQueueItem> takeItems(int limit) {
         return jdbcTemplate.query(
-                "SELECT * FROM file_queue ORDER BY created_at LIMIT " + limit,
+                "WITH queue_items AS (\n" +
+                        "    UPDATE file_queue SET status = 1, last_run_at = now(), started_at = COALESCE(started_at, now()) WHERE id IN (\n" +
+                        "        SELECT id\n" +
+                        "        FROM file_queue WHERE status = 0\n" +
+                        "        ORDER BY created_at\n" +
+                        "        LIMIT " + limit + ")\n" +
+                        "    RETURNING *\n" +
+                        ")\n" +
+                        "SELECT *\n" +
+                        "FROM queue_items\n" +
+                        "ORDER BY created_at;",
                 (rs, rowNum) -> {
                     FileQueueItem fileQueueItem = new FileQueueItem();
 
@@ -82,16 +92,31 @@ public class FileQueueDao {
                     fileQueueItem.setFormat(Format.valueOf(rs.getString(FileQueueItem.FORMAT)));
                     fileQueueItem.setTargetFormat(Format.valueOf(rs.getString(FileQueueItem.TARGET_FORMAT)));
                     fileQueueItem.setSize(rs.getInt(FileQueueItem.SIZE));
+                    fileQueueItem.setStatus(FileQueueItem.Status.fromCode(rs.getInt(FileQueueItem.STATUS)));
 
                     return fileQueueItem;
                 }
         );
     }
 
-    public void delete(int id) {
+    public void updateException(int id, int status, String exception) {
         jdbcTemplate.update(
-                "DELETE FROM file_queue WHERE id = ?",
-                ps -> ps.setInt(1, id)
+                "UPDATE file_queue SET exception = ?, status = ? WHERE id = ?",
+                ps -> {
+                    ps.setString(1, exception);
+                    ps.setInt(2, status);
+                    ps.setInt(3, id);
+                }
+        );
+    }
+
+    public void updateCompletedAt(int id, int status) {
+        jdbcTemplate.update(
+                "UPDATE file_queue SET status = ?, completed_at = now() WHERE id = ?",
+                ps -> {
+                    ps.setInt(1, status);
+                    ps.setInt(2, id);
+                }
         );
     }
 }

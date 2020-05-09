@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.model.SendDocumentContext;
@@ -25,7 +26,7 @@ public class ConverterJob {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConverterJob.class);
 
-    private static final int LIMIT = 60;
+    private ThreadPoolTaskExecutor taskExecutor;
 
     private FileQueueService queueService;
 
@@ -34,8 +35,10 @@ public class ConverterJob {
     private Set<Any2AnyConverter<ConvertResult>> any2AnyConverters = new LinkedHashSet<>();
 
     @Autowired
-    public ConverterJob(FileQueueService queueService, Set<Any2AnyConverter> any2AnyConvertersSet, MessageService messageService) {
+    public ConverterJob(FileQueueService queueService, Set<Any2AnyConverter> any2AnyConvertersSet,
+                        ThreadPoolTaskExecutor taskExecutor, MessageService messageService) {
         this.queueService = queueService;
+        this.taskExecutor = taskExecutor;
         this.messageService = messageService;
         any2AnyConvertersSet.forEach(any2AnyConverter -> any2AnyConverters.add(any2AnyConverter));
     }
@@ -47,20 +50,29 @@ public class ConverterJob {
 
     @Scheduled(cron = "* * * * * *")
     public void processConverts() {
-        List<FileQueueItem> items = queueService.getItems(LIMIT);
-        for (FileQueueItem fileQueueItem : items) {
-            Any2AnyConverter<ConvertResult> candidate = getCandidate(fileQueueItem);
-            if (candidate != null) {
-                try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
-                    logConvertFinished(fileQueueItem, convertResult.time());
-                    sendResult(fileQueueItem, convertResult);
-                    queueService.delete(fileQueueItem.getId());
-                } catch (Exception ex) {
-                    LOGGER.error(ex.getMessage(), ex);
-                }
-            } else {
-                LOGGER.debug("Candidate not found for: " + fileQueueItem.getFormat());
+        int remainingCapacity = taskExecutor.getThreadPoolExecutor().getQueue().remainingCapacity();
+        if (remainingCapacity > 0) {
+            List<FileQueueItem> items = queueService.takeItems(remainingCapacity);
+            for (FileQueueItem fileQueueItem : items) {
+                taskExecutor.execute(() -> convert(fileQueueItem));
             }
+        }
+    }
+
+    private void convert(FileQueueItem fileQueueItem) {
+        Any2AnyConverter<ConvertResult> candidate = getCandidate(fileQueueItem);
+        if (candidate != null) {
+            try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
+                logConvertFinished(fileQueueItem, convertResult.time());
+                sendResult(fileQueueItem, convertResult);
+                queueService.complete(fileQueueItem.getId());
+            } catch (Exception ex) {
+                queueService.exception(fileQueueItem.getId(), ex);
+                LOGGER.error(ex.getMessage(), ex);
+            }
+        } else {
+            queueService.converterNotFound(fileQueueItem.getId());
+            LOGGER.debug("Candidate not found for: " + fileQueueItem.getFormat());
         }
     }
 

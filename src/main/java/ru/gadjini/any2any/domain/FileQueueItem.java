@@ -26,6 +26,8 @@ public class FileQueueItem {
 
     public static final String CREATED_AT = "created_at";
 
+    public static final String STATUS = "status";
+
     public static final String TARGET_FORMAT = "target_format";
 
     public static final String PLACE_IN_QUEUE = "place_in_queue";
@@ -33,6 +35,12 @@ public class FileQueueItem {
     private int id;
 
     private ZonedDateTime createdAt;
+
+    private ZonedDateTime statedAt;
+
+    private ZonedDateTime lastRunAt;
+
+    private ZonedDateTime completedAt;
 
     private int userId;
 
@@ -52,6 +60,8 @@ public class FileQueueItem {
 
     private Format targetFormat;
 
+    private Status status;
+
     public int getId() {
         return id;
     }
@@ -66,6 +76,30 @@ public class FileQueueItem {
 
     public void setCreatedAt(ZonedDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public ZonedDateTime getStatedAt() {
+        return statedAt;
+    }
+
+    public void setStatedAt(ZonedDateTime statedAt) {
+        this.statedAt = statedAt;
+    }
+
+    public ZonedDateTime getLastRunAt() {
+        return lastRunAt;
+    }
+
+    public void setLastRunAt(ZonedDateTime lastRunAt) {
+        this.lastRunAt = lastRunAt;
+    }
+
+    public ZonedDateTime getCompletedAt() {
+        return completedAt;
+    }
+
+    public void setCompletedAt(ZonedDateTime completedAt) {
+        this.completedAt = completedAt;
     }
 
     public int getUserId() {
@@ -140,5 +174,43 @@ public class FileQueueItem {
         this.targetFormat = targetFormat;
     }
 
+    public Status getStatus() {
+        return status;
+    }
 
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public enum Status {
+
+        WAITING(0),
+
+        PROCESSING(1),
+
+        EXCEPTION(2),
+
+        COMPLETED(3),
+
+        CANDIDATE_NOT_FOUND(4);
+
+        private final int code;
+
+        Status(int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
+
+        public static Status fromCode(int code) {
+            for (Status status: values()) {
+                if (status.code == code) {
+                    return status;
+                }
+            }
+            throw new IllegalArgumentException("Unknown queue item status " + code);
+        }
+    }
 }
