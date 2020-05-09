@@ -56,30 +56,14 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
             Document doc = new Document();
             Page page = doc.getPages().add();
             TextFragment text = new TextFragment(builder.toString());
-
             page.getParagraphs().add(text);
-
             File result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
             doc.save(result.getAbsolutePath());
-
             return new FileResult(result);
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
             FileUtils.deleteQuietly(txt);
-        }
-    }
-
-    public static void main(String[] args) throws Exception {
-        File file = new File("C:/test.txt");
-
-        try (PrintWriter printWriter = new PrintWriter(file.getAbsolutePath())) {
-            for (int i = 0; i < 100; ++i) {
-                printWriter.print("Привет я Саид");
-                if (i % 10 == 0) {
-                    printWriter.println();
-                }
-            }
         }
     }
 }

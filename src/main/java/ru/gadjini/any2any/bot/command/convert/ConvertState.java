@@ -1,7 +1,5 @@
 package ru.gadjini.any2any.bot.command.convert;
 
-import org.telegram.telegrambots.meta.api.objects.Document;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import ru.gadjini.any2any.service.converter.api.Format;
 
 public class ConvertState {
