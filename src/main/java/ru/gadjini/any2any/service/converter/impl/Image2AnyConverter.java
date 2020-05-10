@@ -1,8 +1,14 @@
 package ru.gadjini.any2any.service.converter.impl;
 
 import com.aspose.imaging.Image;
+import com.aspose.imaging.ImageOptionsBase;
+import com.aspose.imaging.LoadOptions;
 import com.aspose.imaging.fileformats.pdf.PdfDocumentInfo;
-import com.aspose.imaging.imageoptions.PdfOptions;
+import com.aspose.imaging.fileformats.tiff.enums.TiffExpectedFormat;
+import com.aspose.imaging.imageloadoptions.Jpeg2000LoadOptions;
+import com.aspose.imaging.imageloadoptions.PngLoadOptions;
+import com.aspose.imaging.imageloadoptions.SvgLoadOptions;
+import com.aspose.imaging.imageoptions.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +29,8 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PNG, Format.JPEG, Format.JPG, Format.DEVICE_PHOTO);
+    private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PNG, Format.SVG, Format.JPEG, Format.JPG,
+            Format.JPEG_2000, Format.DEVICE_PHOTO);
 
     private TelegramService telegramService;
 
@@ -38,20 +45,17 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     @Override
     public FileResult convert(FileQueueItem fileQueueItem) {
-        return toPdf(fileQueueItem);
+        return doConvert(fileQueueItem);
     }
 
-    private FileResult toPdf(FileQueueItem fileQueueItem) {
+    private FileResult doConvert(FileQueueItem fileQueueItem) {
         File file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        try (Image image = Image.load(file.getAbsolutePath())) {
-            PdfOptions pdfOptions = new PdfOptions();
-            pdfOptions.setPdfDocumentInfo(new PdfDocumentInfo());
-
-            File tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
-            image.save(tempFile.getAbsolutePath(), pdfOptions);
+        try (Image image = Image.load(file.getAbsolutePath(), getLoadOptions(fileQueueItem.getFormat()))) {
+            File tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+            image.save(tempFile.getAbsolutePath(), getSaveOptions(image, fileQueueItem.getFormat(), fileQueueItem.getTargetFormat()));
 
             stopWatch.stop();
             return new FileResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS));
@@ -59,6 +63,46 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             throw new ConvertException(ex);
         } finally {
             FileUtils.deleteQuietly(file);
+        }
+    }
+
+    private LoadOptions getLoadOptions(Format format) {
+        switch (format) {
+            case PNG:
+            case DEVICE_PHOTO:
+                return new PngLoadOptions();
+            case JPEG_2000:
+                return new Jpeg2000LoadOptions();
+            case SVG:
+                return new SvgLoadOptions();
+            default:
+                return null;
+        }
+    }
+
+    private ImageOptionsBase getSaveOptions(Image image, Format format, Format targetFormat) {
+        switch (targetFormat) {
+            case PDF:
+                if (format == Format.SVG) {
+                    PdfOptions pdfOptions = new PdfOptions();
+                    SvgRasterizationOptions rasterizationOptions = new SvgRasterizationOptions();
+                    rasterizationOptions.setPageHeight(image.getHeight());
+                    rasterizationOptions.setPageWidth(image.getWidth());
+                    pdfOptions.setVectorRasterizationOptions(rasterizationOptions);
+                    pdfOptions.setPdfDocumentInfo(new PdfDocumentInfo());
+                    return pdfOptions;
+                }
+                PdfOptions pdfOptions = new PdfOptions();
+                pdfOptions.setPdfDocumentInfo(new PdfDocumentInfo());
+                return pdfOptions;
+            case PNG:
+                return new PngOptions();
+            case BMP:
+                return new BmpOptions();
+            case JPEG_2000:
+                return new Jpeg2000Options();
+            default:
+                return new JpegOptions();
         }
     }
 }

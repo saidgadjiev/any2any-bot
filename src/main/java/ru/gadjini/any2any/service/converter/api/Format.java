@@ -7,8 +7,11 @@ public enum Format {
     RTF,
     PDF,
     PNG,
+    SVG,
     JPEG,
     JPG,
+    JPEG_2000,
+    BMP,
     TXT,
     EPUB,
     DEVICE_PHOTO {

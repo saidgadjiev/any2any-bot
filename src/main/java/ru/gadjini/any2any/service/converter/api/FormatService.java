@@ -12,15 +12,17 @@ import java.util.Map;
 @Service
 public class FormatService {
 
-    private final Map<List<Format>, List<Format>> formats = Map.of(
-            List.of(Format.DOC), List.of(Format.DOCX, Format.PDF, Format.EPUB, Format.RTF),
-            List.of(Format.DOCX), List.of(Format.DOC, Format.PDF, Format.EPUB, Format.RTF),
-            List.of(Format.PNG, Format.JPEG, Format.JPG, Format.DEVICE_PHOTO), List.of(Format.PDF),
-            List.of(Format.URL), List.of(Format.PDF),
-            List.of(Format.TEXT), List.of(Format.PDF),
-            List.of(Format.TXT), List.of(Format.PDF),
-            List.of(Format.EPUB), List.of(Format.PDF, Format.DOC, Format.DOCX, Format.RTF),
-            List.of(Format.PDF), List.of(Format.DOC, Format.DOCX, Format.EPUB)
+    private final Map<List<Format>, List<Format>> formats = Map.ofEntries(
+            Map.entry(List.of(Format.DOC), List.of(Format.DOCX, Format.PDF, Format.EPUB, Format.RTF)),
+            Map.entry(List.of(Format.DOCX), List.of(Format.DOC, Format.PDF, Format.EPUB, Format.RTF)),
+            Map.entry(List.of(Format.PNG, Format.DEVICE_PHOTO), List.of(Format.PDF, Format.JPEG, Format.JPG, Format.JPEG_2000, Format.BMP)),
+            Map.entry(List.of(Format.JPEG, Format.JPG, Format.JPEG_2000), List.of(Format.PDF, Format.PNG, Format.BMP)),
+            Map.entry(List.of(Format.SVG), List.of(Format.PDF, Format.PNG, Format.JPEG, Format.JPG, Format.BMP)),
+            Map.entry(List.of(Format.URL), List.of(Format.PDF)),
+            Map.entry(List.of(Format.TEXT), List.of(Format.PDF)),
+            Map.entry(List.of(Format.TXT), List.of(Format.PDF)),
+            Map.entry(List.of(Format.EPUB), List.of(Format.PDF, Format.DOC, Format.DOCX, Format.RTF)),
+            Map.entry(List.of(Format.PDF), List.of(Format.DOC, Format.DOCX, Format.EPUB))
     );
 
     public List<Format> getTargetFormats(Format srcFormat) {
