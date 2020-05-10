@@ -49,4 +49,6 @@ public class MessagesProperties {
     public static final String HOUR_PART = "hour.part";
 
     public static final String MINUTE_PART = "minute.part";
+
+    public static final String SECOND_PART = "second.part";
 }

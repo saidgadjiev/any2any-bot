@@ -24,18 +24,20 @@ public class Time2TextService {
         if (duration.toHoursPart() != 0) {
             time
                     .append(duration.toHoursPart()).append(" ")
-                    .append(localisationService.getMessage(MessagesProperties.HOUR_PART, locale));
-        }
-        if (time.length() > 0) {
-            time.append(" ");
+                    .append(localisationService.getMessage(MessagesProperties.HOUR_PART, locale)).append(" ");
         }
         if (duration.toMinutesPart() != 0) {
             time
                     .append(duration.toMinutesPart()).append(" ")
-                    .append(localisationService.getMessage(MessagesProperties.MINUTE_PART, locale));
+                    .append(localisationService.getMessage(MessagesProperties.MINUTE_PART, locale)).append(" ");
+        }
+        if (duration.toSecondsPart() != 0) {
+            time
+                    .append(duration.toSecondsPart()).append(" ")
+                    .append(localisationService.getMessage(MessagesProperties.SECOND_PART, locale)).append(" ");
         }
 
-        return time.toString();
+        return time.toString().trim();
     }
 
     public static void main(String[] args) {
