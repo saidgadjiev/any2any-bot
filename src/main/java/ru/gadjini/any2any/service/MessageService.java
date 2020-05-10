@@ -4,13 +4,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.exception.TelegramMethodException;
 import ru.gadjini.any2any.model.EditMessageContext;
 import ru.gadjini.any2any.model.SendDocumentContext;
 import ru.gadjini.any2any.model.SendMessageContext;
@@ -30,6 +33,20 @@ public class MessageService {
     public MessageService(TelegramService telegramService, LocalisationService localisationService) {
         this.telegramService = telegramService;
         this.localisationService = localisationService;
+    }
+
+    public ChatMember getChatMember(String chatId, int userId) {
+        GetChatMember getChatMember = new GetChatMember();
+        getChatMember.setChatId(chatId);
+        getChatMember.setUserId(userId);
+
+        try {
+            return telegramService.execute(getChatMember);
+        } catch (TelegramApiRequestException ex) {
+            throw new TelegramMethodException(ex, chatId);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void sendMessage(SendMessageContext messageContext) {

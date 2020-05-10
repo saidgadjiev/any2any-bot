@@ -50,7 +50,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            com.aspose.pdf.Document pdf = new com.aspose.pdf.Document(pdfFile.getAbsolutePath());
+            Document pdf = new Document(pdfFile.getAbsolutePath());
             try {
                 TiffDevice tiffDevice = new TiffDevice();
                 File tiff = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), "tiff"));

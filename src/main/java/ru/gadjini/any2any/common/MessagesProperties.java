@@ -51,4 +51,6 @@ public class MessagesProperties {
     public static final String MINUTE_PART = "minute.part";
 
     public static final String SECOND_PART = "second.part";
+
+    public static final String MESSAGE_NEED_SUBSCRIPTION = "message.need.subscription";
 }

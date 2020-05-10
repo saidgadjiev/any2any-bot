@@ -85,7 +85,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            com.aspose.words.Document asposeDocument = new com.aspose.words.Document(file.getAbsolutePath());
+            Document asposeDocument = new Document(file.getAbsolutePath());
             try {
                 File result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), queueItem.getTargetFormat().getExt()));
                 asposeDocument.save(result.getAbsolutePath(), getSaveFormat(queueItem.getTargetFormat()));
