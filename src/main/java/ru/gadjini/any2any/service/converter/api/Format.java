@@ -13,6 +13,7 @@ public enum Format {
     JPEG_2000,
     BMP,
     TXT,
+    TIFF,
     EPUB,
     DEVICE_PHOTO {
         @Override

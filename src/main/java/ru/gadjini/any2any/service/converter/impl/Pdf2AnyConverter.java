@@ -2,6 +2,7 @@ package ru.gadjini.any2any.service.converter.impl;
 
 import com.aspose.pdf.Document;
 import com.aspose.pdf.SaveFormat;
+import com.aspose.pdf.devices.TiffDevice;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +36,34 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     @Override
     public ConvertResult convert(FileQueueItem fileQueueItem) {
+        if (fileQueueItem.getTargetFormat() == Format.TIFF) {
+            return toTiff(fileQueueItem);
+        }
+
         return doConvert(fileQueueItem);
+    }
+
+    private FileResult toTiff(FileQueueItem queueItem) {
+        File pdfFile = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
+
+        try {
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+
+            com.aspose.pdf.Document pdf = new com.aspose.pdf.Document(pdfFile.getAbsolutePath());
+            try {
+                TiffDevice tiffDevice = new TiffDevice();
+                File tiff = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), "tiff"));
+                tiffDevice.process(pdf, tiff.getAbsolutePath());
+
+                stopWatch.stop();
+                return new FileResult(tiff, stopWatch.getTime(TimeUnit.SECONDS));
+            } finally {
+                pdf.dispose();
+            }
+        } finally {
+            FileUtils.deleteQuietly(pdfFile);
+        }
     }
 
     private FileResult doConvert(FileQueueItem fileQueueItem) {
