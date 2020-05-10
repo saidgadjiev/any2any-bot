@@ -114,6 +114,8 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 return SaveFormat.DOCX;
             case DOC:
                 return SaveFormat.DOC;
+            case TXT:
+                return SaveFormat.TEXT;
         }
 
         throw new UnsupportedOperationException();
