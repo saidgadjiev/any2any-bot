@@ -10,7 +10,6 @@ public enum Format {
     SVG,
     JPEG,
     JPG,
-    JPEG_2000,
     BMP,
     TXT,
     TIFF,

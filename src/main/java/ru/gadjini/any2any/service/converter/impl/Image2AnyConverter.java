@@ -4,8 +4,6 @@ import com.aspose.imaging.Image;
 import com.aspose.imaging.ImageOptionsBase;
 import com.aspose.imaging.LoadOptions;
 import com.aspose.imaging.fileformats.pdf.PdfDocumentInfo;
-import com.aspose.imaging.fileformats.tiff.enums.TiffExpectedFormat;
-import com.aspose.imaging.imageloadoptions.Jpeg2000LoadOptions;
 import com.aspose.imaging.imageloadoptions.PngLoadOptions;
 import com.aspose.imaging.imageloadoptions.SvgLoadOptions;
 import com.aspose.imaging.imageoptions.*;
@@ -29,8 +27,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PNG, Format.SVG, Format.JPEG, Format.JPG,
-            Format.JPEG_2000, Format.DEVICE_PHOTO);
+    private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PNG, Format.SVG, Format.JPEG, Format.JPG, Format.DEVICE_PHOTO);
 
     private TelegramService telegramService;
 
@@ -71,8 +68,6 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             case PNG:
             case DEVICE_PHOTO:
                 return new PngLoadOptions();
-            case JPEG_2000:
-                return new Jpeg2000LoadOptions();
             case SVG:
                 return new SvgLoadOptions();
             default:
@@ -99,8 +94,6 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 return new PngOptions();
             case BMP:
                 return new BmpOptions();
-            case JPEG_2000:
-                return new Jpeg2000Options();
             default:
                 return new JpegOptions();
         }
