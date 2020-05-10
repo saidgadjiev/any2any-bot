@@ -3,6 +3,7 @@ package ru.gadjini.any2any.service.converter.impl;
 import com.aspose.pdf.Document;
 import com.aspose.pdf.Page;
 import com.aspose.pdf.TextFragment;
+import com.aspose.words.TxtLoadOptions;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
@@ -41,7 +42,35 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
 
     @Override
     public ConvertResult convert(FileQueueItem fileQueueItem) {
-        return toPdf(fileQueueItem);
+        if (fileQueueItem.getTargetFormat() == Format.PDF) {
+            return toPdf(fileQueueItem);
+        }
+
+        return toWord(fileQueueItem);
+    }
+
+    private FileResult toWord(FileQueueItem fileQueueItem) {
+        File txt = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+
+        try {
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+
+            com.aspose.words.Document document = new com.aspose.words.Document(txt.getAbsolutePath(), new TxtLoadOptions());
+            try {
+                File result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+                document.save(result.getAbsolutePath());
+
+                stopWatch.stop();
+                return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+            } finally {
+                document.cleanup();
+            }
+        } catch (Exception ex) {
+            throw new ConvertException(ex);
+        } finally {
+            FileUtils.deleteQuietly(txt);
+        }
     }
 
     private FileResult toPdf(FileQueueItem fileQueueItem) {

@@ -21,7 +21,7 @@ public class FormatService {
             Map.entry(List.of(Format.TIFF), List.of(Format.DOC, Format.DOCX, Format.PDF)),
             Map.entry(List.of(Format.URL), List.of(Format.PDF)),
             Map.entry(List.of(Format.TEXT), List.of(Format.PDF)),
-            Map.entry(List.of(Format.TXT), List.of(Format.PDF)),
+            Map.entry(List.of(Format.TXT), List.of(Format.PDF, Format.DOC, Format.DOCX)),
             Map.entry(List.of(Format.EPUB), List.of(Format.PDF, Format.DOC, Format.DOCX, Format.RTF)),
             Map.entry(List.of(Format.PDF), List.of(Format.DOC, Format.DOCX, Format.EPUB, Format.TIFF))
     );
