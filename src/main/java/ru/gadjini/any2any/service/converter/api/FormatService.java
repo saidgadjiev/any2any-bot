@@ -18,6 +18,7 @@ public class FormatService {
             Map.entry(List.of(Format.PNG, Format.DEVICE_PHOTO), List.of(Format.PDF, Format.JPEG, Format.JPG, Format.JPEG_2000, Format.BMP)),
             Map.entry(List.of(Format.JPEG, Format.JPG, Format.JPEG_2000), List.of(Format.PDF, Format.PNG, Format.BMP)),
             Map.entry(List.of(Format.SVG), List.of(Format.PDF, Format.PNG, Format.JPEG, Format.JPG, Format.BMP)),
+            Map.entry(List.of(Format.TIFF), List.of(Format.DOC, Format.DOCX, Format.PDF)),
             Map.entry(List.of(Format.URL), List.of(Format.PDF)),
             Map.entry(List.of(Format.TEXT), List.of(Format.PDF)),
             Map.entry(List.of(Format.TXT), List.of(Format.PDF)),
