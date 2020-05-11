@@ -19,6 +19,7 @@ public class FormatService {
             Map.entry(List.of(Format.STICKER, Format.WEBP), List.of(Format.PNG, Format.JPG, Format.PDF)),
             Map.entry(List.of(Format.JPEG, Format.JPG), List.of(Format.PDF, Format.PNG, Format.BMP, Format.WEBP, Format.STICKER)),
             Map.entry(List.of(Format.SVG), List.of(Format.PDF, Format.PNG, Format.JPG, Format.BMP, Format.WEBP, Format.STICKER)),
+            Map.entry(List.of(Format.BMP), List.of(Format.PDF, Format.PNG, Format.JPG, Format.WEBP, Format.STICKER)),
             Map.entry(List.of(Format.TIFF), List.of(Format.DOC, Format.DOCX, Format.PDF)),
             Map.entry(List.of(Format.URL, Format.HTML), List.of(Format.PDF)),
             Map.entry(List.of(Format.TEXT), List.of(Format.PDF)),
