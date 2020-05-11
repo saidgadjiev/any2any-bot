@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -15,7 +16,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TelegramMethodException;
 import ru.gadjini.any2any.model.EditMessageContext;
-import ru.gadjini.any2any.model.SendDocumentContext;
+import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendMessageContext;
 
 import java.util.Locale;
@@ -95,7 +96,26 @@ public class MessageService {
         );
     }
 
-    public void sendDocument(SendDocumentContext sendDocumentContext) {
+    public void sendSticker(SendFileContext sendFileContext) {
+        SendSticker sendSticker = new SendSticker();
+        sendSticker.setSticker(sendFileContext.file());
+        sendSticker.setChatId(sendFileContext.chatId());
+
+        if (sendFileContext.replyMessageId() != null) {
+            sendSticker.setReplyToMessageId(sendFileContext.replyMessageId());
+        }
+
+        try {
+            telegramService.execute(sendSticker);
+        } catch (TelegramApiRequestException e) {
+            LOGGER.error(e.getMessage() + ". " + e.getApiResponse() + "(" + e.getErrorCode() + "). Params " + e.getParameters(), e);
+            throw new RuntimeException(e);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void sendDocument(SendFileContext sendDocumentContext) {
         SendDocument sendDocument = new SendDocument();
         sendDocument.setChatId(sendDocumentContext.chatId());
         sendDocument.setDocument(sendDocumentContext.file());

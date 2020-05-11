@@ -2,7 +2,7 @@ package ru.gadjini.any2any.model;
 
 import java.io.File;
 
-public class SendDocumentContext {
+public class SendFileContext {
 
     private long chatId;
 
@@ -10,7 +10,7 @@ public class SendDocumentContext {
 
     private Integer replyMessageId;
 
-    public SendDocumentContext(long chatId, File file) {
+    public SendFileContext(long chatId, File file) {
         this.chatId = chatId;
         this.file = file;
     }
@@ -27,7 +27,7 @@ public class SendDocumentContext {
         return this.replyMessageId;
     }
 
-    public SendDocumentContext replyMessageId(final Integer replyMessageId) {
+    public SendFileContext replyMessageId(final Integer replyMessageId) {
         this.replyMessageId = replyMessageId;
         return this;
     }

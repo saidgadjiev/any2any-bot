@@ -14,6 +14,13 @@ public enum Format {
     TXT,
     TIFF,
     EPUB,
+    WEBP,
+    STICKER {
+        @Override
+        public String getExt() {
+            return "webp";
+        }
+    },
     DEVICE_PHOTO {
         @Override
         public String getExt() {

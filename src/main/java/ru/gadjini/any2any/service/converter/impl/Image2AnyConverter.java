@@ -4,6 +4,7 @@ import com.aspose.imaging.Image;
 import com.aspose.imaging.ImageOptionsBase;
 import com.aspose.imaging.LoadOptions;
 import com.aspose.imaging.fileformats.pdf.PdfDocumentInfo;
+import com.aspose.imaging.fileformats.png.PngColorType;
 import com.aspose.imaging.imageloadoptions.PngLoadOptions;
 import com.aspose.imaging.imageloadoptions.SvgLoadOptions;
 import com.aspose.imaging.imageoptions.*;
@@ -18,6 +19,7 @@ import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatService;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
+import ru.gadjini.any2any.service.converter.api.result.StickerResult;
 import ru.gadjini.any2any.util.Any2AnyFileNameUtils;
 
 import java.io.File;
@@ -27,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PNG, Format.SVG, Format.JPEG, Format.JPG, Format.DEVICE_PHOTO);
+    private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PNG, Format.STICKER, Format.SVG, Format.JPEG, Format.JPG, Format.DEVICE_PHOTO);
 
     private TelegramService telegramService;
 
@@ -55,7 +57,9 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             image.save(tempFile.getAbsolutePath(), getSaveOptions(image, fileQueueItem.getFormat(), fileQueueItem.getTargetFormat()));
 
             stopWatch.stop();
-            return new FileResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS));
+            return fileQueueItem.getTargetFormat() == Format.STICKER
+                    ? new StickerResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS))
+                    : new FileResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
@@ -91,11 +95,22 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 pdfOptions.setPdfDocumentInfo(new PdfDocumentInfo());
                 return pdfOptions;
             case PNG:
-                return new PngOptions();
+                PngOptions pngOptions = new PngOptions();
+                pngOptions.setColorType(PngColorType.TruecolorWithAlpha);
+                return pngOptions;
             case BMP:
                 return new BmpOptions();
-            default:
-                return new JpegOptions();
+            case JPG:
+                JpegOptions jpegOptions = new JpegOptions();
+                jpegOptions.setQuality(100);
+                return jpegOptions;
+            case STICKER:
+            case WEBP:
+                WebPOptions webPOptions = new WebPOptions();
+                webPOptions.setQuality(100);
+                return webPOptions;
         }
+
+        return null;
     }
 }

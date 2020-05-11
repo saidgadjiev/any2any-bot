@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service.converter.impl;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -59,6 +60,8 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             return new FileResult(file, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
+        } finally {
+            FileUtils.deleteQuietly(html);
         }
     }
 

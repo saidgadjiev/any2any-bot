@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
@@ -125,7 +126,7 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
 
     @Override
     public boolean accept(Message message) {
-        return message.hasDocument() || message.hasText() || message.hasPhoto();
+        return message.hasDocument() || message.hasText() || message.hasPhoto() || message.hasSticker();
     }
 
     private void sendQueuedMessage(FileQueueItem queueItem, Locale locale) {
@@ -152,6 +153,11 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
             convertState.setFileId(photoSize.getFileId());
             convertState.setFileSize(photoSize.getFileSize());
             convertState.setFormat(Format.DEVICE_PHOTO);
+        } else if (message.hasSticker()) {
+            Sticker sticker = message.getSticker();
+            convertState.setFileId(sticker.getFileId());
+            convertState.setFileSize(sticker.getFileSize());
+            convertState.setFormat(Format.STICKER);
         } else if (message.hasText()) {
             convertState.setFileId(message.getText());
             convertState.setFileSize(message.getText().length());

@@ -9,9 +9,10 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.event.QueueItemCanceled;
-import ru.gadjini.any2any.model.SendDocumentContext;
+import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.converter.api.Any2AnyConverter;
 import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
@@ -115,11 +116,18 @@ public class ConverterJob {
 
     private void sendResult(FileQueueItem fileQueueItem, ConvertResult convertResult) {
         switch (convertResult.resultType()) {
-            case FILE:
-                SendDocumentContext sendDocumentContext = new SendDocumentContext(fileQueueItem.getUserId(), ((FileResult) convertResult).getFile())
+            case FILE: {
+                SendFileContext sendDocumentContext = new SendFileContext(fileQueueItem.getUserId(), ((FileResult) convertResult).getFile())
                         .replyMessageId(fileQueueItem.getMessageId());
                 messageService.sendDocument(sendDocumentContext);
                 break;
+            }
+            case STICKER: {
+                SendFileContext sendFileContext = new SendFileContext(fileQueueItem.getUserId(), ((FileResult) convertResult).getFile())
+                        .replyMessageId(fileQueueItem.getMessageId());
+                messageService.sendSticker(sendFileContext);
+                break;
+            }
         }
     }
 

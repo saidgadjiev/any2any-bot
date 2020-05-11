@@ -15,9 +15,10 @@ public class FormatService {
     private final Map<List<Format>, List<Format>> formats = Map.ofEntries(
             Map.entry(List.of(Format.DOC), List.of(Format.DOCX, Format.TXT, Format.PDF, Format.EPUB, Format.RTF, Format.TIFF)),
             Map.entry(List.of(Format.DOCX), List.of(Format.DOC, Format.TXT, Format.PDF, Format.EPUB, Format.RTF, Format.TIFF)),
-            Map.entry(List.of(Format.PNG, Format.DEVICE_PHOTO), List.of(Format.PDF, Format.JPG, Format.BMP)),
-            Map.entry(List.of(Format.JPEG, Format.JPG), List.of(Format.PDF, Format.PNG, Format.BMP)),
-            Map.entry(List.of(Format.SVG), List.of(Format.PDF, Format.PNG, Format.JPG, Format.BMP)),
+            Map.entry(List.of(Format.PNG, Format.DEVICE_PHOTO), List.of(Format.PDF, Format.JPG, Format.BMP, Format.WEBP, Format.STICKER)),
+            Map.entry(List.of(Format.STICKER, Format.WEBP), List.of(Format.PNG, Format.JPG, Format.PDF)),
+            Map.entry(List.of(Format.JPEG, Format.JPG), List.of(Format.PDF, Format.PNG, Format.BMP, Format.WEBP, Format.STICKER)),
+            Map.entry(List.of(Format.SVG), List.of(Format.PDF, Format.PNG, Format.JPG, Format.BMP, Format.WEBP, Format.STICKER)),
             Map.entry(List.of(Format.TIFF), List.of(Format.DOC, Format.DOCX, Format.PDF)),
             Map.entry(List.of(Format.URL, Format.HTML), List.of(Format.PDF)),
             Map.entry(List.of(Format.TEXT), List.of(Format.PDF)),
