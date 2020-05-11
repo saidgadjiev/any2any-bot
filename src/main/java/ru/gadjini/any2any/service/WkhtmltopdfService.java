@@ -1,11 +1,13 @@
 package ru.gadjini.any2any.service;
 
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.property.WkhtmltopdfProperties;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class WkhtmltopdfService {
@@ -17,33 +19,31 @@ public class WkhtmltopdfService {
         this.wkhtmltopdfProperties = wkhtmltopdfProperties;
     }
 
-    public void process(String url, String out) {
+    public void process(String urlOrHtml, String out) {
         try {
-            ProcessBuilder processBuilder = new ProcessBuilder(args(url, out));
-            Process process = processBuilder.start();
+            Process process = Runtime.getRuntime().exec(buildCommand(urlOrHtml, out));
             try {
-                int code = process.waitFor();
-                if (code != 0) {
-                    throw new RuntimeException(String.valueOf(code));
+                boolean result = process.waitFor(25, TimeUnit.SECONDS);
+                if (!result) {
+                    String error = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
+                    throw new RuntimeException(error);
                 }
             } finally {
                 process.destroy();
             }
-        } catch (Exception ex) {
+        } catch (InterruptedException | IOException ex) {
             throw new RuntimeException(ex);
         }
     }
 
-    private String[] args(String url, String out) {
-        List<String> args = new ArrayList<>();
-        args.add(wkhtmltopdfProperties.getExecution());
-        args.add("--load-error-handling");
-        args.add("abort");
-        args.add("--load-media-error-handling");
-        args.add("abort");
-        args.add(url);
-        args.add(out);
+    private String buildCommand(String urlOrHtml, String out) {
+        StringBuilder command = new StringBuilder();
+        command
+                .append(wkhtmltopdfProperties.getExecution()).append(" ")
+                .append(" --no-pdf-compression --disable-local-file-access --disable-internal-links --load-error-handling ignore --load-media-error-handling ignore ")
+                .append("\"").append(urlOrHtml).append("\"").append(" ")
+                .append("\"").append(out).append("\"");
 
-        return args.toArray(new String[0]);
+        return command.toString();
     }
 }

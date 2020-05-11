@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.filter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -16,6 +18,8 @@ import java.util.Locale;
 
 @Component
 public class SubscriptionFilter extends BaseBotFilter {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionFilter.class);
 
     private MessageService messageService;
 
@@ -43,9 +47,16 @@ public class SubscriptionFilter extends BaseBotFilter {
         try {
             messageService.getChatMember(CommonConstants.TOP_BOTS_CHANNEL, userId);
         } catch (TelegramMethodException ex) {
-            if (ex.getErrorCode() == 400 && ex.getResponse().contains("user not found")) {
-                return false;
+            if (ex.getErrorCode() == 400) {
+                if (ex.getResponse().contains("user not found")) {
+                    return false;
+                } else if (ex.getResponse().contains("chat not found")) {
+                    LOGGER.error("Chat not found {}", CommonConstants.TOP_BOTS_CHANNEL);
+
+                    return true;
+                }
             }
+
             throw ex;
         }
 

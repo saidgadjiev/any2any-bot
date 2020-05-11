@@ -20,6 +20,7 @@ public enum Format {
             return "png";
         }
     },
+    HTML,
     URL,
     TEXT;
 

@@ -53,6 +53,7 @@ public class ConverterJob {
     @PostConstruct
     public void init() {
         applyLicenses();
+        queueService.resetProcessing();
     }
 
     @EventListener

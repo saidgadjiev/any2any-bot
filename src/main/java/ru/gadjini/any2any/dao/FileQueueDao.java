@@ -92,6 +92,12 @@ public class FileQueueDao {
         );
     }
 
+    public void resetProcessing() {
+        jdbcTemplate.update(
+                "UPDATE file_queue SET status = 0 WHERE status = 1"
+        );
+    }
+
     public void updateException(int id, int status, String exception) {
         jdbcTemplate.update(
                 "UPDATE file_queue SET exception = ?, status = ? WHERE id = ?",

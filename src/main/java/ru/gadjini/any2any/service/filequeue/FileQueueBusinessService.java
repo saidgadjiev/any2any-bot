@@ -27,6 +27,10 @@ public class FileQueueBusinessService {
         return fileQueueDao.takeItems(limit);
     }
 
+    public void resetProcessing() {
+        fileQueueDao.resetProcessing();
+    }
+
     public void exception(int id, Exception ex) {
         String exception = ExceptionUtils.getMessage(ex) + "\n" + ExceptionUtils.getStackTrace(ex);
         fileQueueDao.updateException(id, FileQueueItem.Status.EXCEPTION.getCode(), exception);

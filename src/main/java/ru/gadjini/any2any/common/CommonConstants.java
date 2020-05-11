@@ -6,5 +6,5 @@ public class CommonConstants {
 
     }
 
-    public static final String TOP_BOTS_CHANNEL = "@bots_top";
+    public static final String TOP_BOTS_CHANNEL = "@bots_smart";
 }

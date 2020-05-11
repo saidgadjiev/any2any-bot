@@ -1,6 +1,10 @@
 package ru.gadjini.any2any.bot.command.convert;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import ru.gadjini.any2any.service.converter.api.Format;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConvertState {
 
@@ -17,6 +21,9 @@ public class ConvertState {
     private Format format;
 
     private String userLanguage;
+
+    @JsonIgnore
+    private List<String> warnings = new ArrayList<>();
 
     public int getMessageId() {
         return messageId;
@@ -72,5 +79,13 @@ public class ConvertState {
 
     public void setMimeType(String mimeType) {
         this.mimeType = mimeType;
+    }
+
+    public void addWarn(String warn) {
+        warnings.add(warn);
+    }
+
+    public List<String> getWarnings() {
+        return warnings;
     }
 }
