@@ -1,8 +1,6 @@
 package ru.gadjini.any2any.service.converter.impl;
 
-import com.aspose.imaging.Image;
-import com.aspose.imaging.ImageOptionsBase;
-import com.aspose.imaging.LoadOptions;
+import com.aspose.imaging.*;
 import com.aspose.imaging.fileformats.pdf.PdfDocumentInfo;
 import com.aspose.imaging.fileformats.png.PngColorType;
 import com.aspose.imaging.imageloadoptions.PngLoadOptions;
@@ -54,7 +52,12 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         stopWatch.start();
         try (Image image = Image.load(file.getAbsolutePath(), getLoadOptions(fileQueueItem.getFormat()))) {
             File tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
-            image.save(tempFile.getAbsolutePath(), getSaveOptions(image, fileQueueItem.getFormat(), fileQueueItem.getTargetFormat()));
+            ImageOptionsBase saveOptions = getSaveOptions(image, fileQueueItem.getFormat(), fileQueueItem.getTargetFormat());
+            if (saveOptions == null) {
+                image.save(tempFile.getAbsolutePath());
+            } else {
+                image.save(tempFile.getAbsolutePath(), saveOptions);
+            }
 
             stopWatch.stop();
             return fileQueueItem.getTargetFormat() == Format.STICKER
@@ -80,37 +83,41 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private ImageOptionsBase getSaveOptions(Image image, Format format, Format targetFormat) {
+        ImageOptionsBase options = null;
+
         switch (targetFormat) {
             case PDF:
-                if (format == Format.SVG) {
-                    PdfOptions pdfOptions = new PdfOptions();
-                    SvgRasterizationOptions rasterizationOptions = new SvgRasterizationOptions();
-                    rasterizationOptions.setPageHeight(image.getHeight());
-                    rasterizationOptions.setPageWidth(image.getWidth());
-                    pdfOptions.setVectorRasterizationOptions(rasterizationOptions);
-                    pdfOptions.setPdfDocumentInfo(new PdfDocumentInfo());
-                    return pdfOptions;
-                }
-                PdfOptions pdfOptions = new PdfOptions();
-                pdfOptions.setPdfDocumentInfo(new PdfDocumentInfo());
-                return pdfOptions;
+                options = new PdfOptions();
+                ((PdfOptions) options).setPdfDocumentInfo(new PdfDocumentInfo());
+                break;
             case PNG:
-                PngOptions pngOptions = new PngOptions();
-                pngOptions.setColorType(PngColorType.TruecolorWithAlpha);
-                return pngOptions;
+                options = new PngOptions();
+                ((PngOptions) options).setColorType(PngColorType.TruecolorWithAlpha);
+                ((PngOptions) options).setCompressionLevel(0);
+                break;
             case BMP:
-                return new BmpOptions();
+                options = new BmpOptions();
+                break;
             case JPG:
-                JpegOptions jpegOptions = new JpegOptions();
-                jpegOptions.setQuality(100);
-                return jpegOptions;
+                options = new JpegOptions();
+                ((JpegOptions) options).setQuality(100);
+                break;
             case STICKER:
             case WEBP:
-                WebPOptions webPOptions = new WebPOptions();
-                webPOptions.setQuality(100);
-                return webPOptions;
+                options = new WebPOptions();
+                ((WebPOptions) options).setQuality(100);
+                break;
+        }
+        if (options != null && format == Format.SVG) {
+            SvgRasterizationOptions rasterizationOptions = new SvgRasterizationOptions();
+            rasterizationOptions.setPageHeight(image.getHeight());
+            rasterizationOptions.setPageWidth(image.getWidth());
+            rasterizationOptions.setBackgroundColor(Color.getTransparent());
+            rasterizationOptions.setSmoothingMode(SmoothingMode.HighQuality);
+            rasterizationOptions.setResolutionSettings(new ResolutionSetting(200f, 200f));
+            options.setVectorRasterizationOptions(rasterizationOptions);
         }
 
-        return null;
+        return options;
     }
 }
