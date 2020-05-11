@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.util;
+package ru.gadjini.any2any.utils;
 
 import org.apache.commons.io.FilenameUtils;
 

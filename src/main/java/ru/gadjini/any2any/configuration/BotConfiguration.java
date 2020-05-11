@@ -8,10 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.meta.ApiContext;
-import ru.gadjini.any2any.filter.Any2AnyBotFilter;
-import ru.gadjini.any2any.filter.BotFilter;
-import ru.gadjini.any2any.filter.SubscriptionFilter;
-import ru.gadjini.any2any.filter.UpdateFilter;
+import ru.gadjini.any2any.filter.*;
 import ru.gadjini.any2any.property.ProxyProperties;
 
 @Configuration
@@ -36,8 +33,9 @@ public class BotConfiguration {
     }
 
     @Bean
-    public BotFilter botFilter(Any2AnyBotFilter any2AnyBotFilter, SubscriptionFilter subscriptionFilter, UpdateFilter updateFilter) {
-        updateFilter.setNext(subscriptionFilter).setNext(any2AnyBotFilter);
+    public BotFilter botFilter(Any2AnyBotFilter any2AnyBotFilter, SubscriptionFilter subscriptionFilter,
+                               UpdateFilter updateFilter, StartCommandFilter startCommandFilter) {
+        updateFilter.setNext(startCommandFilter).setNext(subscriptionFilter).setNext(any2AnyBotFilter);
         return updateFilter;
     }
 }

@@ -75,10 +75,10 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] strings) {
-        TgUser tgUser = userService.save(user);
+        Locale locale = userService.getLocale(user.getId());
         messageService.sendMessage(
-                new SendMessageContext(chat.getId(), localisationService.getMessage(MessagesProperties.MESSAGE_WELCOME, tgUser.getLocale()))
-                        .replyKeyboard(replyKeyboardService.getMainMenu(tgUser.getLocale()))
+                new SendMessageContext(chat.getId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
+                        .replyKeyboard(replyKeyboardService.getMainMenu(locale))
         );
     }
 

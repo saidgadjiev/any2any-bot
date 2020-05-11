@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.User;
 import ru.gadjini.any2any.common.CommonConstants;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TelegramMethodException;
@@ -13,6 +14,7 @@ import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.utils.UserUtils;
 
 import java.util.Locale;
 
@@ -39,7 +41,7 @@ public class SubscriptionFilter extends BaseBotFilter {
         if (isSubscribedToTopsBot(TgMessage.getUserId(update))) {
             super.doFilter(update);
         } else {
-            sendNeedSubscription(TgMessage.getUserId(update));
+            sendNeedSubscription(TgMessage.getUser(update));
         }
     }
 
@@ -63,8 +65,9 @@ public class SubscriptionFilter extends BaseBotFilter {
         return true;
     }
 
-    private void sendNeedSubscription(int userId) {
-        Locale locale = userService.getLocale(userId);
-        messageService.sendMessage(new SendMessageContext(userId, localisationService.getMessage(MessagesProperties.MESSAGE_NEED_SUBSCRIPTION, locale)));
+    private void sendNeedSubscription(User user) {
+        Locale locale = userService.getLocale(user.getId());
+        String msg = localisationService.getMessage(MessagesProperties.MESSAGE_NEED_SUBSCRIPTION, new Object[]{UserUtils.userLink(user)}, locale);
+        messageService.sendMessage(new SendMessageContext(user.getId(), msg));
     }
 }

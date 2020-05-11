@@ -8,7 +8,6 @@ public enum Format {
     PDF,
     PNG,
     SVG,
-    JPEG,
     JPG,
     BMP,
     TXT,

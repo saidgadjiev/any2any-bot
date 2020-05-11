@@ -9,7 +9,7 @@ import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.dao.command.navigator.keyboard.CommandNavigatorDao;
 import ru.gadjini.any2any.model.TgMessage;
-import ru.gadjini.any2any.util.ReflectionUtils;
+import ru.gadjini.any2any.utils.ReflectionUtils;
 
 import java.util.Collection;
 import java.util.HashMap;

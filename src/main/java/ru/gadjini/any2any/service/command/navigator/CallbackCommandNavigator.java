@@ -12,7 +12,7 @@ import ru.gadjini.any2any.bot.command.api.NavigableCallbackBotCommand;
 import ru.gadjini.any2any.dao.command.navigator.callback.CallbackCommandNavigatorDao;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.request.RequestParams;
-import ru.gadjini.any2any.util.ReflectionUtils;
+import ru.gadjini.any2any.utils.ReflectionUtils;
 
 import java.util.Collection;
 import java.util.HashMap;

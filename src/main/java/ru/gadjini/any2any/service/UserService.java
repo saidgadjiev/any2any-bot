@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.User;
 import ru.gadjini.any2any.dao.UserDao;
+import ru.gadjini.any2any.domain.CreateOrUpdateResult;
 import ru.gadjini.any2any.domain.TgUser;
 
 import java.util.Locale;
@@ -18,12 +19,12 @@ public class UserService {
         this.userDao = userDao;
     }
 
-    public TgUser save(User user) {
+    public CreateOrUpdateResult createOrUpdate(User user) {
         TgUser tgUser = new TgUser();
         tgUser.setUserId(user.getId());
-        userDao.save(tgUser);
+        String state = userDao.createOrUpdate(tgUser);
 
-        return tgUser;
+        return new CreateOrUpdateResult(tgUser, CreateOrUpdateResult.State.fromDesc(state));
     }
 
     public Locale getLocale(int userId) {

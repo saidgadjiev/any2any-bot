@@ -6,7 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.service.converter.api.Format;
-import ru.gadjini.any2any.util.JdbcUtils;
+import ru.gadjini.any2any.utils.JdbcUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
