@@ -25,6 +25,8 @@ public class ConvertState {
     @JsonIgnore
     private List<String> warnings = new ArrayList<>();
 
+    private int filesCount;
+
     public int getMessageId() {
         return messageId;
     }
@@ -87,5 +89,13 @@ public class ConvertState {
 
     public List<String> getWarnings() {
         return warnings;
+    }
+
+    public void addFile() {
+        ++filesCount;
+    }
+
+    public int getFilesCount() {
+        return filesCount;
     }
 }

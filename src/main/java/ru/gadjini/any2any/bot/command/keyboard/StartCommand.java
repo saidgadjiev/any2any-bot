@@ -92,6 +92,9 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
                             .replyKeyboard(replyKeyboardService.getKeyboard(convertState.getFormat(), locale))
             );
             states.put(message.getFrom().getId(), convertState);
+        } else if (isMediaMessage(message)) {
+            ConvertState convertState = states.get(message.getFrom().getId());
+            convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_TOO_MANY_FILES, locale));
         } else if (message.hasText()) {
             ConvertState convertState = states.get(message.getFrom().getId());
             FileQueueItem queueItem = fileQueueService.add(message.getFrom(), convertState, Format.valueOf(message.getText().toUpperCase()));
@@ -135,6 +138,7 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
 
     private ConvertState createState(Message message, Locale locale) {
         ConvertState convertState = new ConvertState();
+        convertState.addFile();
         convertState.setMessageId(message.getMessageId());
         convertState.setUserLanguage(locale.getLanguage());
 
@@ -197,5 +201,9 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
         }
 
         return message.toString();
+    }
+
+    private boolean isMediaMessage(Message message) {
+        return message.hasDocument() || message.hasPhoto();
     }
 }
