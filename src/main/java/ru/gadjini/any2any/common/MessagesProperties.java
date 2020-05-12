@@ -30,6 +30,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_STATUS_PROCESSING = "message.status.processing";
 
+    public static final String MESSAGE_STATUS_EXCEPTION = "message.status.exception";
+
     public static final String MESSAGE_STATUS_WAITING = "message.status.waiting";
 
     public static final String MESSAGE_TARGET_FORMAT = "message.target.format";

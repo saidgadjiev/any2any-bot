@@ -81,10 +81,14 @@ public class FileQueueMessageBuilder {
         switch (fileQueueItem.getStatus()) {
             case WAITING:
                 return localisationService.getMessage(MessagesProperties.MESSAGE_STATUS_WAITING, new Object[]{fileQueueItem.getPlaceInQueue()}, locale);
-            default:
+            case PROCESSING:
                 Duration between = Duration.between(fileQueueItem.getLastRunAt(), timeCreator.now());
                 String time = time2TextService.time(between, locale);
                 return localisationService.getMessage(MessagesProperties.MESSAGE_STATUS_PROCESSING, new Object[]{time}, locale);
+            case EXCEPTION:
+                return localisationService.getMessage(MessagesProperties.MESSAGE_STATUS_EXCEPTION, locale);
         }
+
+        return "";
     }
 }
