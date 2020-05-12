@@ -19,4 +19,6 @@ public class CommandNames {
     public static final String GO_BACK_CALLBACK_COMMAND_NAME = "d";
 
     public static final String FORMATS_COMMAND = "formats";
+
+    public static final String REPORT_COMMAND_NAME = "e";
 }

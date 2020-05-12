@@ -8,9 +8,11 @@ import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMem
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import ru.gadjini.any2any.common.MessagesProperties;
@@ -69,6 +71,18 @@ public class MessageService {
         }
     }
 
+    public void removeInlineKeyboard(long chatId, int messageId) {
+        EditMessageReplyMarkup edit = new EditMessageReplyMarkup();
+        edit.setChatId(chatId);
+        edit.setMessageId(messageId);
+
+        try {
+            telegramService.execute(edit);
+        } catch (TelegramApiException ex) {
+            LOGGER.error(ex.getMessage(), ex);
+        }
+    }
+
     public void editMessage(EditMessageContext messageContext) {
         EditMessageText editMessageText = new EditMessageText();
 
@@ -104,6 +118,9 @@ public class MessageService {
         if (sendFileContext.replyMessageId() != null) {
             sendSticker.setReplyToMessageId(sendFileContext.replyMessageId());
         }
+        if (sendFileContext.replyKeyboard() != null) {
+            sendSticker.setReplyMarkup(sendFileContext.replyKeyboard());
+        }
 
         try {
             telegramService.execute(sendSticker);
@@ -122,6 +139,9 @@ public class MessageService {
 
         if (sendDocumentContext.replyMessageId() != null) {
             sendDocument.setReplyToMessageId(sendDocumentContext.replyMessageId());
+        }
+        if (sendDocumentContext.replyKeyboard() != null) {
+            sendDocument.setReplyMarkup(sendDocumentContext.replyKeyboard());
         }
 
         try {

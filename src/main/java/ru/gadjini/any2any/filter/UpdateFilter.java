@@ -8,7 +8,7 @@ public class UpdateFilter extends BaseBotFilter {
 
     @Override
     public void doFilter(Update update) {
-        if (update.hasMessage()) {
+        if (update.hasMessage() || update.hasCallbackQuery()) {
             super.doFilter(update);
         }
     }

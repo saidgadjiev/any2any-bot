@@ -69,4 +69,8 @@ public class MessagesProperties {
     public static final String MESSAGE_FORMATS = "message.formats";
 
     public static final String FORMATS_COMMAND_NAME = "formats.command.name";
+
+    public static final String MESSAGE_REPLY = "message.reply";
+
+    public static final String REPORT_COMMAND_DESCRIPTION = "report.command.description";
 }

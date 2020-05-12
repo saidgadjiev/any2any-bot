@@ -43,6 +43,16 @@ public class ButtonFactory {
         return inlineKeyboardButton;
     }
 
+    public InlineKeyboardButton report(int queryItemId, Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.REPORT_COMMAND_DESCRIPTION, locale));
+        inlineKeyboardButton.setCallbackData(CommandNames.REPORT_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(Arg.QUEUE_ITEM_ID.getKey(), queryItemId)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
     public InlineKeyboardButton goBackCallbackButton(String prevHistoryName, Locale locale) {
         Objects.requireNonNull(prevHistoryName);
         RequestParams requestParams = new RequestParams();
