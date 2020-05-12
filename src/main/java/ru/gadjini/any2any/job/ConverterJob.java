@@ -9,7 +9,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.event.QueueItemCanceled;
 import ru.gadjini.any2any.model.SendFileContext;

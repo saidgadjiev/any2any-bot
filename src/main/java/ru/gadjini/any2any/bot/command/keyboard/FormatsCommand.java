@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
+@SuppressWarnings("CPD-START")
 @Component
 public class FormatsCommand extends BotCommand implements KeyboardBotCommand {
 

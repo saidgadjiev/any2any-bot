@@ -6,7 +6,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.TgUser;
 
-import java.sql.PreparedStatement;
 import java.sql.Statement;
 
 @Repository
