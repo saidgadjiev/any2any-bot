@@ -3,8 +3,8 @@ package ru.gadjini.any2any.bot.command.convert;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import ru.gadjini.any2any.service.converter.api.Format;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class ConvertState {
 
@@ -23,9 +23,7 @@ public class ConvertState {
     private String userLanguage;
 
     @JsonIgnore
-    private List<String> warnings = new ArrayList<>();
-
-    private int filesCount;
+    private Set<String> warnings = new LinkedHashSet<>();
 
     public int getMessageId() {
         return messageId;
@@ -87,15 +85,11 @@ public class ConvertState {
         warnings.add(warn);
     }
 
-    public List<String> getWarnings() {
+    public Set<String> getWarnings() {
         return warnings;
     }
 
-    public void addFile() {
-        ++filesCount;
-    }
-
-    public int getFilesCount() {
-        return filesCount;
+    public void deleteWarns() {
+        warnings.clear();
     }
 }
