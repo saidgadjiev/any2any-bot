@@ -9,7 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.converter.api.Format;
-import ru.gadjini.any2any.service.converter.api.FormatService;
+import ru.gadjini.any2any.service.converter.impl.FormatService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +33,8 @@ public class ReplyKeyboardService {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.QUERIES_COMMAND_NAME, locale)));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.FORMATS_COMMAND_NAME, locale)));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.HELP_COMMAND_NAME, locale)));
 
         return replyKeyboardMarkup;
     }

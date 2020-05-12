@@ -57,4 +57,16 @@ public class MessagesProperties {
     public static final String MESSAGE_NO_BASE_URL_IN_HTML = "message.no.base.url.in.html";
 
     public static final String MESSAGE_CONVERT_WARNINGS = "message.convert.warnings";
+
+    public static final String CATEGORY_DOCUMENTS = "category.documents";
+
+    public static final String CATEGORY_IMAGES = "category.images";
+
+    public static final String MESSAGE_HELP = "message.help";
+
+    public static final String HELP_COMMAND_NAME = "help.command.name";
+
+    public static final String MESSAGE_FORMATS = "message.formats";
+
+    public static final String FORMATS_COMMAND_NAME = "formats.command.name";
 }

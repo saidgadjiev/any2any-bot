@@ -15,14 +15,10 @@ import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandParser;
 import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
-import ru.gadjini.any2any.service.converter.api.Format;
-import ru.gadjini.any2any.service.converter.api.FormatService;
+import ru.gadjini.any2any.service.converter.api.FormatCategory;
+import ru.gadjini.any2any.service.converter.impl.FormatMessageBuilder;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 import ru.gadjini.any2any.utils.UserUtils;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 public class StartCommandFilter extends BaseBotFilter {
@@ -39,20 +35,20 @@ public class StartCommandFilter extends BaseBotFilter {
 
     private CommandNavigator commandNavigator;
 
-    private FormatService formatService;
+    private FormatMessageBuilder formatMessageBuilder;
 
     @Autowired
     public StartCommandFilter(CommandParser commandParser, UserService userService,
                               MessageService messageService, LocalisationService localisationService,
                               ReplyKeyboardService replyKeyboardService, CommandNavigator commandNavigator,
-                              FormatService formatService) {
+                              FormatMessageBuilder formatMessageBuilder) {
         this.commandParser = commandParser;
         this.userService = userService;
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.replyKeyboardService = replyKeyboardService;
         this.commandNavigator = commandNavigator;
-        this.formatService = formatService;
+        this.formatMessageBuilder = formatMessageBuilder;
     }
 
     @Override
@@ -82,8 +78,9 @@ public class StartCommandFilter extends BaseBotFilter {
         CreateOrUpdateResult createOrUpdateResult = userService.createOrUpdate(user);
 
         if (createOrUpdateResult.isCreated()) {
-            String formats = formats();
-            String text = localisationService.getMessage(MessagesProperties.MESSAGE_WELCOME, new Object[]{UserUtils.userLink(user), formats}, createOrUpdateResult.getUser().getLocale());
+            String documents = formatMessageBuilder.formats(FormatCategory.DOCUMENTS);
+            String images = formatMessageBuilder.formats(FormatCategory.IMAGES);
+            String text = localisationService.getMessage(MessagesProperties.MESSAGE_WELCOME, new Object[]{UserUtils.userLink(user), documents, images}, createOrUpdateResult.getUser().getLocale());
             ReplyKeyboard mainMenu = replyKeyboardService.getMainMenu(createOrUpdateResult.getUser().getLocale());
             messageService.sendMessage(
                     new SendMessageContext(user.getId(), text)
@@ -94,22 +91,5 @@ public class StartCommandFilter extends BaseBotFilter {
         }
 
         return createOrUpdateResult;
-    }
-
-    private String formats() {
-        Map<List<Format>, List<Format>> formats = formatService.getFormats();
-        StringBuilder msg = new StringBuilder();
-
-        for (Map.Entry<List<Format>, List<Format>> entry: formats.entrySet()) {
-            if (msg.length() > 0) {
-                msg.append("\n");
-            }
-            String left = entry.getKey().stream().map(Format::name).collect(Collectors.joining(", "));
-            String right = entry.getValue().stream().map(Format::name).collect(Collectors.joining(", "));
-
-            msg.append(left).append(" - ").append(right);
-        }
-
-        return msg.toString();
     }
 }
