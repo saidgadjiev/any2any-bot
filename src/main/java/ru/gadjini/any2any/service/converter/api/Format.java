@@ -38,8 +38,8 @@ public enum Format {
             return "png";
         }
     },
-    HTML(FormatCategory.IMAGES),
-    URL(FormatCategory.DOCUMENTS),
+    HTML(FormatCategory.WEB),
+    URL(FormatCategory.WEB),
     TEXT(FormatCategory.DOCUMENTS);
 
     private FormatCategory category;

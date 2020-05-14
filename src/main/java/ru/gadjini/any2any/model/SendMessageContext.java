@@ -12,6 +12,8 @@ public class SendMessageContext {
 
     private boolean html = true;
 
+    private boolean webPagePreview = false;
+
     public SendMessageContext(long chatId, String text) {
         this.chatId = chatId;
         this.text = text;
@@ -44,6 +46,15 @@ public class SendMessageContext {
 
     public SendMessageContext html(final boolean html) {
         this.html = html;
+        return this;
+    }
+
+    public boolean webPagePreview() {
+        return this.webPagePreview;
+    }
+
+    public SendMessageContext webPagePreview(final boolean webPagePreview) {
+        this.webPagePreview = webPagePreview;
         return this;
     }
 }

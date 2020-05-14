@@ -77,4 +77,6 @@ public class MessagesProperties {
     public static final String REPORT_COMMAND_DESCRIPTION = "report.command.description";
 
     public static final String MESSAGE_TOO_MANY_FILES = "message.too.many.files";
+
+    public static final String FORMATS_ARTICLE = "formats.article";
 }

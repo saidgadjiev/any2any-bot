@@ -14,8 +14,6 @@ import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.service.converter.api.FormatCategory;
-import ru.gadjini.any2any.service.converter.impl.FormatMessageBuilder;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -31,17 +29,14 @@ public class FormatsCommand extends BotCommand implements KeyboardBotCommand {
 
     private UserService userService;
 
-    private FormatMessageBuilder formatMessageBuilder;
-
     private Set<String> names = new HashSet<>();
 
     @Autowired
-    public FormatsCommand(MessageService messageService, LocalisationService localisationService, UserService userService, FormatMessageBuilder formatMessageBuilder) {
+    public FormatsCommand(MessageService messageService, LocalisationService localisationService, UserService userService) {
         super(CommandNames.FORMATS_COMMAND, "");
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
-        this.formatMessageBuilder = formatMessageBuilder;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.FORMATS_COMMAND_NAME, locale));
         }
@@ -65,10 +60,7 @@ public class FormatsCommand extends BotCommand implements KeyboardBotCommand {
     }
 
     private void sendHelpMessage(int userId, Locale locale) {
-        String documents = formatMessageBuilder.formats(FormatCategory.DOCUMENTS);
-        String images = formatMessageBuilder.formats(FormatCategory.IMAGES);
-
         messageService.sendMessage(
-                new SendMessageContext(userId, localisationService.getMessage(MessagesProperties.MESSAGE_FORMATS, new Object[] {documents, images}, locale)));
+                new SendMessageContext(userId, localisationService.getMessage(MessagesProperties.MESSAGE_FORMATS, locale)).webPagePreview(true));
     }
 }

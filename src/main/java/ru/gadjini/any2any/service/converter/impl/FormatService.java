@@ -12,6 +12,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static ru.gadjini.any2any.service.converter.api.Format.*;
+
 @Service
 public class FormatService {
 
@@ -19,28 +21,24 @@ public class FormatService {
 
     static {
         Map<List<Format>, List<Format>> documents = new LinkedHashMap<>();
-        documents.put(List.of(Format.DOC), List.of(Format.DOCX, Format.TXT, Format.PDF, Format.EPUB, Format.RTF, Format.TIFF));
-        documents.put(List.of(Format.DOCX), List.of(Format.DOC, Format.TXT, Format.PDF, Format.EPUB, Format.RTF, Format.TIFF));
-        documents.put(List.of(Format.PDF), List.of(Format.DOC, Format.DOCX, Format.EPUB, Format.TIFF));
-        documents.put(List.of(Format.TXT, Format.TEXT), List.of(Format.PDF, Format.DOC, Format.DOCX));
-        documents.put(List.of(Format.EPUB), List.of(Format.PDF, Format.DOC, Format.DOCX, Format.RTF));
-        documents.put(List.of(Format.URL, Format.HTML), List.of(Format.PDF));
-        documents.put(List.of(Format.XLS, Format.XLSX), List.of(Format.PDF));
-        documents.put(List.of(Format.PPTX, Format.PPT, Format.PPTM, Format.POTX, Format.POT, Format.POTM, Format.PPS, Format.PPSX, Format.PPSM), List.of(Format.PDF));
+        documents.put(List.of(DOC), List.of(DOCX, TXT, PDF, EPUB, RTF, TIFF));
+        documents.put(List.of(DOCX), List.of(DOC, TXT, PDF, EPUB, RTF, TIFF));
+        documents.put(List.of(PDF), List.of(DOC, DOCX, EPUB, TIFF));
+        documents.put(List.of(TXT, TEXT), List.of(PDF, DOC, DOCX));
+        documents.put(List.of(EPUB), List.of(PDF, DOC, DOCX, RTF));
+        documents.put(List.of(URL, HTML), List.of(PDF));
+        documents.put(List.of(XLS, XLSX), List.of(PDF));
+        documents.put(List.of(PPTX, PPT, PPTM, POTX, POT, POTM, PPS, PPSX, PPSM), List.of(PDF));
         FORMATS.put(FormatCategory.DOCUMENTS, documents);
 
         Map<List<Format>, List<Format>> images = new LinkedHashMap<>();
-        images.put(List.of(Format.PNG, Format.DEVICE_PHOTO), List.of(Format.PDF, Format.JPG, Format.BMP, Format.WEBP, Format.STICKER));
-        images.put(List.of(Format.JPG, Format.JPEG), List.of(Format.PDF, Format.PNG, Format.BMP, Format.WEBP, Format.STICKER));
-        images.put(List.of(Format.TIFF), List.of(Format.DOC, Format.DOCX, Format.PDF));
-        images.put(List.of(Format.BMP), List.of(Format.PDF, Format.PNG, Format.JPG, Format.WEBP, Format.STICKER));
-        images.put(List.of(Format.STICKER, Format.WEBP), List.of(Format.PNG, Format.JPG, Format.PDF));
-        images.put(List.of(Format.SVG), List.of(Format.PDF, Format.PNG, Format.JPG, Format.BMP, Format.WEBP, Format.STICKER));
+        images.put(List.of(PNG, DEVICE_PHOTO), List.of(PDF, JPG, BMP, WEBP, STICKER));
+        images.put(List.of(JPG, JPEG), List.of(PDF, PNG, BMP, WEBP, STICKER));
+        images.put(List.of(TIFF), List.of(DOC, DOCX, PDF));
+        images.put(List.of(BMP), List.of(PDF, PNG, JPG, WEBP, STICKER));
+        images.put(List.of(STICKER, WEBP), List.of(PNG, JPG, PDF));
+        images.put(List.of(SVG), List.of(PDF, PNG, JPG, BMP, WEBP, STICKER));
         FORMATS.put(FormatCategory.IMAGES, images);
-    }
-
-    public Map<List<Format>, List<Format>> getFormats(FormatCategory category) {
-        return FORMATS.get(category);
     }
 
     public List<Format> getTargetFormats(Format srcFormat) {
@@ -57,10 +55,10 @@ public class FormatService {
 
     public Format getFormat(String text) {
         if (isUrl(text)) {
-            return Format.URL;
+            return URL;
         }
 
-        return Format.TEXT;
+        return TEXT;
     }
 
     public Format getFormat(String fileName, String mimeType) {
@@ -72,7 +70,7 @@ public class FormatService {
             extension = FilenameUtils.getExtension(fileName);
         }
 
-        return Format.valueOf(extension.toUpperCase());
+        return valueOf(extension.toUpperCase());
     }
 
     public boolean isConvertAvailable(Format src, Format target) {

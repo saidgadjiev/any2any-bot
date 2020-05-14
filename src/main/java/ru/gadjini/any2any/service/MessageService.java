@@ -57,7 +57,10 @@ public class MessageService {
         sendMessage.setChatId(messageContext.chatId());
         sendMessage.enableHtml(messageContext.html());
         sendMessage.setText(messageContext.text());
-        sendMessage.disableWebPagePreview();
+
+        if (!messageContext.webPagePreview()) {
+            sendMessage.disableWebPagePreview();
+        }
 
         if (messageContext.hasKeyboard()) {
             sendMessage.setReplyMarkup(messageContext.replyKeyboard());

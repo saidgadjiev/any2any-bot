@@ -33,9 +33,9 @@ public class BotConfiguration {
     }
 
     @Bean
-    public BotFilter botFilter(Any2AnyBotFilter any2AnyBotFilter, SubscriptionFilter subscriptionFilter,
+    public BotFilter botFilter(Any2AnyBotFilter any2AnyBotFilter,
                                UpdateFilter updateFilter, StartCommandFilter startCommandFilter) {
-        updateFilter.setNext(startCommandFilter).setNext(subscriptionFilter).setNext(any2AnyBotFilter);
+        updateFilter.setNext(startCommandFilter).setNext(any2AnyBotFilter);
         return updateFilter;
     }
 }

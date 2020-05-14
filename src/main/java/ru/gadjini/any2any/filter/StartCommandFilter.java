@@ -15,8 +15,6 @@ import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandParser;
 import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
-import ru.gadjini.any2any.service.converter.api.FormatCategory;
-import ru.gadjini.any2any.service.converter.impl.FormatMessageBuilder;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 import ru.gadjini.any2any.utils.UserUtils;
 
@@ -35,20 +33,16 @@ public class StartCommandFilter extends BaseBotFilter {
 
     private CommandNavigator commandNavigator;
 
-    private FormatMessageBuilder formatMessageBuilder;
-
     @Autowired
     public StartCommandFilter(CommandParser commandParser, UserService userService,
                               MessageService messageService, LocalisationService localisationService,
-                              ReplyKeyboardService replyKeyboardService, CommandNavigator commandNavigator,
-                              FormatMessageBuilder formatMessageBuilder) {
+                              ReplyKeyboardService replyKeyboardService, CommandNavigator commandNavigator) {
         this.commandParser = commandParser;
         this.userService = userService;
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.replyKeyboardService = replyKeyboardService;
         this.commandNavigator = commandNavigator;
-        this.formatMessageBuilder = formatMessageBuilder;
     }
 
     @Override
@@ -78,12 +72,11 @@ public class StartCommandFilter extends BaseBotFilter {
         CreateOrUpdateResult createOrUpdateResult = userService.createOrUpdate(user);
 
         if (createOrUpdateResult.isCreated()) {
-            String documents = formatMessageBuilder.formats(FormatCategory.DOCUMENTS);
-            String images = formatMessageBuilder.formats(FormatCategory.IMAGES);
-            String text = localisationService.getMessage(MessagesProperties.MESSAGE_WELCOME, new Object[]{UserUtils.userLink(user), documents, images}, createOrUpdateResult.getUser().getLocale());
+            String text = localisationService.getMessage(MessagesProperties.MESSAGE_WELCOME, new Object[]{UserUtils.userLink(user)}, createOrUpdateResult.getUser().getLocale());
             ReplyKeyboard mainMenu = replyKeyboardService.getMainMenu(createOrUpdateResult.getUser().getLocale());
             messageService.sendMessage(
                     new SendMessageContext(user.getId(), text)
+                            .webPagePreview(true)
                             .replyKeyboard(mainMenu)
             );
 
