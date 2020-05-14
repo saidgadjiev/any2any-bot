@@ -52,7 +52,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             stopWatch.start();
 
             Document word = new Document(file.getAbsolutePath());
-            File pdfFile = fileService.createTempFile("any2any", "pdf");
+            File pdfFile = fileService.createTempFile0("any2any", "pdf");
             try {
                 word.save(pdfFile.getAbsolutePath(), SaveFormat.PDF);
             } finally {

@@ -51,6 +51,10 @@ public class TelegramService extends DefaultAbsSender {
     }
 
     public File downloadFileByFileId(String fileId, String ext) {
-        return downloadFileByFileId(fileId, fileService.createTempFile(fileId, ext));
+        return downloadFileByFileId(fileId, fileService.createTempFile0(fileId, ext));
+    }
+
+    public File downloadFileByFileIdWithoutExt(String fileId) {
+        return downloadFileByFileId(fileId, fileService.createTempFile(fileId));
     }
 }

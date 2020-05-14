@@ -8,7 +8,7 @@ import java.io.IOException;
 @Service
 public class FileService {
 
-    public File createTempFile(String prefix, String ext) {
+    public File createTempFile0(String prefix, String ext) {
         try {
             return File.createTempFile(prefix, "." + ext);
         } catch (IOException e) {

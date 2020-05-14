@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 import org.telegram.telegrambots.meta.bots.AbsSender;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
@@ -127,8 +128,8 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
     }
 
     @Override
-    public boolean accept(Message message) {
-        return true;
+    public ReplyKeyboardMarkup getKeyboard(long chatId) {
+        return replyKeyboardService.getMainMenu(userService.getLocale((int) chatId));
     }
 
     private ConvertState createState(Message message, Locale locale) {

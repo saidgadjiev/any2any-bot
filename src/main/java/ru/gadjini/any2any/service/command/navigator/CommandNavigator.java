@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.dao.command.navigator.keyboard.CommandNavigatorDao;
@@ -33,6 +35,11 @@ public class CommandNavigator {
         ReflectionUtils.findImplements(botCommands, NavigableBotCommand.class).forEach(command -> navigableBotCommands.put(command.getHistoryName(), command));
     }
 
+    @Autowired
+    public void setKeyboardCommands(Collection<KeyboardBotCommand> keyboardCommands) {
+        ReflectionUtils.findImplements(keyboardCommands, NavigableBotCommand.class).forEach(command -> navigableBotCommands.put(command.getHistoryName(), command));
+    }
+
     public void push(long chatId, NavigableBotCommand navigableBotCommand) {
         NavigableBotCommand currCommand = getCurrentCommand(chatId);
 
@@ -57,15 +64,33 @@ public class CommandNavigator {
         String parentHistoryName = navigatorDao.popParent(chatId, CommandNames.START_COMMAND);
 
         if (StringUtils.isNotBlank(parentHistoryName)) {
-            currentCommand.leave(chatId);
+            if (currentCommand != null) {
+                currentCommand.leave(chatId);
+            }
 
             NavigableBotCommand parentCommand = navigableBotCommands.get(parentHistoryName);
 
             setCurrentCommand(chatId, parentCommand);
             parentCommand.restore(message);
-        } else {
+        } else if (currentCommand != null) {
             currentCommand.restore(message);
         }
+    }
+
+
+    public ReplyKeyboardMarkup silentPop(long chatId) {
+        NavigableBotCommand navigableBotCommand = getCurrentCommand(chatId);
+        if (navigableBotCommand == null) {
+            return null;
+        }
+        navigableBotCommand.leave(chatId);
+
+        String parentHistoryName = navigatorDao.popParent(chatId, CommandNames.START_COMMAND);
+        NavigableBotCommand parentCommand = navigableBotCommands.get(parentHistoryName);
+
+        setCurrentCommand(chatId, parentCommand);
+
+        return parentCommand.getKeyboard(chatId);
     }
 
     public void zeroRestore(long chatId, NavigableBotCommand botCommand) {

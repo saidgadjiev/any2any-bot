@@ -100,7 +100,7 @@ public class Epub2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     private File toDoc(File epub) {
         Document document = new Document(epub.getAbsolutePath(), new EpubLoadOptions());
         try {
-            File result = fileService.createTempFile("any2any", "doc");
+            File result = fileService.createTempFile0("any2any", "doc");
             document.save(result.getAbsolutePath(), SaveFormat.Doc);
 
             return result;

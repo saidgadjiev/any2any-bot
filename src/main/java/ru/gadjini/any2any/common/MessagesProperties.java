@@ -87,4 +87,12 @@ public class MessagesProperties {
     public static final String FORMATS_ARTICLE = "formats.article";
 
     public static final String MESSAGE_SESSION_EXPIRED = "message.session.expired";
+
+    public static final String RENAME_COMMAND_NAME = "rename.command.name";
+
+    public static final String MESSAGE_RENAME_FILE = "message.rename.file";
+
+    public static final String MESSAGE_NEW_FILE_NAME = "message.new.file.name";
+
+    public static final String MESSAGE_RENAME_FORBIDDEN = "message.rename.forbidden";
 }
