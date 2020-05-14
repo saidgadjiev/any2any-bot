@@ -1,16 +1,18 @@
-FROM openjdk:11-jre
+FROM ubuntu:18.04
 
 WORKDIR /app
-RUN sed 's/main$/main universe/' -i /etc/apt/sources.list
-RUN apt-get update
-RUN apt-get upgrade -y
+ENV DEBIAN_FRONTEND noninteractive 
 
-# Download and install wkhtmltopdf
-RUN apt-get install -y build-essential xorg libssl-dev libxrender-dev wget gdebi
-RUN wget "https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.trusty_amd64.deb"
-RUN gdebi --n "wkhtmltox-0.12.2.1_linux-trusty-amd64.deb"
+RUN apt-get update -y -qq
+RUN apt-get install -y -qq openjdk-11-jre wget gdebi
+
+RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb
+RUN gdebi --n wkhtmltox_0.12.5-1.bionic_amd64.deb
+RUN rm wkhtmltox_0.12.5-1.bionic_amd64.deb
+
+RUN rm -rf /var/lib/apt/lists/*
 
 COPY ./target/app.jar .
 
 ENTRYPOINT ["java"]
-CMD ["-Duser.timezone=UTC", "-Duser.language=ru", "-jar", "app.jar"]
+CMD ["-jar", "app.jar"]
