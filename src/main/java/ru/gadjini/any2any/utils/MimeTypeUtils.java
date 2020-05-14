@@ -22,4 +22,8 @@ public class MimeTypeUtils {
 
         return parsedMimeType.getExtension();
     }
+
+    public static void main(String[] args) {
+        System.out.println(getExtension("image/jpg"));
+    }
 }

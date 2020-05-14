@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.Locale;
+import java.util.Objects;
 
 @Component
 public class StartCommand extends BotCommand implements NavigableBotCommand {
@@ -103,7 +104,8 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
             commandStateService.setState(message.getChatId(), convertState);
         } else if (message.hasText()) {
             ConvertState convertState = commandStateService.getState(message.getChatId(), true);
-            FileQueueItem queueItem = fileQueueService.add(message.getFrom(), convertState, Format.valueOf(message.getText().toUpperCase()));
+            Format targetFormat = checkTargetFormat(convertState.getFormat(), formatService.getAssociatedFormat(message.getText().trim()), locale);
+            FileQueueItem queueItem = fileQueueService.add(message.getFrom(), convertState, targetFormat);
             String queuedMessage = queueMessageBuilder.getQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
             messageService.sendMessage(new SendMessageContext(message.getChatId(), queuedMessage)
                     .replyKeyboard(replyKeyboardService.getMainMenu(locale)));
@@ -189,6 +191,21 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
     private Format checkFormat(Format format, Locale locale) {
         if (format != null) {
             return format;
+        }
+
+        throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
+    }
+
+    private Format checkTargetFormat(Format format, Format target, Locale locale) {
+        if (target == null) {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
+        }
+        if (Objects.equals(format, target)) {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_ANOTHER_FORMAT, locale));
+        }
+        boolean result = formatService.isConvertAvailable(format, target);
+        if (result) {
+            return target;
         }
 
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));

@@ -18,6 +18,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_EMPTY_FILE_NAME = "message.empty.file.name";
 
+    public static final String MESSAGE_CHOOSE_ANOTHER_FORMAT = "message.choose.another.format";
+
     public static final String MESSAGE_CHOOSE_TARGET_EXTENSION = "message.choose.target.extension";
 
     public static final String GO_BACK_COMMAND_NAME = "go.back.command.name";

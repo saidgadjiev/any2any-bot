@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service.converter.impl;
 
+import com.aspose.imaging.FileFormat;
 import com.aspose.imaging.Image;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -40,7 +41,7 @@ public class FormatService {
 
         Map<List<Format>, List<Format>> images = new LinkedHashMap<>();
         images.put(List.of(PNG), List.of(PDF, JPG, BMP, WEBP, STICKER));
-        images.put(List.of(JPG, JPEG), List.of(PDF, PNG, BMP, WEBP, STICKER));
+        images.put(List.of(JPG), List.of(PDF, PNG, BMP, WEBP, STICKER));
         images.put(List.of(TIFF), List.of(PDF, DOCX, DOC));
         images.put(List.of(BMP), List.of(PDF, PNG, JPG, WEBP, STICKER));
         images.put(List.of(WEBP), List.of(PDF, PNG, JPG));
@@ -69,6 +70,20 @@ public class FormatService {
         return Collections.emptyList();
     }
 
+    public Format getAssociatedFormat(String format) {
+        if ("jpeg".equals(format)) {
+            return JPG;
+        }
+        format = format.toUpperCase();
+        for (Format f : values()) {
+            if (f.name().equals(format)) {
+                return f;
+            }
+        }
+
+        return null;
+    }
+
     public Format getFormat(String text) {
         if (isUrl(text)) {
             return URL;
@@ -87,6 +102,9 @@ public class FormatService {
         }
         if (StringUtils.isBlank(extension)) {
             return null;
+        }
+        if ("jpeg".equals(extension)) {
+            return JPG;
         }
 
         for (Format format : values()) {
@@ -126,17 +144,17 @@ public class FormatService {
     }
 
     private Format getImageFormat(long format) {
-        if (format == com.aspose.imaging.FileFormat.Bmp) {
+        if (format == FileFormat.Bmp) {
             return BMP;
-        } else if (format == com.aspose.imaging.FileFormat.Png) {
+        } else if (format == FileFormat.Png) {
             return PNG;
-        } else if (format == com.aspose.imaging.FileFormat.Jpeg) {
+        } else if (format == FileFormat.Jpeg) {
             return JPG;
-        } else if (format == com.aspose.imaging.FileFormat.Tiff) {
+        } else if (format == FileFormat.Tiff) {
             return TIFF;
-        } else if (format == com.aspose.imaging.FileFormat.Webp) {
+        } else if (format == FileFormat.Webp) {
             return WEBP;
-        } else if (format == com.aspose.imaging.FileFormat.Svg) {
+        } else if (format == FileFormat.Svg) {
             return SVG;
         } else {
             return null;

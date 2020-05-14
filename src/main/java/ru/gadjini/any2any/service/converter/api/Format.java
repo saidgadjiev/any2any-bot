@@ -19,7 +19,6 @@ public enum Format {
     PDF(FormatCategory.DOCUMENTS),
     PNG(FormatCategory.IMAGES),
     SVG(FormatCategory.IMAGES),
-    JPEG(FormatCategory.IMAGES),
     JPG(FormatCategory.IMAGES),
     BMP(FormatCategory.IMAGES),
     TXT(FormatCategory.DOCUMENTS),
