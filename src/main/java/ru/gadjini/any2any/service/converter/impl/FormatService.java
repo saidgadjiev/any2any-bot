@@ -25,6 +25,8 @@ public class FormatService {
         documents.put(List.of(Format.TXT, Format.TEXT), List.of(Format.PDF, Format.DOC, Format.DOCX));
         documents.put(List.of(Format.EPUB), List.of(Format.PDF, Format.DOC, Format.DOCX, Format.RTF));
         documents.put(List.of(Format.URL, Format.HTML), List.of(Format.PDF));
+        documents.put(List.of(Format.XLS, Format.XLSX), List.of(Format.PDF));
+        documents.put(List.of(Format.PPTX, Format.PPT, Format.PPTM, Format.POTX, Format.POT, Format.POTM, Format.PPS, Format.PPSX, Format.PPSM), List.of(Format.PDF));
         FORMATS.put(FormatCategory.DOCUMENTS, documents);
 
         Map<List<Format>, List<Format>> images = new LinkedHashMap<>();

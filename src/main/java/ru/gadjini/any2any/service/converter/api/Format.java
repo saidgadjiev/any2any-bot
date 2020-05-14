@@ -2,17 +2,17 @@ package ru.gadjini.any2any.service.converter.api;
 
 public enum Format {
 
-    PPTX,
-    PPT,
-    PPTM,
-    POTX,
-    POT,
-    POTM,
-    PPS,
-    PPSX,
-    PPSM,
-    XLSX,
-    XLS
+    PPTX(FormatCategory.DOCUMENTS),
+    PPT(FormatCategory.DOCUMENTS),
+    PPTM(FormatCategory.DOCUMENTS),
+    POTX(FormatCategory.DOCUMENTS),
+    POT(FormatCategory.DOCUMENTS),
+    POTM(FormatCategory.DOCUMENTS),
+    PPS(FormatCategory.DOCUMENTS),
+    PPSX(FormatCategory.DOCUMENTS),
+    PPSM(FormatCategory.DOCUMENTS),
+    XLSX(FormatCategory.DOCUMENTS),
+    XLS(FormatCategory.DOCUMENTS),
     DOC(FormatCategory.DOCUMENTS),
     DOCX(FormatCategory.DOCUMENTS),
     RTF(FormatCategory.DOCUMENTS),

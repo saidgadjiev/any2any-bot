@@ -7,10 +7,13 @@ import ru.gadjini.any2any.service.converter.api.FormatCategory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
 public class FormatMessageBuilder {
+
+    private static final Set<Format> IGNORE_FORMATS = Set.of(Format.DEVICE_PHOTO);
 
     private FormatService formatService;
 
@@ -27,8 +30,8 @@ public class FormatMessageBuilder {
             if (msg.length() > 0) {
                 msg.append("\n");
             }
-            String left = entry.getKey().stream().map(Format::name).collect(Collectors.joining(", "));
-            String right = entry.getValue().stream().map(Format::name).collect(Collectors.joining(", "));
+            String left = entry.getKey().stream().filter(format -> !IGNORE_FORMATS.contains(format)).map(Format::name).collect(Collectors.joining(", "));
+            String right = entry.getValue().stream().filter(format -> !IGNORE_FORMATS.contains(format)).map(Format::name).collect(Collectors.joining(", "));
 
             msg.append(left).append(" - ").append(right);
         }
