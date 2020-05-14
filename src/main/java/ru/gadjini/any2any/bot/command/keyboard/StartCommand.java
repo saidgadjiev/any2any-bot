@@ -13,12 +13,12 @@ import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 import org.telegram.telegrambots.meta.bots.AbsSender;
-import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.bot.command.convert.ConvertState;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.service.LocalisationService;
@@ -40,7 +40,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class StartCommand extends BotCommand implements KeyboardBotCommand, NavigableBotCommand {
+public class StartCommand extends BotCommand implements NavigableBotCommand {
 
     private final Map<Integer, ConvertState> states = new ConcurrentHashMap<>();
 
@@ -87,6 +87,7 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
         Locale locale = userService.getLocale(message.getFrom().getId());
 
         if (!states.containsKey(message.getFrom().getId())) {
+            check(message, locale);
             ConvertState convertState = createState(message, locale);
             messageService.sendMessage(
                     new SendMessageContext(message.getChatId(), getMessage(convertState.getWarnings(), locale))
@@ -107,16 +108,6 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
     }
 
     @Override
-    public boolean canHandle(long chatId, String command) {
-        return false;
-    }
-
-    @Override
-    public boolean processMessage(Message message, String text) {
-        return false;
-    }
-
-    @Override
     public String getHistoryName() {
         return CommandNames.START_COMMAND;
     }
@@ -131,8 +122,7 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
 
     @Override
     public boolean accept(Message message) {
-        return message.hasDocument() || message.hasText() || message.hasPhoto()
-                || message.hasSticker() && !message.getSticker().getAnimated();
+        return true;
     }
 
     private void sendQueuedMessage(FileQueueItem queueItem, Set<String> warns, Locale locale) {
@@ -157,7 +147,8 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
             convertState.setFileSize(message.getDocument().getFileSize());
             convertState.setFileName(message.getDocument().getFileName());
             convertState.setMimeType(message.getDocument().getMimeType());
-            convertState.setFormat(formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType()));
+            Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
+            convertState.setFormat(checkFormat(format, locale));
             if (convertState.getFormat() == Format.HTML && isBaseUrlMissed(message.getDocument().getFileId())) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_NO_BASE_URL_IN_HTML, locale));
             }
@@ -218,6 +209,23 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
         }
 
         return null;
+    }
+
+    private void check(Message message, Locale locale) {
+        if (message.hasDocument() || message.hasText() || message.hasPhoto()
+                || message.hasSticker() && !message.getSticker().getAnimated()) {
+            return;
+        }
+
+        throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
+    }
+
+    private Format checkFormat(Format format, Locale locale) {
+        if (format != null) {
+            return format;
+        }
+
+        throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
 
     private boolean isMediaMessage(Message message) {

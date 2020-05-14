@@ -69,8 +69,18 @@ public class FormatService {
         } else {
             extension = FilenameUtils.getExtension(fileName);
         }
+        if (StringUtils.isBlank(extension)) {
+            return null;
+        }
 
-        return valueOf(extension.toUpperCase());
+        extension = extension.toUpperCase();
+        for (Format format: values()) {
+            if (format.getExt().equals(extension)) {
+                return format;
+            }
+        }
+
+        return null;
     }
 
     public boolean isConvertAvailable(Format src, Format target) {

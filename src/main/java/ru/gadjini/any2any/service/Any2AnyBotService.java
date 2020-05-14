@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.service.command.CommandExecutor;
@@ -74,6 +75,9 @@ public class Any2AnyBotService {
             } else if (update.hasCallbackQuery()) {
                 commandExecutor.executeCallbackCommand(update.getCallbackQuery());
             }
+        } catch (UserException ex) {
+            LOGGER.error(ex.getMessage());
+            messageService.sendMessage(new SendMessageContext(TgMessage.getChatId(update), ex.getMessage()).webPagePreview(true));
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
             TgMessage tgMessage = TgMessage.from(update);
