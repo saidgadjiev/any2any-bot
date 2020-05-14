@@ -132,7 +132,7 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
     @Override
     public boolean accept(Message message) {
         return message.hasDocument() || message.hasText() || message.hasPhoto()
-                || (message.hasSticker() && !message.getSticker().getAnimated());
+                || message.hasSticker() && !message.getSticker().getAnimated();
     }
 
     private void sendQueuedMessage(FileQueueItem queueItem, Set<String> warns, Locale locale) {

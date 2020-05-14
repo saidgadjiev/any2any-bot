@@ -1,7 +1,7 @@
 package ru.gadjini.any2any.service.converter.impl;
 
-import com.aspose.slides.Presentation;
-import com.aspose.slides.SaveFormat;
+import com.aspose.cells.SaveFormat;
+import com.aspose.cells.Workbook;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,24 +19,16 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class PowerPoint2AnyConverter extends BaseAny2AnyConverter<FileResult> {
+public class Excel2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PPTX,
-            Format.PPT,
-            Format.PPTM,
-            Format.POTX,
-            Format.POT,
-            Format.POTM,
-            Format.PPS,
-            Format.PPSX,
-            Format.PPSM);
+    private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.XLS, Format.XLSX);
 
     private TelegramService telegramService;
 
     private FileService fileService;
 
     @Autowired
-    public PowerPoint2AnyConverter(TelegramService telegramService, FileService fileService, FormatService formatService) {
+    public Excel2AnyConverter(TelegramService telegramService, FileService fileService, FormatService formatService) {
         super(ACCEPT_FORMATS, formatService);
         this.telegramService = telegramService;
         this.fileService = fileService;
@@ -49,20 +41,19 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult toPdf(FileQueueItem fileQueueItem) {
         File file = telegramService.downloadFileByFileId(fileQueueItem.getFileId());
-
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            Presentation presentation = new Presentation(file.getAbsolutePath());
+            Workbook workbook = new Workbook(file.getAbsolutePath());
             try {
                 File tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
-                presentation.save(tempFile.getAbsolutePath(), SaveFormat.Pdf);
+                workbook.save(tempFile.getAbsolutePath(), SaveFormat.PDF);
 
                 stopWatch.stop();
                 return new FileResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
-                presentation.dispose();
+                workbook.dispose();
             }
         } catch (Exception ex) {
             throw new ConvertException(ex);
