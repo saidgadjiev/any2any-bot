@@ -23,7 +23,7 @@ public class UserDao {
         jdbcTemplate.update(
                 connection -> {
                     var ps = connection.prepareStatement(
-                            "INSERT INTO tg_user(user_id, username) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET last_logged_in_at = now(), username = ? " +
+                            "INSERT INTO tg_user(user_id, username) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET last_logged_in_at = now(), username = excluded.username " +
                                     "RETURNING CASE WHEN XMAX::text::int > 0 THEN 'updated' ELSE 'inserted' END AS state",
                             Statement.RETURN_GENERATED_KEYS
                     );
