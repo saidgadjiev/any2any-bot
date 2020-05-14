@@ -1,12 +1,19 @@
 package ru.gadjini.any2any.service.converter.impl;
 
+import com.aspose.imaging.Image;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatCategory;
 import ru.gadjini.any2any.utils.MimeTypeUtils;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -21,8 +28,8 @@ public class FormatService {
 
     static {
         Map<List<Format>, List<Format>> documents = new LinkedHashMap<>();
-        documents.put(List.of(DOC), List.of(DOCX, TXT, PDF, EPUB, RTF, TIFF));
-        documents.put(List.of(DOCX), List.of(DOC, TXT, PDF, EPUB, RTF, TIFF));
+        documents.put(List.of(DOC), List.of(PDF, DOCX, TXT, EPUB, RTF, TIFF));
+        documents.put(List.of(DOCX), List.of(PDF, DOC, TXT, EPUB, RTF, TIFF));
         documents.put(List.of(PDF), List.of(DOC, DOCX, EPUB, TIFF));
         documents.put(List.of(TXT, TEXT), List.of(PDF, DOC, DOCX));
         documents.put(List.of(EPUB), List.of(PDF, DOC, DOCX, RTF));
@@ -32,13 +39,22 @@ public class FormatService {
         FORMATS.put(FormatCategory.DOCUMENTS, documents);
 
         Map<List<Format>, List<Format>> images = new LinkedHashMap<>();
-        images.put(List.of(PNG, DEVICE_PHOTO), List.of(PDF, JPG, BMP, WEBP, STICKER));
+        images.put(List.of(PNG), List.of(PDF, JPG, BMP, WEBP, STICKER));
         images.put(List.of(JPG, JPEG), List.of(PDF, PNG, BMP, WEBP, STICKER));
-        images.put(List.of(TIFF), List.of(DOC, DOCX, PDF));
+        images.put(List.of(TIFF), List.of(PDF, DOCX, DOC));
         images.put(List.of(BMP), List.of(PDF, PNG, JPG, WEBP, STICKER));
-        images.put(List.of(STICKER, WEBP), List.of(PNG, JPG, PDF));
+        images.put(List.of(WEBP), List.of(PDF, PNG, JPG));
         images.put(List.of(SVG), List.of(PDF, PNG, JPG, BMP, WEBP, STICKER));
         FORMATS.put(FormatCategory.IMAGES, images);
+    }
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(FormatService.class);
+
+    private TelegramService telegramService;
+
+    @Autowired
+    public FormatService(TelegramService telegramService) {
+        this.telegramService = telegramService;
     }
 
     public List<Format> getTargetFormats(Format srcFormat) {
@@ -73,14 +89,28 @@ public class FormatService {
             return null;
         }
 
-        extension = extension.toUpperCase();
-        for (Format format: values()) {
+        for (Format format : values()) {
             if (format.getExt().equals(extension)) {
                 return format;
             }
         }
 
         return null;
+    }
+
+    public Format getImageFormat(String photoFileId) {
+        File file = telegramService.downloadFileByFileId(photoFileId, "tmp");
+
+        try {
+            long format = Image.getFileFormat(file.getAbsolutePath());
+
+            return getImageFormat(format);
+        } catch (Exception ex) {
+            LOGGER.error("Error format detect. FileId: " + photoFileId + ". " + ex.getMessage(), ex);
+            return null;
+        } finally {
+            FileUtils.deleteQuietly(file);
+        }
     }
 
     public boolean isConvertAvailable(Format src, Format target) {
@@ -93,5 +123,23 @@ public class FormatService {
         }
 
         return text.startsWith("http://") || text.startsWith("https://") || text.startsWith("www.");
+    }
+
+    private Format getImageFormat(long format) {
+        if (format == com.aspose.imaging.FileFormat.Bmp) {
+            return BMP;
+        } else if (format == com.aspose.imaging.FileFormat.Png) {
+            return PNG;
+        } else if (format == com.aspose.imaging.FileFormat.Jpeg) {
+            return JPG;
+        } else if (format == com.aspose.imaging.FileFormat.Tiff) {
+            return TIFF;
+        } else if (format == com.aspose.imaging.FileFormat.Webp) {
+            return WEBP;
+        } else if (format == com.aspose.imaging.FileFormat.Svg) {
+            return SVG;
+        } else {
+            return null;
+        }
     }
 }

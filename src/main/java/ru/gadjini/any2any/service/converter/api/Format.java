@@ -32,12 +32,6 @@ public enum Format {
             return "webp";
         }
     },
-    DEVICE_PHOTO(FormatCategory.IMAGES) {
-        @Override
-        public String getExt() {
-            return "png";
-        }
-    },
     HTML(FormatCategory.WEB),
     URL(FormatCategory.WEB),
     TEXT(FormatCategory.DOCUMENTS);

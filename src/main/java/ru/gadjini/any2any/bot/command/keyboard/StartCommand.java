@@ -1,6 +1,5 @@
 package ru.gadjini.any2any.bot.command.keyboard;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -28,8 +27,8 @@ import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
+import ru.gadjini.any2any.service.filequeue.FileQueueMessageBuilder;
 import ru.gadjini.any2any.service.filequeue.FileQueueService;
-import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 
 import java.io.File;
@@ -37,7 +36,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.Locale;
-import java.util.Set;
 
 @Component
 public class StartCommand extends BotCommand implements NavigableBotCommand {
@@ -47,6 +45,8 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
     private UserService userService;
 
     private FileQueueService fileQueueService;
+
+    private FileQueueMessageBuilder queueMessageBuilder;
 
     private MessageService messageService;
 
@@ -58,23 +58,21 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
 
     private TelegramService telegramService;
 
-    private InlineKeyboardService inlineKeyboardService;
-
     @Autowired
     public StartCommand(CommandStateService commandStateService, UserService userService, FileQueueService fileQueueService,
-                        MessageService messageService, LocalisationService localisationService,
+                        FileQueueMessageBuilder queueMessageBuilder, MessageService messageService, LocalisationService localisationService,
                         ReplyKeyboardService replyKeyboardService, FormatService formatService,
-                        TelegramService telegramService, InlineKeyboardService inlineKeyboardService) {
+                        TelegramService telegramService) {
         super(CommandNames.START_COMMAND, "");
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.fileQueueService = fileQueueService;
+        this.queueMessageBuilder = queueMessageBuilder;
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.replyKeyboardService = replyKeyboardService;
         this.formatService = formatService;
         this.telegramService = telegramService;
-        this.inlineKeyboardService = inlineKeyboardService;
     }
 
     @Override
@@ -94,7 +92,7 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
             check(message, locale);
             ConvertState convertState = createState(message, locale);
             messageService.sendMessage(
-                    new SendMessageContext(message.getChatId(), getMessage(convertState.getWarnings(), locale))
+                    new SendMessageContext(message.getChatId(), queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
                             .replyKeyboard(replyKeyboardService.getKeyboard(convertState.getFormat(), locale))
             );
             convertState.deleteWarns();
@@ -106,7 +104,9 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
         } else if (message.hasText()) {
             ConvertState convertState = commandStateService.getState(message.getChatId(), true);
             FileQueueItem queueItem = fileQueueService.add(message.getFrom(), convertState, Format.valueOf(message.getText().toUpperCase()));
-            sendQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
+            String queuedMessage = queueMessageBuilder.getQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
+            messageService.sendMessage(new SendMessageContext(message.getChatId(), queuedMessage)
+                    .replyKeyboard(replyKeyboardService.getMainMenu(locale)));
             commandStateService.deleteState(message.getChatId());
         }
     }
@@ -129,19 +129,6 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
         return true;
     }
 
-    private void sendQueuedMessage(FileQueueItem queueItem, Set<String> warns, Locale locale) {
-        String text = localisationService.getMessage(MessagesProperties.MESSAGE_FILE_QUEUED, new Object[]{queueItem.getPlaceInQueue()}, locale);
-        String w = warns(warns, locale);
-
-        if (StringUtils.isNotBlank(w)) {
-            text += "\n\n" + w;
-
-        }
-
-        messageService.sendMessage(new SendMessageContext(queueItem.getUserId(), text).replyKeyboard(replyKeyboardService.getMainMenu(locale))
-                .replyKeyboard(inlineKeyboardService.cancelQuery(queueItem.getId(), locale)));
-    }
-
     private ConvertState createState(Message message, Locale locale) {
         ConvertState convertState = new ConvertState();
         convertState.setMessageId(message.getMessageId());
@@ -161,12 +148,14 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
             PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
             convertState.setFileId(photoSize.getFileId());
             convertState.setFileSize(photoSize.getFileSize());
-            convertState.setFormat(Format.DEVICE_PHOTO);
+            Format format = formatService.getImageFormat(photoSize.getFileId());
+            checkFormat(format, locale);
+            convertState.setFormat(format);
         } else if (message.hasSticker()) {
             Sticker sticker = message.getSticker();
             convertState.setFileId(sticker.getFileId());
             convertState.setFileSize(sticker.getFileSize());
-            convertState.setFormat(Format.STICKER);
+            convertState.setFormat(Format.WEBP);
         } else if (message.hasText()) {
             convertState.setFileId(message.getText());
             convertState.setFileSize(message.getText().length());
@@ -186,34 +175,6 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private String getMessage(Set<String> warns, Locale locale) {
-        StringBuilder message = new StringBuilder();
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_TARGET_EXTENSION, locale));
-        String w = warns(warns, locale);
-        if (StringUtils.isNotBlank(w)) {
-            message.append("\n\n").append(w);
-        }
-
-        return message.toString();
-    }
-
-    private String warns(Set<String> warns, Locale locale) {
-        StringBuilder warnsText = new StringBuilder();
-        int i = 1;
-        for (String warn : warns) {
-            if (warnsText.length() > 0) {
-                warnsText.append("\n");
-            }
-            warnsText.append(i++).append(") ").append(warn);
-        }
-
-        if (warnsText.length() > 0) {
-            return localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_WARNINGS, new Object[]{warnsText.toString()}, locale);
-        }
-
-        return null;
     }
 
     private void check(Message message, Locale locale) {

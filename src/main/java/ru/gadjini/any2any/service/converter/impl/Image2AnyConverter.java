@@ -26,8 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PNG, Format.STICKER, Format.SVG, Format.JPEG, Format.JPG,
-            Format.DEVICE_PHOTO, Format.BMP, Format.WEBP);
+    private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PNG, Format.SVG, Format.JPEG, Format.JPG, Format.BMP, Format.WEBP);
 
     private TelegramService telegramService;
 
@@ -73,7 +72,6 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     private LoadOptions getLoadOptions(Format format) {
         switch (format) {
             case PNG:
-            case DEVICE_PHOTO:
                 return new PngLoadOptions();
             case SVG:
                 return new SvgLoadOptions();

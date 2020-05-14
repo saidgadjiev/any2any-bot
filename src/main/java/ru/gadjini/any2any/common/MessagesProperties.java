@@ -6,6 +6,10 @@ public class MessagesProperties {
 
     public static final String MESSAGE_FILE_QUEUED = "message.file.queued";
 
+    public static final String MESSAGE_FILE_FORMAT = "message.file.format";
+
+    public static final String MESSAGE_FILE_SIZE = "message.file.size";
+
     public static final String MESSAGE_UNKNOWN_COMMAND = "message.unknown.command";
 
     public static final String MESSAGE_ERROR = "message.error";

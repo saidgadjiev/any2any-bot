@@ -42,14 +42,10 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             Document document = new Document();
             try {
                 Page page = document.getPages().add();
-                try {
-                    TextFragment textFragment = new TextFragment(fileQueueItem.getFileId());
-                    textFragment.getTextState().setFont(FontRepository.findFont("Verdana"));
-                    textFragment.getTextState().setFontSize(12);
-                    page.getParagraphs().add(textFragment);
-                } finally {
-                    page.dispose();
-                }
+                TextFragment textFragment = new TextFragment(fileQueueItem.getFileId());
+                textFragment.getTextState().setFont(FontRepository.findFont("Verdana"));
+                textFragment.getTextState().setFontSize(12);
+                page.getParagraphs().add(textFragment);
 
                 File file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
                 document.save(file.getAbsolutePath());
