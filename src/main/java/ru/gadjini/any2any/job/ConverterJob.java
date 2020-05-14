@@ -5,7 +5,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -152,9 +151,9 @@ public class ConverterJob {
 
     private void applyLicenses() {
         try {
-            new License().setLicense(new ClassPathResource("license/license-19.lic").getInputStream());
-            new com.aspose.pdf.License().setLicense(new ClassPathResource("license/license-19.lic").getInputStream());
-            new com.aspose.imaging.License().setLicense(new ClassPathResource("license/license-19.lic").getInputStream());
+            new License().setLicense("license/license-19.lic");
+            new com.aspose.pdf.License().setLicense("license/license-19.lic");
+            new com.aspose.imaging.License().setLicense("license/license-19.lic");
         } catch (Exception ex) {
             throw new RuntimeException(ex.getMessage(), ex);
         }
