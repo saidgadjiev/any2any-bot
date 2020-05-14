@@ -47,10 +47,17 @@ public class CancelQueryCommand implements CallbackBotCommand {
         int queryItemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
         fileQueueBusinessService.cancel(queryItemId);
         Locale locale = userService.getLocale(callbackQuery.getFrom().getId());
-        messageService.editMessage(
-                new EditMessageContext(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale))
-                        .replyKeyboard(new KeyboardCustomizer(callbackQuery.getMessage().getReplyMarkup()).removeExclude(CommandNames.GO_BACK_CALLBACK_COMMAND_NAME).getKeyboardMarkup())
-        );
+
+        String actionFrom = requestParams.getString(Arg.ACTION_FROM.getKey());
+        if (actionFrom.equals(CommandNames.QUERY_ITEM_DETAILS_COMMAND)) {
+            messageService.editMessage(
+                    new EditMessageContext(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale))
+                            .replyKeyboard(new KeyboardCustomizer(callbackQuery.getMessage().getReplyMarkup()).removeExclude(CommandNames.GO_BACK_CALLBACK_COMMAND_NAME).getKeyboardMarkup())
+            );
+        } else {
+            messageService.editMessage(
+                    new EditMessageContext(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
+        }
 
         return null;
     }

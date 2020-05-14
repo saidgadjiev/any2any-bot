@@ -24,8 +24,16 @@ public class InlineKeyboardService {
     public InlineKeyboardMarkup getQueryDetailsKeyboard(int queryItemId, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
 
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelQueryItem(queryItemId, locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelQueryItem(queryItemId, CommandNames.QUERY_ITEM_DETAILS_COMMAND, locale)));
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackCallbackButton(CommandNames.QUERIES_COMMAND, locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup cancelQuery(int queryItemId, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelQueryItem(queryItemId, CommandNames.START_COMMAND, locale)));
 
         return inlineKeyboardMarkup;
     }

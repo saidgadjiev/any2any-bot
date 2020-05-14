@@ -28,6 +28,7 @@ import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
 import ru.gadjini.any2any.service.filequeue.FileQueueService;
+import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 
 import java.io.File;
@@ -58,11 +59,13 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
 
     private TelegramService telegramService;
 
+    private InlineKeyboardService inlineKeyboardService;
+
     @Autowired
     public StartCommand(UserService userService, FileQueueService fileQueueService,
                         MessageService messageService, LocalisationService localisationService,
                         ReplyKeyboardService replyKeyboardService, FormatService formatService,
-                        TelegramService telegramService) {
+                        TelegramService telegramService, InlineKeyboardService inlineKeyboardService) {
         super(CommandNames.START_COMMAND, "");
         this.userService = userService;
         this.fileQueueService = fileQueueService;
@@ -71,6 +74,7 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
         this.replyKeyboardService = replyKeyboardService;
         this.formatService = formatService;
         this.telegramService = telegramService;
+        this.inlineKeyboardService = inlineKeyboardService;
     }
 
     @Override
@@ -134,7 +138,8 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
 
         }
 
-        messageService.sendMessage(new SendMessageContext(queueItem.getUserId(), text).replyKeyboard(replyKeyboardService.getMainMenu(locale)));
+        messageService.sendMessage(new SendMessageContext(queueItem.getUserId(), text).replyKeyboard(replyKeyboardService.getMainMenu(locale))
+                .replyKeyboard(inlineKeyboardService.cancelQuery(queueItem.getId(), locale)));
     }
 
     private ConvertState createState(Message message, Locale locale) {
