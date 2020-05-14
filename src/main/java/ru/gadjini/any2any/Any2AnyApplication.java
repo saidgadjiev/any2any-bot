@@ -12,6 +12,10 @@ import ru.gadjini.any2any.property.BotProperties;
 import ru.gadjini.any2any.property.ProxyProperties;
 import ru.gadjini.any2any.property.WkhtmltopdfProperties;
 
+import java.time.ZoneOffset;
+import java.util.Locale;
+import java.util.TimeZone;
+
 @EnableConfigurationProperties(value = {
         BotProperties.class,
         ProxyProperties.class,
@@ -24,6 +28,7 @@ public class Any2AnyApplication {
     private static final Logger LOGGER = LoggerFactory.getLogger(Any2AnyApplication.class);
 
     public static void main(String[] args) {
+        setDefaultLocaleAndTZ();
         ApiContextInitializer.init();
         try {
             SpringApplication application = new SpringApplication(Any2AnyApplication.class);
@@ -34,5 +39,10 @@ public class Any2AnyApplication {
             LOGGER.error(ex.getMessage(), ex);
             throw ex;
         }
+    }
+
+    private static void setDefaultLocaleAndTZ() {
+        Locale.setDefault(new Locale("ru-RU"));
+        TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.UTC));
     }
 }
