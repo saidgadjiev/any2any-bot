@@ -25,6 +25,7 @@ import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
 import ru.gadjini.any2any.service.filequeue.FileQueueService;
@@ -36,14 +37,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class StartCommand extends BotCommand implements NavigableBotCommand {
 
-    private final Map<Integer, ConvertState> states = new ConcurrentHashMap<>();
+    private CommandStateService commandStateService;
 
     private UserService userService;
 
@@ -62,11 +61,12 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
     private InlineKeyboardService inlineKeyboardService;
 
     @Autowired
-    public StartCommand(UserService userService, FileQueueService fileQueueService,
+    public StartCommand(CommandStateService commandStateService, UserService userService, FileQueueService fileQueueService,
                         MessageService messageService, LocalisationService localisationService,
                         ReplyKeyboardService replyKeyboardService, FormatService formatService,
                         TelegramService telegramService, InlineKeyboardService inlineKeyboardService) {
         super(CommandNames.START_COMMAND, "");
+        this.commandStateService = commandStateService;
         this.userService = userService;
         this.fileQueueService = fileQueueService;
         this.messageService = messageService;
@@ -90,7 +90,7 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
     public void processNonCommandUpdate(Message message, String text) {
         Locale locale = userService.getLocale(message.getFrom().getId());
 
-        if (!states.containsKey(message.getFrom().getId())) {
+        if (!commandStateService.hasState(message.getChatId())) {
             check(message, locale);
             ConvertState convertState = createState(message, locale);
             messageService.sendMessage(
@@ -98,16 +98,16 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
                             .replyKeyboard(replyKeyboardService.getKeyboard(convertState.getFormat(), locale))
             );
             convertState.deleteWarns();
-            states.put(message.getFrom().getId(), convertState);
+            commandStateService.setState(message.getChatId(), convertState);
         } else if (isMediaMessage(message)) {
-            ConvertState convertState = states.get(message.getFrom().getId());
+            ConvertState convertState = commandStateService.getState(message.getChatId(), true);
             convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_TOO_MANY_FILES, locale));
-            states.put(message.getFrom().getId(), convertState);
+            commandStateService.setState(message.getChatId(), convertState);
         } else if (message.hasText()) {
-            ConvertState convertState = states.get(message.getFrom().getId());
+            ConvertState convertState = commandStateService.getState(message.getChatId(), true);
             FileQueueItem queueItem = fileQueueService.add(message.getFrom(), convertState, Format.valueOf(message.getText().toUpperCase()));
             sendQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
-            states.remove(message.getFrom().getId());
+            commandStateService.deleteState(message.getChatId());
         }
     }
 
@@ -118,7 +118,7 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
 
     @Override
     public void restore(TgMessage message) {
-        states.remove(message.getUser().getId());
+        commandStateService.deleteState(message.getChatId());
         Locale locale = userService.getLocale(message.getUser().getId());
         messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
                 .replyKeyboard(replyKeyboardService.getMainMenu(locale)));

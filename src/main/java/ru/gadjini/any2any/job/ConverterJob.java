@@ -57,7 +57,7 @@ public class ConverterJob {
 
     @PostConstruct
     public void init() {
-        applyLicenses();
+        applyLicense();
         queueService.resetProcessing();
     }
 
@@ -149,11 +149,13 @@ public class ConverterJob {
         );
     }
 
-    private void applyLicenses() {
+    private void applyLicense() {
         try {
             new License().setLicense("license/license-19.lic");
             new com.aspose.pdf.License().setLicense("license/license-19.lic");
             new com.aspose.imaging.License().setLicense("license/license-19.lic");
+            new com.aspose.slides.License().setLicense("license/license-19.lic");
+            new com.aspose.cells.License().setLicense("license/license-19.lic");
         } catch (Exception ex) {
             throw new RuntimeException(ex.getMessage(), ex);
         }

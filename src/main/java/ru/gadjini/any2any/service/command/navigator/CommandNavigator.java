@@ -24,7 +24,7 @@ public class CommandNavigator {
     private CommandNavigatorDao navigatorDao;
 
     @Autowired
-    public CommandNavigator(@Qualifier("inMemory") CommandNavigatorDao navigatorDao) {
+    public CommandNavigator(@Qualifier("redis") CommandNavigatorDao navigatorDao) {
         this.navigatorDao = navigatorDao;
     }
 

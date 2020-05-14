@@ -26,7 +26,7 @@ public class CallbackCommandNavigator {
     private CallbackCommandNavigatorDao navigatorDao;
 
     @Autowired
-    public CallbackCommandNavigator(@Qualifier("inMemory") CallbackCommandNavigatorDao navigatorDao) {
+    public CallbackCommandNavigator(@Qualifier("redis") CallbackCommandNavigatorDao navigatorDao) {
         this.navigatorDao = navigatorDao;
     }
 

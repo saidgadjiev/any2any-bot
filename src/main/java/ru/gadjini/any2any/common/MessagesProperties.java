@@ -79,4 +79,6 @@ public class MessagesProperties {
     public static final String MESSAGE_TOO_MANY_FILES = "message.too.many.files";
 
     public static final String FORMATS_ARTICLE = "formats.article";
+
+    public static final String MESSAGE_SESSION_EXPIRED = "message.session.expired";
 }

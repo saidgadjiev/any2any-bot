@@ -10,6 +10,7 @@
 
     <properties>
         <telegrambots.version>4.8.1</telegrambots.version>
+        <aspose.version>19.9</aspose.version>
     </properties>
 
     <repositories>
@@ -99,12 +100,23 @@
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.10.2</version>
         </dependency>
 
         <dependency>
@@ -127,33 +139,32 @@
         <dependency>
             <groupId>com.aspose</groupId>
             <artifactId>aspose-words</artifactId>
-            <version>19.9</version>
+            <version>${aspose.version}</version>
             <classifier>jdk17</classifier>
         </dependency>
-
 
         <dependency>
             <groupId>com.aspose</groupId>
             <artifactId>aspose-imaging</artifactId>
-            <version>19.9</version>
+            <version>${aspose.version}</version>
             <classifier>jdk16</classifier>
         </dependency>
 
         <dependency>
             <groupId>com.aspose</groupId>
             <artifactId>aspose-pdf</artifactId>
-            <version>19.9</version>
+            <version>${aspose.version}</version>
         </dependency>
         <dependency>
             <groupId>com.aspose</groupId>
             <artifactId>aspose-slides</artifactId>
-            <version>20.4</version>
+            <version>${aspose.version}</version>
             <classifier>jdk16</classifier>
         </dependency>
         <dependency>
             <groupId>com.aspose</groupId>
             <artifactId>aspose-cells</artifactId>
-            <version>20.4</version>
+            <version>${aspose.version}</version>
 <!--            <classifier>jdk16</classifier>-->
         </dependency>
         <dependency>
