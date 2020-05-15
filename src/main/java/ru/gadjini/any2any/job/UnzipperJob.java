@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.job;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
@@ -15,6 +17,8 @@ import java.util.List;
 @Component
 public class UnzipperJob {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(UnzipperJob.class);
+
     private ThreadPoolTaskExecutor taskExecutor;
 
     private MessageService messageService;
@@ -26,6 +30,7 @@ public class UnzipperJob {
     }
 
     public void addJob(UnzipJob unzipJob) {
+        LOGGER.debug("New unzip job {}", unzipJob.toString());
         taskExecutor.execute(() -> {
             try (UnzipResult unzip = unzipJob.unzipper.unzip(unzipJob.fileId, unzipJob.format)) {
                 sendFiles(unzipJob.userId, unzip.getFiles());
@@ -54,6 +59,15 @@ public class UnzipperJob {
             this.fileId = fileId;
             this.userId = userId;
             this.format = format;
+        }
+
+        @Override
+        public String toString() {
+            return "UnzipJob{" +
+                    "fileId='" + fileId + '\'' +
+                    ", userId=" + userId +
+                    ", format=" + format +
+                    '}';
         }
     }
 }
