@@ -33,7 +33,8 @@ public enum Format {
     },
     HTML(FormatCategory.WEB),
     URL(FormatCategory.WEB),
-    TEXT(FormatCategory.DOCUMENTS);
+    TEXT(FormatCategory.DOCUMENTS),
+    ZIP(FormatCategory.ARCHIVE);
 
     private FormatCategory category;
 

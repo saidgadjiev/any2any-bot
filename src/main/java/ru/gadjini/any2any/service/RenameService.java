@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.bot.command.keyboard.rename.RenameState;
-import ru.gadjini.any2any.utils.MimeTypeUtils;
+import ru.gadjini.any2any.service.converter.impl.FormatService;
 
 import java.io.File;
 
@@ -16,29 +16,20 @@ public class RenameService {
 
     private FileService fileService;
 
+    private FormatService formatService;
+
     @Autowired
-    public RenameService(TelegramService telegramService, FileService fileService) {
+    public RenameService(TelegramService telegramService, FileService fileService, FormatService formatService) {
         this.telegramService = telegramService;
         this.fileService = fileService;
+        this.formatService = formatService;
     }
 
     public File rename(RenameState renameState, String newFileName) {
-        String ext = getExt(renameState.getMimeType(), renameState.getFileName());
+        String ext = formatService.getExt(renameState.getFileName(), renameState.getMimeType());
         File file = createNewFile(newFileName, ext);
 
         return telegramService.downloadFileByFileId(renameState.getFileId(), file);
-    }
-
-    private String getExt(String mimeType, String fileName) {
-        String extension = MimeTypeUtils.getExtension(mimeType);
-
-        if (StringUtils.isNotBlank(extension)) {
-            extension = extension.substring(1);
-        } else {
-            extension = FilenameUtils.getExtension(fileName);
-        }
-
-        return extension;
     }
 
     private File createNewFile(String fileName, String ext) {

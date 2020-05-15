@@ -4,5 +4,6 @@ public enum FormatCategory {
 
     DOCUMENTS,
     IMAGES,
-    WEB
+    WEB,
+    ARCHIVE
 }

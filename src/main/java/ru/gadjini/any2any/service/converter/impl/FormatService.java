@@ -92,7 +92,7 @@ public class FormatService {
         return TEXT;
     }
 
-    public Format getFormat(String fileName, String mimeType) {
+    public String getExt(String fileName, String mimeType) {
         String extension = MimeTypeUtils.getExtension(mimeType);
 
         if (StringUtils.isNotBlank(extension)) {
@@ -100,12 +100,16 @@ public class FormatService {
         } else {
             extension = FilenameUtils.getExtension(fileName);
         }
-        if (StringUtils.isBlank(extension)) {
-            return null;
-        }
+
         if ("jpeg".equals(extension)) {
-            return JPG;
+            return "jpg";
         }
+
+        return extension;
+    }
+
+    public Format getFormat(String fileName, String mimeType) {
+        String extension = getExt(fileName, mimeType);
 
         for (Format format : values()) {
             if (format.getExt().equals(extension)) {

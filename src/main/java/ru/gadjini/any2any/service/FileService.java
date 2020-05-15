@@ -21,4 +21,13 @@ public class FileService {
 
         return new File(new File(tmpDir), fileName);
     }
+
+    public File createTempDir(String name) {
+        String tmpDir = System.getProperty("java.io.tmpdir");
+        File file = new File(tmpDir, name);
+
+        file.mkdirs();
+
+        return file;
+    }
 }

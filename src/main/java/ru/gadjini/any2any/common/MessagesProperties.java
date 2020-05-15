@@ -28,6 +28,10 @@ public class MessagesProperties {
 
     public static final String MESSAGE_MAIN_MENU = "message.main.menu";
 
+    public static final String MESSAGE_ZIP_PROCESSING = "message.zip.processing";
+
+    public static final String MESSAGE_SUPPORTED_ZIP_FORMATS = "message.supported.zip.formats";
+
     public static final String MESSAGE_UNSUPPORTED_FORMAT = "message.unsupported.format";
 
     public static final String MESSAGE_ACTIVE_QUERIES_HEADER = "message.active.queries.header";
@@ -95,4 +99,8 @@ public class MessagesProperties {
     public static final String MESSAGE_NEW_FILE_NAME = "message.new.file.name";
 
     public static final String MESSAGE_RENAME_FORBIDDEN = "message.rename.forbidden";
+
+    public static final String UNZIP_COMMAND_NAME = "unzip.command.name";
+
+    public static final String MESSAGE_ZIP_FILE = "message.zip.file";
 }
