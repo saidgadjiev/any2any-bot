@@ -4,11 +4,11 @@ import ru.gadjini.any2any.service.converter.api.Format;
 
 import java.util.Set;
 
-public abstract class BaseUnzipper implements Unzipper {
+public abstract class BaseZipService implements ZipService {
 
     private final Set<Format> availableFormats;
 
-    protected BaseUnzipper(Set<Format> availableFormats) {
+    protected BaseZipService(Set<Format> availableFormats) {
         this.availableFormats = availableFormats;
     }
 

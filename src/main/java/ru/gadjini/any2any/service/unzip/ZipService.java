@@ -2,9 +2,9 @@ package ru.gadjini.any2any.service.unzip;
 
 import ru.gadjini.any2any.service.converter.api.Format;
 
-public interface Unzipper {
+public interface ZipService {
 
-    UnzipResult unzip(int userId, String fileId, Format format);
+    void unzip(int userId, String in, String out);
 
     boolean accept(Format zipFormat);
 }
