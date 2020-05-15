@@ -7,6 +7,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.unzip.UnzipResult;
 import ru.gadjini.any2any.service.unzip.Unzipper;
@@ -19,12 +20,15 @@ public class UnzipperJob {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UnzipperJob.class);
 
+    private UserService userService;
+
     private ThreadPoolTaskExecutor taskExecutor;
 
     private MessageService messageService;
 
     @Autowired
-    public UnzipperJob(ThreadPoolTaskExecutor taskExecutor, MessageService messageService) {
+    public UnzipperJob(UserService userService, ThreadPoolTaskExecutor taskExecutor, MessageService messageService) {
+        this.userService = userService;
         this.taskExecutor = taskExecutor;
         this.messageService = messageService;
     }
@@ -32,8 +36,11 @@ public class UnzipperJob {
     public void addJob(UnzipJob unzipJob) {
         LOGGER.debug("New unzip job {}", unzipJob.toString());
         taskExecutor.execute(() -> {
-            try (UnzipResult unzip = unzipJob.unzipper.unzip(unzipJob.fileId, unzipJob.format)) {
+            try (UnzipResult unzip = unzipJob.unzipper.unzip(unzipJob.userId, unzipJob.fileId, unzipJob.format)) {
                 sendFiles(unzipJob.userId, unzip.getFiles());
+            } catch (Exception ex) {
+                LOGGER.error(ex.getMessage(), ex);
+                messageService.sendErrorMessage(unzipJob.userId, userService.getLocale(unzipJob.userId));
             }
         });
     }

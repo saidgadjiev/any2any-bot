@@ -103,4 +103,8 @@ public class MessagesProperties {
     public static final String UNZIP_COMMAND_NAME = "unzip.command.name";
 
     public static final String MESSAGE_ZIP_FILE = "message.zip.file";
+
+    public static final String MESSAGE_ZIP_ENCRYPTED = "message.zip.encrypted";
+
+    public static final String MESSAGE_ZIP_INVALID = "message.zip.invalid";
 }
