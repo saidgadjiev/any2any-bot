@@ -2,6 +2,7 @@ package ru.gadjini.any2any.bot.command.keyboard.rename;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
@@ -45,7 +46,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Autowired
     public RenameCommand(LocalisationService localisationService, CommandStateService commandStateService,
-                         MessageService messageService, ReplyKeyboardService replyKeyboardService,
+                         MessageService messageService, @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService,
                          UserService userService, RenameService renameService) {
         this.commandStateService = commandStateService;
         this.localisationService = localisationService;
@@ -77,7 +78,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand {
     public boolean processMessage(Message message, String text) {
         Locale locale = userService.getLocale(message.getFrom().getId());
         messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FILE, locale))
-                .replyKeyboard(replyKeyboardService.goBack(locale)));
+                .replyKeyboard(replyKeyboardService.goBack(message.getChatId(), locale)));
 
         return true;
     }
@@ -102,7 +103,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand {
             File rename = renameService.rename(renameState, message.getText().trim());
 
             try {
-                messageService.sendDocument(new SendFileContext(message.getChatId(), rename).replyKeyboard(replyKeyboardService.getMainMenu(locale)));
+                messageService.sendDocument(new SendFileContext(message.getChatId(), rename).replyKeyboard(replyKeyboardService.getMainMenu(message.getChatId(), locale)));
                 commandStateService.deleteState(message.getChatId());
                 commandNavigator.silentPop(message.getChatId());
             } finally {

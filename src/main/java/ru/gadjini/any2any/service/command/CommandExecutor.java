@@ -76,11 +76,11 @@ public class CommandExecutor {
         return botCommands.get(startCommandName);
     }
 
-    public void processNonCommandUpdate(Message message) {
+    public void processNonCommandUpdate(Message message, String text) {
         NavigableBotCommand navigableBotCommand = commandNavigator.getCurrentCommand(message.getChatId());
 
         if (navigableBotCommand != null && navigableBotCommand.accept(message)) {
-            navigableBotCommand.processNonCommandUpdate(message, message.getText());
+            navigableBotCommand.processNonCommandUpdate(message, text);
         }
     }
 
@@ -101,9 +101,9 @@ public class CommandExecutor {
         return false;
     }
 
-    public void executeKeyBoardCommand(Message message) {
+    public void executeKeyBoardCommand(Message message, String text) {
         KeyboardBotCommand botCommand = keyboardBotCommands.stream()
-                .filter(keyboardBotCommand -> keyboardBotCommand.canHandle(message.getChatId(), message.getText()))
+                .filter(keyboardBotCommand -> keyboardBotCommand.canHandle(message.getChatId(), text))
                 .findFirst()
                 .orElseThrow();
 

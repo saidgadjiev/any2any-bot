@@ -1,9 +1,9 @@
 package ru.gadjini.any2any.filter;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
@@ -36,7 +36,7 @@ public class StartCommandFilter extends BaseBotFilter {
     @Autowired
     public StartCommandFilter(CommandParser commandParser, UserService userService,
                               MessageService messageService, LocalisationService localisationService,
-                              ReplyKeyboardService replyKeyboardService, CommandNavigator commandNavigator) {
+                              @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService, CommandNavigator commandNavigator) {
         this.commandParser = commandParser;
         this.userService = userService;
         this.messageService = messageService;
@@ -48,7 +48,7 @@ public class StartCommandFilter extends BaseBotFilter {
     @Override
     public void doFilter(Update update) {
         if (isStartCommand(update)) {
-            CreateOrUpdateResult createOrUpdateResult = doStart(TgMessage.getUser(update));
+            CreateOrUpdateResult createOrUpdateResult = doStart(TgMessage.from(update));
 
             if (createOrUpdateResult.isCreated()) {
                 return;
@@ -68,19 +68,19 @@ public class StartCommandFilter extends BaseBotFilter {
         return false;
     }
 
-    private CreateOrUpdateResult doStart(User user) {
-        CreateOrUpdateResult createOrUpdateResult = userService.createOrUpdate(user);
+    private CreateOrUpdateResult doStart(TgMessage message) {
+        CreateOrUpdateResult createOrUpdateResult = userService.createOrUpdate(message.getUser());
 
         if (createOrUpdateResult.isCreated()) {
-            String text = localisationService.getMessage(MessagesProperties.MESSAGE_WELCOME, new Object[]{UserUtils.userLink(user)}, createOrUpdateResult.getUser().getLocale());
-            ReplyKeyboard mainMenu = replyKeyboardService.getMainMenu(createOrUpdateResult.getUser().getLocale());
+            String text = localisationService.getMessage(MessagesProperties.MESSAGE_WELCOME, new Object[]{UserUtils.userLink(message.getUser())}, createOrUpdateResult.getUser().getLocale());
+            ReplyKeyboard mainMenu = replyKeyboardService.getMainMenu(message.getChatId(), createOrUpdateResult.getUser().getLocale());
             messageService.sendMessage(
-                    new SendMessageContext(user.getId(), text)
+                    new SendMessageContext(message.getChatId(), text)
                             .webPagePreview(true)
                             .replyKeyboard(mainMenu)
             );
 
-            commandNavigator.setCurrentCommand(user.getId(), CommandNames.START_COMMAND);
+            commandNavigator.setCurrentCommand(message.getChatId(), CommandNames.START_COMMAND);
         }
 
         return createOrUpdateResult;

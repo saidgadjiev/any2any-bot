@@ -1,6 +1,7 @@
 package ru.gadjini.any2any.bot.command.keyboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
@@ -41,7 +42,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Autowired
     public UnzipCommand(LocalisationService localisationService, UnzipperService unzipperService,
-                        MessageService messageService, ReplyKeyboardService replyKeyboardService,
+                        MessageService messageService, @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService,
                         UserService userService, FormatService formatService) {
         this.localisationService = localisationService;
         this.unzipperService = unzipperService;
@@ -68,7 +69,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand {
     public boolean processMessage(Message message, String text) {
         Locale locale = userService.getLocale(message.getFrom().getId());
         messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_FILE, locale))
-                .replyKeyboard(replyKeyboardService.goBack(locale)));
+                .replyKeyboard(replyKeyboardService.goBack(message.getChatId(), locale)));
 
         return true;
     }

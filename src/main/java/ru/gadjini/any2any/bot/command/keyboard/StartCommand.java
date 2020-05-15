@@ -4,6 +4,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -63,7 +64,7 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
     @Autowired
     public StartCommand(CommandStateService commandStateService, UserService userService, FileQueueService fileQueueService,
                         FileQueueMessageBuilder queueMessageBuilder, MessageService messageService, LocalisationService localisationService,
-                        ReplyKeyboardService replyKeyboardService, FormatService formatService,
+                        @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService, FormatService formatService,
                         TelegramService telegramService) {
         super(CommandNames.START_COMMAND, "");
         this.commandStateService = commandStateService;
@@ -78,11 +79,16 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
     }
 
     @Override
+    public boolean accept(Message message) {
+        return true;
+    }
+
+    @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] strings) {
         Locale locale = userService.getLocale(user.getId());
         messageService.sendMessage(
                 new SendMessageContext(chat.getId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
-                        .replyKeyboard(replyKeyboardService.getMainMenu(locale))
+                        .replyKeyboard(replyKeyboardService.getMainMenu(chat.getId(), locale))
         );
     }
 
@@ -95,7 +101,7 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
             ConvertState convertState = createState(message, locale);
             messageService.sendMessage(
                     new SendMessageContext(message.getChatId(), queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
-                            .replyKeyboard(replyKeyboardService.getKeyboard(convertState.getFormat(), locale))
+                            .replyKeyboard(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFormat(), locale))
             );
             convertState.deleteWarns();
             commandStateService.setState(message.getChatId(), convertState);
@@ -109,7 +115,7 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
             FileQueueItem queueItem = fileQueueService.add(message.getFrom(), convertState, targetFormat);
             String queuedMessage = queueMessageBuilder.getQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
             messageService.sendMessage(new SendMessageContext(message.getChatId(), queuedMessage)
-                    .replyKeyboard(replyKeyboardService.getMainMenu(locale)));
+                    .replyKeyboard(replyKeyboardService.getMainMenu(message.getChatId(), locale)));
             commandStateService.deleteState(message.getChatId());
         }
     }
@@ -124,12 +130,12 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
         commandStateService.deleteState(message.getChatId());
         Locale locale = userService.getLocale(message.getUser().getId());
         messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
-                .replyKeyboard(replyKeyboardService.getMainMenu(locale)));
+                .replyKeyboard(replyKeyboardService.getMainMenu(message.getChatId(), locale)));
     }
 
     @Override
     public ReplyKeyboardMarkup getKeyboard(long chatId) {
-        return replyKeyboardService.getMainMenu(userService.getLocale((int) chatId));
+        return replyKeyboardService.getMainMenu(chatId, userService.getLocale((int) chatId));
     }
 
     private ConvertState createState(Message message, Locale locale) {
