@@ -13,6 +13,8 @@ public class SchedulerConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerConfiguration.class);
 
+    public static final int QUEUE_SIZE = 150;
+
     @Bean
     public TaskScheduler jobsThreadPoolTaskScheduler() {
         ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
@@ -28,9 +30,9 @@ public class SchedulerConfiguration {
     @Bean
     public ThreadPoolTaskExecutor reminderExecutorService() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(2 * Runtime.getRuntime().availableProcessors());
+        taskExecutor.setCorePoolSize(2 * Runtime.getRuntime().availableProcessors() - 1);
         taskExecutor.setMaxPoolSize(2 * Runtime.getRuntime().availableProcessors() + 2);
-        taskExecutor.setQueueCapacity(50);
+        taskExecutor.setQueueCapacity(QUEUE_SIZE);
         taskExecutor.setThreadNamePrefix("Any2AnyExecutor");
         taskExecutor.initialize();
 

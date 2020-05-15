@@ -8,6 +8,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import ru.gadjini.any2any.configuration.SchedulerConfiguration;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.event.QueueItemCanceled;
 import ru.gadjini.any2any.model.SendFileContext;
@@ -28,6 +29,8 @@ import java.util.concurrent.Future;
 public class ConverterJob {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConverterJob.class);
+
+    private static final int REMAINING_SIZE = 70;
 
     private final Map<Integer, Future<?>> processing = new ConcurrentHashMap<>();
 
@@ -72,8 +75,10 @@ public class ConverterJob {
     @Scheduled(cron = "* * * * * *")
     public void processConverts() {
         int remainingCapacity = taskExecutor.getThreadPoolExecutor().getQueue().remainingCapacity();
-        if (remainingCapacity > 0) {
-            List<FileQueueItem> items = queueService.takeItems(remainingCapacity);
+        int busy = SchedulerConfiguration.QUEUE_SIZE - remainingCapacity;
+
+        if (busy < REMAINING_SIZE) {
+            List<FileQueueItem> items = queueService.takeItems(REMAINING_SIZE - busy);
             for (FileQueueItem fileQueueItem : items) {
                 processing.put(fileQueueItem.getId(), taskExecutor.submit(() -> {
                     try {
