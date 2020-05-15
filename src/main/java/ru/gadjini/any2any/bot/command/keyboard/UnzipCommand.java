@@ -8,7 +8,6 @@ import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
@@ -17,12 +16,9 @@ import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatCategory;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
-import ru.gadjini.any2any.service.unzip.UnzipResult;
-import ru.gadjini.any2any.service.unzip.Unzipper;
+import ru.gadjini.any2any.service.unzip.UnzipperService;
 
-import java.io.File;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -31,7 +27,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     private Set<String> names = new HashSet<>();
 
-    private Set<Unzipper> unzippers;
+    private UnzipperService unzipperService;
 
     private LocalisationService localisationService;
 
@@ -44,11 +40,11 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand {
     private FormatService formatService;
 
     @Autowired
-    public UnzipCommand(LocalisationService localisationService, Set<Unzipper> unzippers,
+    public UnzipCommand(LocalisationService localisationService, UnzipperService unzipperService,
                         MessageService messageService, ReplyKeyboardService replyKeyboardService,
                         UserService userService, FormatService formatService) {
         this.localisationService = localisationService;
-        this.unzippers = unzippers;
+        this.unzipperService = unzipperService;
         this.messageService = messageService;
         this.replyKeyboardService = replyKeyboardService;
         this.userService = userService;
@@ -81,12 +77,8 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand {
     public void processNonCommandUpdate(Message message, String text) {
         Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
         Locale locale = userService.getLocale(message.getFrom().getId());
-        Unzipper unzipper = checkFormatAndGetCandidate(format, locale);
+        unzipperService.unzip(message.getFrom().getId(), message.getDocument().getFileId(), checkFormat(format, locale), locale);
         messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale)));
-
-        try (UnzipResult unzip = unzipper.unzip(message.getDocument().getFileId(), format)) {
-            sendFiles(message.getChatId(), unzip.getFiles());
-        }
     }
 
     @Override
@@ -94,13 +86,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand {
         return CommandNames.UNZIP_COMMAND_NAME;
     }
 
-    private void sendFiles(long chatId, List<File> files) {
-        for (File file : files) {
-            messageService.sendDocument(new SendFileContext(chatId, file));
-        }
-    }
-
-    private Unzipper checkFormatAndGetCandidate(Format format, Locale locale) {
+    private Format checkFormat(Format format, Locale locale) {
         if (format == null) {
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SUPPORTED_ZIP_FORMATS, locale));
         }
@@ -108,12 +94,6 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand {
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SUPPORTED_ZIP_FORMATS, locale));
         }
 
-        for (Unzipper unzipper : unzippers) {
-            if (unzipper.accept(format)) {
-                return unzipper;
-            }
-        }
-
-        throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SUPPORTED_ZIP_FORMATS, locale));
+        return format;
     }
 }
