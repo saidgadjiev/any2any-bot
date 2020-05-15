@@ -34,7 +34,8 @@ public enum Format {
     HTML(FormatCategory.WEB),
     URL(FormatCategory.WEB),
     TEXT(FormatCategory.DOCUMENTS),
-    ZIP(FormatCategory.ARCHIVE);
+    ZIP(FormatCategory.ARCHIVE),
+    RAR(FormatCategory.ARCHIVE);
 
     private FormatCategory category;
 
