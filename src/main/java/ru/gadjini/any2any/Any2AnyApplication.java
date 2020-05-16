@@ -10,7 +10,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.telegram.telegrambots.ApiContextInitializer;
 import ru.gadjini.any2any.property.BotProperties;
 import ru.gadjini.any2any.property.ProxyProperties;
-import ru.gadjini.any2any.property.WkhtmltopdfProperties;
 
 import java.time.ZoneOffset;
 import java.util.Locale;
@@ -18,8 +17,7 @@ import java.util.TimeZone;
 
 @EnableConfigurationProperties(value = {
         BotProperties.class,
-        ProxyProperties.class,
-        WkhtmltopdfProperties.class
+        ProxyProperties.class
 })
 @EnableScheduling
 @SpringBootApplication

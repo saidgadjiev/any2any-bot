@@ -3,7 +3,8 @@ package ru.gadjini.any2any.service.unzip;
 import org.apache.commons.io.IOUtils;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.condition.MacLinuxCondition;
+import ru.gadjini.any2any.condition.LinuxCondition;
+import ru.gadjini.any2any.condition.MacCondition;
 import ru.gadjini.any2any.exception.UnzipException;
 import ru.gadjini.any2any.service.converter.api.Format;
 
@@ -12,7 +13,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@Conditional(MacLinuxCondition.class)
+@Conditional({LinuxCondition.class, MacCondition.class})
 public class MacLinuxZipService extends BaseZipService {
 
     protected MacLinuxZipService() {
