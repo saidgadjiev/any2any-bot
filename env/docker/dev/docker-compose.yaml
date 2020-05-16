@@ -6,6 +6,8 @@ services:
     build: ../../../
     volumes:
       - ${PWD}/data/logs:/app/logs
+    ports:
+      - 5005:5005
     env_file:
       - .env
   db:

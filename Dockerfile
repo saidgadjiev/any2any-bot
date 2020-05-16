@@ -4,7 +4,7 @@ WORKDIR /app
 ENV DEBIAN_FRONTEND noninteractive 
 
 RUN apt-get update -y -qq
-RUN apt-get install -y -qq openjdk-11-jre wget gdebi p7zip-full
+RUN apt-get install -y -qq openjdk-11-jre wget gdebi p7zip-rar
 
 RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb
 RUN gdebi --n wkhtmltox_0.12.5-1.bionic_amd64.deb
@@ -16,4 +16,4 @@ COPY ./target/app.jar .
 COPY ./license/license-19.lic ./license/
 
 ENTRYPOINT ["java"]
-CMD ["-jar", "app.jar"]
+CMD ["-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
