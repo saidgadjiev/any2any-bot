@@ -158,19 +158,19 @@ public class ConverterJob {
     }
 
     private void applyLicense() {
-        LOGGER.debug("Word license applied");
         try (InputStream inputStream = new FileInputStream("license/license-19.lic")) {
             new com.aspose.pdf.License().setLicense(inputStream);
         } catch (Exception ex) {
             throw new RuntimeException(ex.getMessage(), ex);
         }
+        LOGGER.debug("Pdf license applied");
         try (InputStream inputStream = new FileInputStream("license/license-19.lic")) {
             new License().setLicense(inputStream);
         } catch (Exception ex) {
             throw new RuntimeException(ex.getMessage(), ex);
         }
 
-        LOGGER.debug("Pdf license applied");
+        LOGGER.debug("Word license applied");
         try (InputStream inputStream = new FileInputStream("license/license-19.lic")) {
             new com.aspose.imaging.License().setLicense(inputStream);
         } catch (Exception ex) {
