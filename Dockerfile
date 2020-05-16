@@ -4,7 +4,17 @@ WORKDIR /app
 ENV DEBIAN_FRONTEND noninteractive 
 
 RUN apt-get update -y -qq
-RUN apt-get install -y -qq openjdk-11-jre wget gdebi p7zip-rar
+RUN apt-get install -y -qq openjdk-11-jre wget gdebi p7zip-rar locales
+
+# Locale
+RUN sed -i -e \
+  's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen \
+   && locale-gen
+
+ENV LANG ru_RU.UTF-8
+ENV LANGUAGE ru_RU:ru
+ENV LC_LANG ru_RU.UTF-8
+ENV LC_ALL ru_RU.UTF-8
 
 RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.5/wkhtmltox_0.12.5-1.bionic_amd64.deb
 RUN gdebi --n wkhtmltox_0.12.5-1.bionic_amd64.deb
