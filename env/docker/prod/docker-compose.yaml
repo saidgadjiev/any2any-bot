@@ -1,7 +1,7 @@
 version: '3'
 services:
-  app:
-    container_name: app
+  fapp:
+    container_name: fapp
     restart: always
     build: ../../../
     volumes:
@@ -9,8 +9,8 @@ services:
       - ${PWD}/data/license:/app/license
     env_file:
       - .env
-  db:
-    container_name: db
+  fdb:
+    container_name: fdb
     image: postgres:alpine
     restart: always
     volumes:
@@ -19,8 +19,8 @@ services:
       - 5432:5432
     env_file:
       - .db.env
-  redis:
-    container_name: redis
+  fredis:
+    container_name: fredis
     image: redis:alpine
     restart: always
     command:
