@@ -3,6 +3,7 @@ package ru.gadjini.any2any.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
@@ -23,20 +24,22 @@ import ru.gadjini.any2any.model.SendMessageContext;
 import java.util.Locale;
 
 @Service
-public class MessageService {
+@Qualifier("message")
+public class MessageServiceImpl implements MessageService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageServiceImpl.class);
 
     private TelegramService telegramService;
 
     private LocalisationService localisationService;
 
     @Autowired
-    public MessageService(TelegramService telegramService, LocalisationService localisationService) {
+    public MessageServiceImpl(TelegramService telegramService, LocalisationService localisationService) {
         this.telegramService = telegramService;
         this.localisationService = localisationService;
     }
 
+    @Override
     public ChatMember getChatMember(String chatId, int userId) {
         GetChatMember getChatMember = new GetChatMember();
         getChatMember.setChatId(chatId);
@@ -51,6 +54,7 @@ public class MessageService {
         }
     }
 
+    @Override
     public void sendMessage(SendMessageContext messageContext) {
         SendMessage sendMessage = new SendMessage();
 
@@ -66,6 +70,10 @@ public class MessageService {
             sendMessage.setReplyMarkup(messageContext.replyKeyboard());
         }
 
+        if (messageContext.replyMessageId() != null) {
+            sendMessage.setReplyToMessageId(messageContext.replyMessageId());
+        }
+
         try {
             telegramService.execute(sendMessage);
         } catch (Exception ex) {
@@ -73,6 +81,7 @@ public class MessageService {
         }
     }
 
+    @Override
     public void removeInlineKeyboard(long chatId, int messageId) {
         EditMessageReplyMarkup edit = new EditMessageReplyMarkup();
         edit.setChatId(chatId);
@@ -85,6 +94,7 @@ public class MessageService {
         }
     }
 
+    @Override
     public void editMessage(EditMessageContext messageContext) {
         EditMessageText editMessageText = new EditMessageText();
 
@@ -105,6 +115,7 @@ public class MessageService {
         }
     }
 
+    @Override
     public void sendBotRestartedMessage(long chatId, ReplyKeyboard replyKeyboard, Locale locale) {
         sendMessage(
                 new SendMessageContext(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_BOT_RESTARTED, locale))
@@ -112,6 +123,7 @@ public class MessageService {
         );
     }
 
+    @Override
     public void sendSticker(SendFileContext sendFileContext) {
         SendSticker sendSticker = new SendSticker();
         sendSticker.setSticker(sendFileContext.file());
@@ -134,6 +146,7 @@ public class MessageService {
         }
     }
 
+    @Override
     public void sendDocument(SendFileContext sendDocumentContext) {
         SendDocument sendDocument = new SendDocument();
         sendDocument.setChatId(sendDocumentContext.chatId());
@@ -156,6 +169,7 @@ public class MessageService {
         }
     }
 
+    @Override
     public void sendErrorMessage(long chatId, Locale locale) {
         sendMessage(new SendMessageContext(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ERROR, locale)));
     }

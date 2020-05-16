@@ -1,6 +1,7 @@
 package ru.gadjini.any2any.bot.command.keyboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -31,7 +32,7 @@ public class HelpCommand extends BotCommand implements KeyboardBotCommand {
     private Set<String> names = new HashSet<>();
 
     @Autowired
-    public HelpCommand(MessageService messageService, LocalisationService localisationService, UserService userService) {
+    public HelpCommand(@Qualifier("limits") MessageService messageService, LocalisationService localisationService, UserService userService) {
         super(CommandNames.HELP_COMMAND, "");
         this.messageService = messageService;
         this.localisationService = localisationService;

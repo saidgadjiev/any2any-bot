@@ -12,10 +12,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendMessageContext;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.MessageService;
-import ru.gadjini.any2any.service.RenameService;
-import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.*;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
@@ -46,7 +43,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Autowired
     public RenameCommand(LocalisationService localisationService, CommandStateService commandStateService,
-                         MessageService messageService, @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService,
+                         @Qualifier("limits") MessageService messageService, @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService,
                          UserService userService, RenameService renameService) {
         this.commandStateService = commandStateService;
         this.localisationService = localisationService;

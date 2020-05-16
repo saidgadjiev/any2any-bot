@@ -22,10 +22,7 @@ import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.model.TgMessage;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.MessageService;
-import ru.gadjini.any2any.service.TelegramService;
-import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.*;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
@@ -63,7 +60,7 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
 
     @Autowired
     public StartCommand(CommandStateService commandStateService, UserService userService, FileQueueService fileQueueService,
-                        FileQueueMessageBuilder queueMessageBuilder, MessageService messageService, LocalisationService localisationService,
+                        FileQueueMessageBuilder queueMessageBuilder, @Qualifier("limits") MessageService messageService, LocalisationService localisationService,
                         @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService, FormatService formatService,
                         TelegramService telegramService) {
         super(CommandNames.START_COMMAND, "");

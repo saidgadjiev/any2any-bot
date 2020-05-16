@@ -1,6 +1,7 @@
 package ru.gadjini.any2any.bot.command.callback;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.api.CallbackBotCommand;
@@ -9,10 +10,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
-import ru.gadjini.any2any.service.FileReportService;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.MessageService;
-import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.*;
 
 import java.util.Locale;
 
@@ -28,7 +26,7 @@ public class ReportCommand implements CallbackBotCommand {
     private LocalisationService localisationService;
 
     @Autowired
-    public ReportCommand(FileReportService fileReportService, MessageService messageService,
+    public ReportCommand(FileReportService fileReportService, @Qualifier("limits") MessageService messageService,
                          UserService userService, LocalisationService localisationService) {
         this.fileReportService = fileReportService;
         this.messageService = messageService;

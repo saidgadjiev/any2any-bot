@@ -1,6 +1,7 @@
 package ru.gadjini.any2any.bot.command.callback;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.api.CallbackBotCommand;
@@ -9,10 +10,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.model.EditMessageContext;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
-import ru.gadjini.any2any.service.KeyboardCustomizer;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.MessageService;
-import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.*;
 import ru.gadjini.any2any.service.filequeue.FileQueueBusinessService;
 
 import java.util.Locale;
@@ -29,7 +27,7 @@ public class CancelQueryCommand implements CallbackBotCommand {
     private UserService userService;
 
     @Autowired
-    public CancelQueryCommand(FileQueueBusinessService fileQueueBusinessService, MessageService messageService,
+    public CancelQueryCommand(FileQueueBusinessService fileQueueBusinessService, @Qualifier("limits") MessageService messageService,
                               LocalisationService localisationService, UserService userService) {
         this.fileQueueBusinessService = fileQueueBusinessService;
         this.messageService = messageService;

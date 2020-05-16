@@ -1,9 +1,8 @@
 package ru.gadjini.any2any.service;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -13,9 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.SendMessageContext;
-import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.service.command.CommandExecutor;
 import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
 import ru.gadjini.any2any.service.keyboard.CurrReplyKeyboard;
@@ -24,8 +21,6 @@ import java.util.Locale;
 
 @Service
 public class Any2AnyBotService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Any2AnyBotService.class);
 
     private MessageService messageService;
 
@@ -40,7 +35,7 @@ public class Any2AnyBotService {
     private CurrReplyKeyboard replyKeyboardService;
 
     @Autowired
-    public Any2AnyBotService(MessageService messageService, CommandExecutor commandExecutor,
+    public Any2AnyBotService(@Qualifier("limits") MessageService messageService, CommandExecutor commandExecutor,
                              LocalisationService localisationService, UserService userService,
                              CommandNavigator commandNavigator, CurrReplyKeyboard replyKeyboardService) {
         this.messageService = messageService;
@@ -52,43 +47,34 @@ public class Any2AnyBotService {
     }
 
     public void onUpdateReceived(Update update) {
-        try {
-            if (update.hasMessage()) {
-                if (restoreCommand(
-                        update.getMessage().getChatId(),
-                        update.getMessage().hasText() ? update.getMessage().getText().trim() : null
-                )) {
+        if (update.hasMessage()) {
+            if (restoreCommand(
+                    update.getMessage().getChatId(),
+                    update.getMessage().hasText() ? update.getMessage().getText().trim() : null
+            )) {
+                return;
+            }
+            String text = getText(update.getMessage());
+            if (commandExecutor.isKeyboardCommand(update.getMessage().getChatId(), text)) {
+                if (isOnCurrentMenu(update.getMessage().getChatId(), text)) {
+                    commandExecutor.executeKeyBoardCommand(update.getMessage(), text);
+
                     return;
                 }
-                String text = getText(update.getMessage());
-                if (commandExecutor.isKeyboardCommand(update.getMessage().getChatId(), text)) {
-                    if (isOnCurrentMenu(update.getMessage().getChatId(), text)) {
-                        commandExecutor.executeKeyBoardCommand(update.getMessage(), text);
-
-                        return;
-                    }
-                } else if (commandExecutor.isBotCommand(update.getMessage())) {
-                    if (commandExecutor.executeBotCommand(update.getMessage())) {
-                        return;
-                    } else {
-                        messageService.sendMessage(
-                                new SendMessageContext(
-                                        update.getMessage().getChatId(),
-                                        localisationService.getMessage(MessagesProperties.MESSAGE_UNKNOWN_COMMAND, userService.getLocale(update.getMessage().getFrom().getId()))));
-                        return;
-                    }
+            } else if (commandExecutor.isBotCommand(update.getMessage())) {
+                if (commandExecutor.executeBotCommand(update.getMessage())) {
+                    return;
+                } else {
+                    messageService.sendMessage(
+                            new SendMessageContext(
+                                    update.getMessage().getChatId(),
+                                    localisationService.getMessage(MessagesProperties.MESSAGE_UNKNOWN_COMMAND, userService.getLocale(update.getMessage().getFrom().getId()))));
+                    return;
                 }
-                commandExecutor.processNonCommandUpdate(update.getMessage(), text);
-            } else if (update.hasCallbackQuery()) {
-                commandExecutor.executeCallbackCommand(update.getCallbackQuery());
             }
-        } catch (UserException ex) {
-            LOGGER.error(ex.getMessage());
-            messageService.sendMessage(new SendMessageContext(TgMessage.getChatId(update), ex.getMessage()).webPagePreview(true));
-        } catch (Exception ex) {
-            LOGGER.error(ex.getMessage(), ex);
-            TgMessage tgMessage = TgMessage.from(update);
-            messageService.sendErrorMessage(tgMessage.getChatId(), userService.getLocale(tgMessage.getUser().getId()));
+            commandExecutor.processNonCommandUpdate(update.getMessage(), text);
+        } else if (update.hasCallbackQuery()) {
+            commandExecutor.executeCallbackCommand(update.getCallbackQuery());
         }
     }
 

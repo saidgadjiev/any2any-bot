@@ -13,10 +13,10 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @Conditional({LinuxMacCondition.class})
-public class MacLinuxZipService extends BaseZipService {
+public class P7ZipService extends BaseZipService {
 
-    protected MacLinuxZipService() {
-        super(Set.of(Format.ZIP));
+    protected P7ZipService() {
+        super(Set.of(Format.ZIP, Format.RAR));
     }
 
     @Override

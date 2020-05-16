@@ -34,8 +34,9 @@ public class BotConfiguration {
 
     @Bean
     public BotFilter botFilter(Any2AnyBotFilter any2AnyBotFilter,
-                               UpdateFilter updateFilter, StartCommandFilter startCommandFilter) {
-        updateFilter.setNext(startCommandFilter).setNext(any2AnyBotFilter);
+                               UpdateFilter updateFilter, StartCommandFilter startCommandFilter,
+                               TelegramLimitsFilter telegramLimitsFilter) {
+        updateFilter.setNext(telegramLimitsFilter).setNext(startCommandFilter).setNext(any2AnyBotFilter);
         return updateFilter;
     }
 }

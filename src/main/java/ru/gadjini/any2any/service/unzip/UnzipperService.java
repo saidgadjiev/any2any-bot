@@ -4,15 +4,13 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.job.UnzipperJob;
 import ru.gadjini.any2any.model.SendFileContext;
-import ru.gadjini.any2any.service.FileService;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.MessageService;
-import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.*;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.utils.ExFileUtils;
 
@@ -41,7 +39,7 @@ public class UnzipperService {
 
     @Autowired
     public UnzipperService(Set<ZipService> unzippers, LocalisationService localisationService,
-                           UnzipperJob unzipperJob, MessageService messageService,
+                           UnzipperJob unzipperJob, @Qualifier("limits") MessageService messageService,
                            TelegramService telegramService, FileService fileService) {
         this.unzippers = unzippers;
         this.localisationService = localisationService;

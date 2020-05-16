@@ -1,6 +1,7 @@
 package ru.gadjini.any2any.bot.command.callback;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.Chat;
@@ -47,7 +48,7 @@ public class QueriesCommand extends BotCommand implements KeyboardBotCommand, Na
 
     @Autowired
     public QueriesCommand(FileQueueService fileQueueService, LocalisationService localisationService,
-                          MessageService messageService, UserService userService, InlineKeyboardService inlineKeyboardService,
+                          @Qualifier("limits") MessageService messageService, UserService userService, InlineKeyboardService inlineKeyboardService,
                           FileQueueMessageBuilder messageBuilder) {
         super(CommandNames.QUERIES_COMMAND, "");
         this.fileQueueService = fileQueueService;

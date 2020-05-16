@@ -107,4 +107,8 @@ public class MessagesProperties {
     public static final String MESSAGE_ZIP_ENCRYPTED = "message.zip.encrypted";
 
     public static final String MESSAGE_ZIP_INVALID = "message.zip.invalid";
+
+    public static final String MESSAGE_TOO_LARGE_OUT_FILE = "message.too.large.out.file";
+
+    public static final String MESSAGE_TOO_LARGE_IN_FILE = "message.too.large.in.file";
 }

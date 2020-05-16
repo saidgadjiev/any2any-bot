@@ -3,6 +3,7 @@ package ru.gadjini.any2any.filter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -30,7 +31,7 @@ public class SubscriptionFilter extends BaseBotFilter {
     private UserService userService;
 
     @Autowired
-    public SubscriptionFilter(MessageService messageService, LocalisationService localisationService, UserService userService) {
+    public SubscriptionFilter(@Qualifier("limits") MessageService messageService, LocalisationService localisationService, UserService userService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;

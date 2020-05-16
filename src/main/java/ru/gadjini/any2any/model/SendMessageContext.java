@@ -8,6 +8,8 @@ public class SendMessageContext {
 
     private final String text;
 
+    private Integer replyMessageId;
+
     private ReplyKeyboard replyKeyboard;
 
     private boolean html = true;
@@ -56,5 +58,15 @@ public class SendMessageContext {
     public SendMessageContext webPagePreview(final boolean webPagePreview) {
         this.webPagePreview = webPagePreview;
         return this;
+    }
+
+    public SendMessageContext replyMessageId(Integer replyMessageId) {
+        this.replyMessageId = replyMessageId;
+
+        return this;
+    }
+
+    public Integer replyMessageId() {
+        return replyMessageId;
     }
 }

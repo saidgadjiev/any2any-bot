@@ -1,6 +1,7 @@
 package ru.gadjini.any2any.bot.command.callback;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.api.CallbackBotCommand;
@@ -32,7 +33,7 @@ public class QueryItemDetailsCommand implements CallbackBotCommand {
 
     @Autowired
     public QueryItemDetailsCommand(FileQueueService fileQueueService, FileQueueMessageBuilder messageBuilder,
-                                   UserService userService, MessageService messageService,
+                                   UserService userService, @Qualifier("limits") MessageService messageService,
                                    InlineKeyboardService inlineKeyboardService) {
         this.fileQueueService = fileQueueService;
         this.messageBuilder = messageBuilder;
