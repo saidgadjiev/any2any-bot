@@ -22,6 +22,8 @@ import ru.gadjini.any2any.service.filequeue.FileQueueBusinessService;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 
 import javax.annotation.PostConstruct;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -156,14 +158,35 @@ public class ConverterJob {
     }
 
     private void applyLicense() {
-        try {
-            new License().setLicense("license/license-19.lic");
-            new com.aspose.pdf.License().setLicense("license/license-19.lic");
-            new com.aspose.imaging.License().setLicense("license/license-19.lic");
-            new com.aspose.slides.License().setLicense("license/license-19.lic");
-            new com.aspose.cells.License().setLicense("license/license-19.lic");
+        try (InputStream inputStream = new FileInputStream("license/license-19.lic")) {
+            new License().setLicense(inputStream);
         } catch (Exception ex) {
             throw new RuntimeException(ex.getMessage(), ex);
         }
+        LOGGER.debug("Word license applied");
+        try (InputStream inputStream = new FileInputStream("license/license-19.lic")) {
+            new com.aspose.pdf.License().setLicense(inputStream);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
+        LOGGER.debug("Pdf license applied");
+        try (InputStream inputStream = new FileInputStream("license/license-19.lic")) {
+            new com.aspose.imaging.License().setLicense(inputStream);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
+        LOGGER.debug("Imaging license applied");
+        try (InputStream inputStream = new FileInputStream("license/license-19.lic")) {
+            new com.aspose.slides.License().setLicense(inputStream);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
+        LOGGER.debug("Slides license applied");
+        try (InputStream inputStream = new FileInputStream("license/license-19.lic")) {
+            new com.aspose.cells.License().setLicense(inputStream);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
+        LOGGER.debug("Cellss license applied");
     }
 }
