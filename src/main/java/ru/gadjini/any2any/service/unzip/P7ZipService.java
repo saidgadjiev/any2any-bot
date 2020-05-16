@@ -3,8 +3,7 @@ package ru.gadjini.any2any.service.unzip;
 import org.apache.commons.io.IOUtils;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.condition.LinuxCondition;
-import ru.gadjini.any2any.condition.MacCondition;
+import ru.gadjini.any2any.condition.LinuxMacCondition;
 import ru.gadjini.any2any.exception.UnzipException;
 import ru.gadjini.any2any.service.converter.api.Format;
 
@@ -13,11 +12,11 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Component
-@Conditional({LinuxCondition.class, MacCondition.class})
-public class MacLinuxRarService extends BaseZipService {
+@Conditional({LinuxMacCondition.class})
+public class MacLinuxZipService extends BaseZipService {
 
-    public MacLinuxRarService() {
-        super(Set.of(Format.RAR));
+    protected MacLinuxZipService() {
+        super(Set.of(Format.ZIP));
     }
 
     @Override
@@ -25,7 +24,7 @@ public class MacLinuxRarService extends BaseZipService {
         try {
             Process process = Runtime.getRuntime().exec(buildUnzipCommand(in, out));
             try {
-                boolean result = process.waitFor(11, TimeUnit.SECONDS);
+                boolean result = process.waitFor(10, TimeUnit.SECONDS);
                 if (!result) {
                     String error = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
                     throw new RuntimeException(error);
@@ -39,6 +38,6 @@ public class MacLinuxRarService extends BaseZipService {
     }
 
     private String buildUnzipCommand(String in, String out) {
-        return "unrar x " + in + " " + out;
+        return "7z x " + in + " -y -o" + out;
     }
 }
