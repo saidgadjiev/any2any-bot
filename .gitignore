@@ -274,7 +274,7 @@ data/
 *.csv
 api.json
 
-*/prod/docker-compose.yaml
+**/prod/
 *.conf
 *.env
 *.lic

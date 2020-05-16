@@ -6,7 +6,6 @@ services:
     build: ../../../
     volumes:
       - ${PWD}/data/logs:/app/logs
-      - ${PWD}/data/license:/app/license
     env_file:
       - .env
   db:
