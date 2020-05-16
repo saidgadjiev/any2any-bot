@@ -13,6 +13,7 @@ RUN rm wkhtmltox_0.12.5-1.bionic_amd64.deb
 RUN rm -rf /var/lib/apt/lists/*
 
 COPY ./target/app.jar .
+COPY ./license/license-19.lic ./license/
 
 ENTRYPOINT ["java"]
 CMD ["-jar", "app.jar"]
