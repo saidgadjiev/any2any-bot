@@ -71,7 +71,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Override
     public boolean processMessage(Message message, String text) {
-        Locale locale = userService.getLocale(message.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_FILE, locale))
                 .replyKeyboard(replyKeyboardService.goBack(message.getChatId(), locale)));
 
@@ -81,7 +81,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand {
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-        Locale locale = userService.getLocale(message.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         unzipperService.unzip(message.getFrom().getId(), message.getDocument().getFileId(), checkFormat(format, message.getDocument().getMimeType(), message.getDocument().getFileName(), message.getDocument().getFileId(), locale), locale);
         messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale)));
     }

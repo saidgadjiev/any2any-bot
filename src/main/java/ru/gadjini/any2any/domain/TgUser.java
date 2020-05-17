@@ -8,7 +8,7 @@ public class TgUser {
 
     public static final String USER_ID = "user_id";
 
-    public static final String USERNAME ="username";
+    public static final String USERNAME = "username";
 
     private int userId;
 

@@ -34,7 +34,7 @@ public class CommandStateService {
         T state = commandStateDao.getState(chatId);
 
         if (expiredCheck && state == null) {
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SESSION_EXPIRED, userService.getLocale((int) chatId)));
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SESSION_EXPIRED, userService.getLocaleOrDefault((int) chatId)));
         }
 
         return state;

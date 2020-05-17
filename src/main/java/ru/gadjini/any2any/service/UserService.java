@@ -22,12 +22,13 @@ public class UserService {
     public CreateOrUpdateResult createOrUpdate(User user) {
         TgUser tgUser = new TgUser();
         tgUser.setUserId(user.getId());
+        tgUser.setUsername(user.getUserName());
         String state = userDao.createOrUpdate(tgUser);
 
         return new CreateOrUpdateResult(tgUser, CreateOrUpdateResult.State.fromDesc(state));
     }
 
-    public Locale getLocale(int userId) {
+    public Locale getLocaleOrDefault(int userId) {
         return Locale.getDefault();
     }
 }

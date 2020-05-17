@@ -121,4 +121,5 @@ public class MessagesProperties {
     public static final String MESSAGE_ARCHIVE_NO_FILES = "message.archive.no.files";
 
     public static final String MESSAGE_ZERO_LENGTH_FILE = "message.zero.length.file";
+
 }

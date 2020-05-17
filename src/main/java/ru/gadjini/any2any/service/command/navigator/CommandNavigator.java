@@ -61,22 +61,29 @@ public class CommandNavigator {
     public void pop(TgMessage message) {
         long chatId = message.getChatId();
         NavigableBotCommand currentCommand = getCurrentCommand(chatId);
-        String parentHistoryName = navigatorDao.popParent(chatId, CommandNames.START_COMMAND);
-
-        if (StringUtils.isNotBlank(parentHistoryName)) {
-            if (currentCommand != null) {
-                currentCommand.leave(chatId);
-            }
-
-            NavigableBotCommand parentCommand = navigableBotCommands.get(parentHistoryName);
+        if (currentCommand == null) {
+            NavigableBotCommand parentCommand = navigableBotCommands.get(CommandNames.START_COMMAND);
 
             setCurrentCommand(chatId, parentCommand);
             parentCommand.restore(message);
-        } else if (currentCommand != null) {
-            currentCommand.restore(message);
+        } else {
+            if (currentCommand.canLeave(chatId)) {
+                String parentHistoryName = navigatorDao.popParent(chatId, CommandNames.START_COMMAND);
+
+                if (StringUtils.isNotBlank(parentHistoryName)) {
+                    currentCommand.leave(chatId);
+
+                    NavigableBotCommand parentCommand = navigableBotCommands.get(parentHistoryName);
+                    setCurrentCommand(chatId, parentCommand);
+                    parentCommand.restore(message);
+                } else {
+                    currentCommand.restore(message);
+                }
+            } else {
+                currentCommand.restore(message);
+            }
         }
     }
-
 
     public ReplyKeyboardMarkup silentPop(long chatId) {
         NavigableBotCommand navigableBotCommand = getCurrentCommand(chatId);

@@ -119,13 +119,13 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
             throw new UserException(localisationService.getMessage(
                     MessagesProperties.MESSAGE_TOO_LARGE_IN_FILE,
                     new Object[]{MemoryUtils.humanReadableByteCount(message.getDocument().getFileSize())},
-                    userService.getLocale(message.getFrom().getId())));
+                    userService.getLocaleOrDefault(message.getFrom().getId())));
         }
     }
 
     private boolean validate(SendFileContext sendFileContext) {
         if (sendFileContext.file().length() == 0) {
-            sendMessage(new SendMessageContext(sendFileContext.chatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZERO_LENGTH_FILE, userService.getLocale((int) sendFileContext.chatId())))
+            sendMessage(new SendMessageContext(sendFileContext.chatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZERO_LENGTH_FILE, userService.getLocaleOrDefault((int) sendFileContext.chatId())))
                     .replyKeyboard(sendFileContext.replyKeyboard())
                     .replyMessageId(sendFileContext.replyMessageId()));
 
@@ -138,7 +138,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
             LOGGER.debug("Large out file " + sendFileContext.file().length());
             String text = localisationService.getMessage(MessagesProperties.MESSAGE_TOO_LARGE_OUT_FILE,
                     new Object[]{sendFileContext.file().getName(), MemoryUtils.humanReadableByteCount(sendFileContext.file().length())},
-                    userService.getLocale((int) sendFileContext.chatId()));
+                    userService.getLocaleOrDefault((int) sendFileContext.chatId()));
 
             sendMessage(new SendMessageContext(sendFileContext.chatId(), text)
                     .replyKeyboard(sendFileContext.replyKeyboard())
