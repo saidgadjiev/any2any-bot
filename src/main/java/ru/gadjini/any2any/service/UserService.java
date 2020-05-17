@@ -15,16 +15,23 @@ public class UserService {
 
     private UserDao userDao;
 
+    private LocalisationService localisationService;
+
     @Autowired
-    public UserService(UserDao userDao) {
+    public UserService(UserDao userDao, LocalisationService localisationService) {
         this.userDao = userDao;
+        this.localisationService = localisationService;
     }
 
     public CreateOrUpdateResult createOrUpdate(User user) {
         TgUser tgUser = new TgUser();
         tgUser.setUserId(user.getId());
         tgUser.setUsername(user.getUserName());
-        tgUser.setLocale(user.getLanguageCode());
+
+        String language = localisationService.getSupportedLocales().stream()
+                .filter(locale -> locale.getLanguage().equals(user.getLanguageCode()))
+                .findAny().orElse(Locale.getDefault()).getLanguage();
+        tgUser.setLocale(language);
         String state = userDao.createOrUpdate(tgUser);
 
         return new CreateOrUpdateResult(tgUser, CreateOrUpdateResult.State.fromDesc(state));

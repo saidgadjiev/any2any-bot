@@ -18,4 +18,8 @@ public interface NavigableBotCommand extends MyBotCommand {
     default void leave(long chatId) {
 
     }
+
+    default boolean canLeave(long chatId) {
+        return true;
+    }
 }
