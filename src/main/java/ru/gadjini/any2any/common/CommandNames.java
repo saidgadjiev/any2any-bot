@@ -26,7 +26,5 @@ public class CommandNames {
 
     public static final String UNZIP_COMMAND_NAME = "g";
 
-    public static final String LANGUAGE_COMMAND_NAME = "h";
-
     public static final String CONVERT_COMMAND_NAME = "i";
 }

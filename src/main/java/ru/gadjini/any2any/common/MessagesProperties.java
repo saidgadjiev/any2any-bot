@@ -122,9 +122,4 @@ public class MessagesProperties {
 
     public static final String MESSAGE_ZERO_LENGTH_FILE = "message.zero.length.file";
 
-    public static final String LANGUAGE_COMMAND_NAME = "language.command.name";
-
-    public static final String MESSAGE_CHOOSE_LANGUAGE = "message.choose.language";
-
-    public static final String MESSAGE_LANGUAGE_SELECTED = "message.language.selected";
 }

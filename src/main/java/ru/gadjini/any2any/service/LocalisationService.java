@@ -13,8 +13,6 @@ public class LocalisationService {
 
     private static final String RU_LOCALE = "ru";
 
-    private static final String EN_LOCALE = "en";
-
     private MessageSource messageSource;
 
     @Autowired
@@ -31,6 +29,6 @@ public class LocalisationService {
     }
 
     public List<Locale> getSupportedLocales() {
-        return List.of(new Locale(RU_LOCALE), new Locale(EN_LOCALE));
+        return List.of(new Locale(RU_LOCALE));
     }
 }

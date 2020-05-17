@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.Locale;
 
 public interface ReplyKeyboardService {
-    ReplyKeyboardMarkup languageKeyboard(long chatId, Locale locale);
 
     ReplyKeyboardMarkup getMainMenu(long chatId, Locale locale);
 
