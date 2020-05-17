@@ -1,6 +1,8 @@
 package ru.gadjini.any2any.service.unzip;
 
 import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.condition.LinuxMacCondition;
@@ -15,6 +17,8 @@ import java.util.concurrent.TimeUnit;
 @Conditional({LinuxMacCondition.class})
 public class P7ZipService extends BaseZipService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(P7ZipService.class);
+
     protected P7ZipService() {
         super(Set.of(Format.ZIP, Format.RAR));
     }
@@ -26,8 +30,11 @@ public class P7ZipService extends BaseZipService {
             try {
                 boolean result = process.waitFor(10, TimeUnit.SECONDS);
                 if (!result) {
+                    throw new RuntimeException("Timed out");
+                }
+                if (process.exitValue() != 0) {
                     String error = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
-                    throw new RuntimeException(error);
+                    LOGGER.error("Exit code " + process.exitValue() + " out: " + error + " in " + in);
                 }
             } finally {
                 process.destroy();
