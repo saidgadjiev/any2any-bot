@@ -10,9 +10,13 @@ public class TgUser {
 
     public static final String USERNAME ="username";
 
+    public static final String LOCALE = "locale";
+
     private int userId;
 
     private String username;
+
+    private String locale;
 
     public int getUserId() {
         return userId;
@@ -20,6 +24,14 @@ public class TgUser {
 
     public void setUserId(int userId) {
         this.userId = userId;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
+    }
+
+    public String getLanguageCode() {
+        return locale;
     }
 
     public Locale getLocale() {

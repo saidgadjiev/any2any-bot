@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -22,12 +23,24 @@ public class UserService {
     public CreateOrUpdateResult createOrUpdate(User user) {
         TgUser tgUser = new TgUser();
         tgUser.setUserId(user.getId());
+        tgUser.setUsername(user.getUserName());
+        tgUser.setLocale(user.getLanguageCode());
         String state = userDao.createOrUpdate(tgUser);
 
         return new CreateOrUpdateResult(tgUser, CreateOrUpdateResult.State.fromDesc(state));
     }
 
-    public Locale getLocale(int userId) {
+    public Locale getLocaleOrDefault(int userId) {
+        String locale = userDao.getLocale(userId);
+
+        if (StringUtils.isNotBlank(locale)) {
+            return new Locale(locale);
+        }
+
         return Locale.getDefault();
+    }
+
+    public void changeLocale(int userId, Locale locale) {
+        userDao.updateLocale(userId, locale);
     }
 }

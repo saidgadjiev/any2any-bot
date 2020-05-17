@@ -94,7 +94,7 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] strings) {
-        Locale locale = userService.getLocale(user.getId());
+        Locale locale = userService.getLocaleOrDefault(user.getId());
         messageService.sendMessage(
                 new SendMessageContext(chat.getId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
                         .replyKeyboard(replyKeyboardService.getMainMenu(chat.getId(), locale))
@@ -103,7 +103,7 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        Locale locale = userService.getLocale(message.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
 
         if (!commandStateService.hasState(message.getChatId())) {
             check(message, locale);
@@ -137,14 +137,14 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
     @Override
     public void restore(TgMessage message) {
         commandStateService.deleteState(message.getChatId());
-        Locale locale = userService.getLocale(message.getUser().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getUser().getId());
         messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
                 .replyKeyboard(replyKeyboardService.getMainMenu(message.getChatId(), locale)));
     }
 
     @Override
     public ReplyKeyboardMarkup getKeyboard(long chatId) {
-        return replyKeyboardService.getMainMenu(chatId, userService.getLocale((int) chatId));
+        return replyKeyboardService.getMainMenu(chatId, userService.getLocaleOrDefault((int) chatId));
     }
 
     @Override
@@ -154,7 +154,7 @@ public class StartCommand extends BotCommand implements KeyboardBotCommand, Navi
 
     @Override
     public boolean processMessage(Message message, String text) {
-        Locale locale = userService.getLocale(message.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
                 new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
                         .replyKeyboard(replyKeyboardService.goBack(message.getChatId(), locale))

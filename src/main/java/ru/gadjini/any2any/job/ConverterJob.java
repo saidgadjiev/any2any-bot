@@ -125,7 +125,7 @@ public class ConverterJob {
     }
 
     private void sendResult(FileQueueItem fileQueueItem, ConvertResult convertResult) {
-        Locale locale = userService.getLocale(fileQueueItem.getUserId());
+        Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
         switch (convertResult.resultType()) {
             case FILE: {
                 SendFileContext sendDocumentContext = new SendFileContext(fileQueueItem.getUserId(), ((FileResult) convertResult).getFile())

@@ -35,7 +35,7 @@ public class ZipZipService extends BaseZipService {
 
     public void unzip(int userId, String in, String out) {
         try {
-            ZipFile zipFile = checkZip(new ZipFile(in), userService.getLocale(userId));
+            ZipFile zipFile = checkZip(new ZipFile(in), userService.getLocaleOrDefault(userId));
             zipFile.extractAll(out);
         } catch (ZipException e) {
             throw new UnzipException(e);

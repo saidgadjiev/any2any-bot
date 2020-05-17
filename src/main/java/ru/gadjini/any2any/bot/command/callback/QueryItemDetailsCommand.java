@@ -50,7 +50,7 @@ public class QueryItemDetailsCommand implements CallbackBotCommand {
     @Override
     public String processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int queryItemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
-        Locale locale = userService.getLocale(callbackQuery.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
         FileQueueItem item = fileQueueService.getItem(queryItemId);
         if (item == null) {
             messageService.editMessage(

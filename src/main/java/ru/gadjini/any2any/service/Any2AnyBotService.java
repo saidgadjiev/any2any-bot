@@ -68,7 +68,7 @@ public class Any2AnyBotService {
                     messageService.sendMessage(
                             new SendMessageContext(
                                     update.getMessage().getChatId(),
-                                    localisationService.getMessage(MessagesProperties.MESSAGE_UNKNOWN_COMMAND, userService.getLocale(update.getMessage().getFrom().getId()))));
+                                    localisationService.getMessage(MessagesProperties.MESSAGE_UNKNOWN_COMMAND, userService.getLocaleOrDefault(update.getMessage().getFrom().getId()))));
                     return;
                 }
             }
@@ -92,7 +92,7 @@ public class Any2AnyBotService {
         }
         if (commandNavigator.isEmpty(chatId)) {
             commandNavigator.zeroRestore(chatId, (NavigableBotCommand) commandExecutor.getBotCommand(CommandNames.START_COMMAND));
-            Locale locale = userService.getLocale((int) chatId);
+            Locale locale = userService.getLocaleOrDefault((int) chatId);
             messageService.sendBotRestartedMessage(chatId, replyKeyboardService.getMainMenu(chatId, locale), locale);
 
             return true;

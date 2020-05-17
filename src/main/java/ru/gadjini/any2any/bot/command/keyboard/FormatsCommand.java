@@ -45,7 +45,7 @@ public class FormatsCommand extends BotCommand implements KeyboardBotCommand {
 
     @Override
     public void execute(AbsSender absSender, User user, Chat chat, String[] strings) {
-        sendHelpMessage(user.getId(), userService.getLocale(user.getId()));
+        sendHelpMessage(user.getId(), userService.getLocaleOrDefault(user.getId()));
     }
 
     @Override
@@ -55,7 +55,7 @@ public class FormatsCommand extends BotCommand implements KeyboardBotCommand {
 
     @Override
     public boolean processMessage(Message message, String text) {
-        sendHelpMessage(message.getFrom().getId(), userService.getLocale(message.getFrom().getId()));
+        sendHelpMessage(message.getFrom().getId(), userService.getLocaleOrDefault(message.getFrom().getId()));
 
         return false;
     }

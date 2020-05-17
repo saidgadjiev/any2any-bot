@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.TgUser;
 
 import java.sql.Statement;
+import java.util.Locale;
 
 @Repository
 public class UserDao {
@@ -23,13 +24,14 @@ public class UserDao {
         jdbcTemplate.update(
                 connection -> {
                     var ps = connection.prepareStatement(
-                            "INSERT INTO tg_user(user_id, username) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET last_logged_in_at = now(), username = excluded.username " +
+                            "INSERT INTO tg_user(user_id, username, locale) VALUES (?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET last_logged_in_at = now(), username = excluded.username " +
                                     "RETURNING CASE WHEN XMAX::text::int > 0 THEN 'updated' ELSE 'inserted' END AS state",
                             Statement.RETURN_GENERATED_KEYS
                     );
 
                     ps.setInt(1, user.getUserId());
                     ps.setString(2, user.getUsername());
+                    ps.setString(3, user.getLanguageCode());
 
                     return ps;
                 },
@@ -37,5 +39,29 @@ public class UserDao {
         );
 
         return (String) keyHolder.getKeys().get("state");
+    }
+
+    public void updateLocale(int userId, Locale locale) {
+        jdbcTemplate.update(
+                "UPDATE tg_user SET locale = ? WHERE user_id = ?",
+                ps -> {
+                    ps.setString(1, locale.getLanguage());
+                    ps.setInt(2, userId);
+                }
+        );
+    }
+
+    public String getLocale(int userId) {
+        return jdbcTemplate.query(
+                "SELECT locale FROM tg_user WHERE user_id = ?",
+                ps -> ps.setInt(1, userId),
+                rs -> {
+                    if (rs.next()) {
+                        return rs.getString(TgUser.LOCALE);
+                    }
+
+                    return null;
+                }
+        );
     }
 }

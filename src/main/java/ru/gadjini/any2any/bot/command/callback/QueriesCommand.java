@@ -75,7 +75,7 @@ public class QueriesCommand extends BotCommand implements KeyboardBotCommand, Na
     public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
         List<FileQueueItem> queries = fileQueueService.getActiveItems(user.getId());
         messageService.sendMessage(
-                new SendMessageContext(chat.getId(), messageBuilder.getItems(queries, userService.getLocale(user.getId())))
+                new SendMessageContext(chat.getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(user.getId())))
                         .replyKeyboard(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(FileQueueItem::getId).collect(Collectors.toList())))
         );
     }
@@ -84,7 +84,7 @@ public class QueriesCommand extends BotCommand implements KeyboardBotCommand, Na
     public boolean processMessage(Message message, String text) {
         List<FileQueueItem> queries = fileQueueService.getActiveItems(message.getFrom().getId());
         messageService.sendMessage(
-                new SendMessageContext(message.getFrom().getId(), messageBuilder.getItems(queries, userService.getLocale(message.getFrom().getId())))
+                new SendMessageContext(message.getFrom().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFrom().getId())))
                         .replyKeyboard(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(FileQueueItem::getId).collect(Collectors.toList())))
         );
 
@@ -95,7 +95,7 @@ public class QueriesCommand extends BotCommand implements KeyboardBotCommand, Na
     public void restore(TgMessage tgMessage, ReplyKeyboard replyKeyboard, RequestParams requestParams) {
         List<FileQueueItem> queries = fileQueueService.getActiveItems(tgMessage.getUser().getId());
         messageService.editMessage(
-                new EditMessageContext(tgMessage.getUser().getId(), tgMessage.getMessageId(), messageBuilder.getItems(queries, userService.getLocale(tgMessage.getUser().getId())))
+                new EditMessageContext(tgMessage.getUser().getId(), tgMessage.getMessageId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(tgMessage.getUser().getId())))
                         .replyKeyboard(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(FileQueueItem::getId).collect(Collectors.toList())))
         );
     }
