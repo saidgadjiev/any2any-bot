@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 @Service
 public class FileService {
@@ -17,17 +19,28 @@ public class FileService {
     }
 
     public File createTempFile(String fileName) {
-        String tmpDir = System.getProperty("java.io.tmpdir");
+        try {
+            Path tmpdir = Files.createTempDirectory("tmpdir");
 
-        return new File(new File(tmpDir), fileName);
+            File file = new File(tmpdir.toFile(), fileName);
+            file.createNewFile();
+
+            return file;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public File createTempDir(String name) {
-        String tmpDir = System.getProperty("java.io.tmpdir");
-        File file = new File(tmpDir, name);
+        try {
+            Path tmpdir = Files.createTempDirectory("tmpdir");
+            File file = new File(tmpdir.toFile(), name);
 
-        file.mkdirs();
+            file.mkdirs();
 
-        return file;
+            return file;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

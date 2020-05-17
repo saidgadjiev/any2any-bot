@@ -24,6 +24,6 @@ public class FileResult extends BaseConvertResult {
 
     @Override
     public void close() {
-        FileUtils.deleteQuietly(file);
+        FileUtils.deleteQuietly(file.getParentFile());
     }
 }

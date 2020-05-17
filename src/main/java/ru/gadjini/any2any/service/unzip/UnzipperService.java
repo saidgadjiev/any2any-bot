@@ -10,7 +10,11 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.SendFileContext;
-import ru.gadjini.any2any.service.*;
+import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.service.FileService;
+import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.utils.ExFileUtils;
 
@@ -62,7 +66,7 @@ public class UnzipperService {
                     zipService.unzip(userId, in.getAbsolutePath(), out.getAbsolutePath());
                     List<File> files = new ArrayList<>();
                     ExFileUtils.list(out.getAbsolutePath(), files);
-                    sendFiles(userId, files);
+                    sendFiles(userId, files, locale);
                 } finally {
                     FileUtils.deleteQuietly(out);
                 }
@@ -72,9 +76,13 @@ public class UnzipperService {
         });
     }
 
-    private void sendFiles(int userId, List<File> files) {
-        for (File file : files) {
-            messageService.sendDocument(new SendFileContext(userId, file));
+    private void sendFiles(int userId, List<File> files, Locale locale) {
+        if (files.isEmpty()) {
+            sendNoFilesMessage(userId, locale);
+        } else {
+            for (File file : files) {
+                messageService.sendDocument(new SendFileContext(userId, file));
+            }
         }
     }
 
@@ -86,5 +94,9 @@ public class UnzipperService {
         }
 
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SUPPORTED_ZIP_FORMATS, locale));
+    }
+
+    private void sendNoFilesMessage(int userId, Locale locale) {
+        messageService.sendMessage(new SendMessageContext(userId, localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_NO_FILES, locale)));
     }
 }
