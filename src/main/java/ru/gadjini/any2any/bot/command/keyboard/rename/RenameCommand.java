@@ -113,6 +113,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     private RenameState createState(Message message) {
         RenameState renameState = new RenameState();
+        renameState.setReplyMessageId(message.getMessageId());
 
         if (message.hasDocument()) {
             renameState.setFileId(message.getDocument().getFileId());

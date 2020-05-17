@@ -42,7 +42,7 @@ public class RenameService {
             File file = createNewFile(newFileName, ext);
             File renamed = telegramService.downloadFileByFileId(renameState.getFileId(), file);
             try {
-                sendMessage(chatId, renamed);
+                sendMessage(chatId, renameState.getReplyMessageId(), renamed);
             } finally {
                 FileUtils.deleteQuietly(renamed);
             }
@@ -63,9 +63,9 @@ public class RenameService {
         return fileService.createTempFile(fileName);
     }
 
-    private void sendMessage(long chatId, File renamed) {
+    private void sendMessage(long chatId, int replyMessageId, File renamed) {
         try {
-            messageService.sendDocument(new SendFileContext(chatId, renamed));
+            messageService.sendDocument(new SendFileContext(chatId, renamed).replyMessageId(replyMessageId));
         } finally {
             FileUtils.deleteQuietly(renamed);
         }
