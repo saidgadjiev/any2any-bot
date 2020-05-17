@@ -7,6 +7,6 @@ public class Any2AnyFileNameUtils {
     private Any2AnyFileNameUtils() {}
 
     public static String getFileName(String fileName, String ext) {
-        return FilenameUtils.removeExtension(fileName) + "." + ext;
+        return FilenameUtils.removeExtension(fileName).replace(" ", "\\ ") + "." + ext;
     }
 }

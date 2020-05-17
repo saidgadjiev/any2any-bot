@@ -15,6 +15,8 @@ import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.io.File;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -53,7 +55,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             stopWatch.start();
 
             File file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
-            wkhtmltopdfService.process(html.getAbsolutePath(), file.getAbsolutePath());
+            wkhtmltopdfService.process(html.getAbsolutePath().replace(" ", "\\ "), file.getAbsolutePath());
 
             stopWatch.stop();
             return new FileResult(file, stopWatch.getTime(TimeUnit.SECONDS));
@@ -70,7 +72,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             stopWatch.start();
 
             File file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
-            wkhtmltopdfService.process(fileQueueItem.getFileId(), file.getAbsolutePath());
+            wkhtmltopdfService.process(URLEncoder.encode(fileQueueItem.getFileId(), StandardCharsets.UTF_8), file.getAbsolutePath());
 
             stopWatch.stop();
             return new FileResult(file, stopWatch.getTime(TimeUnit.SECONDS));
