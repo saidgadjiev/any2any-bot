@@ -111,4 +111,10 @@ public class MessagesProperties {
     public static final String MESSAGE_TOO_LARGE_OUT_FILE = "message.too.large.out.file";
 
     public static final String MESSAGE_TOO_LARGE_IN_FILE = "message.too.large.in.file";
+
+    public static final String CONVERT_COMMAND_NAME = "convert.command.name";
+
+    public static final String MESSAGE_RENAMING = "message.renaming";
+
+    public static final String MESSAGE_CONVERT_FILE = "message.convert.file";
 }

@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.bot.command.keyboard;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -25,6 +27,8 @@ import java.util.Set;
 
 @Component
 public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UnzipCommand.class);
 
     private Set<String> names = new HashSet<>();
 
@@ -78,7 +82,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand {
     public void processNonCommandUpdate(Message message, String text) {
         Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
         Locale locale = userService.getLocale(message.getFrom().getId());
-        unzipperService.unzip(message.getFrom().getId(), message.getDocument().getFileId(), checkFormat(format, locale), locale);
+        unzipperService.unzip(message.getFrom().getId(), message.getDocument().getFileId(), checkFormat(format, message.getDocument().getMimeType(), message.getDocument().getFileName(), message.getDocument().getFileId(), locale), locale);
         messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale)));
     }
 
@@ -87,8 +91,9 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand {
         return CommandNames.UNZIP_COMMAND_NAME;
     }
 
-    private Format checkFormat(Format format, Locale locale) {
+    private Format checkFormat(Format format, String mimeType, String fileName, String fileId, Locale locale) {
         if (format == null) {
+            LOGGER.debug("Archive format with mimeType " + mimeType + " fileName " + fileName + " fileId " + fileId + " unsupported");
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SUPPORTED_ZIP_FORMATS, locale));
         }
         if (format.getCategory() != FormatCategory.ARCHIVE) {

@@ -10,6 +10,8 @@ public class RenameState {
 
     private String language;
 
+    private int replyMessageId;
+
     public String getFileId() {
         return fileId;
     }
@@ -40,5 +42,13 @@ public class RenameState {
 
     public void setMimeType(String mimeType) {
         this.mimeType = mimeType;
+    }
+
+    public int getReplyMessageId() {
+        return replyMessageId;
+    }
+
+    public void setReplyMessageId(int replyMessageId) {
+        this.replyMessageId = replyMessageId;
     }
 }

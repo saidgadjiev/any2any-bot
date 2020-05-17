@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.filter;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -21,6 +23,8 @@ import java.util.Locale;
 @Component
 @Qualifier("limits")
 public class TelegramLimitsFilter extends BaseBotFilter implements MessageService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramLimitsFilter.class);
 
     private UserService userService;
 
@@ -84,6 +88,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
         if (!largeFile) {
             messageService.sendDocument(sendDocumentContext);
         } else {
+            LOGGER.debug("Large out file " + sendDocumentContext.file().length());
             String text = localisationService.getMessage(MessagesProperties.MESSAGE_TOO_LARGE_OUT_FILE,
                     new Object[]{sendDocumentContext.file().getName(), MemoryUtils.humanReadableByteCount(sendDocumentContext.file().length())},
                     userService.getLocale((int) sendDocumentContext.chatId()));
@@ -109,14 +114,18 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
 
     private void checkInMediaSize(Message message) {
         int size = 0;
+        String fileId = null;
         if (message.hasDocument()) {
             Document document = message.getDocument();
             size = document.getFileSize();
+            fileId = message.getDocument().getFileId();
         } else if (message.hasPhoto()) {
             PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
             size = photoSize.getFileSize();
+            fileId = photoSize.getFileId();
         }
         if (size >= 20 * 1000 * 1000) {
+            LOGGER.debug("Too large in file " + fileId + " size " + size);
             throw new UserException(localisationService.getMessage(
                     MessagesProperties.MESSAGE_TOO_LARGE_IN_FILE,
                     new Object[]{MemoryUtils.humanReadableByteCount(message.getDocument().getFileSize())},

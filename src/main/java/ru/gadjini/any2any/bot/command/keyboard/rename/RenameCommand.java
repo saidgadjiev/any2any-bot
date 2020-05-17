@@ -1,6 +1,7 @@
 package ru.gadjini.any2any.bot.command.keyboard.rename;
 
-import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -10,20 +11,22 @@ import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendMessageContext;
-import ru.gadjini.any2any.service.*;
+import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.RenameService;
+import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
-import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 
-import java.io.File;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
 @Component
 public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RenameCommand.class);
 
     private Set<String> names = new HashSet<>();
 
@@ -39,8 +42,6 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     private final RenameService renameService;
 
-    private CommandNavigator commandNavigator;
-
     @Autowired
     public RenameCommand(LocalisationService localisationService, CommandStateService commandStateService,
                          @Qualifier("limits") MessageService messageService, @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService,
@@ -54,11 +55,6 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand {
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.RENAME_COMMAND_NAME, locale));
         }
-    }
-
-    @Autowired
-    public void setCommandNavigator(CommandNavigator commandNavigator) {
-        this.commandNavigator = commandNavigator;
     }
 
     @Override
@@ -97,15 +93,10 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand {
             commandStateService.setState(message.getChatId(), renameState);
         } else if (message.hasText()) {
             RenameState renameState = commandStateService.getState(message.getChatId(), true);
-            File rename = renameService.rename(renameState, message.getText().trim());
-
-            try {
-                messageService.sendDocument(new SendFileContext(message.getChatId(), rename).replyKeyboard(replyKeyboardService.getMainMenu(message.getChatId(), locale)));
-                commandStateService.deleteState(message.getChatId());
-                commandNavigator.silentPop(message.getChatId());
-            } finally {
-                FileUtils.deleteQuietly(rename);
-            }
+            renameService.rename(message.getChatId(), renameState, text);
+            commandStateService.deleteState(message.getChatId());
+            messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_RENAMING, locale)));
+            LOGGER.debug("Rename request " + renameState.getFileId() + " with fileName " + renameState.getFileName() + " to " + text);
         }
     }
 

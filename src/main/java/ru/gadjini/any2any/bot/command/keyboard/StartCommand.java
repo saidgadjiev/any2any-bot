@@ -1,8 +1,11 @@
 package ru.gadjini.any2any.bot.command.keyboard;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -14,6 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 import org.telegram.telegrambots.meta.bots.AbsSender;
+import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.bot.command.convert.ConvertState;
 import ru.gadjini.any2any.common.CommandNames;
@@ -22,7 +26,10 @@ import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.model.TgMessage;
-import ru.gadjini.any2any.service.*;
+import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
@@ -33,12 +40,14 @@ import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Comparator;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 
 @Component
-public class StartCommand extends BotCommand implements NavigableBotCommand {
+public class StartCommand extends BotCommand implements KeyboardBotCommand, NavigableBotCommand {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StartCommand.class);
+
+    private Set<String> names = new HashSet<>();
 
     private CommandStateService commandStateService;
 
@@ -73,6 +82,9 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
         this.replyKeyboardService = replyKeyboardService;
         this.formatService = formatService;
         this.telegramService = telegramService;
+        for (Locale locale : localisationService.getSupportedLocales()) {
+            this.names.add(localisationService.getMessage(MessagesProperties.CONVERT_COMMAND_NAME, locale));
+        }
     }
 
     @Override
@@ -135,6 +147,23 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
         return replyKeyboardService.getMainMenu(chatId, userService.getLocale((int) chatId));
     }
 
+    @Override
+    public boolean canHandle(long chatId, String command) {
+        return names.contains(command);
+    }
+
+    @Override
+    public boolean processMessage(Message message, String text) {
+        Locale locale = userService.getLocale(message.getFrom().getId());
+        messageService.sendMessage(
+                new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
+                        .replyKeyboard(replyKeyboardService.goBack(message.getChatId(), locale))
+
+        );
+
+        return true;
+    }
+
     private ConvertState createState(Message message, Locale locale) {
         ConvertState convertState = new ConvertState();
         convertState.setMessageId(message.getMessageId());
@@ -146,7 +175,7 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
             convertState.setFileName(message.getDocument().getFileName());
             convertState.setMimeType(message.getDocument().getMimeType());
             Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-            convertState.setFormat(checkFormat(format, locale));
+            convertState.setFormat(checkFormat(format, message.getDocument().getMimeType(), message.getDocument().getFileName(), message.getDocument().getFileId(), locale));
             if (convertState.getFormat() == Format.HTML && isBaseUrlMissed(message.getDocument().getFileId())) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_NO_BASE_URL_IN_HTML, locale));
             }
@@ -155,7 +184,7 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
             convertState.setFileId(photoSize.getFileId());
             convertState.setFileSize(photoSize.getFileSize());
             Format format = formatService.getImageFormat(photoSize.getFileId());
-            checkFormat(format, locale);
+            checkFormat(format, null, null, photoSize.getFileId(), locale);
             convertState.setFormat(format);
         } else if (message.hasSticker()) {
             Sticker sticker = message.getSticker();
@@ -192,11 +221,16 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
 
-    private Format checkFormat(Format format, Locale locale) {
+    private Format checkFormat(Format format, String mimeType, String fileName, String fileId, Locale locale) {
         if (format != null) {
             return format;
         }
 
+        if (StringUtils.isNotBlank(mimeType)) {
+            LOGGER.debug("Format not resolved for " + mimeType + " and fileName " + fileName);
+        } else {
+            LOGGER.debug("Format not resolved for image " + fileId);
+        }
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
 
@@ -212,6 +246,7 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
             return target;
         }
 
+        LOGGER.debug("Convert is not available for " + format + " to " + target);
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
 

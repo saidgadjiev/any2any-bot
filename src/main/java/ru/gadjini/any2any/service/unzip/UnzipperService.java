@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.job.UnzipperJob;
+import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.service.*;
 import ru.gadjini.any2any.service.converter.api.Format;
@@ -29,7 +29,7 @@ public class UnzipperService {
 
     private LocalisationService localisationService;
 
-    private UnzipperJob unzipperJob;
+    private CommonJobExecutor unzipperJob;
 
     private MessageService messageService;
 
@@ -39,7 +39,7 @@ public class UnzipperService {
 
     @Autowired
     public UnzipperService(Set<ZipService> unzippers, LocalisationService localisationService,
-                           UnzipperJob unzipperJob, @Qualifier("limits") MessageService messageService,
+                           CommonJobExecutor unzipperJob, @Qualifier("limits") MessageService messageService,
                            TelegramService telegramService, FileService fileService) {
         this.unzippers = unzippers;
         this.localisationService = localisationService;

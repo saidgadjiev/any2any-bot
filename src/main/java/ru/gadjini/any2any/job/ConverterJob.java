@@ -49,7 +49,7 @@ public class ConverterJob {
 
     @Autowired
     public ConverterJob(FileQueueBusinessService queueService, Set<Any2AnyConverter> any2AnyConvertersSet,
-                        ThreadPoolTaskExecutor taskExecutor, InlineKeyboardService inlineKeyboardService,
+                        @Qualifier("converterTaskExecutor") ThreadPoolTaskExecutor taskExecutor, InlineKeyboardService inlineKeyboardService,
                         UserService userService, @Qualifier("limits") MessageService messageService) {
         this.queueService = queueService;
         this.taskExecutor = taskExecutor;

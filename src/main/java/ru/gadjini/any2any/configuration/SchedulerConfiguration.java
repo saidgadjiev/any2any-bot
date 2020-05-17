@@ -2,6 +2,7 @@ package ru.gadjini.any2any.configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
@@ -13,7 +14,7 @@ public class SchedulerConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerConfiguration.class);
 
-    public static final int QUEUE_SIZE = 150;
+    public static final int QUEUE_SIZE = 100;
 
     @Bean
     public TaskScheduler jobsThreadPoolTaskScheduler() {
@@ -28,15 +29,31 @@ public class SchedulerConfiguration {
     }
 
     @Bean
-    public ThreadPoolTaskExecutor reminderExecutorService() {
+    @Qualifier("converterTaskExecutor")
+    public ThreadPoolTaskExecutor converterExecutorService() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(2 * Runtime.getRuntime().availableProcessors() - 1);
-        taskExecutor.setMaxPoolSize(2 * Runtime.getRuntime().availableProcessors() + 2);
+        taskExecutor.setCorePoolSize(2 * Runtime.getRuntime().availableProcessors());
+        taskExecutor.setMaxPoolSize(2 * Runtime.getRuntime().availableProcessors());
         taskExecutor.setQueueCapacity(QUEUE_SIZE);
-        taskExecutor.setThreadNamePrefix("Any2AnyExecutor");
+        taskExecutor.setThreadNamePrefix("ConverterExecutor");
         taskExecutor.initialize();
 
-        LOGGER.debug("Any2Any thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
+        LOGGER.debug("Converter thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
+
+        return taskExecutor;
+    }
+
+    @Bean
+    @Qualifier("commonTaskExecutor")
+    public ThreadPoolTaskExecutor commonExecutorService() {
+        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+        taskExecutor.setCorePoolSize(Runtime.getRuntime().availableProcessors());
+        taskExecutor.setMaxPoolSize(Runtime.getRuntime().availableProcessors());
+        taskExecutor.setQueueCapacity(QUEUE_SIZE);
+        taskExecutor.setThreadNamePrefix("CommonExecutor");
+        taskExecutor.initialize();
+
+        LOGGER.debug("Common thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
 
         return taskExecutor;
     }
