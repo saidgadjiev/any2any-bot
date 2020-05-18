@@ -34,8 +34,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_UNSUPPORTED_FORMAT = "message.unsupported.format";
 
-    public static final String MESSAGE_ACTIVE_QUERIES_HEADER = "message.active.queries.header";
-
     public static final String MESSAGE_QUERY_STATUS = "message.query.status";
 
     public static final String MESSAGE_STATUS_PROCESSING = "message.status.processing";
@@ -70,10 +68,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_CONVERT_WARNINGS = "message.convert.warnings";
 
-    public static final String CATEGORY_DOCUMENTS = "category.documents";
-
-    public static final String CATEGORY_IMAGES = "category.images";
-
     public static final String MESSAGE_HELP = "message.help";
 
     public static final String HELP_COMMAND_NAME = "help.command.name";
@@ -87,8 +81,6 @@ public class MessagesProperties {
     public static final String REPORT_COMMAND_DESCRIPTION = "report.command.description";
 
     public static final String MESSAGE_TOO_MANY_FILES = "message.too.many.files";
-
-    public static final String FORMATS_ARTICLE = "formats.article";
 
     public static final String MESSAGE_SESSION_EXPIRED = "message.session.expired";
 
