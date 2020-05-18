@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.dao;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.TgUser;
 
 import java.sql.Statement;
+import java.sql.Types;
 
 @Repository
 public class UserDao {
@@ -29,7 +31,11 @@ public class UserDao {
                     );
 
                     ps.setInt(1, user.getUserId());
-                    ps.setString(2, user.getUsername());
+                    if (StringUtils.isBlank(user.getUsername())) {
+                        ps.setNull(2, Types.NULL);
+                    } else {
+                        ps.setString(2, user.getUsername());
+                    }
 
                     return ps;
                 },
