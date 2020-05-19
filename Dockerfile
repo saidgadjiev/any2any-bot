@@ -24,6 +24,7 @@ RUN rm -rf /var/lib/apt/lists/*
 
 COPY ./target/app.jar .
 COPY ./license/license-19.lic ./license/
+COPY ./tessdata/ ./tessdata/
 
 ENTRYPOINT ["java"]
 CMD ["-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
