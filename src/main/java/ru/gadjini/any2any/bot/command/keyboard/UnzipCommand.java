@@ -46,7 +46,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Autowired
     public UnzipCommand(LocalisationService localisationService, UnzipperService unzipperService,
-                        @Qualifier("limits") MessageService messageService, @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService,
+                        @Qualifier("limits") MessageService messageService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                         UserService userService, FormatService formatService) {
         this.localisationService = localisationService;
         this.unzipperService = unzipperService;

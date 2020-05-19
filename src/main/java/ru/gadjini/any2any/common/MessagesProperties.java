@@ -119,4 +119,16 @@ public class MessagesProperties {
     public static final String MESSAGE_CHOOSE_LANGUAGE = "message.choose.language";
 
     public static final String MESSAGE_LANGUAGE_SELECTED = "message.language.selected";
+
+    public static final String EXTRACT_TEXT_COMMAND_NAME = "extract.text.command.name";
+
+    public static final String MESSAGE_FILE_TO_EXTRACT = "message.file.to.extract";
+
+    public static final String MESSAGE_EXTRACTION_IMPOSSIBLE = "message.extraction.impossible";
+
+    public static final String MESSAGE_EMPTY_TEXT_EXTRACTED = "message.empty.text.extracted";
+
+    public static final String MESSAGE_EXTRACTION_PROCESSING = "message.extraction.processing";
+
+    public static final String MESSAGE_OCR_LANGUAGE_CHANGED = "message.ocr.language.changed";
 }

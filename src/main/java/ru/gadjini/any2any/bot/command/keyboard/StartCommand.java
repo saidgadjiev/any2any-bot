@@ -39,7 +39,7 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
 
     @Autowired
     public StartCommand(CommandStateService commandStateService, UserService userService, @Qualifier("limits") MessageService messageService,
-                        LocalisationService localisationService, @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService) {
+                        LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService) {
         super(CommandNames.START_COMMAND, "");
         this.commandStateService = commandStateService;
         this.userService = userService;

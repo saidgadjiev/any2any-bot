@@ -277,3 +277,4 @@ api.json
 **/prod/
 *.env
 *.lic
+tessdata/

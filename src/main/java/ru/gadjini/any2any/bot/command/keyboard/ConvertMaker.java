@@ -63,7 +63,7 @@ public class ConvertMaker {
     @Autowired
     public ConvertMaker(CommandStateService commandStateService, UserService userService, FileQueueService fileQueueService,
                         FileQueueMessageBuilder queueMessageBuilder, @Qualifier("limits") MessageService messageService,
-                        LocalisationService localisationService, @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService,
+                        LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                         FormatService formatService, TelegramService telegramService) {
         this.commandStateService = commandStateService;
         this.userService = userService;

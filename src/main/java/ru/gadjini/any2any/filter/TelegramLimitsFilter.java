@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.filter;
 
+import com.google.common.base.Splitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,8 @@ import java.util.Locale;
 public class TelegramLimitsFilter extends BaseBotFilter implements MessageService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramLimitsFilter.class);
+
+    private static final int TEXT_LENGTH_LIMIT = 4090;
 
     private UserService userService;
 
@@ -59,7 +62,19 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
 
     @Override
     public void sendMessage(SendMessageContext messageContext) {
-        messageService.sendMessage(messageContext);
+        if (messageContext.text().length() > TEXT_LENGTH_LIMIT) {
+            messageService.sendMessage(messageContext);
+        } else {
+            Iterable<String> split = Splitter.fixedLength(TEXT_LENGTH_LIMIT)
+                    .split(messageContext.text());
+            for (String text : split) {
+                messageService.sendMessage(new SendMessageContext(messageContext.chatId(), text)
+                        .replyKeyboard(messageContext.replyKeyboard())
+                        .webPagePreview(messageContext.webPagePreview())
+                        .html(messageContext.html())
+                        .replyMessageId(messageContext.replyMessageId()));
+            }
+        }
     }
 
     @Override

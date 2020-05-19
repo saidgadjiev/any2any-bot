@@ -41,7 +41,7 @@ public class ConvertCommand implements KeyboardBotCommand, NavigableBotCommand {
     @Autowired
     public ConvertCommand(CommandStateService commandStateService, UserService userService,
                           @Qualifier("limits") MessageService messageService, LocalisationService localisationService,
-                          @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService) {
+                          @Qualifier("curr") ReplyKeyboardService replyKeyboardService) {
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.messageService = messageService;

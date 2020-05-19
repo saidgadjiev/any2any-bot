@@ -36,7 +36,7 @@ public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand 
 
     @Autowired
     public LanguageCommand(LocalisationService localisationService, @Qualifier("limits") MessageService messageService,
-                           UserService userService, @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService, CommandNavigator commandNavigator) {
+                           UserService userService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService, CommandNavigator commandNavigator) {
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.userService = userService;

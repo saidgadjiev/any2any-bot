@@ -36,7 +36,7 @@ public class StartCommandFilter extends BaseBotFilter {
     @Autowired
     public StartCommandFilter(CommandParser commandParser, UserService userService,
                               @Qualifier("limits") MessageService messageService, LocalisationService localisationService,
-                              @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService, CommandNavigator commandNavigator) {
+                              @Qualifier("curr") ReplyKeyboardService replyKeyboardService, CommandNavigator commandNavigator) {
         this.commandParser = commandParser;
         this.userService = userService;
         this.messageService = messageService;

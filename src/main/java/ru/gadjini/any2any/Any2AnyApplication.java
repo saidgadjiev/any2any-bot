@@ -40,7 +40,7 @@ public class Any2AnyApplication {
     }
 
     private static void setDefaultLocaleAndTZ() {
-        Locale.setDefault(new Locale("en-US"));
+        Locale.setDefault(new Locale("en"));
         TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.UTC));
     }
 }
