@@ -25,7 +25,7 @@ public class ZipArchiveDevice extends BaseArchiveDevice {
 
     private String buildCommand(List<String> files, String out) {
         StringBuilder command = new StringBuilder();
-        command.append("zip ").append(out).append(" ");
+        command.append("zip -j ").append(out).append(" ");
         for (Iterator<String> fileIterator = files.iterator(); fileIterator.hasNext();) {
             String file = fileIterator.next();
             command.append(file);
