@@ -33,6 +33,16 @@ public class ReplyKeyboardServiceImpl implements ReplyKeyboardService {
     }
 
     @Override
+    public ReplyKeyboardMarkup archiveTypesKeyboard(long chatId, Locale locale) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(Format.ZIP.name()));
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+
+        return replyKeyboardMarkup;
+    }
+
+    @Override
     public ReplyKeyboardMarkup languageKeyboard(long chatId, Locale locale) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 

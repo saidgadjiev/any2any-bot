@@ -20,14 +20,14 @@ import java.util.Set;
 @Component
 @Conditional(WindowsCondition.class)
 @Qualifier("zip")
-public class ZipZipService extends BaseZipService {
+public class ZipLibUnzipProgram extends BaseUnzipProgram {
 
     private LocalisationService localisationService;
 
     private UserService userService;
 
     @Autowired
-    public ZipZipService(LocalisationService localisationService, UserService userService) {
+    public ZipLibUnzipProgram(LocalisationService localisationService, UserService userService) {
         super(Set.of(Format.ZIP));
         this.localisationService = localisationService;
         this.userService = userService;

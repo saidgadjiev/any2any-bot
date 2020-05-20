@@ -29,4 +29,8 @@ public class CommandNames {
     public static final String CONVERT_COMMAND_NAME = "i";
 
     public static final String EXTRACT_TEXT_COMMAND_NAME = "j";
+
+    public static final String LANGUAGE_COMMAND_NAME = "k";
+
+    public static final String ARCHIVE_COMMAND_NAME = "l";
 }

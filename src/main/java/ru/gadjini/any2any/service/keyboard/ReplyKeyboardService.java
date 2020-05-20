@@ -11,6 +11,8 @@ import java.util.Locale;
 
 public interface ReplyKeyboardService {
 
+    ReplyKeyboardMarkup archiveTypesKeyboard(long chatId, Locale locale);
+
     ReplyKeyboardMarkup languageKeyboard(long chatId, Locale locale);
 
     ReplyKeyboardMarkup getOcrKeyboard(long chatId, Locale locale);

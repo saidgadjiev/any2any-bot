@@ -131,4 +131,18 @@ public class MessagesProperties {
     public static final String MESSAGE_EXTRACTION_PROCESSING = "message.extraction.processing";
 
     public static final String MESSAGE_OCR_LANGUAGE_CHANGED = "message.ocr.language.changed";
+
+    public static final String ARCHIVE_COMMAND_NAME = "archive.command.name";
+
+    public static final String MESSAGE_ARCHIVE_FILES = "message.archive.files";
+
+    public static final String MESSAGE_ARCHIVE_TYPE_UNSUPPORTED = "message.archive.type.unsupported";
+
+    public static final String ARCHIVE_FILE_NAME = "archive.file.name";
+
+    public static final String MESSAGE_ARCHIVE_PROCESSING = "message.archive.processing";
+
+    public static final String MESSAGE_CHOOSE_ARCHIVE_TYPE = "message.choose.archive.type";
+
+    public static final String MESSAGE_ARCHIVE_FILES_EMPTY = "message.archive.files.empty";
 }

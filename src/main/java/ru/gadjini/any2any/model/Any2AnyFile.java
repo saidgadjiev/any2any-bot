@@ -6,6 +6,10 @@ public class Any2AnyFile {
 
     private String fileId;
 
+    private String fileName;
+
+    private String mimeType;
+
     private Format format;
 
     public String getFileId() {
@@ -22,5 +26,21 @@ public class Any2AnyFile {
 
     public void setFormat(Format format) {
         this.format = format;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getMimeType() {
+        return mimeType;
+    }
+
+    public void setMimeType(String mimeType) {
+        this.mimeType = mimeType;
     }
 }

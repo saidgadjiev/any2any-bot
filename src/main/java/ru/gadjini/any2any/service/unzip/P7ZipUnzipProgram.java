@@ -13,9 +13,9 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @Conditional({LinuxMacCondition.class})
-public class P7ZipService extends BaseZipService {
+public class P7ZipUnzipProgram extends BaseUnzipProgram {
 
-    protected P7ZipService() {
+    protected P7ZipUnzipProgram() {
         super(Set.of(Format.ZIP, Format.RAR));
     }
 
