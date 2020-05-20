@@ -59,13 +59,17 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
     }
 
     @Override
+    public boolean accept(Message message) {
+        return message.hasText() || message.hasDocument();
+    }
+
+    @Override
     public boolean canHandle(long chatId, String command) {
         return names.contains(command);
     }
 
     @Override
     public boolean processMessage(Message message, String text) {
-        commandStateService.setState(message.getChatId(), new ArrayList<>());
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES, locale))
                 .replyKeyboard(replyKeyboardService.archiveTypesKeyboard(message.getChatId(), locale)));
@@ -82,8 +86,8 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
     public void processNonCommandUpdate(Message message, String text) {
         if (message.hasText()) {
             Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-            List<Any2AnyFile> files = commandStateService.getState(message.getChatId(), true);
-            if (files.isEmpty()) {
+            List<Any2AnyFile> files = commandStateService.getState(message.getChatId(), false);
+            if (files == null || files.isEmpty()) {
                 messageService.sendMessage(new SendMessageContext(message.getChatId(),
                         localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale)));
             } else {
@@ -91,9 +95,13 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
                 archiveService.createArchive(message.getFrom().getId(), files, associatedFormat, locale);
                 messageService.sendMessage(new SendMessageContext(message.getChatId(),
                         localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale)));
+                commandStateService.deleteState(message.getChatId());
             }
         } else {
-            List<Any2AnyFile> files = commandStateService.getState(message.getChatId(), true);
+            List<Any2AnyFile> files = commandStateService.getState(message.getChatId(), false);
+            if (files == null) {
+                files = new ArrayList<>();
+            }
             files.add(createFile(message));
             commandStateService.setState(message.getChatId(), files);
         }
@@ -103,6 +111,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
         Any2AnyFile any2AnyFile = new Any2AnyFile();
         any2AnyFile.setFileName(message.getDocument().getFileName());
         any2AnyFile.setFileId(message.getDocument().getFileId());
+        any2AnyFile.setMimeType(message.getDocument().getMimeType());
 
         return any2AnyFile;
     }

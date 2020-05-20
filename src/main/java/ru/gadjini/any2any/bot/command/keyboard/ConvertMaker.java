@@ -24,6 +24,7 @@ import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.converter.api.FormatCategory;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
 import ru.gadjini.any2any.service.filequeue.FileQueueMessageBuilder;
 import ru.gadjini.any2any.service.filequeue.FileQueueService;
@@ -160,16 +161,19 @@ public class ConvertMaker {
     }
 
     private Format checkFormat(Format format, String mimeType, String fileName, String fileId, Locale locale) {
-        if (format != null) {
-            return format;
+        if (format == null) {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
-
         if (StringUtils.isNotBlank(mimeType)) {
             LOGGER.debug("Format not resolved for " + mimeType + " and fileName " + fileName);
         } else {
             LOGGER.debug("Format not resolved for image " + fileId);
         }
-        throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
+        if (format.getCategory() != FormatCategory.ARCHIVE) {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
+        }
+
+        return format;
     }
 
     private Format checkTargetFormat(Format format, Format target, Locale locale) {

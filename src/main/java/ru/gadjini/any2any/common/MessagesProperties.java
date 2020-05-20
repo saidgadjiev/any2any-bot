@@ -28,6 +28,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_MAIN_MENU = "message.main.menu";
 
+    public static final String MESSAGE_UNZIP_PROCESSING = "message.unzip.processing";
+
     public static final String MESSAGE_ZIP_PROCESSING = "message.zip.processing";
 
     public static final String MESSAGE_SUPPORTED_ZIP_FORMATS = "message.supported.zip.formats";

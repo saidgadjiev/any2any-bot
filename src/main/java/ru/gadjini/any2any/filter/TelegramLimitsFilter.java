@@ -140,6 +140,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
 
     private boolean validate(SendFileContext sendFileContext) {
         if (sendFileContext.file().length() == 0) {
+            LOGGER.debug("Empty file: " + sendFileContext.file().getAbsolutePath());
             sendMessage(new SendMessageContext(sendFileContext.chatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZERO_LENGTH_FILE, userService.getLocaleOrDefault((int) sendFileContext.chatId())))
                     .replyKeyboard(sendFileContext.replyKeyboard())
                     .replyMessageId(sendFileContext.replyMessageId()));

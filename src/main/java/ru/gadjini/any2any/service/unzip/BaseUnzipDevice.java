@@ -4,11 +4,11 @@ import ru.gadjini.any2any.service.converter.api.Format;
 
 import java.util.Set;
 
-public abstract class BaseUnzipProgram implements UnzipProgram {
+public abstract class BaseUnzipDevice implements UnzipDevice {
 
     private final Set<Format> availableFormats;
 
-    protected BaseUnzipProgram(Set<Format> availableFormats) {
+    protected BaseUnzipDevice(Set<Format> availableFormats) {
         this.availableFormats = availableFormats;
     }
 

@@ -9,9 +9,11 @@ import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendFileContext;
-import ru.gadjini.any2any.service.*;
+import ru.gadjini.any2any.service.FileService;
+import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
-import ru.gadjini.any2any.service.converter.impl.FormatService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.io.File;
@@ -24,7 +26,7 @@ import java.util.stream.Collectors;
 @Service
 public class ArchiveService {
 
-    private Set<ZipProgram> zipPrograms;
+    private Set<ArchiveDevice> archiveDevices;
 
     private FileService fileService;
 
@@ -34,23 +36,17 @@ public class ArchiveService {
 
     private LocalisationService localisationService;
 
-    private FormatService formatService;
-
-    private UserService userService;
-
     private MessageService messageService;
 
     @Autowired
-    public ArchiveService(Set<ZipProgram> zipPrograms, FileService fileService, CommonJobExecutor commonJobExecutor,
+    public ArchiveService(Set<ArchiveDevice> archiveDevices, FileService fileService, CommonJobExecutor commonJobExecutor,
                           TelegramService telegramService, LocalisationService localisationService,
-                          FormatService formatService, UserService userService, @Qualifier("limits") MessageService messageService) {
-        this.zipPrograms = zipPrograms;
+                          @Qualifier("limits") MessageService messageService) {
+        this.archiveDevices = archiveDevices;
         this.fileService = fileService;
         this.commonJobExecutor = commonJobExecutor;
         this.telegramService = telegramService;
         this.localisationService = localisationService;
-        this.formatService = formatService;
-        this.userService = userService;
         this.messageService = messageService;
     }
 
@@ -58,15 +54,15 @@ public class ArchiveService {
         commonJobExecutor.addJob(() -> {
             List<File> files = downloadFiles(any2AnyFiles);
             try {
-                File archive = fileService.createTempFile(
+                File archive = fileService.getTempFile(
                         Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), format.getExt())
                 );
                 try {
-                    ZipProgram zipProgram = getCandidate(format, locale);
-                    zipProgram.zip(files.stream().map(File::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
+                    ArchiveDevice archiveDevice = getCandidate(format, locale);
+                    archiveDevice.zip(files.stream().map(File::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
                     sendResult(userId, archive);
                 } finally {
-                    FileUtils.deleteQuietly(archive);
+                    FileUtils.deleteQuietly(archive.getParentFile());
                 }
             } finally {
                 files.forEach(file -> FileUtils.deleteQuietly(file.getParentFile()));
@@ -90,10 +86,10 @@ public class ArchiveService {
         return files;
     }
 
-    private ZipProgram getCandidate(Format format, Locale locale) {
-        for (ZipProgram zipProgram : zipPrograms) {
-            if (zipProgram.accept(format)) {
-                return zipProgram;
+    private ArchiveDevice getCandidate(Format format, Locale locale) {
+        for (ArchiveDevice archiveDevice : archiveDevices) {
+            if (archiveDevice.accept(format)) {
+                return archiveDevice;
             }
         }
 

@@ -29,7 +29,7 @@ public class UnzipperService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UnzipperService.class);
 
-    private Set<UnzipProgram> unzippers;
+    private Set<UnzipDevice> unzippers;
 
     private LocalisationService localisationService;
 
@@ -42,7 +42,7 @@ public class UnzipperService {
     private FileService fileService;
 
     @Autowired
-    public UnzipperService(Set<UnzipProgram> unzippers, LocalisationService localisationService,
+    public UnzipperService(Set<UnzipDevice> unzippers, LocalisationService localisationService,
                            CommonJobExecutor unzipperJob, @Qualifier("limits") MessageService messageService,
                            TelegramService telegramService, FileService fileService) {
         this.unzippers = unzippers;
@@ -55,7 +55,7 @@ public class UnzipperService {
 
     public void unzip(int userId, String fileId, Format format, Locale locale) {
         LOGGER.debug(format + " unzip: " + fileId);
-        UnzipProgram zipService = getCandidate(format, locale);
+        UnzipDevice zipService = getCandidate(format, locale);
 
         unzipperJob.addJob(() -> {
             File in = telegramService.downloadFileByFileId(fileId, format.getExt());
@@ -86,8 +86,8 @@ public class UnzipperService {
         }
     }
 
-    private UnzipProgram getCandidate(Format format, Locale locale) {
-        for (UnzipProgram unzipper : unzippers) {
+    private UnzipDevice getCandidate(Format format, Locale locale) {
+        for (UnzipDevice unzipper : unzippers) {
             if (unzipper.accept(format)) {
                 return unzipper;
             }

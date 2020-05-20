@@ -4,7 +4,7 @@ import ru.gadjini.any2any.service.converter.api.Format;
 
 import java.util.List;
 
-public interface ZipProgram {
+public interface ArchiveDevice {
 
     void zip(List<String> files, String out);
 
