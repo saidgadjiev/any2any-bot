@@ -2,14 +2,11 @@ package ru.gadjini.any2any.service.converter.impl;
 
 import com.aspose.imaging.FileFormat;
 import com.aspose.imaging.Image;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatCategory;
 import ru.gadjini.any2any.utils.MimeTypeUtils;
@@ -41,6 +38,7 @@ public class FormatService {
 
         Map<List<Format>, List<Format>> images = new LinkedHashMap<>();
         images.put(List.of(PNG), List.of(PDF, JPG, BMP, WEBP, STICKER));
+        images.put(List.of(PHOTO), List.of(PDF, PNG, JPG, BMP, WEBP, STICKER));
         images.put(List.of(JPG), List.of(PDF, PNG, BMP, WEBP, STICKER));
         images.put(List.of(TIFF), List.of(PDF, DOCX, DOC));
         images.put(List.of(BMP), List.of(PDF, PNG, JPG, WEBP, STICKER));
@@ -50,13 +48,6 @@ public class FormatService {
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FormatService.class);
-
-    private TelegramService telegramService;
-
-    @Autowired
-    public FormatService(TelegramService telegramService) {
-        this.telegramService = telegramService;
-    }
 
     public List<Format> getTargetFormats(Format srcFormat) {
         for (Map.Entry<FormatCategory, Map<List<Format>, List<Format>>> categoryEntry : FORMATS.entrySet()) {
@@ -120,9 +111,7 @@ public class FormatService {
         return null;
     }
 
-    public Format getImageFormat(String photoFileId) {
-        File file = telegramService.downloadFileByFileId(photoFileId, "tmp");
-
+    public Format getImageFormat(File file, String photoFileId) {
         try {
             long format = Image.getFileFormat(file.getAbsolutePath());
 
@@ -130,8 +119,6 @@ public class FormatService {
         } catch (Exception ex) {
             LOGGER.error("Error format detect. FileId: " + photoFileId + ". " + ex.getMessage(), ex);
             return null;
-        } finally {
-            FileUtils.deleteQuietly(file);
         }
     }
 

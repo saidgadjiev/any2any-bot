@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PNG, Format.SVG, Format.JPG, Format.BMP, Format.WEBP);
+    private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PHOTO, Format.PNG, Format.SVG, Format.JPG, Format.BMP, Format.WEBP);
 
     private TelegramService telegramService;
 
@@ -45,7 +45,8 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult doConvert(FileQueueItem fileQueueItem) {
-        File file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        File file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
+        normalize(file, fileQueueItem);
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
@@ -66,6 +67,14 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             throw new ConvertException(ex);
         } finally {
             FileUtils.deleteQuietly(file);
+        }
+    }
+
+    private void normalize(File file, FileQueueItem fileQueueItem) {
+        if (fileQueueItem.getFormat() == Format.PHOTO) {
+            Format format = formatService.getImageFormat(file, fileQueueItem.getFileId());
+            format = format == null ? Format.JPG : format;
+            fileQueueItem.setFormat(format);
         }
     }
 
