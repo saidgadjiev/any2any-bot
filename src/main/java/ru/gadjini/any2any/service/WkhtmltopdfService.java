@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 public class WkhtmltopdfService {
 
     public void process(String urlOrHtml, String out) {
-        new ProcessExecutor().execute(buildCommand(urlOrHtml, out));
+        new ProcessExecutor().execute(buildCommand(urlOrHtml, out), 10);
     }
 
     private String buildCommand(String urlOrHtml, String out) {

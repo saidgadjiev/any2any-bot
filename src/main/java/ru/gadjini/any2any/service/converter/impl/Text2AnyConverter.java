@@ -9,12 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
+import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
-import java.io.File;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -47,7 +47,7 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 textFragment.getTextState().setFontSize(12);
                 page.getParagraphs().add(textFragment);
 
-                File file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
+                SmartTempFile file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
                 document.save(file.getAbsolutePath());
 
                 stopWatch.stop();

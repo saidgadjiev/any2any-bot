@@ -9,12 +9,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TextExtractionFailedException;
+import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendMessageContext;
-import ru.gadjini.any2any.service.converter.api.Format;
 
-import java.io.File;
 import java.util.List;
 import java.util.Locale;
 
@@ -50,13 +49,13 @@ public class OcrService {
 
     public void extractText(int userId, Any2AnyFile any2AnyFile, Locale ocrLocale) {
         commonJobExecutor.addJob(() -> {
-            File file = telegramService.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFormat().getExt());
+            SmartTempFile file = telegramService.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFormat().getExt());
             ITesseract tesseract = new Tesseract();
             tesseract.setLanguage(ocrLocale.getISO3Language());
             tesseract.setDatapath(TESSDATA_PATH);
 
             try {
-                String result = tesseract.doOCR(file);
+                String result = tesseract.doOCR(file.getFile());
                 result = result.replace("\n\n", "\n");
                 if (StringUtils.isBlank(result)) {
                     Locale locale = userService.getLocaleOrDefault(userId);
@@ -65,6 +64,8 @@ public class OcrService {
                 messageService.sendMessage(new SendMessageContext(userId, result));
             } catch (TesseractException e) {
                 throw new TextExtractionFailedException(e);
+            } finally {
+                file.smartDelete();
             }
         });
     }

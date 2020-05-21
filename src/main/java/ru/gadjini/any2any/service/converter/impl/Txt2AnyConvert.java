@@ -5,12 +5,12 @@ import com.aspose.pdf.Page;
 import com.aspose.pdf.TextFragment;
 import com.aspose.words.TxtLoadOptions;
 import com.google.common.io.Files;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
+import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
@@ -49,7 +49,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toWord(FileQueueItem fileQueueItem) {
-        File txt = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile txt = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
         try {
             StopWatch stopWatch = new StopWatch();
@@ -57,7 +57,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
 
             com.aspose.words.Document document = new com.aspose.words.Document(txt.getAbsolutePath(), new TxtLoadOptions());
             try {
-                File result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+                SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
                 document.save(result.getAbsolutePath());
 
                 stopWatch.stop();
@@ -68,15 +68,15 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
-            FileUtils.deleteQuietly(txt);
+            txt.smartDelete();
         }
     }
 
     private FileResult toPdf(FileQueueItem fileQueueItem) {
-        File txt = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile txt = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
         try {
-            List<String> lines = Files.readLines(txt, StandardCharsets.UTF_8);
+            List<String> lines = Files.readLines(txt.getFile(), StandardCharsets.UTF_8);
             StringBuilder builder = new StringBuilder();
             lines.forEach(builder::append);
 
@@ -89,7 +89,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
 
                 page.getParagraphs().add(text);
 
-                File result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
+                SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
                 doc.save(result.getAbsolutePath());
 
                 stopWatch.stop();
@@ -100,7 +100,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
-            FileUtils.deleteQuietly(txt);
+            txt.smartDelete();
         }
     }
 

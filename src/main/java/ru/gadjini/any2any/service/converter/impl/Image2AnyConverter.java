@@ -6,12 +6,12 @@ import com.aspose.imaging.fileformats.png.PngColorType;
 import com.aspose.imaging.imageloadoptions.PngLoadOptions;
 import com.aspose.imaging.imageloadoptions.SvgLoadOptions;
 import com.aspose.imaging.imageoptions.*;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
+import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
@@ -19,7 +19,6 @@ import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.service.converter.api.result.StickerResult;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
-import java.io.File;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -45,12 +44,12 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult doConvert(FileQueueItem fileQueueItem) {
-        File file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         try (Image image = Image.load(file.getAbsolutePath(), getLoadOptions(fileQueueItem.getFormat()))) {
-            File tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+            SmartTempFile tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
             ImageOptionsBase saveOptions = getSaveOptions(image, fileQueueItem.getFormat(), fileQueueItem.getTargetFormat());
             if (saveOptions == null) {
                 image.save(tempFile.getAbsolutePath());
@@ -65,7 +64,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
-            FileUtils.deleteQuietly(file);
+            file.smartDelete();
         }
     }
 

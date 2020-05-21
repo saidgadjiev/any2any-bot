@@ -1,18 +1,15 @@
 package ru.gadjini.any2any.service.archive;
 
-import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
+import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendFileContext;
-import ru.gadjini.any2any.service.FileService;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.MessageService;
-import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.*;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
@@ -38,34 +35,48 @@ public class ArchiveService {
 
     private MessageService messageService;
 
+    private UserService userService;
+
     @Autowired
     public ArchiveService(Set<ArchiveDevice> archiveDevices, FileService fileService, CommonJobExecutor commonJobExecutor,
                           TelegramService telegramService, LocalisationService localisationService,
-                          @Qualifier("limits") MessageService messageService) {
+                          @Qualifier("limits") MessageService messageService, UserService userService) {
         this.archiveDevices = archiveDevices;
         this.fileService = fileService;
         this.commonJobExecutor = commonJobExecutor;
         this.telegramService = telegramService;
         this.localisationService = localisationService;
         this.messageService = messageService;
+        this.userService = userService;
+    }
+
+    public SmartTempFile createArchive(int userId, List<File> files, Format archiveFormat) {
+        Locale locale = userService.getLocaleOrDefault(userId);
+        SmartTempFile archive = fileService.getTempFile(
+                Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), archiveFormat.getExt())
+        );
+        ArchiveDevice archiveDevice = getCandidate(archiveFormat, locale);
+        archiveDevice.zip(files.stream().map(File::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
+
+        return archive;
     }
 
     public void createArchive(int userId, List<Any2AnyFile> any2AnyFiles, Format format, Locale locale) {
         commonJobExecutor.addJob(() -> {
-            List<File> files = downloadFiles(any2AnyFiles);
+            List<SmartTempFile> files = downloadFiles(any2AnyFiles);
             try {
-                File archive = fileService.getTempFile(
+                SmartTempFile archive = fileService.getTempFile(
                         Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), format.getExt())
                 );
                 try {
                     ArchiveDevice archiveDevice = getCandidate(format, locale);
-                    archiveDevice.zip(files.stream().map(File::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
-                    sendResult(userId, archive);
+                    archiveDevice.zip(files.stream().map(SmartTempFile::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
+                    sendResult(userId, archive.getFile());
                 } finally {
-                    FileUtils.deleteQuietly(archive.getParentFile());
+                    archive.smartDelete();
                 }
             } finally {
-                files.forEach(file -> FileUtils.deleteQuietly(file.getParentFile()));
+                files.forEach(SmartTempFile::smartDelete);
             }
         });
     }
@@ -74,12 +85,12 @@ public class ArchiveService {
         messageService.sendDocument(new SendFileContext(userId, archive));
     }
 
-    private List<File> downloadFiles(List<Any2AnyFile> any2AnyFiles) {
-        List<File> files = new ArrayList<>();
+    private List<SmartTempFile> downloadFiles(List<Any2AnyFile> any2AnyFiles) {
+        List<SmartTempFile> files = new ArrayList<>();
 
         for (Any2AnyFile any2AnyFile : any2AnyFiles) {
-            File file = fileService.createTempFile(any2AnyFile.getFileName());
-            telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file);
+            SmartTempFile file = fileService.createTempFile(any2AnyFile.getFileName());
+            telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file.getFile());
             files.add(file);
         }
 

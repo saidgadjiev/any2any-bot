@@ -2,19 +2,18 @@ package ru.gadjini.any2any.service.converter.impl;
 
 import com.aspose.imaging.FileFormat;
 import com.aspose.imaging.Image;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatCategory;
 import ru.gadjini.any2any.utils.MimeTypeUtils;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,6 +45,7 @@ public class FormatService {
         images.put(List.of(BMP), List.of(PDF, PNG, JPG, WEBP, STICKER));
         images.put(List.of(WEBP), List.of(PDF, PNG, JPG));
         images.put(List.of(SVG), List.of(PDF, PNG, JPG, BMP, WEBP, STICKER));
+        images.put(List.of(TGS), List.of(GIF));
         FORMATS.put(FormatCategory.IMAGES, images);
     }
 
@@ -121,7 +121,7 @@ public class FormatService {
     }
 
     public Format getImageFormat(String photoFileId) {
-        File file = telegramService.downloadFileByFileId(photoFileId, "tmp");
+        SmartTempFile file = telegramService.downloadFileByFileId(photoFileId, "tmp");
 
         try {
             long format = Image.getFileFormat(file.getAbsolutePath());
@@ -131,7 +131,7 @@ public class FormatService {
             LOGGER.error("Error format detect. FileId: " + photoFileId + ". " + ex.getMessage(), ex);
             return null;
         } finally {
-            FileUtils.deleteQuietly(file);
+            file.smartDelete();
         }
     }
 

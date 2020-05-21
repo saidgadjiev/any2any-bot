@@ -96,6 +96,9 @@ public class ConvertMaker {
         } else if (message.hasText()) {
             ConvertState convertState = commandStateService.getState(message.getChatId(), true);
             Format targetFormat = checkTargetFormat(convertState.getFormat(), formatService.getAssociatedFormat(text), locale);
+            if (targetFormat == Format.GIF) {
+                convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_GIF_WARN, locale));
+            }
             FileQueueItem queueItem = fileQueueService.add(message.getFrom(), convertState, targetFormat);
             String queuedMessage = queueMessageBuilder.getQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
             messageService.sendMessage(new SendMessageContext(message.getChatId(), queuedMessage).replyKeyboard(replyKeyboard.get()));
@@ -129,7 +132,7 @@ public class ConvertMaker {
             Sticker sticker = message.getSticker();
             convertState.setFileId(sticker.getFileId());
             convertState.setFileSize(sticker.getFileSize());
-            convertState.setFormat(Format.WEBP);
+            convertState.setFormat(sticker.getAnimated() ? Format.TGS : Format.WEBP);
         } else if (message.hasText()) {
             convertState.setFileId(message.getText());
             convertState.setFileSize(message.getText().length());
@@ -153,7 +156,7 @@ public class ConvertMaker {
 
     private void check(Message message, Locale locale) {
         if (message.hasDocument() || message.hasText() || message.hasPhoto()
-                || message.hasSticker() && !message.getSticker().getAnimated()) {
+                || message.hasSticker()) {
             return;
         }
 

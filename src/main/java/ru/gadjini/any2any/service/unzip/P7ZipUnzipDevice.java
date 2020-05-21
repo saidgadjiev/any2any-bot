@@ -18,7 +18,7 @@ public class P7ZipUnzipDevice extends BaseUnzipDevice {
 
     @Override
     public void unzip(int userId, String in, String out) {
-        new ProcessExecutor().execute(buildUnzipCommand(in, out));
+        new ProcessExecutor().execute(buildUnzipCommand(in, out), 10);
     }
 
     private String buildUnzipCommand(String in, String out) {

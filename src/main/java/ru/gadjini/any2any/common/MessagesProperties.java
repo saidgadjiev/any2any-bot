@@ -147,4 +147,6 @@ public class MessagesProperties {
     public static final String MESSAGE_CHOOSE_ARCHIVE_TYPE = "message.choose.archive.type";
 
     public static final String MESSAGE_ARCHIVE_FILES_EMPTY = "message.archive.files.empty";
+
+    public static final String MESSAGE_GIF_WARN = "message.gif.warn";
 }

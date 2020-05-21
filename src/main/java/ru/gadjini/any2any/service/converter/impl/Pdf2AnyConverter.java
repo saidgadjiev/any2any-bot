@@ -3,11 +3,11 @@ package ru.gadjini.any2any.service.converter.impl;
 import com.aspose.pdf.Document;
 import com.aspose.pdf.SaveFormat;
 import com.aspose.pdf.devices.TiffDevice;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
@@ -15,7 +15,6 @@ import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
-import java.io.File;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -43,7 +42,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toTiff(FileQueueItem queueItem) {
-        File pdfFile = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
+        SmartTempFile pdfFile = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
 
         try {
             StopWatch stopWatch = new StopWatch();
@@ -52,7 +51,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             Document pdf = new Document(pdfFile.getAbsolutePath());
             try {
                 TiffDevice tiffDevice = new TiffDevice();
-                File tiff = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), "tiff"));
+                SmartTempFile tiff = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), "tiff"));
                 tiffDevice.process(pdf, tiff.getAbsolutePath());
 
                 stopWatch.stop();
@@ -61,12 +60,12 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 pdf.dispose();
             }
         } finally {
-            FileUtils.deleteQuietly(pdfFile);
+            pdfFile.smartDelete();
         }
     }
 
     private FileResult doConvert(FileQueueItem fileQueueItem) {
-        File file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
         try {
             StopWatch stopWatch = new StopWatch();
@@ -74,7 +73,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
             Document document = new Document(file.getAbsolutePath());
             try {
-                File result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+                SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
                 document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
                 stopWatch.stop();
@@ -83,7 +82,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 document.dispose();
             }
         } finally {
-            FileUtils.deleteQuietly(file);
+            file.smartDelete();
         }
     }
 
