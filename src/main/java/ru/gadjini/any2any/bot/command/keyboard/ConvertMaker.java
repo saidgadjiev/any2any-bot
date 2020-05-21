@@ -121,9 +121,7 @@ public class ConvertMaker {
             PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
             convertState.setFileId(photoSize.getFileId());
             convertState.setFileSize(photoSize.getFileSize());
-            Format format = formatService.getImageFormat(photoSize.getFileId());
-            checkFormat(format, null, null, photoSize.getFileId(), locale);
-            convertState.setFormat(format);
+            convertState.setFormat(Format.PHOTO);
         } else if (message.hasSticker()) {
             Sticker sticker = message.getSticker();
             convertState.setFileId(sticker.getFileId());

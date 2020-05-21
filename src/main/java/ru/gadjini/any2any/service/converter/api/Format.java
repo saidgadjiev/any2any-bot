@@ -25,6 +25,7 @@ public enum Format {
     TIFF(FormatCategory.IMAGES),
     EPUB(FormatCategory.DOCUMENTS),
     WEBP(FormatCategory.IMAGES),
+    PHOTO(FormatCategory.IMAGES),
     STICKER(FormatCategory.IMAGES) {
         @Override
         public String getExt() {

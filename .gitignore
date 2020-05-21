@@ -274,6 +274,7 @@ data/
 *.csv
 api.json
 
+tessdata/
 **/prod/
 *.env
 *.lic
