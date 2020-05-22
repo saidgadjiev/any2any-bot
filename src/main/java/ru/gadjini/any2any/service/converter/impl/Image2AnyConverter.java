@@ -42,6 +42,9 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         if (fileQueueItem.getFormat() == Format.HEIC && fileQueueItem.getTargetFormat() == Format.PDF) {
             return doConvertHeicToPdf(fileQueueItem);
         }
+        if (fileQueueItem.getTargetFormat() == Format.ICO) {
+            return doConvertToIco(fileQueueItem);
+        }
 
         return doConvert(fileQueueItem);
     }
@@ -84,6 +87,26 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             } finally {
                 tempFile.smartDelete();
             }
+        } catch (Exception ex) {
+            throw new ConvertException(ex);
+        } finally {
+            file.smartDelete();
+        }
+    }
+
+    private FileResult doConvertToIco(FileQueueItem fileQueueItem) {
+        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        try {
+            SmartTempFile tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+
+            imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath(),
+                    "-resize x32", "-gravity center", "-crop 32x32+0+0", "-flatten -colors 256");
+
+            stopWatch.stop();
+            return new FileResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
