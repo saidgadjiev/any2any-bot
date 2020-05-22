@@ -18,6 +18,7 @@ public enum Format {
     RTF(FormatCategory.DOCUMENTS),
     PDF(FormatCategory.DOCUMENTS),
     PNG(FormatCategory.IMAGES),
+    HEIC(FormatCategory.IMAGES),
     SVG(FormatCategory.IMAGES),
     JPG(FormatCategory.IMAGES),
     BMP(FormatCategory.IMAGES),

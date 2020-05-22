@@ -8,7 +8,7 @@ public class ImageMagickDevice implements ImageDevice {
 
     @Override
     public void convert(String in, String out) {
-        new ProcessExecutor().execute(getCommand(in, out), 5);
+        new ProcessExecutor().execute(getCommand(in, out), 10);
     }
 
     private String getCommand(String in, String out) {

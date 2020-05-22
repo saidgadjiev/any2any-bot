@@ -45,6 +45,7 @@ public class FormatService {
         images.put(List.of(BMP), List.of(PDF, PNG, JPG, WEBP, TIFF, STICKER));
         images.put(List.of(WEBP), List.of(PDF, PNG, JPG, BMP, TIFF, STICKER));
         images.put(List.of(SVG), List.of(PDF, PNG, JPG, BMP, WEBP, TIFF, STICKER));
+        images.put(List.of(HEIC), List.of(PDF, PNG, JPG, BMP, WEBP, TIFF, STICKER));
         images.put(List.of(TGS), List.of(GIF));
         FORMATS.put(FormatCategory.IMAGES, images);
     }
@@ -95,7 +96,7 @@ public class FormatService {
     public String getExt(String fileName, String mimeType) {
         String extension = MimeTypeUtils.getExtension(mimeType);
 
-        if (StringUtils.isNotBlank(extension)) {
+        if (StringUtils.isNotBlank(extension) && !".bin".equals(extension)) {
             extension = extension.substring(1);
         } else {
             extension = FilenameUtils.getExtension(fileName);
@@ -105,11 +106,14 @@ public class FormatService {
             return "jpg";
         }
 
-        return extension;
+        return StringUtils.isBlank(extension) ? null : extension;
     }
 
     public Format getFormat(String fileName, String mimeType) {
         String extension = getExt(fileName, mimeType);
+        if (StringUtils.isBlank(extension)) {
+            return null;
+        }
 
         for (Format format : values()) {
             if (format.getExt().equals(extension)) {

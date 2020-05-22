@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PNG, Format.SVG, Format.JPG, Format.BMP, Format.WEBP);
+    private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.HEIC, Format.PNG, Format.SVG, Format.JPG, Format.BMP, Format.WEBP);
 
     private TelegramService telegramService;
 
@@ -39,6 +39,10 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     @Override
     public FileResult convert(FileQueueItem fileQueueItem) {
+        if (fileQueueItem.getFormat() == Format.HEIC && fileQueueItem.getTargetFormat() == Format.PDF) {
+            return doConvertHeicToPdf(fileQueueItem);
+        }
+
         return doConvert(fileQueueItem);
     }
 
@@ -56,6 +60,30 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             return fileQueueItem.getTargetFormat() == Format.STICKER
                     ? new StickerResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS))
                     : new FileResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS));
+        } catch (Exception ex) {
+            throw new ConvertException(ex);
+        } finally {
+            file.smartDelete();
+        }
+    }
+
+    private FileResult doConvertHeicToPdf(FileQueueItem fileQueueItem) {
+        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        try {
+            SmartTempFile tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "png"));
+            try {
+                imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath());
+                SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
+                imageDevice.convert(tempFile.getAbsolutePath(), result.getAbsolutePath());
+
+                stopWatch.stop();
+                return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+            } finally {
+                tempFile.smartDelete();
+            }
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
