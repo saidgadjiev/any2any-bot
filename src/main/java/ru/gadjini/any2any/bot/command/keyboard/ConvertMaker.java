@@ -165,14 +165,14 @@ public class ConvertMaker {
 
     private Format checkFormat(Format format, String mimeType, String fileName, String fileId, Locale locale) {
         if (format == null) {
+            if (StringUtils.isNotBlank(mimeType)) {
+                LOGGER.debug("Format not resolved for " + mimeType + " and fileName " + fileName);
+            } else {
+                LOGGER.debug("Format not resolved for image " + fileId);
+            }
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
-        if (StringUtils.isNotBlank(mimeType)) {
-            LOGGER.debug("Format not resolved for " + mimeType + " and fileName " + fileName);
-        } else {
-            LOGGER.debug("Format not resolved for image " + fileId);
-        }
-        if (format.getCategory() != FormatCategory.ARCHIVE) {
+        if (format.getCategory() == FormatCategory.ARCHIVE) {
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
 
