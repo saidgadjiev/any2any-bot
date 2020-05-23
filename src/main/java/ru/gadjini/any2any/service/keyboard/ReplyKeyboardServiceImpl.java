@@ -15,6 +15,7 @@ import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -93,11 +94,12 @@ public class ReplyKeyboardServiceImpl implements ReplyKeyboardService {
 
     @Override
     public ReplyKeyboardMarkup getFormatsKeyboard(long chatId, Format format, Locale locale) {
-        List<Format> targetFormats = formatMapService.getTargetFormats(format);
+        List<Format> targetFormats = new ArrayList<>(formatMapService.getTargetFormats(format));
+        targetFormats.sort(Comparator.comparing(Enum::name));
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
         List<KeyboardRow> keyboard = replyKeyboardMarkup.getKeyboard();
-        List<List<Format>> lists = Lists.partition(targetFormats, 2);
+        List<List<Format>> lists = Lists.partition(targetFormats, 3);
         for (List<Format> list : lists) {
             keyboard.add(keyboardRow(list.stream().map(Enum::name).toArray(String[]::new)));
         }
