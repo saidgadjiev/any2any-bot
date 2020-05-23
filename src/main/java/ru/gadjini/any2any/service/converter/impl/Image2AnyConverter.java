@@ -12,6 +12,7 @@ import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.service.converter.api.result.StickerResult;
 import ru.gadjini.any2any.service.image.ImageDevice;
+import ru.gadjini.any2any.service.image.trace.ImageTracer;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.util.Set;
@@ -28,13 +29,16 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private ImageDevice imageDevice;
 
+    private ImageTracer imageTracer;
+
     @Autowired
     public Image2AnyConverter(TelegramService telegramService, FileService fileService,
-                              FormatService formatService, ImageDevice imageDevice) {
+                              FormatService formatService, ImageDevice imageDevice, ImageTracer imageTracer) {
         super(ACCEPT_FORMATS, formatService);
         this.telegramService = telegramService;
         this.fileService = fileService;
         this.imageDevice = imageDevice;
+        this.imageTracer = imageTracer;
     }
 
     @Override
@@ -44,6 +48,9 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
         if (fileQueueItem.getTargetFormat() == Format.ICO) {
             return doConvertToIco(fileQueueItem);
+        }
+        if (fileQueueItem.getTargetFormat() == Format.SVG) {
+            return doConvertToSvg(fileQueueItem);
         }
 
         return doConvert(fileQueueItem);
@@ -107,6 +114,37 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
             stopWatch.stop();
             return new FileResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS));
+        } catch (Exception ex) {
+            throw new ConvertException(ex);
+        } finally {
+            file.smartDelete();
+        }
+    }
+
+    private FileResult doConvertToSvg(FileQueueItem fileQueueItem) {
+        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
+        try {
+            SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "svg"));
+            if (fileQueueItem.getTargetFormat() != Format.PNG) {
+                SmartTempFile tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "png"));
+                try {
+                    imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath());
+                    imageTracer.trace(tempFile.getAbsolutePath(), result.getAbsolutePath());
+
+                    stopWatch.stop();
+                    return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+                } finally {
+                    tempFile.smartDelete();
+                }
+            } else {
+                imageTracer.trace(file.getAbsolutePath(), result.getAbsolutePath());
+
+                stopWatch.stop();
+                return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+            }
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
