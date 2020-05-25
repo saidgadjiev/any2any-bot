@@ -149,4 +149,6 @@ public class MessagesProperties {
     public static final String MESSAGE_ARCHIVE_FILES_EMPTY = "message.archive.files.empty";
 
     public static final String MESSAGE_GIF_WARN = "message.gif.warn";
+
+    public static final String MESSAGE_FILE_CANT_BE_ADDED_TO_ARCHIVE = "message.file.cant.be.added.to.archive";
 }

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
@@ -60,7 +61,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Override
     public boolean accept(Message message) {
-        return message.hasText() || message.hasDocument();
+        return true;
     }
 
     @Override
@@ -84,8 +85,8 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         if (message.hasText()) {
-            Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
             List<Any2AnyFile> files = commandStateService.getState(message.getChatId(), false);
             if (files == null || files.isEmpty()) {
                 messageService.sendMessage(new SendMessageContext(message.getChatId(),
@@ -102,16 +103,23 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
             if (files == null) {
                 files = new ArrayList<>();
             }
-            files.add(createFile(message));
+            files.add(createFile(message, locale));
             commandStateService.setState(message.getChatId(), files);
         }
     }
 
-    private Any2AnyFile createFile(Message message) {
+    private Any2AnyFile createFile(Message message, Locale locale) {
         Any2AnyFile any2AnyFile = new Any2AnyFile();
-        any2AnyFile.setFileName(message.getDocument().getFileName());
-        any2AnyFile.setFileId(message.getDocument().getFileId());
-        any2AnyFile.setMimeType(message.getDocument().getMimeType());
+        if (message.hasDocument()) {
+            any2AnyFile.setFileName(message.getDocument().getFileName());
+            any2AnyFile.setFileId(message.getDocument().getFileId());
+        } else if (message.hasPhoto()) {
+            any2AnyFile.setFileName(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + ".jpg");
+            PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
+            any2AnyFile.setFileId(photoSize.getFileId());
+        } else {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_CANT_BE_ADDED_TO_ARCHIVE, locale));
+        }
 
         return any2AnyFile;
     }
