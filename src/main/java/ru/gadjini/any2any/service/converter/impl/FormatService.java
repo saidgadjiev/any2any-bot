@@ -31,7 +31,8 @@ public class FormatService {
         documents.put(List.of(DOC), List.of(PDF, DOCX, TXT, EPUB, RTF, TIFF));
         documents.put(List.of(DOCX), List.of(PDF, DOC, TXT, EPUB, RTF, TIFF));
         documents.put(List.of(PDF), List.of(DOC, DOCX, EPUB, TIFF));
-        documents.put(List.of(TXT, TEXT), List.of(PDF, DOC, DOCX));
+        documents.put(List.of(TEXT), List.of(PDF, DOC, DOCX, TXT));
+        documents.put(List.of(TXT), List.of(PDF, DOC, DOCX));
         documents.put(List.of(EPUB), List.of(PDF, DOC, DOCX, RTF));
         documents.put(List.of(URL, HTML), List.of(PDF));
         documents.put(List.of(XLS, XLSX), List.of(PDF));

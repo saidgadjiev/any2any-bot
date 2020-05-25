@@ -1,15 +1,14 @@
 Description:
-Вот что я пока могу:
-1. Сконвертировать файл из одного формата в другой, в том числе сконвертировать стикеры, ссылки и текст.
-2. Переименовать файл.
-3. Извлечь файлы из архива.
-Скоро будет еще больше полезных функций.
-Подробнее о возможностях и работе бота: https://tgraph.io/Formats-05-14
+All you need in one bot: converting files, stickers, links, text;
+renaming files; extraction files from an archive; creating an archive of files; extraction text from images;
+More useful features coming soon!
+About bot features: https://tgraph.io/Bot-SmartFileUtils-05-25
+О возможностях и работе бота: https://tgraph.io/Formats-05-14
 
 AboutText:
-Многофункциональный бот для работы с файлами. Могу сконвертировать файл, извлечь файлы из архива, переименовать.
+Files, stickers, links, text conversion; files renaming; archive extraction; archive creation; text extraction from images;
 
 Commands:
-start - Перезапустить бот
-help - Помощь
-formats - О поддерживаемых форматах
+start - Restart bot
+help - Help
+formats - Supported formats

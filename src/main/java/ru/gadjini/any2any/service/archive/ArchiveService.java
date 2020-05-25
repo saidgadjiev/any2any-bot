@@ -104,6 +104,6 @@ public class ArchiveService {
             }
         }
 
-        throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_TYPE_UNSUPPORTED, locale));
+        throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_TYPE_UNSUPPORTED, new Object[] {format}, locale));
     }
 }
