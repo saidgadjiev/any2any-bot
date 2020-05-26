@@ -36,15 +36,19 @@ public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand 
 
     @Autowired
     public LanguageCommand(LocalisationService localisationService, @Qualifier("limits") MessageService messageService,
-                           UserService userService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService, CommandNavigator commandNavigator) {
+                           UserService userService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService) {
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.userService = userService;
         this.replyKeyboardService = replyKeyboardService;
-        this.commandNavigator = commandNavigator;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.LANGUAGE_COMMAND_NAME, locale));
         }
+    }
+
+    @Autowired
+    public void setCommandNavigator(CommandNavigator commandNavigator) {
+        this.commandNavigator = commandNavigator;
     }
 
     @Override
@@ -85,4 +89,5 @@ public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand 
         );
         commandNavigator.silentPop(message.getChatId());
     }
+
 }

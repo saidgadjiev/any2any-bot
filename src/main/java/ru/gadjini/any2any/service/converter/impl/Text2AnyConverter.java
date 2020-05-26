@@ -19,7 +19,6 @@ import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.awt.*;
-import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;

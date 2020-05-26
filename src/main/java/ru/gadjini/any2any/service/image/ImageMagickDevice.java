@@ -13,7 +13,7 @@ public class ImageMagickDevice implements ImageDevice {
 
     private String getCommand(String in, String out, String... options) {
         StringBuilder command = new StringBuilder();
-        command.append("magick convert -background none ");
+        command.append("convert -background none ");
         for (String option : options) {
             command.append(option).append(" ");
         }
