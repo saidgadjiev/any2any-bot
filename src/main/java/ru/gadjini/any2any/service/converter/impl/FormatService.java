@@ -7,11 +7,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import ru.gadjini.any2any.io.SmartTempFile;
+import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatCategory;
 import ru.gadjini.any2any.utils.MimeTypeUtils;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,7 +30,8 @@ public class FormatService {
         documents.put(List.of(DOC), List.of(PDF, DOCX, TXT, EPUB, RTF, TIFF));
         documents.put(List.of(DOCX), List.of(PDF, DOC, TXT, EPUB, RTF, TIFF));
         documents.put(List.of(PDF), List.of(DOC, DOCX, EPUB, TIFF));
-        documents.put(List.of(TXT, TEXT), List.of(PDF, DOC, DOCX));
+        documents.put(List.of(TEXT), List.of(PDF, DOC, DOCX, TXT));
+        documents.put(List.of(TXT), List.of(PDF, DOC, DOCX));
         documents.put(List.of(EPUB), List.of(PDF, DOC, DOCX, RTF));
         documents.put(List.of(URL, HTML), List.of(PDF));
         documents.put(List.of(XLS, XLSX), List.of(PDF));
@@ -37,13 +39,16 @@ public class FormatService {
         FORMATS.put(FormatCategory.DOCUMENTS, documents);
 
         Map<List<Format>, List<Format>> images = new LinkedHashMap<>();
-        images.put(List.of(PNG), List.of(PDF, JPG, BMP, WEBP, STICKER));
+        images.put(List.of(PNG), List.of(PDF, JPG, BMP, WEBP, TIFF, ICO, HEIC, SVG, STICKER));
         images.put(List.of(PHOTO), List.of(PDF, PNG, JPG, BMP, WEBP, STICKER));
-        images.put(List.of(JPG), List.of(PDF, PNG, BMP, WEBP, STICKER));
+        images.put(List.of(JPG), List.of(PDF, PNG, BMP, WEBP, TIFF, ICO, HEIC, SVG, STICKER));
         images.put(List.of(TIFF), List.of(PDF, DOCX, DOC));
-        images.put(List.of(BMP), List.of(PDF, PNG, JPG, WEBP, STICKER));
-        images.put(List.of(WEBP), List.of(PDF, PNG, JPG));
-        images.put(List.of(SVG), List.of(PDF, PNG, JPG, BMP, WEBP, STICKER));
+        images.put(List.of(BMP), List.of(PDF, PNG, JPG, WEBP, TIFF, ICO, HEIC, SVG, STICKER));
+        images.put(List.of(WEBP), List.of(PDF, PNG, JPG, BMP, TIFF, ICO, HEIC, SVG, STICKER));
+        images.put(List.of(SVG), List.of(PDF, PNG, JPG, BMP, WEBP, TIFF, ICO, HEIC, STICKER));
+        images.put(List.of(HEIC), List.of(PDF, PNG, JPG, BMP, WEBP, TIFF, ICO, SVG, STICKER));
+        images.put(List.of(ICO), List.of(PDF, PNG, JPG, BMP, WEBP, TIFF, HEIC, SVG, STICKER));
+        images.put(List.of(TGS), List.of(GIF));
         FORMATS.put(FormatCategory.IMAGES, images);
     }
 
@@ -86,7 +91,7 @@ public class FormatService {
     public String getExt(String fileName, String mimeType) {
         String extension = MimeTypeUtils.getExtension(mimeType);
 
-        if (StringUtils.isNotBlank(extension)) {
+        if (StringUtils.isNotBlank(extension) && !".bin".equals(extension)) {
             extension = extension.substring(1);
         } else {
             extension = FilenameUtils.getExtension(fileName);
@@ -96,11 +101,14 @@ public class FormatService {
             return "jpg";
         }
 
-        return extension;
+        return StringUtils.isBlank(extension) ? null : extension;
     }
 
     public Format getFormat(String fileName, String mimeType) {
         String extension = getExt(fileName, mimeType);
+        if (StringUtils.isBlank(extension)) {
+            return null;
+        }
 
         for (Format format : values()) {
             if (format.getExt().equals(extension)) {

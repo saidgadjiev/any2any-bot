@@ -13,22 +13,22 @@ public class InMemoryCommandState implements CommandStateDao {
     private Map<Long, Object> states = new ConcurrentHashMap<>();
 
     @Override
-    public void setState(long chatId, Object state) {
+    public void setState(long chatId, String command, Object state) {
         states.put(chatId, state);
     }
 
     @Override
-    public <T> T getState(long chatId) {
+    public <T> T getState(long chatId, String command) {
         return (T) states.get(chatId);
     }
 
     @Override
-    public boolean hasState(long chatId) {
+    public boolean hasState(long chatId, String command) {
         return states.containsKey(chatId);
     }
 
     @Override
-    public void deleteState(long chatId) {
+    public void deleteState(long chatId, String command) {
         states.remove(chatId);
     }
 }

@@ -18,6 +18,8 @@ public enum Format {
     RTF(FormatCategory.DOCUMENTS),
     PDF(FormatCategory.DOCUMENTS),
     PNG(FormatCategory.IMAGES),
+    HEIC(FormatCategory.IMAGES),
+    ICO(FormatCategory.IMAGES),
     SVG(FormatCategory.IMAGES),
     JPG(FormatCategory.IMAGES),
     BMP(FormatCategory.IMAGES),
@@ -26,6 +28,8 @@ public enum Format {
     EPUB(FormatCategory.DOCUMENTS),
     WEBP(FormatCategory.IMAGES),
     PHOTO(FormatCategory.IMAGES),
+    TGS(FormatCategory.IMAGES),
+    GIF(FormatCategory.IMAGES),
     STICKER(FormatCategory.IMAGES) {
         @Override
         public String getExt() {

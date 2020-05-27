@@ -7,11 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.bot.command.keyboard.rename.RenameState;
+import ru.gadjini.any2any.exception.TextExtractionFailedException;
+import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
 
 import java.io.File;
+import java.util.Locale;
 
 @Service
 public class RenameService {
@@ -36,20 +39,23 @@ public class RenameService {
         this.commonJobExecutor = commonJobExecutor;
     }
 
-    public void rename(long chatId, RenameState renameState, String newFileName) {
+    public void rename(long chatId, RenameState renameState, String newFileName, Locale locale) {
         commonJobExecutor.addJob(() -> {
             String ext = formatService.getExt(renameState.getFileName(), renameState.getMimeType());
-            File file = createNewFile(newFileName, ext);
-            File renamed = telegramService.downloadFileByFileId(renameState.getFileId(), file);
+            SmartTempFile file = createNewFile(newFileName, ext);
+            telegramService.downloadFileByFileId(renameState.getFileId(), file.getFile());
             try {
-                sendMessage(chatId, renameState.getReplyMessageId(), renamed);
+                sendMessage(chatId, renameState.getReplyMessageId(), file.getFile());
+            } catch (Exception ex) {
+                messageService.sendErrorMessage(chatId, locale);
+                throw ex;
             } finally {
-                FileUtils.deleteQuietly(renamed);
+                file.smartDelete();
             }
         });
     }
 
-    private File createNewFile(String fileName, String ext) {
+    private SmartTempFile createNewFile(String fileName, String ext) {
         if (StringUtils.isNotBlank(ext)) {
             String withExt = FilenameUtils.getExtension(fileName);
 

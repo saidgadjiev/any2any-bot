@@ -3,12 +3,12 @@ package ru.gadjini.any2any.service.converter.impl;
 import com.aspose.pdf.Document;
 import com.aspose.pdf.EpubLoadOptions;
 import com.aspose.pdf.SaveFormat;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
+import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
@@ -36,46 +36,44 @@ public class Epub2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     @Override
     public ConvertResult convert(FileQueueItem fileQueueItem) {
-        switch (fileQueueItem.getTargetFormat()) {
-            case RTF:
-                return toRtf(fileQueueItem);
-            default:
-                return doConvert(fileQueueItem);
+        if (fileQueueItem.getTargetFormat() == Format.RTF) {
+            return toRtf(fileQueueItem);
         }
+        return doConvert(fileQueueItem);
     }
 
     private FileResult toRtf(FileQueueItem fileQueueItem) {
-        File epub = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile epub = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            File doc = toDoc(epub);
+            SmartTempFile doc = toDoc(epub.getFile());
             try {
-                File rtf = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
-                toRtf(doc, rtf);
+                SmartTempFile rtf = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+                toRtf(doc.getFile(), rtf.getFile());
 
                 stopWatch.stop();
                 return new FileResult(rtf, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
-                FileUtils.deleteQuietly(doc);
+                doc.smartDelete();
             }
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
-            FileUtils.deleteQuietly(epub);
+            epub.smartDelete();
         }
     }
 
     private FileResult doConvert(FileQueueItem fileQueueItem) {
-        File file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
             Document document = new Document(file.getAbsolutePath(), new EpubLoadOptions());
             try {
-                File result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+                SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
                 document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
                 stopWatch.stop();
@@ -84,7 +82,7 @@ public class Epub2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 document.dispose();
             }
         } finally {
-            FileUtils.deleteQuietly(file);
+            file.smartDelete();
         }
     }
 
@@ -97,10 +95,10 @@ public class Epub2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private File toDoc(File epub) {
+    private SmartTempFile toDoc(File epub) {
         Document document = new Document(epub.getAbsolutePath(), new EpubLoadOptions());
         try {
-            File result = fileService.createTempFile0("any2any", "doc");
+            SmartTempFile result = fileService.createTempFile0("any2any", "doc");
             document.save(result.getAbsolutePath(), SaveFormat.Doc);
 
             return result;

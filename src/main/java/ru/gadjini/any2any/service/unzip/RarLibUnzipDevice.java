@@ -13,10 +13,10 @@ import java.util.Set;
 
 @Component
 @Conditional(WindowsCondition.class)
-public class RarZipService extends BaseZipService {
+public class RarLibUnzipDevice extends BaseUnzipDevice {
 
     @Autowired
-    public RarZipService() {
+    public RarLibUnzipDevice() {
         super(Set.of(Format.RAR));
     }
 

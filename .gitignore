@@ -278,3 +278,10 @@ tessdata/
 **/prod/
 *.env
 *.lic
+tessdata/
+tgs-2-pdf/
+*.js
+package.json
+package-lock.json
+node-modules/
+ImageTracer.jar
