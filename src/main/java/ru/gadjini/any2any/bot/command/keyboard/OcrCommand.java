@@ -29,7 +29,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class ExtractTextCommand implements KeyboardBotCommand, NavigableBotCommand {
+public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     private Set<String> names = new HashSet<>();
 
@@ -48,9 +48,9 @@ public class ExtractTextCommand implements KeyboardBotCommand, NavigableBotComma
     private FormatService formatService;
 
     @Autowired
-    public ExtractTextCommand(CommandStateService commandStateService, OcrService ocrService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
-                              UserService userService, LocalisationService localisationService,
-                              @Qualifier("limits") MessageService messageService, FormatService formatService) {
+    public OcrCommand(CommandStateService commandStateService, OcrService ocrService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
+                      UserService userService, LocalisationService localisationService,
+                      @Qualifier("limits") MessageService messageService, FormatService formatService) {
         this.commandStateService = commandStateService;
         this.ocrService = ocrService;
         this.replyKeyboardService = replyKeyboardService;
