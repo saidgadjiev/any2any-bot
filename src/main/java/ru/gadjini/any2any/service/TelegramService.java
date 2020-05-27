@@ -6,6 +6,7 @@ import org.telegram.telegrambots.bots.DefaultAbsSender;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.property.BotProperties;
 
 import java.io.File;
@@ -50,7 +51,10 @@ public class TelegramService extends DefaultAbsSender {
         }
     }
 
-    public File downloadFileByFileId(String fileId, String ext) {
-        return downloadFileByFileId(fileId, fileService.createTempFile0(fileId, ext));
+    public SmartTempFile downloadFileByFileId(String fileId, String ext) {
+        SmartTempFile smartTempFile = fileService.createTempFile0(fileId, ext);
+        downloadFileByFileId(fileId, smartTempFile.getFile());
+
+        return smartTempFile;
     }
 }

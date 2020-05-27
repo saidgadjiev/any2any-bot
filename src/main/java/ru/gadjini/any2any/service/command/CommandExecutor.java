@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.service.command;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
@@ -19,6 +21,8 @@ import java.util.Set;
 
 @Service
 public class CommandExecutor {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandExecutor.class);
 
     private Map<String, BotCommand> botCommands = new HashMap<>();
 
@@ -89,6 +93,7 @@ public class CommandExecutor {
         BotCommand botCommand = botCommands.get(commandParseResult.getCommandName());
 
         if (botCommand != null) {
+            LOGGER.debug("Bot command " + botCommand.getClass().getSimpleName() + ". User " + message.getFrom().getId());
             botCommand.processMessage(null, message, commandParseResult.getParameters());
 
             if (botCommand instanceof NavigableBotCommand) {
@@ -107,6 +112,7 @@ public class CommandExecutor {
                 .findFirst()
                 .orElseThrow();
 
+        LOGGER.debug("Keyboard command " + botCommand.getClass().getSimpleName() + ". User " + message.getFrom().getId());
         boolean pushToHistory = botCommand.processMessage(message, message.getText());
 
         if (pushToHistory) {
@@ -118,6 +124,7 @@ public class CommandExecutor {
         CommandParser.CommandParseResult parseResult = commandParser.parseCallbackCommand(callbackQuery);
         CallbackBotCommand botCommand = callbackBotCommands.get(parseResult.getCommandName());
 
+        LOGGER.debug("Callback command " + botCommand.getClass().getSimpleName() + ". User " + callbackQuery.getFrom().getId());
         try {
             if (botCommand instanceof NavigableCallbackBotCommand) {
                 callbackCommandNavigator.push(callbackQuery.getMessage().getChatId(), (NavigableCallbackBotCommand) botCommand);

@@ -28,13 +28,13 @@ public class MessagesProperties {
 
     public static final String MESSAGE_MAIN_MENU = "message.main.menu";
 
+    public static final String MESSAGE_UNZIP_PROCESSING = "message.unzip.processing";
+
     public static final String MESSAGE_ZIP_PROCESSING = "message.zip.processing";
 
     public static final String MESSAGE_SUPPORTED_ZIP_FORMATS = "message.supported.zip.formats";
 
     public static final String MESSAGE_UNSUPPORTED_FORMAT = "message.unsupported.format";
-
-    public static final String MESSAGE_ACTIVE_QUERIES_HEADER = "message.active.queries.header";
 
     public static final String MESSAGE_QUERY_STATUS = "message.query.status";
 
@@ -70,10 +70,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_CONVERT_WARNINGS = "message.convert.warnings";
 
-    public static final String CATEGORY_DOCUMENTS = "category.documents";
-
-    public static final String CATEGORY_IMAGES = "category.images";
-
     public static final String MESSAGE_HELP = "message.help";
 
     public static final String HELP_COMMAND_NAME = "help.command.name";
@@ -87,8 +83,6 @@ public class MessagesProperties {
     public static final String REPORT_COMMAND_DESCRIPTION = "report.command.description";
 
     public static final String MESSAGE_TOO_MANY_FILES = "message.too.many.files";
-
-    public static final String FORMATS_ARTICLE = "formats.article";
 
     public static final String MESSAGE_SESSION_EXPIRED = "message.session.expired";
 
@@ -122,4 +116,41 @@ public class MessagesProperties {
 
     public static final String MESSAGE_ZERO_LENGTH_FILE = "message.zero.length.file";
 
+    public static final String LANGUAGE_COMMAND_NAME = "language.command.name";
+
+    public static final String MESSAGE_CHOOSE_LANGUAGE = "message.choose.language";
+
+    public static final String MESSAGE_LANGUAGE_SELECTED = "message.language.selected";
+
+    public static final String EXTRACT_TEXT_COMMAND_NAME = "extract.text.command.name";
+
+    public static final String MESSAGE_FILE_TO_EXTRACT = "message.file.to.extract";
+
+    public static final String MESSAGE_EXTRACTION_IMPOSSIBLE = "message.extraction.impossible";
+
+    public static final String MESSAGE_EMPTY_TEXT_EXTRACTED = "message.empty.text.extracted";
+
+    public static final String MESSAGE_EXTRACTION_PROCESSING = "message.extraction.processing";
+
+    public static final String MESSAGE_OCR_LANGUAGE_CHANGED = "message.ocr.language.changed";
+
+    public static final String ARCHIVE_COMMAND_NAME = "archive.command.name";
+
+    public static final String MESSAGE_ARCHIVE_FILES = "message.archive.files";
+
+    public static final String MESSAGE_ARCHIVE_TYPE_UNSUPPORTED = "message.archive.type.unsupported";
+
+    public static final String ARCHIVE_FILE_NAME = "archive.file.name";
+
+    public static final String MESSAGE_ARCHIVE_PROCESSING = "message.archive.processing";
+
+    public static final String MESSAGE_CHOOSE_ARCHIVE_TYPE = "message.choose.archive.type";
+
+    public static final String MESSAGE_ARCHIVE_FILES_EMPTY = "message.archive.files.empty";
+
+    public static final String MESSAGE_GIF_WARN = "message.gif.warn";
+
+    public static final String MESSAGE_FILE_CANT_BE_ADDED_TO_ARCHIVE = "message.file.cant.be.added.to.archive";
+
+    public static final String MESSAGE_ARCHIVE_CURRENT_FILES = "message.archive.current.files";
 }

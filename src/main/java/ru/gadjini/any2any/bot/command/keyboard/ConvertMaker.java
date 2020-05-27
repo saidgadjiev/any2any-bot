@@ -24,6 +24,7 @@ import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.converter.api.FormatCategory;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
 import ru.gadjini.any2any.service.filequeue.FileQueueMessageBuilder;
 import ru.gadjini.any2any.service.filequeue.FileQueueService;
@@ -63,7 +64,7 @@ public class ConvertMaker {
     @Autowired
     public ConvertMaker(CommandStateService commandStateService, UserService userService, FileQueueService fileQueueService,
                         FileQueueMessageBuilder queueMessageBuilder, @Qualifier("limits") MessageService messageService,
-                        LocalisationService localisationService, @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService,
+                        LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                         FormatService formatService, TelegramService telegramService) {
         this.commandStateService = commandStateService;
         this.userService = userService;
@@ -76,10 +77,10 @@ public class ConvertMaker {
         this.telegramService = telegramService;
     }
 
-    public void processNonCommandUpdate(Message message, String text, Supplier<ReplyKeyboard> replyKeyboard) {
+    public void processNonCommandUpdate(String controllerName, Message message, String text, Supplier<ReplyKeyboard> replyKeyboard) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
 
-        if (!commandStateService.hasState(message.getChatId())) {
+        if (!commandStateService.hasState(message.getChatId(), controllerName)) {
             check(message, locale);
             ConvertState convertState = createState(message, locale);
             messageService.sendMessage(
@@ -87,18 +88,21 @@ public class ConvertMaker {
                             .replyKeyboard(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFormat(), locale))
             );
             convertState.deleteWarns();
-            commandStateService.setState(message.getChatId(), convertState);
+            commandStateService.setState(message.getChatId(), controllerName, convertState);
         } else if (isMediaMessage(message)) {
-            ConvertState convertState = commandStateService.getState(message.getChatId(), true);
+            ConvertState convertState = commandStateService.getState(message.getChatId(), controllerName, true);
             convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_TOO_MANY_FILES, locale));
-            commandStateService.setState(message.getChatId(), convertState);
+            commandStateService.setState(message.getChatId(), controllerName, convertState);
         } else if (message.hasText()) {
-            ConvertState convertState = commandStateService.getState(message.getChatId(), true);
+            ConvertState convertState = commandStateService.getState(message.getChatId(), controllerName, true);
             Format targetFormat = checkTargetFormat(convertState.getFormat(), formatService.getAssociatedFormat(text), locale);
+            if (targetFormat == Format.GIF) {
+                convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_GIF_WARN, locale));
+            }
             FileQueueItem queueItem = fileQueueService.add(message.getFrom(), convertState, targetFormat);
             String queuedMessage = queueMessageBuilder.getQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
             messageService.sendMessage(new SendMessageContext(message.getChatId(), queuedMessage).replyKeyboard(replyKeyboard.get()));
-            commandStateService.deleteState(message.getChatId());
+            commandStateService.deleteState(message.getChatId(), controllerName);
         }
     }
 
@@ -126,7 +130,7 @@ public class ConvertMaker {
             Sticker sticker = message.getSticker();
             convertState.setFileId(sticker.getFileId());
             convertState.setFileSize(sticker.getFileSize());
-            convertState.setFormat(Format.WEBP);
+            convertState.setFormat(sticker.getAnimated() ? Format.TGS : Format.WEBP);
         } else if (message.hasText()) {
             convertState.setFileId(message.getText());
             convertState.setFileSize(message.getText().length());
@@ -150,7 +154,7 @@ public class ConvertMaker {
 
     private void check(Message message, Locale locale) {
         if (message.hasDocument() || message.hasText() || message.hasPhoto()
-                || message.hasSticker() && !message.getSticker().getAnimated()) {
+                || message.hasSticker()) {
             return;
         }
 
@@ -158,16 +162,19 @@ public class ConvertMaker {
     }
 
     private Format checkFormat(Format format, String mimeType, String fileName, String fileId, Locale locale) {
-        if (format != null) {
-            return format;
+        if (format == null) {
+            if (StringUtils.isNotBlank(mimeType)) {
+                LOGGER.debug("Format not resolved for " + mimeType + " and fileName " + fileName);
+            } else {
+                LOGGER.debug("Format not resolved for image " + fileId);
+            }
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
+        }
+        if (format.getCategory() == FormatCategory.ARCHIVE) {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
 
-        if (StringUtils.isNotBlank(mimeType)) {
-            LOGGER.debug("Format not resolved for " + mimeType + " and fileName " + fileName);
-        } else {
-            LOGGER.debug("Format not resolved for image " + fileId);
-        }
-        throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
+        return format;
     }
 
     private Format checkTargetFormat(Format format, Format target, Locale locale) {

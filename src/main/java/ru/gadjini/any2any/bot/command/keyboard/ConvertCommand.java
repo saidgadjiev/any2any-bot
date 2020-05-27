@@ -41,7 +41,7 @@ public class ConvertCommand implements KeyboardBotCommand, NavigableBotCommand {
     @Autowired
     public ConvertCommand(CommandStateService commandStateService, UserService userService,
                           @Qualifier("limits") MessageService messageService, LocalisationService localisationService,
-                          @Qualifier("currkeyboard") ReplyKeyboardService replyKeyboardService) {
+                          @Qualifier("curr") ReplyKeyboardService replyKeyboardService) {
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.messageService = messageService;
@@ -64,7 +64,7 @@ public class ConvertCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        convertMaker.processNonCommandUpdate(message, text, () -> getKeyboard(message.getChatId()));
+        convertMaker.processNonCommandUpdate(getHistoryName(), message, text, () -> getKeyboard(message.getChatId()));
     }
 
     @Override
@@ -74,7 +74,7 @@ public class ConvertCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Override
     public void restore(TgMessage message) {
-        commandStateService.deleteState(message.getChatId());
+        commandStateService.deleteState(message.getChatId(), getHistoryName());
         Locale locale = userService.getLocaleOrDefault(message.getUser().getId());
         messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
                 .replyKeyboard(replyKeyboardService.goBack(message.getChatId(), locale)));
@@ -104,13 +104,13 @@ public class ConvertCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Override
     public void leave(long chatId) {
-        commandStateService.deleteState(chatId);
+        commandStateService.deleteState(chatId, getHistoryName());
     }
 
     @Override
     public boolean canLeave(long chatId) {
-        Object state = commandStateService.getState(chatId, false);
-        commandStateService.deleteState(chatId);
+        Object state = commandStateService.getState(chatId, getHistoryName(),false);
+        commandStateService.deleteState(chatId, getHistoryName());
 
         return state == null;
     }

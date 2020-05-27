@@ -10,7 +10,7 @@ import ru.gadjini.any2any.service.converter.api.Format;
 import java.util.Locale;
 
 @Service
-@Qualifier("currkeyboard")
+@Qualifier("curr")
 public class CurrReplyKeyboard implements ReplyKeyboardService {
 
     private ReplyKeyboardDao replyKeyboardDao;
@@ -20,6 +20,21 @@ public class CurrReplyKeyboard implements ReplyKeyboardService {
     public CurrReplyKeyboard(@Qualifier("inMemory") ReplyKeyboardDao replyKeyboardDao, @Qualifier("keyboard") ReplyKeyboardService keyboardService) {
         this.replyKeyboardDao = replyKeyboardDao;
         this.keyboardService = keyboardService;
+    }
+
+    @Override
+    public ReplyKeyboardMarkup archiveTypesKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.archiveTypesKeyboard(chatId, locale));
+    }
+
+    @Override
+    public ReplyKeyboardMarkup languageKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.languageKeyboard(chatId, locale));
+    }
+
+    @Override
+    public ReplyKeyboardMarkup getOcrKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.getOcrKeyboard(chatId, locale));
     }
 
     @Override

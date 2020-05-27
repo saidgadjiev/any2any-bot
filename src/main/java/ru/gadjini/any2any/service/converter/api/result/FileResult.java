@@ -1,20 +1,20 @@
 package ru.gadjini.any2any.service.converter.api.result;
 
-import org.apache.commons.io.FileUtils;
+import ru.gadjini.any2any.io.SmartTempFile;
 
 import java.io.File;
 
 public class FileResult extends BaseConvertResult {
 
-    private final File file;
+    private final SmartTempFile file;
 
-    public FileResult(File file, long time) {
+    public FileResult(SmartTempFile file, long time) {
         super(time);
         this.file = file;
     }
 
     public File getFile() {
-        return file;
+        return file.getFile();
     }
 
     @Override
@@ -24,6 +24,6 @@ public class FileResult extends BaseConvertResult {
 
     @Override
     public void close() {
-        FileUtils.deleteQuietly(file.getParentFile());
+        file.smartDelete();
     }
 }

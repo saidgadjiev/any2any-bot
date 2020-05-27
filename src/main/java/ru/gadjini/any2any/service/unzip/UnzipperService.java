@@ -1,6 +1,5 @@
 package ru.gadjini.any2any.service.unzip;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
+import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendMessageContext;
@@ -29,7 +29,7 @@ public class UnzipperService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UnzipperService.class);
 
-    private Set<ZipService> unzippers;
+    private Set<UnzipDevice> unzippers;
 
     private LocalisationService localisationService;
 
@@ -42,7 +42,7 @@ public class UnzipperService {
     private FileService fileService;
 
     @Autowired
-    public UnzipperService(Set<ZipService> unzippers, LocalisationService localisationService,
+    public UnzipperService(Set<UnzipDevice> unzippers, LocalisationService localisationService,
                            CommonJobExecutor unzipperJob, @Qualifier("limits") MessageService messageService,
                            TelegramService telegramService, FileService fileService) {
         this.unzippers = unzippers;
@@ -55,23 +55,26 @@ public class UnzipperService {
 
     public void unzip(int userId, String fileId, Format format, Locale locale) {
         LOGGER.debug(format + " unzip: " + fileId);
-        ZipService zipService = getCandidate(format, locale);
+        UnzipDevice zipService = getCandidate(format, locale);
 
         unzipperJob.addJob(() -> {
-            File in = telegramService.downloadFileByFileId(fileId, format.getExt());
+            SmartTempFile in = telegramService.downloadFileByFileId(fileId, format.getExt());
 
             try {
-                File out = fileService.createTempDir(fileId);
+                SmartTempFile out = fileService.createTempDir(fileId);
                 try {
                     zipService.unzip(userId, in.getAbsolutePath(), out.getAbsolutePath());
                     List<File> files = new ArrayList<>();
                     ExFileUtils.list(out.getAbsolutePath(), files);
                     sendFiles(userId, files, locale);
+                } catch (Exception ex) {
+                    messageService.sendErrorMessage(userId, locale);
+                    throw ex;
                 } finally {
-                    FileUtils.deleteQuietly(out);
+                    out.smartDelete();
                 }
             } finally {
-                FileUtils.deleteQuietly(in);
+                in.smartDelete();
             }
         });
     }
@@ -86,8 +89,8 @@ public class UnzipperService {
         }
     }
 
-    private ZipService getCandidate(Format format, Locale locale) {
-        for (ZipService unzipper : unzippers) {
+    private UnzipDevice getCandidate(Format format, Locale locale) {
+        for (UnzipDevice unzipper : unzippers) {
             if (unzipper.accept(format)) {
                 return unzipper;
             }

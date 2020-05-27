@@ -19,22 +19,26 @@ public class RedisCommandStateDao implements CommandStateDao {
     }
 
     @Override
-    public void setState(long chatId, Object state) {
-        redisTemplate.opsForHash().put(KEY, String.valueOf(chatId), state);
+    public void setState(long chatId, String command, Object state) {
+        redisTemplate.opsForHash().put(KEY, key(chatId, command), state);
     }
 
     @Override
-    public <T> T getState(long chatId) {
-        return (T) redisTemplate.opsForHash().get(KEY, String.valueOf(chatId));
+    public <T> T getState(long chatId, String command) {
+        return (T) redisTemplate.opsForHash().get(KEY, key(chatId, command));
     }
 
     @Override
-    public boolean hasState(long chatId) {
-        return redisTemplate.opsForHash().hasKey(KEY, String.valueOf(chatId));
+    public boolean hasState(long chatId, String command) {
+        return redisTemplate.opsForHash().hasKey(KEY, key(chatId, command));
     }
 
     @Override
-    public void deleteState(long chatId) {
-        redisTemplate.opsForHash().delete(KEY, String.valueOf(chatId));
+    public void deleteState(long chatId, String command) {
+        redisTemplate.opsForHash().delete(KEY, key(chatId, command));
+    }
+
+    private String key(long chatId, String command) {
+        return command + ":" + chatId;
     }
 }

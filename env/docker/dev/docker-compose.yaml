@@ -6,6 +6,7 @@ services:
     build: ../../../
     volumes:
       - ${PWD}/data/logs:/app/logs
+      - ${PWD}/data/tessdata:/app/tessdata
     ports:
       - 5005:5005
     env_file:

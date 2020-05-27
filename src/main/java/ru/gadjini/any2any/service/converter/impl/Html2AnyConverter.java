@@ -1,11 +1,11 @@
 package ru.gadjini.any2any.service.converter.impl;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
+import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.WkhtmltopdfService;
@@ -14,7 +14,6 @@ import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
-import java.io.File;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
@@ -48,13 +47,13 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult htmlToPdf(FileQueueItem fileQueueItem) {
-        File html = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile html = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            File file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
+            SmartTempFile file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
             wkhtmltopdfService.process(html.getAbsolutePath().replace(" ", "\\ "), file.getAbsolutePath());
 
             stopWatch.stop();
@@ -62,7 +61,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
-            FileUtils.deleteQuietly(html);
+            html.smartDelete();
         }
     }
 
@@ -71,7 +70,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            File file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
+            SmartTempFile file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
             wkhtmltopdfService.process(URLEncoder.encode(fileQueueItem.getFileId(), StandardCharsets.UTF_8), file.getAbsolutePath());
 
             stopWatch.stop();

@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.telegram.telegrambots.ApiContextInitializer;
 import ru.gadjini.any2any.property.BotProperties;
 import ru.gadjini.any2any.property.ProxyProperties;
+import ru.gadjini.any2any.service.LocalisationService;
 
 import java.time.ZoneOffset;
 import java.util.Locale;
@@ -40,7 +41,7 @@ public class Any2AnyApplication {
     }
 
     private static void setDefaultLocaleAndTZ() {
-        Locale.setDefault(new Locale("ru-RU"));
+        Locale.setDefault(new Locale(LocalisationService.EN_LOCALE));
         TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.UTC));
     }
 }
