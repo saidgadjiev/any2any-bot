@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.service.archive;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -14,10 +16,7 @@ import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,6 +61,8 @@ public class ArchiveService {
     }
 
     public void createArchive(int userId, List<Any2AnyFile> any2AnyFiles, Format format, Locale locale) {
+        normalizeFileNames(any2AnyFiles);
+
         commonJobExecutor.addJob(() -> {
             List<SmartTempFile> files = downloadFiles(any2AnyFiles);
             try {
@@ -70,7 +71,9 @@ public class ArchiveService {
                 );
                 try {
                     ArchiveDevice archiveDevice = getCandidate(format, locale);
-                    archiveDevice.zip(files.stream().map(SmartTempFile::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
+                    archiveDevice.zip(files.stream().map(temp -> {
+                        return "'" + temp.getAbsolutePath() + "'";
+                    }).collect(Collectors.toList()), archive.getAbsolutePath());
                     sendResult(userId, archive.getFile());
                 } finally {
                     archive.smartDelete();
@@ -97,6 +100,33 @@ public class ArchiveService {
         return files;
     }
 
+    private void normalizeFileNames(List<Any2AnyFile> any2AnyFiles) {
+        Set<String> uniqueFileNames = new HashSet<>();
+
+        for (Any2AnyFile any2AnyFile: any2AnyFiles) {
+            if (!uniqueFileNames.add(any2AnyFile.getFileName())) {
+                int index = 1;
+                while (true) {
+                    String fileName = normalizeFileName(any2AnyFile.getFileName(), index++);
+                    if (uniqueFileNames.add(fileName)) {
+                        any2AnyFile.setFileName(fileName);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private String normalizeFileName(String fileName, int index) {
+        String ext = FilenameUtils.getExtension(fileName);
+        if (StringUtils.isBlank(ext)) {
+            return fileName + " (" + index + ")";
+        }
+        String name = FilenameUtils.getBaseName(fileName);
+
+        return name + " (" + index + ")." + ext;
+    }
+
     private ArchiveDevice getCandidate(Format format, Locale locale) {
         for (ArchiveDevice archiveDevice : archiveDevices) {
             if (archiveDevice.accept(format)) {
@@ -104,6 +134,6 @@ public class ArchiveService {
             }
         }
 
-        throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_TYPE_UNSUPPORTED, new Object[] {format}, locale));
+        throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_TYPE_UNSUPPORTED, new Object[]{format}, locale));
     }
 }

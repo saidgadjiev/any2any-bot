@@ -1,6 +1,7 @@
 package ru.gadjini.any2any.service;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.gadjini.any2any.exception.ProcessException;
@@ -22,6 +23,9 @@ public class ProcessExecutor {
                 }
                 if (process.exitValue() != 0) {
                     String error = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
+                    if (StringUtils.isBlank(error)) {
+                        error = IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8);
+                    }
                     LOGGER.error("Exit code " + process.exitValue() + " out: " + error + ". Command: " + command);
                 }
             } finally {

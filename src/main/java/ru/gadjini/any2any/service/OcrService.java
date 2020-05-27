@@ -1,6 +1,5 @@
 package ru.gadjini.any2any.service;
 
-import com.sun.jna.Native;
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
@@ -15,7 +14,6 @@ import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendMessageContext;
 
-import java.io.File;
 import java.util.List;
 import java.util.Locale;
 
