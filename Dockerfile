@@ -73,4 +73,4 @@ COPY ./license/license-19.lic ./license/
 COPY ./target/app.jar .
 
 ENTRYPOINT ["java"]
-CMD ["-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]
+CMD ["-jar", "app.jar"]

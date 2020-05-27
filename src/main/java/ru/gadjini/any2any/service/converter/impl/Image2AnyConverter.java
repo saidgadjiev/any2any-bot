@@ -15,6 +15,7 @@ import ru.gadjini.any2any.service.image.ImageDevice;
 import ru.gadjini.any2any.service.image.trace.ImageTracer;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
+import java.io.File;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -58,7 +59,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult doConvert(FileQueueItem fileQueueItem) {
         SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
-        normalize(file, fileQueueItem);
+        normalize(file.getFile(), fileQueueItem);
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();

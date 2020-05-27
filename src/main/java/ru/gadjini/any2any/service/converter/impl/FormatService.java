@@ -6,6 +6,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TelegramService;
@@ -13,6 +14,7 @@ import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatCategory;
 import ru.gadjini.any2any.utils.MimeTypeUtils;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -40,7 +42,7 @@ public class FormatService {
 
         Map<List<Format>, List<Format>> images = new LinkedHashMap<>();
         images.put(List.of(PNG), List.of(PDF, JPG, BMP, WEBP, TIFF, ICO, HEIC, SVG, STICKER));
-        images.put(List.of(PHOTO), List.of(PDF, PNG, JPG, BMP, WEBP, STICKER));
+        images.put(List.of(PHOTO), List.of(PDF, PNG, JPG, BMP, WEBP, TIFF, ICO, HEIC, SVG, STICKER));
         images.put(List.of(JPG), List.of(PDF, PNG, BMP, WEBP, TIFF, ICO, HEIC, SVG, STICKER));
         images.put(List.of(TIFF), List.of(PDF, DOCX, DOC));
         images.put(List.of(BMP), List.of(PDF, PNG, JPG, WEBP, TIFF, ICO, HEIC, SVG, STICKER));
@@ -53,6 +55,13 @@ public class FormatService {
     }
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FormatService.class);
+
+    private TelegramService telegramService;
+
+    @Autowired
+    public FormatService(TelegramService telegramService) {
+        this.telegramService = telegramService;
+    }
 
     public List<Format> getTargetFormats(Format srcFormat) {
         for (Map.Entry<FormatCategory, Map<List<Format>, List<Format>>> categoryEntry : FORMATS.entrySet()) {
@@ -117,6 +126,16 @@ public class FormatService {
         }
 
         return null;
+    }
+
+    public Format getImageFormat(String photoFileId) {
+        SmartTempFile file = telegramService.downloadFileByFileId(photoFileId, "tmp");
+
+        try {
+            return getImageFormat(file.getFile(), photoFileId);
+        } finally {
+            file.smartDelete();
+        }
     }
 
     public Format getImageFormat(File file, String photoFileId) {
