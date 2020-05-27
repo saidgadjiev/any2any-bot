@@ -77,10 +77,10 @@ public class ConvertMaker {
         this.telegramService = telegramService;
     }
 
-    public void processNonCommandUpdate(Message message, String text, Supplier<ReplyKeyboard> replyKeyboard) {
+    public void processNonCommandUpdate(String controllerName, Message message, String text, Supplier<ReplyKeyboard> replyKeyboard) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
 
-        if (!commandStateService.hasState(message.getChatId())) {
+        if (!commandStateService.hasState(message.getChatId(), controllerName)) {
             check(message, locale);
             ConvertState convertState = createState(message, locale);
             messageService.sendMessage(
@@ -88,13 +88,13 @@ public class ConvertMaker {
                             .replyKeyboard(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFormat(), locale))
             );
             convertState.deleteWarns();
-            commandStateService.setState(message.getChatId(), convertState);
+            commandStateService.setState(message.getChatId(), controllerName, convertState);
         } else if (isMediaMessage(message)) {
-            ConvertState convertState = commandStateService.getState(message.getChatId(), true);
+            ConvertState convertState = commandStateService.getState(message.getChatId(), controllerName, true);
             convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_TOO_MANY_FILES, locale));
-            commandStateService.setState(message.getChatId(), convertState);
+            commandStateService.setState(message.getChatId(), controllerName, convertState);
         } else if (message.hasText()) {
-            ConvertState convertState = commandStateService.getState(message.getChatId(), true);
+            ConvertState convertState = commandStateService.getState(message.getChatId(), controllerName, true);
             Format targetFormat = checkTargetFormat(convertState.getFormat(), formatService.getAssociatedFormat(text), locale);
             if (targetFormat == Format.GIF) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_GIF_WARN, locale));
@@ -102,7 +102,7 @@ public class ConvertMaker {
             FileQueueItem queueItem = fileQueueService.add(message.getFrom(), convertState, targetFormat);
             String queuedMessage = queueMessageBuilder.getQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
             messageService.sendMessage(new SendMessageContext(message.getChatId(), queuedMessage).replyKeyboard(replyKeyboard.get()));
-            commandStateService.deleteState(message.getChatId());
+            commandStateService.deleteState(message.getChatId(), controllerName);
         }
     }
 

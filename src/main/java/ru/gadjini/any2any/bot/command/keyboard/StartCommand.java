@@ -69,7 +69,7 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        convertMaker.processNonCommandUpdate(message, text, () -> getKeyboard(message.getChatId()));
+        convertMaker.processNonCommandUpdate(getHistoryName(), message, text, () -> getKeyboard(message.getChatId()));
     }
 
     @Override
@@ -79,7 +79,7 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
 
     @Override
     public void restore(TgMessage message) {
-        commandStateService.deleteState(message.getChatId());
+        commandStateService.deleteState(message.getChatId(), getHistoryName());
         Locale locale = userService.getLocaleOrDefault(message.getUser().getId());
         messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
                 .replyKeyboard(replyKeyboardService.getMainMenu(message.getChatId(), locale)));
@@ -92,6 +92,6 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
 
     @Override
     public void leave(long chatId) {
-        commandStateService.deleteState(chatId);
+        commandStateService.deleteState(chatId, getHistoryName());
     }
 }

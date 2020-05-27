@@ -26,12 +26,12 @@ public class CommandStateService {
         this.userService = userService;
     }
 
-    public void setState(long chatId, Object state) {
-        commandStateDao.setState(chatId, state);
+    public void setState(long chatId, String command, Object state) {
+        commandStateDao.setState(chatId, command, state);
     }
 
-    public <T> T getState(long chatId, boolean expiredCheck) {
-        T state = commandStateDao.getState(chatId);
+    public <T> T getState(long chatId, String command, boolean expiredCheck) {
+        T state = commandStateDao.getState(chatId, command);
 
         if (expiredCheck && state == null) {
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SESSION_EXPIRED, userService.getLocaleOrDefault((int) chatId)));
@@ -40,11 +40,11 @@ public class CommandStateService {
         return state;
     }
 
-    public boolean hasState(long chatId) {
-        return commandStateDao.hasState(chatId);
+    public boolean hasState(long chatId, String command) {
+        return commandStateDao.hasState(chatId, command);
     }
 
-    public void deleteState(long chatId) {
-        commandStateDao.deleteState(chatId);
+    public void deleteState(long chatId, String command) {
+        commandStateDao.deleteState(chatId, command);
     }
 }

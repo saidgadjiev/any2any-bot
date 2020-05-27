@@ -85,16 +85,16 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand {
     public void processNonCommandUpdate(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
 
-        if (!commandStateService.hasState(message.getChatId())) {
+        if (!commandStateService.hasState(message.getChatId(), getHistoryName())) {
             checkMedia(message, locale);
             RenameState renameState = createState(message);
             renameState.setLanguage(locale.getLanguage());
             messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_NEW_FILE_NAME, locale)));
-            commandStateService.setState(message.getChatId(), renameState);
+            commandStateService.setState(message.getChatId(), getHistoryName(), renameState);
         } else if (message.hasText()) {
-            RenameState renameState = commandStateService.getState(message.getChatId(), true);
+            RenameState renameState = commandStateService.getState(message.getChatId(), getHistoryName(), true);
             renameService.rename(message.getChatId(), renameState, text);
-            commandStateService.deleteState(message.getChatId());
+            commandStateService.deleteState(message.getChatId(), getHistoryName());
             messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_RENAMING, locale)));
             LOGGER.debug("Rename request " + renameState.getFileId() + " with fileName " + renameState.getFileName() + " to " + text);
         }
@@ -102,7 +102,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Override
     public void leave(long chatId) {
-        commandStateService.deleteState(chatId);
+        commandStateService.deleteState(chatId, getHistoryName());
     }
 
     private void checkMedia(Message message, Locale locale) {

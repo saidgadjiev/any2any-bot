@@ -71,7 +71,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand {
     @Override
     public boolean processMessage(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-        commandStateService.setState(message.getChatId(), locale.getLanguage());
+        commandStateService.setState(message.getChatId(), getHistoryName(), locale.getLanguage());
         messageService.sendMessage(new SendMessageContext(message.getChatId(),
                 localisationService.getMessage(MessagesProperties.MESSAGE_FILE_TO_EXTRACT, new Object[]{StringUtils.capitalize(locale.getDisplayLanguage(locale))}, locale))
                 .replyKeyboard(replyKeyboardService.getOcrKeyboard(message.getChatId(), locale)));
@@ -96,7 +96,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand {
             text = text.toLowerCase();
             for (Locale l : OcrService.SUPPORTED_LOCALES) {
                 if (text.equals(l.getDisplayLanguage(userLocale).toLowerCase())) {
-                    commandStateService.setState(message.getChatId(), l.getLanguage());
+                    commandStateService.setState(message.getChatId(), getHistoryName(), l.getLanguage());
                     messageService.sendMessage(new SendMessageContext(message.getChatId(),
                             localisationService.getMessage(MessagesProperties.MESSAGE_OCR_LANGUAGE_CHANGED,
                                     new Object[] {StringUtils.capitalize(l.getDisplayLanguage(userLocale))}, userLocale)));
@@ -104,7 +104,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand {
                 }
             }
         } else {
-            Locale locale = new Locale(commandStateService.getState(message.getChatId(), true));
+            Locale locale = new Locale(commandStateService.getState(message.getChatId(), getHistoryName(), true));
             ocrService.extractText(message.getFrom().getId(), getFile(message), locale);
             messageService.sendMessage(new SendMessageContext(message.getChatId(),
                     localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_PROCESSING, userService.getLocaleOrDefault(message.getFrom().getId()))));
@@ -113,7 +113,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Override
     public void leave(long chatId) {
-        commandStateService.deleteState(chatId);
+        commandStateService.deleteState(chatId, getHistoryName());
     }
 
     private Any2AnyFile getFile(Message message) {
