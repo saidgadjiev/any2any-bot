@@ -71,9 +71,7 @@ public class ArchiveService {
                 );
                 try {
                     ArchiveDevice archiveDevice = getCandidate(format, locale);
-                    archiveDevice.zip(files.stream().map(temp -> {
-                        return "'" + temp.getAbsolutePath() + "'";
-                    }).collect(Collectors.toList()), archive.getAbsolutePath());
+                    archiveDevice.zip(files.stream().map(SmartTempFile::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
                     sendResult(userId, archive.getFile());
                 } catch (Exception ex) {
                     messageService.sendErrorMessage(userId, locale);
