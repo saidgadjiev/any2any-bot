@@ -105,6 +105,11 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
             }
             files.add(createFile(message, locale));
             commandStateService.setState(message.getChatId(), getHistoryName(), files);
+            messageService.sendMessage(
+                    new SendMessageContext(
+                            message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CURRENT_FILES, new Object[]{toString(files)}, locale)
+                    )
+            );
         }
     }
 
@@ -122,6 +127,19 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
         }
 
         return any2AnyFile;
+    }
+
+    private String toString(List<Any2AnyFile> any2AnyFiles) {
+        StringBuilder files = new StringBuilder();
+        for (Any2AnyFile any2AnyFile : any2AnyFiles) {
+            if (files.length() > 0) {
+                files.append(", ");
+            }
+
+            files.append(any2AnyFile.getFileName());
+        }
+
+        return files.toString();
     }
 
     private Format checkFormat(Format format, Locale locale) {

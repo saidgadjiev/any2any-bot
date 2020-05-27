@@ -67,6 +67,9 @@ public class UnzipperService {
                     List<File> files = new ArrayList<>();
                     ExFileUtils.list(out.getAbsolutePath(), files);
                     sendFiles(userId, files, locale);
+                } catch (Exception ex) {
+                    messageService.sendErrorMessage(userId, locale);
+                    throw ex;
                 } finally {
                     out.smartDelete();
                 }

@@ -75,6 +75,9 @@ public class ArchiveService {
                         return "'" + temp.getAbsolutePath() + "'";
                     }).collect(Collectors.toList()), archive.getAbsolutePath());
                     sendResult(userId, archive.getFile());
+                } catch (Exception ex) {
+                    messageService.sendErrorMessage(userId, locale);
+                    throw ex;
                 } finally {
                     archive.smartDelete();
                 }

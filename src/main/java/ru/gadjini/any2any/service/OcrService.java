@@ -54,16 +54,17 @@ public class OcrService {
             tesseract.setLanguage(ocrLocale.getISO3Language());
             tesseract.setDatapath(TESSDATA_PATH);
 
+            Locale locale = userService.getLocaleOrDefault(userId);
             try {
                 String result = tesseract.doOCR(file.getFile());
                 result = result.replace("\n\n", "\n");
                 if (StringUtils.isBlank(result)) {
-                    Locale locale = userService.getLocaleOrDefault(userId);
                     messageService.sendMessage(new SendMessageContext(userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
                 }
                 messageService.sendMessage(new SendMessageContext(userId, result));
-            } catch (TesseractException e) {
-                throw new TextExtractionFailedException(e);
+            } catch (Exception ex) {
+                messageService.sendErrorMessage(userId, locale);
+                throw new TextExtractionFailedException(ex);
             } finally {
                 file.smartDelete();
             }
