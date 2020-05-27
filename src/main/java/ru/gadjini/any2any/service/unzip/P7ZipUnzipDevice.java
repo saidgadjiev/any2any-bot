@@ -21,7 +21,7 @@ public class P7ZipUnzipDevice extends BaseUnzipDevice {
         new ProcessExecutor().execute(buildUnzipCommand(in, out), 10);
     }
 
-    private String buildUnzipCommand(String in, String out) {
-        return "7z x " + in + " -y -o" + out;
+    private String[] buildUnzipCommand(String in, String out) {
+        return new String[]{"7z", "x", in, "-y", "-o", out};
     }
 }

@@ -10,7 +10,7 @@ public class ImageTracer {
         new ProcessExecutor().execute(command(in, out), 30);
     }
 
-    private String command(String in, String out) {
-        return "java -jar ImageTracer.jar " + in + " outfilename " + out;
+    private String[] command(String in, String out) {
+        return new String[]{"java", "-jar", "ImageTracer.jar", in, "outfilename", out};
     }
 }

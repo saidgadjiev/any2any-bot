@@ -120,7 +120,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             SmartTempFile tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
 
             imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath(),
-                    "-resize x32", "-gravity center", "-crop 32x32+0+0", "-flatten -colors 256");
+                    "-resize", "x32", "-gravity", "center", "-crop", "32x32+0+0", "-flatten", "-colors", "256");
 
             stopWatch.stop();
             return new FileResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS));

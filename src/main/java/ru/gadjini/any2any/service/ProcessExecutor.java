@@ -7,15 +7,16 @@ import org.slf4j.LoggerFactory;
 import ru.gadjini.any2any.exception.ProcessException;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 public class ProcessExecutor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessExecutor.class);
 
-    public void execute(String command, int timeout) {
+    public void execute(String[] command, int timeout) {
         try {
-            Process process = Runtime.getRuntime().exec(command);
+            Process process = new ProcessBuilder(command).start();
             try {
                 boolean result = process.waitFor(timeout, TimeUnit.SECONDS);
                 if (!result) {
@@ -26,7 +27,7 @@ public class ProcessExecutor {
                     if (StringUtils.isBlank(error)) {
                         error = IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8);
                     }
-                    LOGGER.error("Exit code " + process.exitValue() + " out: " + error + ". Command: " + command);
+                    LOGGER.error("Exit code " + process.exitValue() + " out: " + error + ". Command: " + Arrays.toString(command));
                 }
             } finally {
                 process.destroy();

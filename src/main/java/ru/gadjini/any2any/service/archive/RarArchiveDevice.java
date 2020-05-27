@@ -6,7 +6,7 @@ import ru.gadjini.any2any.condition.LinuxMacCondition;
 import ru.gadjini.any2any.service.ProcessExecutor;
 import ru.gadjini.any2any.service.converter.api.Format;
 
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -23,17 +23,14 @@ public class RarArchiveDevice extends BaseArchiveDevice {
         new ProcessExecutor().execute(buildCommand(files, out), 10);
     }
 
-    private String buildCommand(List<String> files, String out) {
-        StringBuilder command = new StringBuilder();
-        command.append("rar a -ep ").append(out).append(" ");
-        for (Iterator<String> fileIterator = files.iterator(); fileIterator.hasNext();) {
-            String file = fileIterator.next();
-            command.append(file);
-            if (fileIterator.hasNext()) {
-                command.append(" ");
-            }
-        }
+    private String[] buildCommand(List<String> files, String out) {
+        List<String> command = new ArrayList<>();
+        command.add("rar");
+        command.add("a");
+        command.add("-ep");
+        command.add(out);
+        command.addAll(files);
 
-        return command.toString();
+        return command.toArray(new String[0]);
     }
 }

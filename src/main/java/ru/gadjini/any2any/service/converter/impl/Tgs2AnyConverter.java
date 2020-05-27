@@ -63,7 +63,7 @@ public class Tgs2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private String command(String in, String out) {
-        return "node cli.js " + in + " --out " + out;
+    private String[] command(String in, String out) {
+        return new String[] {"node", "cli.js", in, "--out", out};
     }
 }

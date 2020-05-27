@@ -54,7 +54,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             stopWatch.start();
 
             SmartTempFile file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
-            wkhtmltopdfService.process(html.getAbsolutePath().replace(" ", "\\ "), file.getAbsolutePath());
+            wkhtmltopdfService.process(html.getAbsolutePath(), file.getAbsolutePath());
 
             stopWatch.stop();
             return new FileResult(file, stopWatch.getTime(TimeUnit.SECONDS));

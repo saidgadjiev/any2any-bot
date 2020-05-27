@@ -9,13 +9,18 @@ public class WkhtmltopdfService {
         new ProcessExecutor().execute(buildCommand(urlOrHtml, out), 10);
     }
 
-    private String buildCommand(String urlOrHtml, String out) {
-        StringBuilder command = new StringBuilder();
-        command
-                .append("wkhtmltopdf ")
-                .append(" --no-pdf-compression --disable-local-file-access --disable-internal-links --load-error-handling ignore --load-media-error-handling ignore ")
-                .append(urlOrHtml).append(" ").append(out);
-
-        return command.toString();
+    private String[] buildCommand(String urlOrHtml, String out) {
+        return new String[]{
+                "wkhtmltopdf",
+                "--no-pdf-compression",
+                "--disable-local-file-access",
+                "--disable-internal-links",
+                "--load-error-handling",
+                "ignore",
+                "--load-media-error-handling",
+                "ignore",
+                urlOrHtml,
+                out
+        };
     }
 }
