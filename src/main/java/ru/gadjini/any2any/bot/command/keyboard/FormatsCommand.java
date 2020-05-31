@@ -62,6 +62,6 @@ public class FormatsCommand extends BotCommand implements KeyboardBotCommand {
 
     private void sendHelpMessage(int userId, Locale locale) {
         messageService.sendMessage(
-                new SendMessageContext(userId, localisationService.getMessage(MessagesProperties.MESSAGE_FORMATS, locale)).webPagePreview(true));
+                new SendMessageContext(userId, localisationService.getMessage(MessagesProperties.MESSAGE_FORMATS, locale)));
     }
 }

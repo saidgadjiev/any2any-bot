@@ -76,7 +76,6 @@ public class StartCommandFilter extends BaseBotFilter {
             ReplyKeyboard mainMenu = replyKeyboardService.getMainMenu(message.getChatId(), createOrUpdateResult.getUser().getLocale());
             messageService.sendMessage(
                     new SendMessageContext(message.getChatId(), text)
-                            .webPagePreview(true)
                             .replyKeyboard(mainMenu)
             );
 

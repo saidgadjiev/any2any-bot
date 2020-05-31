@@ -44,7 +44,7 @@ public class Any2AnyBot extends TelegramLongPollingBot {
             botFilter.doFilter(update);
         } catch (UserException ex) {
             LOGGER.error(ex.getMessage());
-            messageService.sendMessage(new SendMessageContext(TgMessage.getChatId(update), ex.getMessage()).webPagePreview(true));
+            messageService.sendMessage(new SendMessageContext(TgMessage.getChatId(update), ex.getMessage()));
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
             TgMessage tgMessage = TgMessage.from(update);

@@ -61,6 +61,6 @@ public class HelpCommand extends BotCommand implements KeyboardBotCommand {
 
     private void sendHelpMessage(int userId, Locale locale) {
         messageService.sendMessage(
-                new SendMessageContext(userId, localisationService.getMessage(MessagesProperties.MESSAGE_HELP, locale)).webPagePreview(true));
+                new SendMessageContext(userId, localisationService.getMessage(MessagesProperties.MESSAGE_HELP, locale)));
     }
 }

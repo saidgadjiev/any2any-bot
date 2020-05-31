@@ -34,10 +34,8 @@ public class PhantomJsHtmlDevice implements HtmlDevice {
         return new String[]{
                 isWindows() ? "phantomjs.cmd" : "phantomjs",
                 "rasterize.js",
-                urlOrHtml,
-                out,
-                "paper",
-                "A4"
+                "\"" + urlOrHtml + "\"",
+                out
         };
     }
 
