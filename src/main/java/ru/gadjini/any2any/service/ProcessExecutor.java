@@ -20,7 +20,7 @@ public class ProcessExecutor {
             try {
                 boolean result = process.waitFor(timeout, TimeUnit.SECONDS);
                 if (!result) {
-                    throw new RuntimeException("Timed out");
+                    throw new RuntimeException("Timed out. Command " + Arrays.toString(command));
                 }
                 if (process.exitValue() != 0) {
                     String error = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
