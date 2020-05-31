@@ -29,7 +29,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     @Autowired
     public Html2AnyConverter(FormatService formatService, TelegramService telegramService,
-                             FileService fileService, @Qualifier("phantomjs") HtmlDevice htmlDevice) {
+                             FileService fileService, @Qualifier("api") HtmlDevice htmlDevice) {
         super(Set.of(Format.URL, Format.HTML), formatService);
         this.telegramService = telegramService;
         this.fileService = fileService;

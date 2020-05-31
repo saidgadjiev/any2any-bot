@@ -16,18 +16,7 @@ public class PhantomJsHtmlDevice implements HtmlDevice {
 
     @Override
     public void processUrl(String url, String out) {
-        new ProcessExecutor().execute(buildCommand(normalizeUrl(url), out), 90);
-    }
-
-    private String normalizeUrl(String url) {
-        if (UrlUtils.hasScheme(url)) {
-            return url;
-        }
-        if (url.contains(":443")) {
-            return "https://" + url;
-        }
-
-        return "http://" + url;
+        new ProcessExecutor().execute(buildCommand(UrlUtils.appendScheme(url), out), 90);
     }
 
     private String[] buildCommand(String urlOrHtml, String out) {

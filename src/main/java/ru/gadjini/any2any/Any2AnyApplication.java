@@ -9,6 +9,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.telegram.telegrambots.ApiContextInitializer;
 import ru.gadjini.any2any.property.BotProperties;
+import ru.gadjini.any2any.property.ConversionProperties;
 import ru.gadjini.any2any.property.ProxyProperties;
 import ru.gadjini.any2any.service.LocalisationService;
 
@@ -18,7 +19,8 @@ import java.util.TimeZone;
 
 @EnableConfigurationProperties(value = {
         BotProperties.class,
-        ProxyProperties.class
+        ProxyProperties.class,
+        ConversionProperties.class
 })
 @EnableScheduling
 @SpringBootApplication
