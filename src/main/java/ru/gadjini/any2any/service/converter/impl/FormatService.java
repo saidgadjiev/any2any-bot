@@ -13,6 +13,7 @@ import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatCategory;
 import ru.gadjini.any2any.utils.MimeTypeUtils;
+import ru.gadjini.any2any.utils.UrlUtils;
 
 import java.io.File;
 import java.util.Collections;
@@ -90,7 +91,7 @@ public class FormatService {
     }
 
     public Format getFormat(String text) {
-        if (isUrl(text)) {
+        if (UrlUtils.isUrl(text)) {
             return URL;
         }
 
@@ -151,14 +152,6 @@ public class FormatService {
 
     public boolean isConvertAvailable(Format src, Format target) {
         return getTargetFormats(src).contains(target);
-    }
-
-    private boolean isUrl(String text) {
-        if (StringUtils.isBlank(text)) {
-            return false;
-        }
-
-        return text.startsWith("http://") || text.startsWith("https://") || text.startsWith("www.");
     }
 
     private Format getImageFormat(long format) {

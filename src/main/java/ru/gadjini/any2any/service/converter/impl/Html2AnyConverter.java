@@ -15,8 +15,6 @@ import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.service.html.HtmlDevice;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -55,7 +53,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             stopWatch.start();
 
             SmartTempFile file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
-            htmlDevice.process(html.getAbsolutePath(), file.getAbsolutePath());
+            htmlDevice.processHtml(html.getAbsolutePath(), file.getAbsolutePath());
 
             stopWatch.stop();
             return new FileResult(file, stopWatch.getTime(TimeUnit.SECONDS));
@@ -72,7 +70,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             stopWatch.start();
 
             SmartTempFile file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
-            htmlDevice.process(URLEncoder.encode(fileQueueItem.getFileId(), StandardCharsets.UTF_8), file.getAbsolutePath());
+            htmlDevice.processUrl(fileQueueItem.getFileId(), file.getAbsolutePath());
 
             stopWatch.stop();
             return new FileResult(file, stopWatch.getTime(TimeUnit.SECONDS));

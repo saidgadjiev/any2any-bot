@@ -3,22 +3,45 @@ package ru.gadjini.any2any.service.html;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.service.ProcessExecutor;
+import ru.gadjini.any2any.utils.UrlUtils;
 
 @Service
 @Qualifier("phantomjs")
 public class PhantomJsHtmlDevice implements HtmlDevice {
 
     @Override
-    public void process(String urlOrHtml, String out) {
+    public void processHtml(String urlOrHtml, String out) {
         new ProcessExecutor().execute(buildCommand(urlOrHtml, out), 20);
     }
 
+    @Override
+    public void processUrl(String url, String out) {
+        new ProcessExecutor().execute(buildCommand(normalizeUrl(url), out), 10);
+    }
+
+    private String normalizeUrl(String url) {
+        if (UrlUtils.hasScheme(url)) {
+            return url;
+        }
+        if (url.contains(":443")) {
+            return "https://" + url;
+        }
+
+        return "http://" + url;
+    }
+
     private String[] buildCommand(String urlOrHtml, String out) {
-        return new String[] {
-                "phantomjs",
+        return new String[]{
+                isWindows() ? "phantomjs.cmd" : "phantomjs",
                 "rasterize.js",
                 urlOrHtml,
-                out
+                out,
+                "paper",
+                "A4"
         };
+    }
+
+    private boolean isWindows() {
+        return System.getProperty("os.name").contains("Windows");
     }
 }

@@ -278,7 +278,7 @@ tessdata/
 **/prod/
 *.env
 *.lic
-tessdata/
+rasterize.js
 tgs-2-pdf/
 *.js
 package.json

@@ -95,14 +95,16 @@ public class ConverterJob {
     private void convert(FileQueueItem fileQueueItem) {
         Any2AnyConverter<ConvertResult> candidate = getCandidate(fileQueueItem);
         if (candidate != null) {
+            LOGGER.debug("Start conversion from " + fileQueueItem.getFormat() + " to " + fileQueueItem.getTargetFormat() + " id " + fileQueueItem.getId());
             try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
                 logConvertFinished(fileQueueItem, convertResult.time());
                 sendResult(fileQueueItem, convertResult);
                 queueService.complete(fileQueueItem.getId());
+                LOGGER.debug("Conversion " + fileQueueItem.getId() + " completed");
             } catch (Exception ex) {
                 Future<?> future = processing.get(fileQueueItem.getId());
                 if (future != null && future.isCancelled()) {
-                    LOGGER.debug("Task canceled");
+                    LOGGER.debug("Conversion " + fileQueueItem.getId() + " canceled. From " + fileQueueItem.getFormat() + " to " + fileQueueItem.getTargetFormat() + " fileId " + fileQueueItem.getFileId());
                 } else {
                     queueService.exception(fileQueueItem.getId(), ex);
                     LOGGER.error(ex.getMessage(), ex);

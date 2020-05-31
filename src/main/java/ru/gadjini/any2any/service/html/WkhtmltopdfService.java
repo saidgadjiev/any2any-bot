@@ -8,8 +8,13 @@ import ru.gadjini.any2any.service.ProcessExecutor;
 @Qualifier("wkhtml")
 public class WkhtmltopdfService implements HtmlDevice {
 
-    public void process(String urlOrHtml, String out) {
-        new ProcessExecutor().execute(buildCommand(urlOrHtml, out), 10);
+    public void processHtml(String html, String out) {
+        new ProcessExecutor().execute(buildCommand(html, out), 10);
+    }
+
+    @Override
+    public void processUrl(String url, String out) {
+        new ProcessExecutor().execute(buildCommand(url, out), 10);
     }
 
     private String[] buildCommand(String urlOrHtml, String out) {
