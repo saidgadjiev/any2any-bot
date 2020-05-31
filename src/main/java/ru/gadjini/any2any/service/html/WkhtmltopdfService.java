@@ -1,9 +1,12 @@
-package ru.gadjini.any2any.service;
+package ru.gadjini.any2any.service.html;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.gadjini.any2any.service.ProcessExecutor;
 
 @Service
-public class WkhtmltopdfService {
+@Qualifier("wkhtml")
+public class WkhtmltopdfService implements HtmlDevice {
 
     public void process(String urlOrHtml, String out) {
         new ProcessExecutor().execute(buildCommand(urlOrHtml, out), 10);

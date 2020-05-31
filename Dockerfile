@@ -67,6 +67,9 @@ RUN ldconfig
 
 RUN apt-get install -y -qq tesseract-ocr
 
+RUN npm install -g phantomjs
+RUN wget https://raw.githubusercontent.com/ariya/phantomjs/master/examples/rasterize.js
+
 RUN rm -rf /var/lib/apt/lists/*
 
 COPY ./license/license-19.lic ./license/
