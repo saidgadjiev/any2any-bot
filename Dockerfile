@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 
-WORKDIR /app
+WORKDIR /home/root/bot
 ENV DEBIAN_FRONTEND noninteractive 
 ENV USE_SANDBOX false
 
@@ -56,9 +56,9 @@ make && \
 make install
 
 RUN cd /usr/src/ && \
-wget https://www.imagemagick.org/download/ImageMagick-7.0.10-14.tar.bz2 && \
-tar xvf ImageMagick-7.0.10-14.tar.bz2 && \
-cd ImageMagick-7.0.10-14 && \
+wget https://www.imagemagick.org/download/ImageMagick.tar.bz2 && \
+tar xvf ImageMagick.tar.bz2 && \
+cd ImageMagick* && \
 ./configure --with-heic=yes && \
 make && \
 make install
@@ -67,13 +67,10 @@ RUN ldconfig
 
 RUN apt-get install -y -qq tesseract-ocr
 
-RUN npm install -g phantomjs
-RUN wget https://raw.githubusercontent.com/ariya/phantomjs/master/examples/rasterize.js
-
 RUN rm -rf /var/lib/apt/lists/*
 
 COPY ./license/license-19.lic ./license/
 COPY ./target/app.jar .
 
 ENTRYPOINT ["java"]
-CMD ["-jar", "app.jar"]
+CMD ["-jar", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005", "app.jar"]

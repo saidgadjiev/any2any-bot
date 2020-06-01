@@ -20,35 +20,20 @@ public class Url2PdfApiDevice implements HtmlDevice {
 
     @Override
     public void processHtml(String html, String out) {
-        new ProcessExecutor().execute(buildCommandByHtml(html, out), 40);
+        new ProcessExecutor().execute(buildCommandByHtml(html, out), 70);
     }
 
     @Override
     public void processUrl(String url, String out) {
-        new ProcessExecutor().execute(buildCommandByUrl(UrlUtils.appendScheme(url), out), 40);
+        new ProcessExecutor().execute(buildCommandByUrl(UrlUtils.appendScheme(url), out), 70);
     }
 
     private String[] buildCommandByUrl(String url, String out) {
-        return new String[]{
-                getCurl(),
-                "-XGET",
-                "\"" + getConversionUrlByUrl(url) + "\"",
-                "-o",
-                "\"" + out + "\""
-        };
+        return new String[]{"curl", "-XGET", getConversionUrlByUrl(url), "-o", out};
     }
 
     private String[] buildCommandByHtml(String html, String out) {
-        return new String[]{
-                getCurl(),
-                "-XPOST",
-                "-d@\"" + html + "\"",
-                "-H",
-                "\"content-type: text/html\"",
-                "\"" + getBaseApi() + "\"",
-                "-o",
-                "\"" + out + "\""
-        };
+        return new String[]{"curl", "-XPOST", "-d@" + html, "-H", "content-type: text/html", getBaseApi(), "-o", out};
     }
 
     private String getConversionUrlByUrl(String url) {
@@ -57,9 +42,5 @@ public class Url2PdfApiDevice implements HtmlDevice {
 
     private String getBaseApi() {
         return conversionProperties.getServer() + "/api/render";
-    }
-
-    private String getCurl() {
-        return System.getProperty("os.name").contains("Windows") ? "\"C:\\Program Files\\curl-7.70.0\\bin\\curl\"" : "curl";
     }
 }
