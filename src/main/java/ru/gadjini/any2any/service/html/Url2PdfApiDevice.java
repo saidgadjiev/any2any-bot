@@ -37,7 +37,7 @@ public class Url2PdfApiDevice implements HtmlDevice {
     }
 
     private String getConversionUrlByUrl(String url) {
-        return getBaseApi() + "?url=" + url + "&ignoreHttpsErrors=true&goto.timeout=60000&goto.waitUntil=load";
+        return getBaseApi() + "?url=" + url + "&ignoreHttpsErrors=true&goto.timeout=60000&goto.waitUntil=load&page.height=auto";
     }
 
     private String getBaseApi() {
