@@ -10,6 +10,10 @@ public class ProxyProperties {
 
     private int port;
 
+    private String username;
+
+    private String password;
+
     private DefaultBotOptions.ProxyType type = DefaultBotOptions.ProxyType.NO_PROXY;
 
     public String getHost() {
@@ -34,5 +38,21 @@ public class ProxyProperties {
 
     public void setType(DefaultBotOptions.ProxyType type) {
         this.type = type;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

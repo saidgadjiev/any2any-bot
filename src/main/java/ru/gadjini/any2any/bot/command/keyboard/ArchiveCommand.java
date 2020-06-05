@@ -1,10 +1,12 @@
 package ru.gadjini.any2any.bot.command.keyboard;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
@@ -122,6 +124,30 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
             any2AnyFile.setFileName(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + ".jpg");
             PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
             any2AnyFile.setFileId(photoSize.getFileId());
+        } else if (message.hasVideo()) {
+            String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + ".";
+            String extension = formatService.getExt(message.getVideo().getMimeType());
+            if (StringUtils.isNotBlank(extension)) {
+                fileName += extension;
+            } else {
+                fileName += "mp4";
+            }
+            any2AnyFile.setFileName(fileName);
+        } else if (message.hasAudio()) {
+            String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + ".";
+            String extension = formatService.getExt(message.getAudio().getMimeType());
+            if (StringUtils.isNotBlank(extension)) {
+                fileName += extension.equals("mpga") ? "mp3" : extension;
+            } else {
+                fileName += "mp3";
+            }
+            any2AnyFile.setFileName(fileName);
+        } else if (message.hasSticker()) {
+            Sticker sticker = message.getSticker();
+            any2AnyFile.setFileId(sticker.getFileId());
+            String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + ".";
+            fileName += sticker.getAnimated() ? "tgs" : "webp";
+            any2AnyFile.setFileName(fileName);
         } else {
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_CANT_BE_ADDED_TO_ARCHIVE, locale));
         }

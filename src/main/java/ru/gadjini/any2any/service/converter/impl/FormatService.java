@@ -98,6 +98,16 @@ public class FormatService {
         return TEXT;
     }
 
+    public String getExt(String mimeType) {
+        String extension = MimeTypeUtils.getExtension(mimeType);
+
+        if (StringUtils.isNotBlank(extension) && !".bin".equals(extension)) {
+            extension = extension.substring(1);
+        }
+
+        return extension;
+    }
+
     public String getExt(String fileName, String mimeType) {
         String extension = MimeTypeUtils.getExtension(mimeType);
 
