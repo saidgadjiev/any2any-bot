@@ -159,4 +159,12 @@ public class MessagesProperties {
     public static final String MESSAGE_IMAGE_EDITOR_WELCOME = "message.image.editor.welcome";
 
     public static final String MESSAGE_IMAGE_TRANSPARENT_COLOR = "message.image.transparent.color";
+
+    public static final String MESSAGE_IMAGE_EDITOR_INCLUDE_MODE = "message.image.editor.include.mode";
+
+    public static final String MESSAGE_IMAGE_EDITOR_EXCLUDE_MODE = "message.image.editor.exclude.mode";
+
+    public static final String MESSAGE_IMAGE_EDITOR_CHOOSE_COLOR = "message.image.editor.choose.color";
+
+    public static final String TRANSPARENT_COLOR_EDITED_CALLBACK_ANSWER = "transparent.color.edited.callback.answer";
 }

@@ -16,34 +16,26 @@ public class ImageMagickDevice implements ImageDevice {
     }
 
     @Override
-    public void transparent(String in, String out, String color, boolean remove) {
-        if (remove) {
-            new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, color), 10);
-        } else {
-            new ProcessExecutor().execute(getTransparentExcludeCommand(in, out, color), 10);
-        }
+    public void negativeTransparent(String in, String out, String... colors) {
+        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, true, colors), 10);
     }
 
-    private String[] getTransparentExcludeCommand(String in, String out, String color) {
-        List<String> command = new ArrayList<>(commandName());
-        command.add(in);
-        command.add("-matte");
-        command.add("( +clone -fuzz 10% -transparent " + color + " )");
-        command.add("-compose");
-        command.add("DstOut");
-        command.add("-composite");
-        command.add(out);
-
-        return command.toArray(new String[0]);
+    @Override
+    public void positiveTransparent(String in, String out, String color) {
+        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, false, color), 10);
     }
 
-    private String[] getTransparentRemoveCommand(String in, String out, String color) {
+    private String[] getTransparentRemoveCommand(String in, String out, boolean negative, String... colors) {
         List<String> command = new ArrayList<>(commandName());
         command.add(in);
         command.add("-fuzz");
         command.add("10%");
-        command.add("-transparent");
-        command.add(color);
+        String sign = negative ? "-" : "+";
+        for (String color : colors) {
+            command.add(sign + "transparent");
+            command.add(color);
+        }
+
         command.add(out);
 
         return command.toArray(new String[0]);

@@ -6,10 +6,17 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gadjini.any2any.common.CommandNames;
+import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.request.Arg;
+import ru.gadjini.any2any.request.RequestParams;
+import ru.gadjini.any2any.service.image.editor.Color;
+import ru.gadjini.any2any.service.image.editor.EditorState;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Service
 public class InlineKeyboardService {
@@ -19,6 +26,45 @@ public class InlineKeyboardService {
     @Autowired
     public InlineKeyboardService(ButtonFactory buttonFactory) {
         this.buttonFactory = buttonFactory;
+    }
+
+    public InlineKeyboardMarkup getColorsKeyboard(Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+
+        List<Color> colors = Arrays.stream(Color.values()).collect(Collectors.toList());
+        List<List<Color>> lists = Lists.partition(colors, 5);
+
+        for (List<Color> l : lists) {
+            List<InlineKeyboardButton> buttons = new ArrayList<>();
+
+            l.forEach(color -> buttons.add(buttonFactory.delegateButton(
+                    "color." + color.name().toLowerCase(),
+                    CommandNames.IMAGE_EDITOR_COMMAND_NAME,
+                    new RequestParams().add(Arg.TRANSPARENT_COLOR.getKey(), color.name().toLowerCase()),
+                    locale
+            )));
+            inlineKeyboardMarkup.getKeyboard().add(buttons);
+        }
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_EDITOR_SCREEN.getKey(), EditorState.Screen.EDIT.name()), locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getEditImageTransparentKeyboard(Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.delegateButton(MessagesProperties.MESSAGE_IMAGE_EDITOR_INCLUDE_MODE,
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.TRANSPARENT_MODE.getKey(), EditorState.Mode.NEGATIVE.name()), locale),
+                buttonFactory.delegateButton(MessagesProperties.MESSAGE_IMAGE_EDITOR_EXCLUDE_MODE,
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.TRANSPARENT_MODE.getKey(), EditorState.Mode.POSITIVE.name()), locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.delegateButton(MessagesProperties.MESSAGE_IMAGE_EDITOR_CHOOSE_COLOR,
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_EDITOR_SCREEN.getKey(), EditorState.Screen.COLOR.name()), locale)));
+
+        return inlineKeyboardMarkup;
     }
 
     public InlineKeyboardMarkup getQueryDetailsKeyboard(int queryItemId, Locale locale) {

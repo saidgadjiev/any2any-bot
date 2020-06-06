@@ -4,7 +4,11 @@ public enum Arg {
 
     QUEUE_ITEM_ID("a"),
     PREV_HISTORY_NAME("b"),
-    ACTION_FROM("c");
+    ACTION_FROM("c"),
+    CALLBACK_DELEGATE("d"),
+    TRANSPARENT_MODE("e"),
+    TRANSPARENT_COLOR("f"),
+    IMAGE_EDITOR_SCREEN("g");
 
     private final String key;
 

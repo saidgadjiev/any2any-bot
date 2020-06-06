@@ -66,6 +66,10 @@ public class CommandExecutor {
         this.callbackCommandNavigator = callbackCommandNavigator;
     }
 
+    public CallbackBotCommand getCallbackCommand(String commandName) {
+        return callbackBotCommands.get(commandName);
+    }
+
     public boolean isKeyboardCommand(long chatId, String text) {
         return keyboardBotCommands
                 .stream()

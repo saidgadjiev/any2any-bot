@@ -10,7 +10,9 @@ public class EditorState {
 
     private String language;
 
-    private Mode mode = Mode.REMOVE;
+    private Mode mode = Mode.NEGATIVE;
+
+    private Screen screen = Screen.EDIT;
 
     public String getImage() {
         return editFilePath;
@@ -60,10 +62,25 @@ public class EditorState {
         this.language = language;
     }
 
+    public Screen getScreen() {
+        return screen;
+    }
+
+    public void setScreen(Screen screen) {
+        this.screen = screen;
+    }
+
     public enum Mode {
 
-        REMOVE,
+        NEGATIVE,
 
-        EXCLUDE
+        POSITIVE
+    }
+
+    public enum Screen {
+
+        EDIT,
+
+        COLOR
     }
 }

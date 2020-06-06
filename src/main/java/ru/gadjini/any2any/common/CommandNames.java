@@ -35,4 +35,7 @@ public class CommandNames {
     public static final String ARCHIVE_COMMAND_NAME = "l";
 
     public static final String IMAGE_EDITOR_COMMAND_NAME = "m";
+
+    public static final String CALLBACK_DELEGATE_COMMAND_NAME = "n";
+
 }

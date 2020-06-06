@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
+import ru.gadjini.any2any.model.EditMediaContext;
 import ru.gadjini.any2any.model.EditMessageContext;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendMessageContext;
@@ -63,7 +65,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
 
     @Override
     public void sendMessage(SendMessageContext messageContext) {
-        if (messageContext.text().length() > TEXT_LENGTH_LIMIT) {
+        if (messageContext.text().length() < TEXT_LENGTH_LIMIT) {
             messageService.sendMessage(messageContext);
         } else {
             Iterable<String> split = Splitter.fixedLength(TEXT_LENGTH_LIMIT)
@@ -89,8 +91,13 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public void editMessageMedia(long chatId, int messageId, File file) {
-        messageService.editMessageMedia(chatId, messageId, file);
+    public void editReplyKeyboard(long chatId, int messageId, InlineKeyboardMarkup replyKeyboard) {
+        messageService.editReplyKeyboard(chatId, messageId, replyKeyboard);
+    }
+
+    @Override
+    public void editMessageMedia(EditMediaContext editMediaContext) {
+        messageService.editMessageMedia(editMediaContext);
     }
 
     @Override

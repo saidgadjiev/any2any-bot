@@ -3,18 +3,23 @@ package ru.gadjini.any2any.bot.command.keyboard.imageditor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import ru.gadjini.any2any.bot.command.api.CallbackBotCommand;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.request.Arg;
+import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
+import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.ImageEditorService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 
@@ -24,7 +29,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotCommand {
+public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotCommand, CallbackBotCommand {
 
     private Set<String> names = new HashSet<>();
 
@@ -91,6 +96,29 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
             imageEditorService.editFile(message.getChatId(), getEditFile(message, locale), locale);
         } else if (message.hasText()) {
             imageEditorService.transparentColor(message.getChatId(), text);
+        }
+    }
+
+    @Override
+    public String getName() {
+        return CommandNames.IMAGE_EDITOR_COMMAND_NAME;
+    }
+
+    @Override
+    public String processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
+        return null;
+    }
+
+    @Override
+    public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
+        if (requestParams.contains(Arg.IMAGE_EDITOR_SCREEN.getKey())) {
+            imageEditorService.changeScreen(callbackQuery.getMessage().getChatId(), EditorState.Screen.valueOf(requestParams.getString(Arg.IMAGE_EDITOR_SCREEN.getKey())));
+        } else if (requestParams.contains(Arg.TRANSPARENT_MODE.getKey())) {
+            EditorState.Mode mode = EditorState.Mode.valueOf(requestParams.getString(Arg.TRANSPARENT_MODE.getKey()));
+            imageEditorService.transparentMode(callbackQuery.getMessage().getChatId(), mode);
+        } else if (requestParams.contains(Arg.TRANSPARENT_COLOR.getKey())) {
+            String color = requestParams.getString(Arg.TRANSPARENT_COLOR.getKey());
+            imageEditorService.transparentColor(callbackQuery.getMessage().getChatId(), color);
         }
     }
 

@@ -23,6 +23,20 @@ public class ButtonFactory {
         this.localisationService = localisationService;
     }
 
+    public InlineKeyboardButton delegateButton(String name, String delegate, RequestParams requestParams) {
+        requestParams.add(Arg.CALLBACK_DELEGATE.getKey(), delegate);
+
+        InlineKeyboardButton button = new InlineKeyboardButton(name);
+        button.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                requestParams.serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return button;
+    }
+
+    public InlineKeyboardButton delegateButton(String nameCode, String delegate, RequestParams requestParams, Locale locale) {
+        return delegateButton(localisationService.getMessage(nameCode, locale), delegate, requestParams);
+    }
+
     public InlineKeyboardButton queryItemDetails(String name, int queryItemId) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(name);
         inlineKeyboardButton.setCallbackData(CommandNames.QUERY_ITEM_DETAILS_COMMAND + CommandParser.COMMAND_NAME_SEPARATOR +

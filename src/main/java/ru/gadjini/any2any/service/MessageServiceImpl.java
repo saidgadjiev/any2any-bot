@@ -16,17 +16,17 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageRe
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaDocument;
-import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TelegramMethodException;
+import ru.gadjini.any2any.model.EditMediaContext;
 import ru.gadjini.any2any.model.EditMessageContext;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendMessageContext;
 
-import java.io.File;
 import java.util.Locale;
 
 @Service
@@ -122,13 +122,33 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public void editMessageMedia(long chatId, int messageId, File file) {
+    public void editReplyKeyboard(long chatId, int messageId, InlineKeyboardMarkup replyKeyboard) {
+        EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup();
+
+        editMessageReplyMarkup.setMessageId(messageId);
+        editMessageReplyMarkup.setChatId(chatId);
+        editMessageReplyMarkup.setReplyMarkup(replyKeyboard);
+
+        try {
+            telegramService.execute(editMessageReplyMarkup);
+        } catch (TelegramApiException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    @Override
+    public void editMessageMedia(EditMediaContext editMediaContext) {
         EditMessageMedia editMessageMedia = new EditMessageMedia();
-        editMessageMedia.setChatId(chatId);
-        editMessageMedia.setMessageId(messageId);
+        editMessageMedia.setChatId(editMediaContext.chatId());
+        editMessageMedia.setMessageId(editMediaContext.messageId());
         InputMediaDocument document = new InputMediaDocument();
-        document.setMedia(file, file.getName());
+        document.setMedia(editMediaContext.file(), editMediaContext.file().getName());
+        document.setCaption(editMediaContext.caption());
         editMessageMedia.setMedia(document);
+
+        if (editMediaContext.replyKeyboard() != null) {
+            editMessageMedia.setReplyMarkup(editMediaContext.replyKeyboard());
+        }
 
         try {
             telegramService.execute(editMessageMedia);
