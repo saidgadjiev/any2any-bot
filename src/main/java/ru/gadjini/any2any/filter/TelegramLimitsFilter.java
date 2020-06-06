@@ -18,6 +18,7 @@ import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
+import java.io.File;
 import java.util.Comparator;
 import java.util.Locale;
 
@@ -88,6 +89,11 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
+    public void editMessageMedia(long chatId, int messageId, File file) {
+        messageService.editMessageMedia(chatId, messageId, file);
+    }
+
+    @Override
     public void sendBotRestartedMessage(long chatId, ReplyKeyboard replyKeyboard, Locale locale) {
         messageService.sendBotRestartedMessage(chatId, replyKeyboard, locale);
     }
@@ -98,10 +104,22 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public void sendDocument(SendFileContext sendDocumentContext) {
+    public void deleteMessage(long chatId, int messageId) {
+        messageService.deleteMessage(chatId, messageId);
+    }
+
+    @Override
+    public int sendDocument(SendFileContext sendDocumentContext) {
         if (validate(sendDocumentContext)) {
-            messageService.sendDocument(sendDocumentContext);
+            return messageService.sendDocument(sendDocumentContext);
         }
+
+        return -1;
+    }
+
+    @Override
+    public int sendPhoto(SendFileContext sendDocumentContext) {
+        return messageService.sendPhoto(sendDocumentContext);
     }
 
     @Override

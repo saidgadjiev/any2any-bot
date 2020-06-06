@@ -6,6 +6,7 @@ import ru.gadjini.any2any.model.EditMessageContext;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendMessageContext;
 
+import java.io.File;
 import java.util.Locale;
 
 public interface MessageService {
@@ -17,11 +18,17 @@ public interface MessageService {
 
     void editMessage(EditMessageContext messageContext);
 
+    void editMessageMedia(long chatId, int messageId, File file);
+
     void sendBotRestartedMessage(long chatId, ReplyKeyboard replyKeyboard, Locale locale);
 
     void sendSticker(SendFileContext sendFileContext);
 
-    void sendDocument(SendFileContext sendDocumentContext);
+    void deleteMessage(long chatId, int messageId);
+
+    int sendDocument(SendFileContext sendDocumentContext);
+
+    int sendPhoto(SendFileContext sendDocumentContext);
 
     void sendErrorMessage(long chatId, Locale locale);
 }

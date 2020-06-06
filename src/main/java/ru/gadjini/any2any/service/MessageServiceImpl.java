@@ -8,10 +8,15 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.ChatMember;
+import org.telegram.telegrambots.meta.api.objects.media.InputMediaDocument;
+import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
@@ -21,6 +26,7 @@ import ru.gadjini.any2any.model.EditMessageContext;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendMessageContext;
 
+import java.io.File;
 import java.util.Locale;
 
 @Service
@@ -116,6 +122,22 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    public void editMessageMedia(long chatId, int messageId, File file) {
+        EditMessageMedia editMessageMedia = new EditMessageMedia();
+        editMessageMedia.setChatId(chatId);
+        editMessageMedia.setMessageId(messageId);
+        InputMediaDocument document = new InputMediaDocument();
+        document.setMedia(file, file.getName());
+        editMessageMedia.setMedia(document);
+
+        try {
+            telegramService.execute(editMessageMedia);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void sendBotRestartedMessage(long chatId, ReplyKeyboard replyKeyboard, Locale locale) {
         sendMessage(
                 new SendMessageContext(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_BOT_RESTARTED, locale))
@@ -147,7 +169,20 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public void sendDocument(SendFileContext sendDocumentContext) {
+    public void deleteMessage(long chatId, int messageId) {
+        DeleteMessage deleteMessage = new DeleteMessage();
+        deleteMessage.setChatId(chatId);
+        deleteMessage.setMessageId(messageId);
+
+        try {
+            telegramService.execute(deleteMessage);
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public int sendDocument(SendFileContext sendDocumentContext) {
         SendDocument sendDocument = new SendDocument();
         sendDocument.setChatId(sendDocumentContext.chatId());
         sendDocument.setDocument(sendDocumentContext.file());
@@ -160,7 +195,30 @@ public class MessageServiceImpl implements MessageService {
         }
 
         try {
-            telegramService.execute(sendDocument);
+            return telegramService.execute(sendDocument).getMessageId();
+        } catch (TelegramApiRequestException e) {
+            LOGGER.error(e.getMessage() + ". " + e.getApiResponse() + "(" + e.getErrorCode() + "). Params " + e.getParameters(), e);
+            throw new RuntimeException(e);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public int sendPhoto(SendFileContext sendFileContext) {
+        SendPhoto sendPhoto = new SendPhoto();
+        sendPhoto.setChatId(sendFileContext.chatId());
+        sendPhoto.setPhoto(sendFileContext.file());
+
+        if (sendFileContext.replyMessageId() != null) {
+            sendPhoto.setReplyToMessageId(sendFileContext.replyMessageId());
+        }
+        if (sendFileContext.replyKeyboard() != null) {
+            sendPhoto.setReplyMarkup(sendFileContext.replyKeyboard());
+        }
+
+        try {
+            return telegramService.execute(sendPhoto).getMessageId();
         } catch (TelegramApiRequestException e) {
             LOGGER.error(e.getMessage() + ". " + e.getApiResponse() + "(" + e.getErrorCode() + "). Params " + e.getParameters(), e);
             throw new RuntimeException(e);

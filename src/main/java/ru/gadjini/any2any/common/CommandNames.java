@@ -33,4 +33,6 @@ public class CommandNames {
     public static final String LANGUAGE_COMMAND_NAME = "k";
 
     public static final String ARCHIVE_COMMAND_NAME = "l";
+
+    public static final String IMAGE_EDITOR_COMMAND_NAME = "m";
 }

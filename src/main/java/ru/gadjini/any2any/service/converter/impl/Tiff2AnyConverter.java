@@ -14,7 +14,7 @@ import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
-import ru.gadjini.any2any.service.image.ImageDevice;
+import ru.gadjini.any2any.service.image.device.ImageDevice;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.util.Set;

@@ -153,4 +153,10 @@ public class MessagesProperties {
     public static final String MESSAGE_FILE_CANT_BE_ADDED_TO_ARCHIVE = "message.file.cant.be.added.to.archive";
 
     public static final String MESSAGE_ARCHIVE_CURRENT_FILES = "message.archive.current.files";
+
+    public static final String IMAGE_EDITOR_COMMAND_NAME = "image.editor.command.name";
+
+    public static final String MESSAGE_IMAGE_EDITOR_WELCOME = "message.image.editor.welcome";
+
+    public static final String MESSAGE_IMAGE_TRANSPARENT_COLOR = "message.image.transparent.color";
 }
