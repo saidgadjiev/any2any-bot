@@ -4,7 +4,7 @@ public interface ImageDevice {
 
     void convert(String in, String out, String ... options);
 
-    void negativeTransparent(String in, String out, String... colors);
+    void negativeTransparent(String in, String out, String inaccuracy, String... colors);
 
-    void positiveTransparent(String in, String out, String color);
+    void positiveTransparent(String in, String out, String inaccuracy, String color);
 }

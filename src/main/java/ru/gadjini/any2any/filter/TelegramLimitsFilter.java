@@ -11,10 +11,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.model.EditMediaContext;
-import ru.gadjini.any2any.model.EditMessageContext;
-import ru.gadjini.any2any.model.SendFileContext;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.*;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
@@ -59,6 +56,11 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
+    public void sendAnswerCallbackQuery(AnswerCallbackContext callbackContext) {
+        messageService.sendAnswerCallbackQuery(callbackContext);
+    }
+
+    @Override
     public ChatMember getChatMember(String chatId, int userId) {
         return messageService.getChatMember(chatId, userId);
     }
@@ -93,6 +95,11 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     @Override
     public void editReplyKeyboard(long chatId, int messageId, InlineKeyboardMarkup replyKeyboard) {
         messageService.editReplyKeyboard(chatId, messageId, replyKeyboard);
+    }
+
+    @Override
+    public void editMessageCaption(EditMessageCaptionContext context) {
+        messageService.editMessageCaption(context);
     }
 
     @Override

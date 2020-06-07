@@ -95,7 +95,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
         if (isMediaMessage(message)) {
             imageEditorService.editFile(message.getChatId(), getEditFile(message, locale), locale);
         } else if (message.hasText()) {
-            imageEditorService.transparentColor(message.getChatId(), text);
+            imageEditorService.userText(message.getChatId(), text, null);
         }
     }
 
@@ -118,7 +118,9 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
             imageEditorService.transparentMode(callbackQuery.getMessage().getChatId(), mode);
         } else if (requestParams.contains(Arg.TRANSPARENT_COLOR.getKey())) {
             String color = requestParams.getString(Arg.TRANSPARENT_COLOR.getKey());
-            imageEditorService.transparentColor(callbackQuery.getMessage().getChatId(), color);
+            imageEditorService.userText(callbackQuery.getMessage().getChatId(), color, callbackQuery.getId());
+        } else if (requestParams.contains(Arg.INACCURACY.getKey())) {
+            imageEditorService.inaccuracy(callbackQuery.getMessage().getChatId(), requestParams.getString(Arg.INACCURACY.getKey()));
         }
     }
 

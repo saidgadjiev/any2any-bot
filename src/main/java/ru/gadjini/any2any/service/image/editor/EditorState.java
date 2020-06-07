@@ -4,11 +4,15 @@ public class EditorState {
 
     private String editFilePath;
 
+    private String prevEditFilePath;
+
     private String fileName;
 
     private int messageId;
 
     private String language;
+
+    private String inaccuracy = "10.0";
 
     private Mode mode = Mode.NEGATIVE;
 
@@ -70,6 +74,14 @@ public class EditorState {
         this.screen = screen;
     }
 
+    public String getInaccuracy() {
+        return inaccuracy;
+    }
+
+    public void setInaccuracy(String inaccuracy) {
+        this.inaccuracy = inaccuracy;
+    }
+
     public enum Mode {
 
         NEGATIVE,
@@ -81,6 +93,10 @@ public class EditorState {
 
         EDIT,
 
-        COLOR
+        COLOR,
+
+        MODE,
+
+        INACCURACY
     }
 }

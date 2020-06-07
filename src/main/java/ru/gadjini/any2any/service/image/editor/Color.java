@@ -9,9 +9,9 @@ public enum Color {
         @Override
         public String[] transparentColors() {
             return new String[]{
-                    "LightCoral", "IndianRed1", "IndianRed2", "firebrick1", "IndianRed", "IndianRed3",
-                    "firebrick2", "red", "red1", "firebrick3", "red2", "firebrick", "red3",
-                    "firebrick4", "DarkRed", "red4", "maroon", "crimson", "OrangeRed", "OrangeRed1", "OrangeRed2", "OrangeRed3"
+                    "brown1", "firebrick1",
+                    "firebrick2", "red", "red1", "firebrick3", "red2", "red3",
+                    "firebrick4", "DarkRed", "red4", "maroon", "crimson"
             };
         }
     },
@@ -19,9 +19,11 @@ public enum Color {
         @Override
         public String[] transparentColors() {
             return new String[]{
+                    "OrangeRed", "OrangeRed1", "OrangeRed2", "OrangeRed3",
                     "orange", "orange1", "orange2", "orange3", "DarkGoldenrod3", "DarkGoldenrod2", "DarkGoldenrod1",
                     "DarkGoldenrod", "goldenrod", "goldenrod1", "goldenrod2", "goldenrod3", "gold3", "DarkOrange", "DarkOrange1",
-                    "DarkOrange2", "DarkOrange3"
+                    "DarkOrange2", "DarkOrange3", "chocolate2", "chocolate3", "chocolate1", "chocolate", "tan2", "tan1", "tan3",
+                    "sienna3", "sienna2", "sienna1", "#f2ba5f", "#b07512", "#f4b85d"
             };
         }
     },
@@ -63,7 +65,7 @@ public enum Color {
                     "LightPink1", "LightPink2", "LightPink3", "LightPink", "pink", "pink1", "pink2", "pink3", "crimson", "PaleVioletRed4",
                     "PaleVioletRed", "PaleVioletRed1", "PaleVioletRed2", "PaleVioletRed3", "maroon", "HotPink3", "HotPink2", "HotPink1", "HotPink",
                     "DeepPink", "DeepPink1", "DeepPink2", "DeepPink3", "DeepPink4", "maroon1", "maroon2", "maroon3", "maroon4", "MediumVioletRed", "VioletRed",
-                    "VioletRed3", "VioletRed2", "VioletRed1"
+                    "VioletRed3", "VioletRed2", "VioletRed1", "LightPink4", "pink4", "HotPink4"
             };
         }
     },
@@ -81,7 +83,7 @@ public enum Color {
         @Override
         public String[] transparentColors() {
             List<String> colors = new ArrayList<>(List.of("black", "opaque"));
-            for (int i = 30; i > -1; --i) {
+            for (int i = 24; i > -1; --i) {
                 colors.add("grey" + i);
                 colors.add("gray" + i);
             }
@@ -93,7 +95,7 @@ public enum Color {
         @Override
         public String[] transparentColors() {
             return new String[]{
-                    "white", "gray100", "gray99", "gray98", "seashell", "seashell1", "FloralWhite", "OldLace", "ivory", "ivory1",
+                    "white", "gray100", "gray100", "gray99", "gray99", "gray98", "gray98", "seashell", "seashell1", "FloralWhite", "OldLace", "ivory", "ivory1",
                     "honeydew", "honeydew1", "MintCream", "azure", "azure1", "AliceBlue", "GhostWhite", "LavenderBlush", "LavenderBlush1",
                     "snow", "snow1"
             };
@@ -102,19 +104,31 @@ public enum Color {
     GRAY {
         @Override
         public String[] transparentColors() {
-            return new String[] {
+            List<String> colors = new ArrayList<>(List.of(
+                    "snow4", "LavenderBlush4", "plum3", "thistle4", "snow3", "LavenderBlush3", "LemonChiffon3", "cornsilk3", "PeachPuff3", "thistle3",
+                    "plum4", "LightSteelBlue4", "SlateGray4", "LightSlateGray", "LightSlateGrey", "SlateGray", "SlateGrey", "SlateGray3",
+                    "SkyBlue4", "LightSkyBlue4", "LightSkyBlue3", "LightBlue3", "LightBlue4", "CadetBlue4", "azure4", "LightCyan4", "PaleTurquoise4",
+                    "DarkSlateGray", "DarkSlateGrey", "aquamarine4", "honeydew4", "honeydew3", "DarkSeaGreen4",
+                    "ivory4", "LightYellow4", "LemonChiffon4", "cornsilk4", "wheat3", "wheat4", "AntiqueWhite4",
+                    "bisque4", "AntiqueWhite3", "bisque3", "seashell4", "MistyRose3", "MistyRose4", "DarkGray", "DarkGrey",
+                    "fractal", "gray", "DimGray", "DimGrey", "silver", "SlateGray2", "ivory3", "LemonChiffon3", "cornsilk3", "PeachPuff3", "seashell3"
+            ));
+            for (int i = 81; i > 24; --i) {
+                colors.add("grey" + i);
+                colors.add("gray" + i);
+            }
 
-            };
+            return colors.toArray(new String[0]);
         }
     },
     BROWN {
         @Override
         public String[] transparentColors() {
             return new String[]{
-                    "RosyBrown1", "RosyBrown2", "RosyBrown3", "RosyBrown", "RosyBrown4", "brown", "brown2", "brown3", "brown1", "brown",
+                    "firebrick", "RosyBrown4", "brown", "brown2", "brown3", "brown",
                     "brown4", "IndianRed4", "khaki4", "gold4", "goldenrod4", "DarkGoldenrod4", "orange4", "DarkOrange4", "burlywood4", "NavajoWhite4",
                     "tan4", "chocolate4", "SaddleBrown", "sienna4",
-                    "OrangeRed4", "coral4", "tomato4"
+                    "OrangeRed4", "coral4", "tomato4", "#743b17"
             };
         }
     };

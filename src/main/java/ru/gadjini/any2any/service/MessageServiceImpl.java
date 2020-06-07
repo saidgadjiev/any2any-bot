@@ -5,15 +5,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.*;
 import org.telegram.telegrambots.meta.api.objects.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaDocument;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -22,10 +20,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TelegramMethodException;
-import ru.gadjini.any2any.model.EditMediaContext;
-import ru.gadjini.any2any.model.EditMessageContext;
-import ru.gadjini.any2any.model.SendFileContext;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.*;
 
 import java.util.Locale;
 
@@ -43,6 +38,22 @@ public class MessageServiceImpl implements MessageService {
     public MessageServiceImpl(TelegramService telegramService, LocalisationService localisationService) {
         this.telegramService = telegramService;
         this.localisationService = localisationService;
+    }
+
+    @Override
+    public void sendAnswerCallbackQuery(AnswerCallbackContext callbackContext) {
+        AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
+
+        answerCallbackQuery.setText(callbackContext.text());
+        answerCallbackQuery.setCallbackQueryId(callbackContext.queryId());
+
+        try {
+            telegramService.execute(answerCallbackQuery);
+        } catch (TelegramApiRequestException ex) {
+            LOGGER.error(ex.getApiResponse(), ex);
+        } catch (TelegramApiException ex) {
+            LOGGER.error(ex.getMessage(), ex);
+        }
     }
 
     @Override
@@ -137,13 +148,36 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    public void editMessageCaption(EditMessageCaptionContext context) {
+        EditMessageCaption editMessageCaption = new EditMessageCaption();
+        editMessageCaption.setChatId(String.valueOf(context.chatId()));
+        editMessageCaption.setMessageId(context.messageId());
+        editMessageCaption.setCaption(context.caption());
+        editMessageCaption.setParseMode("html");
+
+        if (context.replyKeyboard() != null) {
+            editMessageCaption.setReplyMarkup(context.replyKeyboard());
+        }
+
+        try {
+            telegramService.execute(editMessageCaption);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void editMessageMedia(EditMediaContext editMediaContext) {
         EditMessageMedia editMessageMedia = new EditMessageMedia();
         editMessageMedia.setChatId(editMediaContext.chatId());
         editMessageMedia.setMessageId(editMediaContext.messageId());
         InputMediaDocument document = new InputMediaDocument();
         document.setMedia(editMediaContext.file(), editMediaContext.file().getName());
-        document.setCaption(editMediaContext.caption());
+
+        if (editMediaContext.caption() != null) {
+            document.setCaption(editMediaContext.caption());
+            document.setParseMode("html");
+        }
         editMessageMedia.setMedia(document);
 
         if (editMediaContext.replyKeyboard() != null) {
@@ -212,6 +246,10 @@ public class MessageServiceImpl implements MessageService {
         }
         if (sendDocumentContext.replyKeyboard() != null) {
             sendDocument.setReplyMarkup(sendDocumentContext.replyKeyboard());
+        }
+        if (sendDocumentContext.caption() != null) {
+            sendDocument.setCaption(sendDocumentContext.caption());
+            sendDocument.setParseMode("html");
         }
 
         try {

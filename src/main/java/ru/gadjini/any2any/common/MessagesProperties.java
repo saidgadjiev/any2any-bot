@@ -160,11 +160,17 @@ public class MessagesProperties {
 
     public static final String MESSAGE_IMAGE_TRANSPARENT_COLOR = "message.image.transparent.color";
 
-    public static final String MESSAGE_IMAGE_EDITOR_INCLUDE_MODE = "message.image.editor.include.mode";
+    public static final String MESSAGE_IMAGE_EDITOR_POSITIVE_MODE = "message.image.editor.positive.mode";
 
-    public static final String MESSAGE_IMAGE_EDITOR_EXCLUDE_MODE = "message.image.editor.exclude.mode";
+    public static final String MESSAGE_IMAGE_EDITOR_NEGATIVE_MODE = "message.image.editor.negative.mode";
 
     public static final String MESSAGE_IMAGE_EDITOR_CHOOSE_COLOR = "message.image.editor.choose.color";
 
+    public static final String TRANSPARENT_MODE_COMMAND_DESCRIPTION = "transparent.mode.command.description";
+
+    public static final String TRANSPARENT_INACCURACY_COMMAND_DESCRIPTION = "transparent.inaccuracy.command.description";
+
     public static final String TRANSPARENT_COLOR_EDITED_CALLBACK_ANSWER = "transparent.color.edited.callback.answer";
+
+    public static final String MESSAGE_EDITOR_SETTINGS = "message.editor.settings";
 }

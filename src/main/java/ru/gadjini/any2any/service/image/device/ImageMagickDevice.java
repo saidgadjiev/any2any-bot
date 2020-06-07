@@ -16,20 +16,20 @@ public class ImageMagickDevice implements ImageDevice {
     }
 
     @Override
-    public void negativeTransparent(String in, String out, String... colors) {
-        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, true, colors), 10);
+    public void negativeTransparent(String in, String out, String inaccuracy, String... colors) {
+        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, true, inaccuracy, colors), 10);
     }
 
     @Override
-    public void positiveTransparent(String in, String out, String color) {
-        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, false, color), 10);
+    public void positiveTransparent(String in, String out, String inaccuracy, String color) {
+        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, false, inaccuracy, color), 10);
     }
 
-    private String[] getTransparentRemoveCommand(String in, String out, boolean negative, String... colors) {
+    private String[] getTransparentRemoveCommand(String in, String out, boolean negative, String inaccuracy, String... colors) {
         List<String> command = new ArrayList<>(commandName());
         command.add(in);
         command.add("-fuzz");
-        command.add("10%");
+        command.add(inaccuracy + "%");
         String sign = negative ? "-" : "+";
         for (String color : colors) {
             command.add(sign + "transparent");

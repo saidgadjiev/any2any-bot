@@ -8,7 +8,8 @@ public enum Arg {
     CALLBACK_DELEGATE("d"),
     TRANSPARENT_MODE("e"),
     TRANSPARENT_COLOR("f"),
-    IMAGE_EDITOR_SCREEN("g");
+    IMAGE_EDITOR_SCREEN("g"),
+    INACCURACY("h");
 
     private final String key;
 
