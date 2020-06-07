@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.service.image.editor;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class EditorState {
 
     private String editFilePath;
@@ -80,6 +82,18 @@ public class EditorState {
 
     public void setInaccuracy(String inaccuracy) {
         this.inaccuracy = inaccuracy;
+    }
+
+    public String getPrevEditFilePath() {
+        return prevEditFilePath;
+    }
+
+    public void setPrevEditFilePath(String prevEditFilePath) {
+        this.prevEditFilePath = prevEditFilePath;
+    }
+
+    public boolean canCancel() {
+        return StringUtils.isNotBlank(prevEditFilePath);
     }
 
     public enum Mode {

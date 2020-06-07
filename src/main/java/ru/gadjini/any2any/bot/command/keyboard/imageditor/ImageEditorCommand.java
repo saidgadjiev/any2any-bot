@@ -67,6 +67,11 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     }
 
     @Override
+    public void cancel(long chatId, String queryId) {
+        imageEditorService.cancel(chatId, queryId);
+    }
+
+    @Override
     public boolean canHandle(long chatId, String command) {
         return names.contains(command);
     }

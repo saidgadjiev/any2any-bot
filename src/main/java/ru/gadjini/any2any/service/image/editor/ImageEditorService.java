@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service.image.editor;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -60,20 +61,43 @@ public class ImageEditorService {
         this.inlineKeyboardService = inlineKeyboardService;
     }
 
+    public void cancel(long chatId, String queryId) {
+        EditorState editorState = stateMap.get(chatId);
+        if (StringUtils.isNotBlank(editorState.getPrevEditFilePath())) {
+            String editFilePath = editorState.getEditFilePath();
+            editorState.setEditFilePath(editorState.getPrevEditFilePath());
+            editorState.setPrevEditFilePath(null);
+            try {
+                messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), new File(editorState.getEditFilePath()))
+                        .caption(getSettingsStr(editorState))
+                        .replyKeyboard(getScreenKeyboard(editorState.getScreen(), editorState.canCancel(), new Locale(editorState.getLanguage()))));
+            } finally {
+                File file = new File(editFilePath);
+                try {
+                    new SmartTempFile(file, true).smartDelete();
+                } catch (IOException e) {
+                    FileUtils.deleteQuietly(file.getParentFile());
+                }
+            }
+        } else {
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackContext(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_CANT_CANCEL_ANSWER, new Locale(editorState.getLanguage()))));
+        }
+    }
+
     public void inaccuracy(long chatId, String inaccuracy) {
         double v = Double.parseDouble(inaccuracy);
         EditorState state = stateMap.get(chatId);
         state.setInaccuracy(String.valueOf(v));
         messageService.editMessageCaption(
                 new EditMessageCaptionContext(chatId, state.getMessageId(), getSettingsStr(state))
-                        .replyKeyboard(getScreenKeyboard(state.getScreen(), new Locale(state.getLanguage())))
+                        .replyKeyboard(getScreenKeyboard(state.getScreen(), state.canCancel(), new Locale(state.getLanguage())))
         );
     }
 
     public void changeScreen(long chatId, EditorState.Screen screen) {
         EditorState state = stateMap.get(chatId);
         state.setScreen(screen);
-        changeScreenKeyboard(chatId, state.getMessageId(), screen, new Locale(state.getLanguage()));
+        changeScreenKeyboard(chatId, state.getMessageId(), screen, state.canCancel(), new Locale(state.getLanguage()));
     }
 
     public void transparentMode(long chatId, EditorState.Mode mode) {
@@ -81,7 +105,7 @@ public class ImageEditorService {
         state.setMode(mode);
         messageService.editMessageCaption(
                 new EditMessageCaptionContext(chatId, state.getMessageId(), getSettingsStr(state))
-                        .replyKeyboard(getScreenKeyboard(state.getScreen(), new Locale(state.getLanguage())))
+                        .replyKeyboard(getScreenKeyboard(state.getScreen(), state.canCancel(), new Locale(state.getLanguage())))
         );
     }
 
@@ -127,17 +151,20 @@ public class ImageEditorService {
             } else {
                 imageDevice.positiveTransparent(editorState.getEditFilePath(), tempFile.getAbsolutePath(), editorState.getInaccuracy(), getPositiveTransparentColor(colorText));
             }
-            try {
-                SmartTempFile prevFile = new SmartTempFile(new File(editorState.getEditFilePath()), true);
-                prevFile.smartDelete();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            if (StringUtils.isNotBlank(editorState.getPrevEditFilePath())) {
+                try {
+                    SmartTempFile prevFile = new SmartTempFile(new File(editorState.getPrevEditFilePath()), true);
+                    prevFile.smartDelete();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
+            editorState.setPrevEditFilePath(editorState.getEditFilePath());
             editorState.setEditFilePath(tempFile.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
             messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), tempFile.getFile())
                     .caption(getSettingsStr(editorState))
-                    .replyKeyboard(getScreenKeyboard(editorState.getScreen(), locale)));
+                    .replyKeyboard(getScreenKeyboard(editorState.getScreen(), editorState.canCancel(), locale)));
             if (StringUtils.isNotBlank(queryId)) {
                 messageService.sendAnswerCallbackQuery(
                         new AnswerCallbackContext(queryId, localisationService.getMessage(MessagesProperties.TRANSPARENT_COLOR_EDITED_CALLBACK_ANSWER, locale))
@@ -155,16 +182,16 @@ public class ImageEditorService {
         return editorState;
     }
 
-    private void changeScreenKeyboard(long chatId, int messageId, EditorState.Screen screen, Locale locale) {
-        messageService.editReplyKeyboard(chatId, messageId, getScreenKeyboard(screen, locale));
+    private void changeScreenKeyboard(long chatId, int messageId, EditorState.Screen screen, boolean cancelButton, Locale locale) {
+        messageService.editReplyKeyboard(chatId, messageId, getScreenKeyboard(screen, cancelButton, locale));
     }
 
-    private InlineKeyboardMarkup getScreenKeyboard(EditorState.Screen screen, Locale locale) {
+    private InlineKeyboardMarkup getScreenKeyboard(EditorState.Screen screen, boolean cancelButton, Locale locale) {
         switch (screen) {
             case EDIT:
                 return inlineKeyboardService.getEditImageTransparentKeyboard(locale);
             case COLOR:
-                return inlineKeyboardService.getColorsKeyboard(locale);
+                return inlineKeyboardService.getColorsKeyboard(locale, cancelButton);
             case MODE:
                 return inlineKeyboardService.getTransparentModeKeyboard(locale);
             default:

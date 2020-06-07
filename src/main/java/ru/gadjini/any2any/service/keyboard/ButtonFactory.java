@@ -33,6 +33,13 @@ public class ButtonFactory {
         return button;
     }
 
+    public InlineKeyboardButton cancelButton(Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale));
+        inlineKeyboardButton.setCallbackData(CommandNames.CANCEL_COMMAND_NAME);
+
+        return inlineKeyboardButton;
+    }
+
     public InlineKeyboardButton delegateButton(String nameCode, String delegate, RequestParams requestParams, Locale locale) {
         return delegateButton(localisationService.getMessage(nameCode, locale), delegate, requestParams);
     }

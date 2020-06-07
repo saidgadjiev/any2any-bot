@@ -173,4 +173,8 @@ public class MessagesProperties {
     public static final String TRANSPARENT_COLOR_EDITED_CALLBACK_ANSWER = "transparent.color.edited.callback.answer";
 
     public static final String MESSAGE_EDITOR_SETTINGS = "message.editor.settings";
+
+    public static final String CANCEL_COMMAND_DESCRIPTION = "cancel.command.description";
+
+    public static final String MESSAGE_CANT_CANCEL_ANSWER = "message.cant.cancel.answer";
 }

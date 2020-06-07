@@ -162,7 +162,7 @@ public class MessageServiceImpl implements MessageService {
         try {
             telegramService.execute(editMessageCaption);
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            LOGGER.error(e.getMessage(), e);
         }
     }
 

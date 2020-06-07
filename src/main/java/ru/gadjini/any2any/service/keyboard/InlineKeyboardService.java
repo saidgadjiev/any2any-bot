@@ -28,7 +28,7 @@ public class InlineKeyboardService {
         this.buttonFactory = buttonFactory;
     }
 
-    public InlineKeyboardMarkup getColorsKeyboard(Locale locale) {
+    public InlineKeyboardMarkup getColorsKeyboard(Locale locale, boolean cancelButton) {
         InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
 
         List<Color> colors = Arrays.stream(Color.values()).collect(Collectors.toList());
@@ -45,9 +45,16 @@ public class InlineKeyboardService {
             )));
             inlineKeyboardMarkup.getKeyboard().add(buttons);
         }
-        inlineKeyboardMarkup.getKeyboard().add(List.of(
-                buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
-                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_EDITOR_SCREEN.getKey(), EditorState.Screen.EDIT.name()), locale)));
+        if (cancelButton) {
+            inlineKeyboardMarkup.getKeyboard().add(List.of(
+                    buttonFactory.cancelButton(locale),
+                    buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
+                            CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_EDITOR_SCREEN.getKey(), EditorState.Screen.EDIT.name()), locale)));
+        } else {
+            inlineKeyboardMarkup.getKeyboard().add(List.of(
+                    buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
+                            CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_EDITOR_SCREEN.getKey(), EditorState.Screen.EDIT.name()), locale)));
+        }
 
         return inlineKeyboardMarkup;
     }

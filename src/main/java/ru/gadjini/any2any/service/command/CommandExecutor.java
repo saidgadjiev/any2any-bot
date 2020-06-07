@@ -84,6 +84,14 @@ public class CommandExecutor {
         return botCommands.get(startCommandName);
     }
 
+    public void cancelCommand(long chatId, String queryId) {
+        NavigableBotCommand navigableBotCommand = commandNavigator.getCurrentCommand(chatId);
+
+        if (navigableBotCommand != null) {
+            navigableBotCommand.cancel(chatId, queryId);
+        }
+    }
+
     public void processNonCommandUpdate(Message message, String text) {
         NavigableBotCommand navigableBotCommand = commandNavigator.getCurrentCommand(message.getChatId());
 

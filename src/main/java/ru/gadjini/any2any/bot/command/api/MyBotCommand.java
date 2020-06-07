@@ -11,4 +11,5 @@ public interface MyBotCommand {
         return message.hasText();
     }
 
+    default void cancel(long chatId, String queryId) {}
 }
