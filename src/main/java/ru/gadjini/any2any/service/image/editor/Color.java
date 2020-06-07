@@ -22,8 +22,8 @@ public enum Color {
                     "OrangeRed", "OrangeRed1", "OrangeRed2", "OrangeRed3",
                     "orange", "orange1", "orange2", "orange3", "DarkGoldenrod3", "DarkGoldenrod2", "DarkGoldenrod1",
                     "DarkGoldenrod", "goldenrod", "goldenrod1", "goldenrod2", "goldenrod3", "gold3", "DarkOrange", "DarkOrange1",
-                    "DarkOrange2", "DarkOrange3", "chocolate2", "chocolate3", "chocolate1", "chocolate", "tan2", "tan1", "tan3",
-                    "sienna3", "sienna2", "sienna1", "#f2ba5f", "#b07512", "#f4b85d"
+                    "DarkOrange2", "DarkOrange3", "chocolate2", "chocolate3", "chocolate1", "chocolate",
+                    "sienna2", "sienna1", "#f2ba5f", "#b07512", "#f4b85d"
             };
         }
     },
