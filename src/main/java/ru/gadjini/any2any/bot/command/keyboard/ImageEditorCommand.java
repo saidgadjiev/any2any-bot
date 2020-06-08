@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.bot.command.keyboard.imageditor;
+package ru.gadjini.any2any.bot.command.keyboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,8 +19,9 @@ import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
-import ru.gadjini.any2any.service.image.editor.EditorState;
-import ru.gadjini.any2any.service.image.editor.ImageEditorService;
+import ru.gadjini.any2any.service.image.editor.ModeState;
+import ru.gadjini.any2any.service.image.editor.State;
+import ru.gadjini.any2any.service.image.editor.StateFather;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 
 import java.util.Comparator;
@@ -41,7 +42,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     private ReplyKeyboardService replyKeyboardService;
 
-    private ImageEditorService imageEditorService;
+    private StateFather stateFather;
 
     private FormatService formatService;
 
@@ -49,12 +50,12 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     public ImageEditorCommand(LocalisationService localisationService,
                               @Qualifier("limits") MessageService messageService, UserService userService,
                               @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
-                              ImageEditorService imageEditorService, FormatService formatService) {
+                              StateFather stateFather, FormatService formatService) {
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.userService = userService;
         this.replyKeyboardService = replyKeyboardService;
-        this.imageEditorService = imageEditorService;
+        this.stateFather = stateFather;
         this.formatService = formatService;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.IMAGE_EDITOR_COMMAND_NAME, locale));
@@ -68,7 +69,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     @Override
     public void cancel(long chatId, String queryId) {
-        imageEditorService.cancel(chatId, queryId);
+        stateFather.cancel(this, chatId, queryId);
     }
 
     @Override
@@ -98,9 +99,9 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     public void processNonCommandUpdate(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         if (isMediaMessage(message)) {
-            imageEditorService.editFile(message.getChatId(), getEditFile(message, locale), locale);
+            stateFather.initializeState(this, message.getChatId(), getEditFile(message, locale), locale);
         } else if (message.hasText()) {
-            imageEditorService.userText(message.getChatId(), text, null);
+            stateFather.userText(this, message.getChatId(), text);
         }
     }
 
@@ -116,16 +117,19 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     @Override
     public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
-        if (requestParams.contains(Arg.IMAGE_EDITOR_SCREEN.getKey())) {
-            imageEditorService.changeScreen(callbackQuery.getMessage().getChatId(), EditorState.Screen.valueOf(requestParams.getString(Arg.IMAGE_EDITOR_SCREEN.getKey())));
+        if (requestParams.contains(Arg.GO_BACK.getKey())) {
+            stateFather.goBack(this, callbackQuery);
+        } else if (requestParams.contains(Arg.EDIT_STATE_NAME.getKey())) {
+            State.Name name = State.Name.valueOf(requestParams.getString(Arg.EDIT_STATE_NAME.getKey()));
+            stateFather.go(this, callbackQuery.getMessage().getChatId(), name);
         } else if (requestParams.contains(Arg.TRANSPARENT_MODE.getKey())) {
-            EditorState.Mode mode = EditorState.Mode.valueOf(requestParams.getString(Arg.TRANSPARENT_MODE.getKey()));
-            imageEditorService.transparentMode(callbackQuery.getMessage().getChatId(), mode);
+            ModeState.Mode mode = ModeState.Mode.valueOf(requestParams.getString(Arg.TRANSPARENT_MODE.getKey()));
+            stateFather.transparentMode(this, callbackQuery.getMessage().getChatId(), mode);
         } else if (requestParams.contains(Arg.TRANSPARENT_COLOR.getKey())) {
             String color = requestParams.getString(Arg.TRANSPARENT_COLOR.getKey());
-            imageEditorService.userText(callbackQuery.getMessage().getChatId(), color, callbackQuery.getId());
+            stateFather.transparentColor(this, callbackQuery.getMessage().getChatId(), callbackQuery.getId(), color);
         } else if (requestParams.contains(Arg.INACCURACY.getKey())) {
-            imageEditorService.inaccuracy(callbackQuery.getMessage().getChatId(), requestParams.getString(Arg.INACCURACY.getKey()));
+            stateFather.inaccuracy(this, callbackQuery.getMessage().getChatId(), requestParams.getString(Arg.INACCURACY.getKey()));
         }
     }
 

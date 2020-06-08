@@ -16,9 +16,9 @@ public class EditorState {
 
     private String inaccuracy = "10.0";
 
-    private Mode mode = Mode.NEGATIVE;
+    private ModeState.Mode mode = ModeState.Mode.NEGATIVE;
 
-    private Screen screen = Screen.EDIT;
+    private State.Name stateName = State.Name.EDIT;
 
     public String getImage() {
         return editFilePath;
@@ -52,11 +52,11 @@ public class EditorState {
         this.fileName = fileName;
     }
 
-    public Mode getMode() {
+    public ModeState.Mode getMode() {
         return mode;
     }
 
-    public void setMode(Mode mode) {
+    public void setMode(ModeState.Mode mode) {
         this.mode = mode;
     }
 
@@ -68,12 +68,12 @@ public class EditorState {
         this.language = language;
     }
 
-    public Screen getScreen() {
-        return screen;
+    public State.Name getStateName() {
+        return stateName;
     }
 
-    public void setScreen(Screen screen) {
-        this.screen = screen;
+    public void setStateName(State.Name stateName) {
+        this.stateName = stateName;
     }
 
     public String getInaccuracy() {
@@ -94,23 +94,5 @@ public class EditorState {
 
     public boolean canCancel() {
         return StringUtils.isNotBlank(prevEditFilePath);
-    }
-
-    public enum Mode {
-
-        NEGATIVE,
-
-        POSITIVE
-    }
-
-    public enum Screen {
-
-        EDIT,
-
-        COLOR,
-
-        MODE,
-
-        INACCURACY
     }
 }

@@ -1,12 +1,10 @@
 package ru.gadjini.any2any.service;
 
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia;
 import org.telegram.telegrambots.meta.api.objects.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.model.*;
 
-import java.io.File;
 import java.util.Locale;
 
 public interface MessageService {

@@ -17,7 +17,6 @@ import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
-import java.io.File;
 import java.util.Comparator;
 import java.util.Locale;
 

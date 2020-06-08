@@ -10,7 +10,8 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.image.editor.Color;
-import ru.gadjini.any2any.service.image.editor.EditorState;
+import ru.gadjini.any2any.service.image.editor.ModeState;
+import ru.gadjini.any2any.service.image.editor.State;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,11 +50,11 @@ public class InlineKeyboardService {
             inlineKeyboardMarkup.getKeyboard().add(List.of(
                     buttonFactory.cancelButton(locale),
                     buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
-                            CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_EDITOR_SCREEN.getKey(), EditorState.Screen.EDIT.name()), locale)));
+                            CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale)));
         } else {
             inlineKeyboardMarkup.getKeyboard().add(List.of(
                     buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
-                            CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_EDITOR_SCREEN.getKey(), EditorState.Screen.EDIT.name()), locale)));
+                            CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale)));
         }
 
         return inlineKeyboardMarkup;
@@ -64,13 +65,13 @@ public class InlineKeyboardService {
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.delegateButton(MessagesProperties.MESSAGE_IMAGE_EDITOR_NEGATIVE_MODE,
-                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.TRANSPARENT_MODE.getKey(), EditorState.Mode.NEGATIVE.name()), locale),
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.TRANSPARENT_MODE.getKey(), ModeState.Mode.NEGATIVE.name()), locale),
                 buttonFactory.delegateButton(MessagesProperties.MESSAGE_IMAGE_EDITOR_POSITIVE_MODE,
-                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.TRANSPARENT_MODE.getKey(), EditorState.Mode.POSITIVE.name()), locale)));
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.TRANSPARENT_MODE.getKey(), ModeState.Mode.POSITIVE.name()), locale)));
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
-                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_EDITOR_SCREEN.getKey(), EditorState.Screen.EDIT.name()), locale)));
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale)));
 
         return inlineKeyboardMarkup;
     }
@@ -95,7 +96,7 @@ public class InlineKeyboardService {
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
-                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_EDITOR_SCREEN.getKey(), EditorState.Screen.EDIT.name()), locale
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale
                 )));
 
         return inlineKeyboardMarkup;
@@ -106,14 +107,14 @@ public class InlineKeyboardService {
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.delegateButton(MessagesProperties.TRANSPARENT_MODE_COMMAND_DESCRIPTION,
-                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_EDITOR_SCREEN.getKey(), EditorState.Screen.MODE.name()), locale),
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.EDIT_STATE_NAME.getKey(), State.Name.MODE.name()), locale),
                 buttonFactory.delegateButton(MessagesProperties.MESSAGE_IMAGE_EDITOR_CHOOSE_COLOR,
-                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_EDITOR_SCREEN.getKey(), EditorState.Screen.COLOR.name()), locale)));
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.EDIT_STATE_NAME.getKey(), State.Name.COLOR.name()), locale)));
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.delegateButton(MessagesProperties.TRANSPARENT_INACCURACY_COMMAND_DESCRIPTION,
-                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_EDITOR_SCREEN.getKey(), EditorState.Screen.INACCURACY.name()), locale
-        )));
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.EDIT_STATE_NAME.getKey(), State.Name.INACCURACY.name()), locale
+                )));
 
         return inlineKeyboardMarkup;
     }
