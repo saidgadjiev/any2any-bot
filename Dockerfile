@@ -67,7 +67,11 @@ RUN ldconfig
 
 RUN apt-get install -y -qq tesseract-ocr
 
-RUN rm -rf /var/lib/apt/lists/*
+RUN echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
+RUN apt-get install -y --quiet ttf-mscorefonts-installer
+RUN fc-cache -f -v
+
+RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 COPY ./license/license-19.lic ./license/
 COPY ./target/app.jar .
