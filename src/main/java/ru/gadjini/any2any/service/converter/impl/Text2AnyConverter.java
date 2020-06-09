@@ -1,9 +1,6 @@
 package ru.gadjini.any2any.service.converter.impl;
 
-import com.aspose.pdf.Document;
-import com.aspose.pdf.FontRepository;
-import com.aspose.pdf.Page;
-import com.aspose.pdf.TextFragment;
+import com.aspose.pdf.*;
 import com.aspose.words.DocumentBuilder;
 import com.aspose.words.Font;
 import org.apache.commons.io.FileUtils;
@@ -16,9 +13,13 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
+import ru.gadjini.any2any.service.text.TextDetector;
+import ru.gadjini.any2any.service.text.TextDirection;
+import ru.gadjini.any2any.service.text.TextInfo;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
+import ru.gadjini.any2any.utils.TextUtils;
 
-import java.awt.*;
+import java.awt.Color;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -28,10 +29,13 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private FileService fileService;
 
+    private TextDetector textDetector;
+
     @Autowired
-    public Text2AnyConverter(FormatService formatService, FileService fileService) {
+    public Text2AnyConverter(FormatService formatService, FileService fileService, TextDetector textDetector) {
         super(Set.of(Format.TEXT), formatService);
         this.fileService = fileService;
+        this.textDetector = textDetector;
     }
 
     @Override
@@ -50,7 +54,7 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "txt"));
-            FileUtils.writeStringToFile(result.getFile(), fileQueueItem.getFileId(), StandardCharsets.UTF_8);
+            FileUtils.writeStringToFile(result.getFile(), TextUtils.removeAllEmojis(fileQueueItem.getFileId()), StandardCharsets.UTF_8);
 
             stopWatch.stop();
             return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
@@ -67,11 +71,21 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             try {
                 DocumentBuilder documentBuilder = new DocumentBuilder(document);
                 Font font = documentBuilder.getFont();
-                font.setSize(12);
                 font.setColor(Color.BLACK);
-                font.setName("Verdana");
 
-                documentBuilder.write(fileQueueItem.getFileId());
+                String text = TextUtils.removeAllEmojis(fileQueueItem.getFileId());
+                TextInfo textInfo = textDetector.detect(text);
+                if (textInfo.getDirection() == TextDirection.LR) {
+                    font.setSize(textInfo.getFont().getPrimarySize());
+                    font.setName(textInfo.getFont().getFontName());
+                } else {
+                    font.setSizeBi(textInfo.getFont().getPrimarySize());
+                    font.setNameBi(textInfo.getFont().getFontName());
+                    font.setBidi(true);
+                    documentBuilder.getParagraphFormat().setBidi(true);
+                }
+
+                documentBuilder.write(text);
                 SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
                 document.save(result.getAbsolutePath());
 
@@ -93,9 +107,18 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             Document document = new Document();
             try {
                 Page page = document.getPages().add();
-                TextFragment textFragment = new TextFragment(fileQueueItem.getFileId());
-                textFragment.getTextState().setFont(FontRepository.findFont("Verdana"));
-                textFragment.getTextState().setFontSize(12);
+                String text = TextUtils.removeAllEmojis(fileQueueItem.getFileId());
+                TextInfo textInfo = textDetector.detect(text);
+
+                TextFragment textFragment = new TextFragment(text.replace("\n", "\r\n"));
+                textFragment.getTextState().setFont(FontRepository.findFont(textInfo.getFont().getFontName()));
+                textFragment.getTextState().setFontSize(textInfo.getFont().getPrimarySize());
+                if (textInfo.getDirection() == TextDirection.LR) {
+                    document.setDirection(Direction.L2R);
+                } else {
+                    document.setDirection(Direction.R2L);
+                }
+                textFragment.getTextState().setLineSpacing(4.0f);
                 page.getParagraphs().add(textFragment);
 
                 SmartTempFile file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
