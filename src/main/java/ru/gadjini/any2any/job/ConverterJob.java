@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.job;
 
+import com.aspose.pdf.Document;
 import com.aspose.words.License;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +62,7 @@ public class ConverterJob {
 
     @PostConstruct
     public void init() {
+        initFonts();
         applyLicense();
         queueService.resetProcessing();
     }
@@ -155,6 +157,10 @@ public class ConverterJob {
                 fileQueueItem.getSize(),
                 fileQueueItem.getFileId()
         );
+    }
+
+    private void initFonts() {
+        LOGGER.debug("Pdf fonts paths " + Document.getLocalFontPaths());
     }
 
     private void applyLicense() {
