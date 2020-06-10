@@ -56,7 +56,7 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             stopWatch.start();
             SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "txt"));
             TextInfo textInfo = textDetector.detect(fileQueueItem.getFileId());
-            LOGGER.debug("Text language " + textInfo.getLanguage() + " font " + textInfo.getFont());
+            LOGGER.debug("Text info " + textInfo);
             String text = TextUtils.removeAllEmojis(fileQueueItem.getFileId(), textInfo.getDirection());
             FileUtils.writeStringToFile(result.getFile(), text, StandardCharsets.UTF_8);
 
@@ -78,7 +78,7 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 font.setColor(Color.BLACK);
 
                 TextInfo textInfo = textDetector.detect(fileQueueItem.getFileId());
-                LOGGER.debug("Text language " + textInfo.getLanguage() + " font " + textInfo.getFont());
+                LOGGER.debug("Text info " + textInfo);
                 String text = TextUtils.removeAllEmojis(fileQueueItem.getFileId(), textInfo.getDirection());
                 if (textInfo.getDirection() == TextDirection.LR) {
                     font.setSize(textInfo.getFont().getPrimarySize());

@@ -19,9 +19,10 @@ public class TextDetector {
         TextInfo textInfo = new TextInfo();
 
         Language detectedLanguage = DETECTOR.detectLanguageOf(text);
-        textInfo.setLanguage(detectedLanguage.getIsoCode639_1().toString());
-        textInfo.setDirection(getDirection(textInfo.getLanguage()));
-        textInfo.setFont(getFont(textInfo.getLanguage()));
+        textInfo.setLanguageCode(detectedLanguage.getIsoCode639_1().toString());
+        textInfo.setDirection(getDirection(textInfo.getLanguageCode()));
+        textInfo.setLanguage(detectedLanguage.name());
+        textInfo.setFont(getFont(textInfo.getLanguageCode()));
 
         return textInfo;
     }
