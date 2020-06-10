@@ -34,6 +34,8 @@ public class FileQueueItem {
 
     public static final String PLACE_IN_QUEUE = "place_in_queue";
 
+    public static final String MESSAGE = "message";
+
     private int id;
 
     private ZonedDateTime createdAt;
@@ -63,6 +65,8 @@ public class FileQueueItem {
     private Format targetFormat;
 
     private Status status;
+
+    private String message;
 
     public int getId() {
         return id;
@@ -182,6 +186,14 @@ public class FileQueueItem {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public enum Status {

@@ -4,6 +4,8 @@ public class TextInfo {
 
     private String language;
 
+    private String languageCode;
+
     private Font font;
 
     private TextDirection direction;
@@ -11,8 +13,8 @@ public class TextInfo {
     public TextInfo() {
     }
 
-    public void setLanguage(String language) {
-        this.language = language;
+    public void setLanguageCode(String languageCode) {
+        this.languageCode = languageCode;
     }
 
     public void setFont(Font font) {
@@ -23,8 +25,8 @@ public class TextInfo {
         this.direction = direction;
     }
 
-    public String getLanguage() {
-        return language;
+    public String getLanguageCode() {
+        return languageCode;
     }
 
     public Font getFont() {
@@ -33,5 +35,23 @@ public class TextInfo {
 
     public TextDirection getDirection() {
         return direction;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
+    }
+
+    @Override
+    public String toString() {
+        return "TextInfo{" +
+                "language='" + language + '\'' +
+                ", languageCode='" + languageCode + '\'' +
+                ", font=" + font +
+                ", direction=" + direction +
+                '}';
     }
 }
