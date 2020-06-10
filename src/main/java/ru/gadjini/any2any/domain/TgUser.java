@@ -12,11 +12,15 @@ public class TgUser {
 
     public static final String LOCALE = "locale";
 
+    public static final String ORIGINAL_LOCALE = "original_locale";
+
     private int userId;
 
     private String username;
 
     private String locale;
+
+    private String originalLocale;
 
     public int getUserId() {
         return userId;
@@ -35,7 +39,7 @@ public class TgUser {
     }
 
     public Locale getLocale() {
-        return Locale.getDefault();
+        return new Locale(locale);
     }
 
     public String getUsername() {
@@ -44,5 +48,13 @@ public class TgUser {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getOriginalLocale() {
+        return originalLocale;
+    }
+
+    public void setOriginalLocale(String originalLocale) {
+        this.originalLocale = originalLocale;
     }
 }
