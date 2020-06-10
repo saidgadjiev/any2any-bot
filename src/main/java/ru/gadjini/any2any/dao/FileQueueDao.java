@@ -171,6 +171,7 @@ public class FileQueueDao {
         fileQueueItem.setFormat(Format.valueOf(rs.getString(FileQueueItem.FORMAT)));
         fileQueueItem.setTargetFormat(Format.valueOf(rs.getString(FileQueueItem.TARGET_FORMAT)));
         fileQueueItem.setSize(rs.getInt(FileQueueItem.SIZE));
+        fileQueueItem.setMessage(rs.getString(FileQueueItem.MESSAGE));
         Timestamp lastRunAt = rs.getTimestamp(FileQueueItem.LAST_RUN_AT);
         if (lastRunAt != null) {
             ZonedDateTime zonedDateTime = ZonedDateTime.of(lastRunAt.toLocalDateTime(), ZoneOffset.UTC);

@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -157,6 +158,10 @@ public class MessageServiceImpl implements MessageService {
         }
         if (sendDocumentContext.replyKeyboard() != null) {
             sendDocument.setReplyMarkup(sendDocumentContext.replyKeyboard());
+        }
+        if (StringUtils.isNotBlank(sendDocumentContext.caption())) {
+            sendDocument.setCaption(sendDocumentContext.caption());
+            sendDocument.setParseMode("html");
         }
 
         try {

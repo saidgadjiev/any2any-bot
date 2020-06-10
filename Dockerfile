@@ -69,6 +69,7 @@ RUN apt-get install -y -qq tesseract-ocr
 
 RUN echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
 RUN apt-get install -y --quiet ttf-mscorefonts-installer
+COPY ./fonts/ /usr/share/fonts/
 RUN fc-cache -f -v
 
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

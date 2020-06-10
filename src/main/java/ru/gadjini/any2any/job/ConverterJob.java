@@ -133,6 +133,7 @@ public class ConverterJob {
         switch (convertResult.resultType()) {
             case FILE: {
                 SendFileContext sendDocumentContext = new SendFileContext(fileQueueItem.getUserId(), ((FileResult) convertResult).getFile())
+                        .caption(fileQueueItem.getMessage())
                         .replyMessageId(fileQueueItem.getMessageId())
                         .replyKeyboard(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                 messageService.sendDocument(sendDocumentContext);
