@@ -5,6 +5,7 @@ import java.util.Set;
 public enum Font {
 
     MANGAL("Mangal", Set.of("mr", "hi"), 13),
+    JAMEEL_NOORI_NASTALEEQ_KASHEEDA("Jameel Noori Nastaleeq Kasheeda", Set.of("ur"), 14),
     TIMES_NEW_ROMAN("TimesNewRoman", null, 13);
 
     private String fontName;
