@@ -54,7 +54,9 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "txt"));
-            FileUtils.writeStringToFile(result.getFile(), TextUtils.removeAllEmojis(fileQueueItem.getFileId()), StandardCharsets.UTF_8);
+            TextInfo textInfo = textDetector.detect(fileQueueItem.getFileId());
+            String text = TextUtils.removeAllEmojis(fileQueueItem.getFileId(), textInfo.getDirection());
+            FileUtils.writeStringToFile(result.getFile(), text, StandardCharsets.UTF_8);
 
             stopWatch.stop();
             return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
@@ -73,8 +75,8 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 Font font = documentBuilder.getFont();
                 font.setColor(Color.BLACK);
 
-                String text = TextUtils.removeAllEmojis(fileQueueItem.getFileId());
-                TextInfo textInfo = textDetector.detect(text);
+                TextInfo textInfo = textDetector.detect(fileQueueItem.getFileId());
+                String text = TextUtils.removeAllEmojis(fileQueueItem.getFileId(), textInfo.getDirection());
                 if (textInfo.getDirection() == TextDirection.LR) {
                     font.setSize(textInfo.getFont().getPrimarySize());
                     font.setName(textInfo.getFont().getFontName());
@@ -107,8 +109,8 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             Document document = new Document();
             try {
                 Page page = document.getPages().add();
-                String text = TextUtils.removeAllEmojis(fileQueueItem.getFileId());
-                TextInfo textInfo = textDetector.detect(text);
+                TextInfo textInfo = textDetector.detect(fileQueueItem.getFileId());
+                String text = TextUtils.removeAllEmojis(fileQueueItem.getFileId(), textInfo.getDirection());
 
                 TextFragment textFragment = new TextFragment(text.replace("\n", "\r\n"));
                 textFragment.getTextState().setFont(FontRepository.findFont(textInfo.getFont().getFontName()));

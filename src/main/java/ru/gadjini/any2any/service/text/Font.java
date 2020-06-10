@@ -4,8 +4,8 @@ import java.util.Set;
 
 public enum Font {
 
-    MANGAL("Mangal", Set.of("mr", "hi"), 12),
-    TIMES_NEW_ROMAN("TimesNewRoman", null, 12);
+    MANGAL("Mangal", Set.of("mr", "hi"), 13),
+    TIMES_NEW_ROMAN("TimesNewRoman", null, 13);
 
     private String fontName;
 
