@@ -48,6 +48,8 @@ public class FileQueueItem {
 
     private int userId;
 
+    private TgUser user;
+
     private int messageId;
 
     private String fileId;
@@ -194,6 +196,14 @@ public class FileQueueItem {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public TgUser getUser() {
+        return user;
+    }
+
+    public void setUser(TgUser user) {
+        this.user = user;
     }
 
     public enum Status {

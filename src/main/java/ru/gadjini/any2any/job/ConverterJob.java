@@ -10,10 +10,13 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.configuration.SchedulerConfiguration;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.event.QueueItemCanceled;
 import ru.gadjini.any2any.model.SendFileContext;
+import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.converter.api.Any2AnyConverter;
@@ -48,15 +51,18 @@ public class ConverterJob {
 
     private Set<Any2AnyConverter<ConvertResult>> any2AnyConverters = new LinkedHashSet<>();
 
+    private LocalisationService localisationService;
+
     @Autowired
     public ConverterJob(FileQueueBusinessService queueService, Set<Any2AnyConverter> any2AnyConvertersSet,
                         @Qualifier("converterTaskExecutor") ThreadPoolTaskExecutor taskExecutor, InlineKeyboardService inlineKeyboardService,
-                        UserService userService, @Qualifier("limits") MessageService messageService) {
+                        UserService userService, @Qualifier("limits") MessageService messageService, LocalisationService localisationService) {
         this.queueService = queueService;
         this.taskExecutor = taskExecutor;
         this.inlineKeyboardService = inlineKeyboardService;
         this.userService = userService;
         this.messageService = messageService;
+        this.localisationService = localisationService;
         any2AnyConvertersSet.forEach(any2AnyConverter -> any2AnyConverters.add(any2AnyConverter));
     }
 
@@ -97,7 +103,7 @@ public class ConverterJob {
     private void convert(FileQueueItem fileQueueItem) {
         Any2AnyConverter<ConvertResult> candidate = getCandidate(fileQueueItem);
         if (candidate != null) {
-            LOGGER.debug("Start conversion from " + fileQueueItem.getFormat() + " to " + fileQueueItem.getTargetFormat() + " id " + fileQueueItem.getId());
+            LOGGER.debug("Start conversion for user " + fileQueueItem.getUserId() + " from " + fileQueueItem.getFormat() + " to " + fileQueueItem.getTargetFormat() + " id " + fileQueueItem.getId());
             try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
                 logConvertFinished(fileQueueItem, convertResult.time());
                 sendResult(fileQueueItem, convertResult);
@@ -110,6 +116,11 @@ public class ConverterJob {
                 } else {
                     queueService.exception(fileQueueItem.getId(), ex);
                     LOGGER.error(ex.getMessage(), ex);
+                    Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+                    messageService.sendMessage(
+                            new SendMessageContext(fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_FAILED, locale))
+                                    .replyMessageId(fileQueueItem.getMessageId())
+                    );
                 }
             }
         } else {

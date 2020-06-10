@@ -27,6 +27,7 @@ public class UserService {
         TgUser tgUser = new TgUser();
         tgUser.setUserId(user.getId());
         tgUser.setUsername(user.getUserName());
+        tgUser.setOriginalLocale(user.getLanguageCode());
 
         String language = localisationService.getSupportedLocales().stream()
                 .filter(locale -> locale.getLanguage().equals(user.getLanguageCode()))

@@ -177,4 +177,6 @@ public class MessagesProperties {
     public static final String CANCEL_COMMAND_DESCRIPTION = "cancel.command.description";
 
     public static final String MESSAGE_CANT_CANCEL_ANSWER = "message.cant.cancel.answer";
+
+    public static final String MESSAGE_CONVERSION_FAILED = "message.conversion.failed";
 }

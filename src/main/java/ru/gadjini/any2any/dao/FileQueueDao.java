@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.domain.TgUser;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.utils.JdbcUtils;
 
@@ -168,6 +169,11 @@ public class FileQueueDao {
         fileQueueItem.setFileName(rs.getString(FileQueueItem.FILE_NAME));
         fileQueueItem.setFileId(rs.getString(FileQueueItem.FILE_ID));
         fileQueueItem.setUserId(rs.getInt(FileQueueItem.USER_ID));
+
+        TgUser user = new TgUser();
+        user.setUserId(fileQueueItem.getUserId());
+        fileQueueItem.setUser(user);
+
         fileQueueItem.setFormat(Format.valueOf(rs.getString(FileQueueItem.FORMAT)));
         fileQueueItem.setTargetFormat(Format.valueOf(rs.getString(FileQueueItem.TARGET_FORMAT)));
         fileQueueItem.setSize(rs.getInt(FileQueueItem.SIZE));
