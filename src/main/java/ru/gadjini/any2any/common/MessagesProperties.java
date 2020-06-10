@@ -153,4 +153,6 @@ public class MessagesProperties {
     public static final String MESSAGE_FILE_CANT_BE_ADDED_TO_ARCHIVE = "message.file.cant.be.added.to.archive";
 
     public static final String MESSAGE_ARCHIVE_CURRENT_FILES = "message.archive.current.files";
+
+    public static final String MESSAGE_CONVERSION_FAILED = "message.conversion.failed";
 }
