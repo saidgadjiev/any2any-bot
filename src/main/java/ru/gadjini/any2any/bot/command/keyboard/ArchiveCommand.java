@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
@@ -12,6 +11,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
@@ -43,10 +43,12 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     private Set<String> names = new HashSet<>();
 
+    private FileService fileService;
+
     @Autowired
     public ArchiveCommand(ArchiveService archiveService, LocalisationService localisationService, @Qualifier("limits") MessageService messageService,
                           CommandStateService commandStateService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
-                          UserService userService, FormatService formatService) {
+                          UserService userService, FormatService formatService, FileService fileService) {
         this.archiveService = archiveService;
         this.localisationService = localisationService;
         this.messageService = messageService;
@@ -54,6 +56,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
         this.replyKeyboardService = replyKeyboardService;
         this.userService = userService;
         this.formatService = formatService;
+        this.fileService = fileService;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.ARCHIVE_COMMAND_NAME, locale));
         }
@@ -114,19 +117,12 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
     }
 
     private Any2AnyFile createFile(Message message, Locale locale) {
-        Any2AnyFile any2AnyFile = new Any2AnyFile();
-        if (message.hasDocument()) {
-            any2AnyFile.setFileName(message.getDocument().getFileName());
-            any2AnyFile.setFileId(message.getDocument().getFileId());
-        } else if (message.hasPhoto()) {
-            any2AnyFile.setFileName(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + ".jpg");
-            PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
-            any2AnyFile.setFileId(photoSize.getFileId());
+        Any2AnyFile any2AnyFile = fileService.getFile(message, locale);
+        if (any2AnyFile != null) {
+            return any2AnyFile;
         } else {
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_CANT_BE_ADDED_TO_ARCHIVE, locale));
         }
-
-        return any2AnyFile;
     }
 
     private String toString(List<Any2AnyFile> any2AnyFiles) {

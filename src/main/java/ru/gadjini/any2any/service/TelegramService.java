@@ -16,10 +16,10 @@ public class TelegramService extends DefaultAbsSender {
 
     private final BotProperties botProperties;
 
-    private FileService fileService;
+    private TempFileService fileService;
 
     @Autowired
-    public TelegramService(BotProperties botProperties, DefaultBotOptions botOptions, FileService fileService) {
+    public TelegramService(BotProperties botProperties, DefaultBotOptions botOptions, TempFileService fileService) {
         super(botOptions);
         this.botProperties = botProperties;
         this.fileService = fileService;

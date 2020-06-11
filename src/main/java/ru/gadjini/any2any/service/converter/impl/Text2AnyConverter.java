@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.FileService;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.service.text.TextDetector;
@@ -31,12 +31,12 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Text2AnyConverter.class);
 
-    private FileService fileService;
+    private TempFileService fileService;
 
     private TextDetector textDetector;
 
     @Autowired
-    public Text2AnyConverter(FormatService formatService, FileService fileService, TextDetector textDetector) {
+    public Text2AnyConverter(FormatService formatService, TempFileService fileService, TextDetector textDetector) {
         super(Set.of(Format.TEXT), formatService);
         this.fileService = fileService;
         this.textDetector = textDetector;

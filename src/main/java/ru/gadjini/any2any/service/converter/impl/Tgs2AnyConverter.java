@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.FileService;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.ProcessExecutor;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
@@ -23,13 +23,13 @@ public class Tgs2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private TelegramService telegramService;
 
-    private FileService fileService;
+    private TempFileService fileService;
 
     private ArchiveService archiveService;
 
     @Autowired
     public Tgs2AnyConverter(FormatService formatService, TelegramService telegramService,
-                            FileService fileService, ArchiveService archiveService) {
+                            TempFileService fileService, ArchiveService archiveService) {
         super(Set.of(Format.TGS), formatService);
         this.telegramService = telegramService;
         this.fileService = fileService;

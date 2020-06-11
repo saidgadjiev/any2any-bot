@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.FileService;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
@@ -23,13 +23,13 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private TelegramService telegramService;
 
-    private FileService fileService;
+    private TempFileService fileService;
 
     private HtmlDevice htmlDevice;
 
     @Autowired
     public Html2AnyConverter(FormatService formatService, TelegramService telegramService,
-                             FileService fileService, @Qualifier("api") HtmlDevice htmlDevice) {
+                             TempFileService fileService, @Qualifier("api") HtmlDevice htmlDevice) {
         super(Set.of(Format.URL, Format.HTML), formatService);
         this.telegramService = telegramService;
         this.fileService = fileService;

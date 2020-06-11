@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.FileService;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
@@ -21,12 +21,12 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private FileService fileService;
+    private TempFileService fileService;
 
     private TelegramService telegramService;
 
     @Autowired
-    public Pdf2AnyConverter(FormatService formatService, FileService fileService, TelegramService telegramService) {
+    public Pdf2AnyConverter(FormatService formatService, TempFileService fileService, TelegramService telegramService) {
         super(Set.of(Format.PDF), formatService);
         this.fileService = fileService;
         this.telegramService = telegramService;

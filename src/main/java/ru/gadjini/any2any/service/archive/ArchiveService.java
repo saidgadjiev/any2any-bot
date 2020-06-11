@@ -24,7 +24,7 @@ public class ArchiveService {
 
     private Set<ArchiveDevice> archiveDevices;
 
-    private FileService fileService;
+    private TempFileService fileService;
 
     private CommonJobExecutor commonJobExecutor;
 
@@ -37,7 +37,7 @@ public class ArchiveService {
     private UserService userService;
 
     @Autowired
-    public ArchiveService(Set<ArchiveDevice> archiveDevices, FileService fileService, CommonJobExecutor commonJobExecutor,
+    public ArchiveService(Set<ArchiveDevice> archiveDevices, TempFileService fileService, CommonJobExecutor commonJobExecutor,
                           TelegramService telegramService, LocalisationService localisationService,
                           @Qualifier("limits") MessageService messageService, UserService userService) {
         this.archiveDevices = archiveDevices;

@@ -1,57 +1,79 @@
 package ru.gadjini.any2any.service;
 
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.gadjini.any2any.io.SmartTempFile;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
+import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.service.converter.impl.FormatService;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.Locale;
 
 @Service
 public class FileService {
 
-    public SmartTempFile createTempFile0(String prefix, String ext) {
-        try {
-            return new SmartTempFile(File.createTempFile(prefix, "." + ext), false);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    private LocalisationService localisationService;
+
+    private FormatService formatService;
+
+    @Autowired
+    public FileService(LocalisationService localisationService, FormatService formatService) {
+        this.localisationService = localisationService;
+        this.formatService = formatService;
     }
 
-    public SmartTempFile getTempFile(String fileName) {
-        try {
-            Path tmpdir = Files.createTempDirectory("tmpdir");
+    public Any2AnyFile getFile(Message message, Locale locale) {
+        Any2AnyFile any2AnyFile = new Any2AnyFile();
 
-            return new SmartTempFile(new File(tmpdir.toFile(), fileName), true);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (message.hasDocument()) {
+            any2AnyFile.setFileName(message.getDocument().getFileName());
+            any2AnyFile.setFileId(message.getDocument().getFileId());
+            any2AnyFile.setMimeType(message.getDocument().getMimeType());
+
+            return any2AnyFile;
+        } else if (message.hasPhoto()) {
+            any2AnyFile.setFileName(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + ".jpg");
+            PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
+            any2AnyFile.setFileId(photoSize.getFileId());
+            any2AnyFile.setMimeType("image/jpeg");
+
+            return any2AnyFile;
+        } else if (message.hasVideo()) {
+            String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + ".";
+            String extension = formatService.getExt(message.getVideo().getMimeType());
+            if (StringUtils.isNotBlank(extension)) {
+                fileName += extension;
+            } else {
+                fileName += "mp4";
+            }
+            any2AnyFile.setFileName(fileName);
+            any2AnyFile.setFileId(message.getVideo().getFileId());
+
+            return any2AnyFile;
+        } else if (message.hasAudio()) {
+            String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + ".";
+            String extension = formatService.getExt(message.getAudio().getMimeType());
+            fileName += extension;
+            any2AnyFile.setFileName(fileName);
+            any2AnyFile.setFileId(message.getAudio().getFileId());
+            any2AnyFile.setMimeType(message.getAudio().getMimeType());
+
+            return any2AnyFile;
+        } else if (message.hasSticker()) {
+            Sticker sticker = message.getSticker();
+            any2AnyFile.setFileId(sticker.getFileId());
+            String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + ".";
+            fileName += sticker.getAnimated() ? "tgs" : "webp";
+            any2AnyFile.setFileName(fileName);
+            any2AnyFile.setMimeType(sticker.getAnimated() ? null : "image/webp");
+
+            return any2AnyFile;
         }
-    }
 
-    public SmartTempFile createTempFile(String fileName) {
-        try {
-            Path tmpdir = Files.createTempDirectory("tmpdir");
-
-            File file = new File(tmpdir.toFile(), fileName);
-            file.createNewFile();
-
-            return new SmartTempFile(file, true);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public SmartTempFile createTempDir(String name) {
-        try {
-            Path tmpdir = Files.createTempDirectory("tmpdir");
-            File file = new File(tmpdir.toFile(), name);
-
-            file.mkdirs();
-
-            return new SmartTempFile(file, true);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return null;
     }
 }

@@ -1,31 +1,21 @@
 package ru.gadjini.any2any.bot.command.keyboard.rename;
 
+import ru.gadjini.any2any.model.Any2AnyFile;
+
 public class RenameState {
 
-    private String fileId;
-
-    private String fileName;
-
-    private String mimeType;
+   private Any2AnyFile file;
 
     private String language;
 
     private int replyMessageId;
 
-    public String getFileId() {
-        return fileId;
+    public void setFile(Any2AnyFile file) {
+        this.file = file;
     }
 
-    public void setFileId(String fileId) {
-        this.fileId = fileId;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
+    public Any2AnyFile getFile() {
+        return file;
     }
 
     public String getLanguage() {
@@ -34,14 +24,6 @@ public class RenameState {
 
     public void setLanguage(String language) {
         this.language = language;
-    }
-
-    public String getMimeType() {
-        return mimeType;
-    }
-
-    public void setMimeType(String mimeType) {
-        this.mimeType = mimeType;
     }
 
     public int getReplyMessageId() {
