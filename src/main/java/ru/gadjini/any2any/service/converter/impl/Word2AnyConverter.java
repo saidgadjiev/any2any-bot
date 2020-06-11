@@ -5,14 +5,16 @@ import com.aspose.words.Document;
 import com.aspose.words.SaveFormat;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
+import ru.gadjini.any2any.service.converter.device.ConvertDevice;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.util.Set;
@@ -27,20 +29,81 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private TempFileService fileService;
 
+    private ConvertDevice convertDevice;
+
     @Autowired
-    public Word2AnyConverter(TelegramService telegramService, TempFileService fileService, FormatService formatService) {
+    public Word2AnyConverter(TelegramService telegramService, TempFileService fileService,
+                             FormatService formatService, @Qualifier("calibre") ConvertDevice convertDevice) {
         super(ACCEPT_FORMATS, formatService);
         this.telegramService = telegramService;
         this.fileService = fileService;
+        this.convertDevice = convertDevice;
     }
 
     @Override
     public FileResult convert(FileQueueItem queueItem) {
+        if (queueItem.getTargetFormat() == Format.EPUB) {
+            if (queueItem.getFormat() == Format.DOCX) {
+                return docxToEpub(queueItem);
+            }
+
+            return docToEpub(queueItem);
+        }
         if (queueItem.getTargetFormat() == Format.TIFF) {
             return toTiff(queueItem);
         }
-        
+
         return doConvert(queueItem);
+    }
+
+    private FileResult docToEpub(FileQueueItem queueItem) {
+        SmartTempFile file = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
+
+        try {
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+
+            Document document = new Document(file.getAbsolutePath());
+            try {
+                SmartTempFile in = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), Format.DOC.getExt()));
+
+                try {
+                    document.save(in.getAbsolutePath(), SaveFormat.DOCX);
+                    SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), Format.EPUB.getExt()));
+                    convertDevice.convert(in.getAbsolutePath(), result.getAbsolutePath());
+
+                    stopWatch.stop();
+                    return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+                } finally {
+                    in.smartDelete();
+                }
+            } finally {
+                document.cleanup();
+            }
+        } catch (Exception ex) {
+            throw new ConvertException(ex);
+        } finally {
+            file.smartDelete();
+        }
+    }
+
+    private FileResult docxToEpub(FileQueueItem queueItem) {
+        SmartTempFile file = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
+
+        try {
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+
+            SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), Format.EPUB.getExt()));
+            convertDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
+
+            stopWatch.stop();
+            return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+        } catch (Exception ex) {
+            throw new ConvertException(ex);
+        } finally {
+            file.smartDelete();
+        }
     }
 
     private FileResult toTiff(FileQueueItem queueItem) {
@@ -104,8 +167,6 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         switch (format) {
             case PDF:
                 return SaveFormat.PDF;
-            case EPUB:
-                return SaveFormat.EPUB;
             case RTF:
                 return SaveFormat.RTF;
             case DOCX:

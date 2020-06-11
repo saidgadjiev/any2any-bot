@@ -5,14 +5,16 @@ import com.aspose.pdf.SaveFormat;
 import com.aspose.pdf.devices.TiffDevice;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
+import ru.gadjini.any2any.service.converter.device.ConvertDevice;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.util.Set;
@@ -25,15 +27,22 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private TelegramService telegramService;
 
+    private ConvertDevice convertDevice;
+
     @Autowired
-    public Pdf2AnyConverter(FormatService formatService, TempFileService fileService, TelegramService telegramService) {
+    public Pdf2AnyConverter(FormatService formatService, TempFileService fileService,
+                            TelegramService telegramService, @Qualifier("calibre") ConvertDevice convertDevice) {
         super(Set.of(Format.PDF), formatService);
         this.fileService = fileService;
         this.telegramService = telegramService;
+        this.convertDevice = convertDevice;
     }
 
     @Override
     public ConvertResult convert(FileQueueItem fileQueueItem) {
+        if (fileQueueItem.getTargetFormat() == Format.EPUB) {
+            return toEpub(fileQueueItem);
+        }
         if (fileQueueItem.getTargetFormat() == Format.TIFF) {
             return toTiff(fileQueueItem);
         }
@@ -61,6 +70,23 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             }
         } finally {
             pdfFile.smartDelete();
+        }
+    }
+
+    private FileResult toEpub(FileQueueItem fileQueueItem) {
+        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+
+        try {
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+
+            SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.EPUB.getExt()));
+            convertDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
+
+            stopWatch.stop();
+            return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+        } finally {
+            file.smartDelete();
         }
     }
 
@@ -92,8 +118,6 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 return SaveFormat.Doc;
             case DOCX:
                 return SaveFormat.DocX;
-            case EPUB:
-                return SaveFormat.Epub;
         }
 
         throw new UnsupportedOperationException();
