@@ -1,11 +1,18 @@
 FROM ubuntu:20.04
 
-WORKDIR /home/root/bot
+RUN useradd -ms /bin/bash bot
+USER bot
+
+RUN mkdir -p /home/bot/app
+WORKDIR /home/bot/app
+
+USER root
+
 ENV DEBIAN_FRONTEND noninteractive 
 ENV USE_SANDBOX false
 
 RUN apt-get update -y -qq
-RUN apt-get install -y -qq openjdk-11-jre build-essential curl wget gdebi p7zip-rar locales rar zip unzip
+RUN apt-get install -y -qq openjdk-11-jre build-essential curl wget git gdebi p7zip-rar locales rar zip unzip
 
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 RUN apt-get install -y -qq nodejs
@@ -27,16 +34,18 @@ RUN gdebi --n gifski/gifski_0.10.1_amd64.deb
 RUN rm -rf gifski
 RUN rm gifski-0.10.1.zip
 
-RUN wget https://raw.githubusercontent.com/saidgadjiev/tgs-to-gif/master/cli.js
-RUN wget https://raw.githubusercontent.com/saidgadjiev/tgs-to-gif/master/index.js
-RUN wget https://raw.githubusercontent.com/saidgadjiev/tgs-to-gif/master/package.json
-RUN npm install
+USER bot
+
+RUN git clone https://github.com/saidgadjiev/tgs-to-gif.git
+RUN cd tgs-to-gif && npm install
 
 RUN wget https://github.com/jankovicsandras/imagetracerjava/raw/master/ImageTracer.jar
 
+USER root
+
 RUN sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
 RUN apt-get update -y -qq
-RUN apt-get install -y -qq autoconf libtool git-core
+RUN apt-get install -y -qq autoconf libtool 
 RUN apt-get -y -qq build-dep imagemagick libmagickcore-dev libde265 libheif
 
 RUN cd /usr/src/ && \
@@ -68,11 +77,19 @@ RUN ldconfig
 RUN apt-get install -y -qq tesseract-ocr
 
 RUN echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
-RUN apt-get install -y --quiet ttf-mscorefonts-installer
+RUN apt-get install -y -qq ttf-mscorefonts-installer
 COPY ./fonts/ /usr/share/fonts/
 RUN fc-cache -f -v
 
+USER bot
+
+RUN wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sh /dev/stdin install_dir=/home/bot isolated=y
+ENV PATH="/home/bot/calibre/:${PATH}"
+
+USER root
 RUN apt-get clean -y && apt-get autoclean -y && apt-get autoremove -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+USER bot
 
 COPY ./license/license-19.lic ./license/
 COPY ./target/app.jar .
