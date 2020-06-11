@@ -1,10 +1,9 @@
 package ru.gadjini.any2any.service.text;
 
-import com.github.pemistahl.lingua.api.Language;
-import com.github.pemistahl.lingua.api.LanguageDetector;
-import com.github.pemistahl.lingua.api.LanguageDetectorBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.gadjini.any2any.service.language.LanguageDetector;
 
 import java.util.Set;
 
@@ -13,15 +12,19 @@ public class TextDetector {
 
     private static final Set<String> RL_LANGUAGES = Set.of("ar", "az", "he", "fa", "ur");
 
-    private static final LanguageDetector DETECTOR = LanguageDetectorBuilder.fromAllBuiltInLanguages().build();
+    private LanguageDetector languageDetector;
+
+    @Autowired
+    public TextDetector(LanguageDetector languageDetector) {
+        this.languageDetector = languageDetector;
+    }
 
     public TextInfo detect(String text) {
         TextInfo textInfo = new TextInfo();
 
-        Language detectedLanguage = DETECTOR.detectLanguageOf(text);
-        textInfo.setLanguageCode(detectedLanguage.getIsoCode639_1().toString());
+        String languageCode = languageDetector.detect(text);
+        textInfo.setLanguageCode(languageCode);
         textInfo.setDirection(getDirection(textInfo.getLanguageCode()));
-        textInfo.setLanguage(detectedLanguage.name());
         textInfo.setFont(getFont(textInfo.getLanguageCode()));
 
         return textInfo;

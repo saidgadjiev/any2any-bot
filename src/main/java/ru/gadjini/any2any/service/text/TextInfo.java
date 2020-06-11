@@ -2,8 +2,6 @@ package ru.gadjini.any2any.service.text;
 
 public class TextInfo {
 
-    private String language;
-
     private String languageCode;
 
     private Font font;
@@ -37,19 +35,10 @@ public class TextInfo {
         return direction;
     }
 
-    public String getLanguage() {
-        return language;
-    }
-
-    public void setLanguage(String language) {
-        this.language = language;
-    }
-
     @Override
     public String toString() {
         return "TextInfo{" +
-                "language='" + language + '\'' +
-                ", languageCode='" + languageCode + '\'' +
+                "languageCode='" + languageCode + '\'' +
                 ", font=" + font +
                 ", direction=" + direction +
                 '}';
