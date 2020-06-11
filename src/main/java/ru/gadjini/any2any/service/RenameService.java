@@ -3,6 +3,8 @@ package ru.gadjini.any2any.service;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -18,9 +20,11 @@ import java.util.Locale;
 @Service
 public class RenameService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RenameService.class);
+
     private TelegramService telegramService;
 
-    private FileService fileService;
+    private TempFileService fileService;
 
     private FormatService formatService;
 
@@ -29,7 +33,7 @@ public class RenameService {
     private CommonJobExecutor commonJobExecutor;
 
     @Autowired
-    public RenameService(TelegramService telegramService, FileService fileService, FormatService formatService,
+    public RenameService(TelegramService telegramService, TempFileService fileService, FormatService formatService,
                          @Qualifier("limits") MessageService messageService, CommonJobExecutor commonJobExecutor) {
         this.telegramService = telegramService;
         this.fileService = fileService;
@@ -40,11 +44,12 @@ public class RenameService {
 
     public void rename(long chatId, RenameState renameState, String newFileName, Locale locale) {
         commonJobExecutor.addJob(() -> {
-            String ext = formatService.getExt(renameState.getFileName(), renameState.getMimeType());
+            String ext = formatService.getExt(renameState.getFile().getFileName(), renameState.getFile().getMimeType());
             SmartTempFile file = createNewFile(newFileName, ext);
-            telegramService.downloadFileByFileId(renameState.getFileId(), file.getFile());
+            telegramService.downloadFileByFileId(renameState.getFile().getFileId(), file.getFile());
             try {
                 sendMessage(chatId, renameState.getReplyMessageId(), file.getFile());
+                LOGGER.debug("Rename success for " + chatId + " new file name " + newFileName);
             } catch (Exception ex) {
                 messageService.sendErrorMessage(chatId, locale);
                 throw ex;

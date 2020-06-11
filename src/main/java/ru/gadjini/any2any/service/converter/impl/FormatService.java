@@ -103,6 +103,9 @@ public class FormatService {
 
         if (StringUtils.isNotBlank(extension) && !".bin".equals(extension)) {
             extension = extension.substring(1);
+            if (extension.equals("mpga")) {
+                return "mp3";
+            }
         }
 
         return extension;

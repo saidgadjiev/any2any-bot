@@ -11,7 +11,7 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendMessageContext;
-import ru.gadjini.any2any.service.FileService;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.TelegramService;
@@ -39,12 +39,12 @@ public class UnzipperService {
 
     private TelegramService telegramService;
 
-    private FileService fileService;
+    private TempFileService fileService;
 
     @Autowired
     public UnzipperService(Set<UnzipDevice> unzippers, LocalisationService localisationService,
                            CommonJobExecutor unzipperJob, @Qualifier("limits") MessageService messageService,
-                           TelegramService telegramService, FileService fileService) {
+                           TelegramService telegramService, TempFileService fileService) {
         this.unzippers = unzippers;
         this.localisationService = localisationService;
         this.unzipperJob = unzipperJob;
