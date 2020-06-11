@@ -7,6 +7,9 @@ import ru.gadjini.any2any.property.ConversionProperties;
 import ru.gadjini.any2any.service.ProcessExecutor;
 import ru.gadjini.any2any.utils.UrlUtils;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 @Service
 @Qualifier("api")
 public class Url2PdfApiDevice implements HtmlDevice {
@@ -25,7 +28,11 @@ public class Url2PdfApiDevice implements HtmlDevice {
 
     @Override
     public void processUrl(String url, String out) {
-        new ProcessExecutor().execute(buildCommandByUrl(UrlUtils.appendScheme(url), out), 70);
+        new ProcessExecutor().execute(buildCommandByUrl(prepareUrl(UrlUtils.appendScheme(url)), out), 70);
+    }
+
+    private String prepareUrl(String url) {
+        return URLEncoder.encode(url, StandardCharsets.UTF_8);
     }
 
     private String[] buildCommandByUrl(String url, String out) {
