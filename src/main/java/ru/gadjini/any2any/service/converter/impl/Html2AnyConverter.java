@@ -15,6 +15,9 @@ import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.service.html.HtmlDevice;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -70,12 +73,18 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             stopWatch.start();
 
             SmartTempFile file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
-            htmlDevice.processUrl(fileQueueItem.getFileId(), file.getAbsolutePath());
+            htmlDevice.processUrl(prepareUrl(fileQueueItem.getFileId()), file.getAbsolutePath());
 
             stopWatch.stop();
             return new FileResult(file, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
         }
+    }
+
+    private String prepareUrl(String url) {
+        String decoded = URLDecoder.decode(url, StandardCharsets.UTF_8);
+
+        return URLEncoder.encode(decoded, StandardCharsets.UTF_8);
     }
 }
