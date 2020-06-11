@@ -12,9 +12,9 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.AnswerCallbackContext;
 import ru.gadjini.any2any.model.EditMediaContext;
-import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.image.device.ImageDevice;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
@@ -39,7 +39,7 @@ public class ColorState implements State {
 
     private CommonJobExecutor commonJobExecutor;
 
-    private FileService fileService;
+    private TempFileService fileService;
 
     private ImageDevice imageDevice;
 
@@ -50,7 +50,7 @@ public class ColorState implements State {
     @Autowired
     public ColorState(CommandStateService commandStateService, @Qualifier("limits") MessageService messageService,
                       InlineKeyboardService inlineKeyboardService, CommonJobExecutor commonJobExecutor,
-                      FileService fileService, ImageDevice imageDevice, EditMessageBuilder messageBuilder,
+                      TempFileService fileService, ImageDevice imageDevice, EditMessageBuilder messageBuilder,
                       LocalisationService localisationService) {
         this.commandStateService = commandStateService;
         this.messageService = messageService;

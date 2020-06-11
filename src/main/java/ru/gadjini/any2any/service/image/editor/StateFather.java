@@ -9,9 +9,9 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendFileContext;
-import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.image.device.ImageDevice;
@@ -32,7 +32,7 @@ public class StateFather implements State {
 
     private MessageService messageService;
 
-    private FileService fileService;
+    private TempFileService fileService;
 
     private EditMessageBuilder messageBuilder;
 
@@ -44,7 +44,7 @@ public class StateFather implements State {
 
     @Autowired
     public StateFather(CommandStateService commandStateService, CommonJobExecutor commonJobExecutor,
-                       @Qualifier("limits") MessageService messageService, FileService fileService,
+                       @Qualifier("limits") MessageService messageService, TempFileService fileService,
                        EditMessageBuilder messageBuilder, InlineKeyboardService inlineKeyboardService,
                        TelegramService telegramService, ImageDevice imageDevice) {
         this.commandStateService = commandStateService;
