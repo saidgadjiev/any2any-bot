@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -188,7 +189,7 @@ public class MessageServiceImpl implements MessageService {
         try {
             telegramService.execute(editMessageMedia);
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            throw new TelegramException(e);
         }
     }
 
@@ -257,9 +258,9 @@ public class MessageServiceImpl implements MessageService {
             return telegramService.execute(sendDocument).getMessageId();
         } catch (TelegramApiRequestException e) {
             LOGGER.error(e.getMessage() + ". " + e.getApiResponse() + "(" + e.getErrorCode() + "). Params " + e.getParameters(), e);
-            throw new RuntimeException(e);
+            throw new TelegramRequestException(e, sendDocument.getChatId());
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            throw new TelegramException(e);
         }
     }
 
@@ -280,7 +281,7 @@ public class MessageServiceImpl implements MessageService {
             return telegramService.execute(sendPhoto).getMessageId();
         } catch (TelegramApiRequestException e) {
             LOGGER.error(e.getMessage() + ". " + e.getApiResponse() + "(" + e.getErrorCode() + "). Params " + e.getParameters(), e);
-            throw new TelegramRequestException(e, sendDocumentContext.chatId());
+            throw new TelegramRequestException(e, sendFileContext.chatId());
         } catch (TelegramApiException e) {
             throw new TelegramException(e);
         }
