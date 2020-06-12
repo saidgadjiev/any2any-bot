@@ -21,8 +21,8 @@ public class UserDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public void updateActivity(int userId) {
-        jdbcTemplate.update(
+    public int updateActivity(int userId) {
+        return jdbcTemplate.update(
                 "UPDATE tg_user SET last_activity_at = now() WHERE user_id = ?",
                 ps -> ps.setInt(1, userId)
         );

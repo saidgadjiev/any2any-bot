@@ -1,6 +1,8 @@
 package ru.gadjini.any2any.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.User;
@@ -12,6 +14,8 @@ import java.util.Locale;
 
 @Service
 public class UserService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
     private UserDao userDao;
 
@@ -48,8 +52,17 @@ public class UserService {
         return Locale.getDefault();
     }
 
-    public void activity(int userId) {
-        userDao.updateActivity(userId);
+    public void activity(User user) {
+        if (user == null) {
+            LOGGER.error("Wtf!!! User is null and activity can't be created");
+            return;
+        }
+        int updated = userDao.updateActivity(user.getId());
+
+        if (updated == 0) {
+            createOrUpdate(user);
+            LOGGER.debug("User not found and created with user id " + user.getId());
+        }
     }
 
     public void changeLocale(int userId, Locale locale) {

@@ -18,7 +18,7 @@ public class LastActivityFilter extends BaseBotFilter {
 
     @Override
     public void doFilter(Update update) {
-        userService.activity(TgMessage.getUserId(update));
+        userService.activity(TgMessage.getUser(update));
         super.doFilter(update);
     }
 }
