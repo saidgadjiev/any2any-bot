@@ -2,7 +2,7 @@ package ru.gadjini.any2any.exception;
 
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
-public class TelegramMethodException extends RuntimeException {
+public class TelegramRequestException extends RuntimeException {
 
     private int errorCode;
 
@@ -10,14 +10,14 @@ public class TelegramMethodException extends RuntimeException {
 
     private final String chatId;
 
-    public TelegramMethodException(TelegramApiRequestException apiException, long chatId) {
+    public TelegramRequestException(TelegramApiRequestException apiException, long chatId) {
         super(apiException.getApiResponse() + "(" + chatId + ")", apiException);
         this.errorCode = apiException.getErrorCode();
         this.response = apiException.getApiResponse();
         this.chatId = String.valueOf(chatId);
     }
 
-    public TelegramMethodException(TelegramApiRequestException apiException, String chatId) {
+    public TelegramRequestException(TelegramApiRequestException apiException, String chatId) {
         super(apiException.getApiResponse() + "(" + chatId + ")", apiException);
         this.errorCode = apiException.getErrorCode();
         this.response = apiException.getApiResponse();

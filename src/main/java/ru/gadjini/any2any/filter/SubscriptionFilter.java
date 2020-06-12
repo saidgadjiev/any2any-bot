@@ -9,7 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import ru.gadjini.any2any.common.CommonConstants;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.exception.TelegramMethodException;
+import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.service.LocalisationService;
@@ -49,7 +49,7 @@ public class SubscriptionFilter extends BaseBotFilter {
     private boolean isSubscribedToTopsBot(int userId) {
         try {
             messageService.getChatMember(CommonConstants.TOP_BOTS_CHANNEL, userId);
-        } catch (TelegramMethodException ex) {
+        } catch (TelegramRequestException ex) {
             if (ex.getErrorCode() == 400) {
                 if (ex.getResponse().contains("user not found")) {
                     return false;

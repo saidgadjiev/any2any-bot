@@ -19,7 +19,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.exception.TelegramMethodException;
+import ru.gadjini.any2any.exception.TelegramException;
+import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.model.*;
 
 import java.util.Locale;
@@ -65,9 +66,9 @@ public class MessageServiceImpl implements MessageService {
         try {
             return telegramService.execute(getChatMember);
         } catch (TelegramApiRequestException ex) {
-            throw new TelegramMethodException(ex, chatId);
+            throw new TelegramRequestException(ex, chatId);
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            throw new TelegramException(e);
         }
     }
 
@@ -94,7 +95,7 @@ public class MessageServiceImpl implements MessageService {
         try {
             telegramService.execute(sendMessage);
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            throw new TelegramException(ex);
         }
     }
 
@@ -143,7 +144,7 @@ public class MessageServiceImpl implements MessageService {
         try {
             telegramService.execute(editMessageReplyMarkup);
         } catch (TelegramApiException ex) {
-            throw new RuntimeException(ex);
+            throw new TelegramException(ex);
         }
     }
 
@@ -216,9 +217,9 @@ public class MessageServiceImpl implements MessageService {
             telegramService.execute(sendSticker);
         } catch (TelegramApiRequestException e) {
             LOGGER.error(e.getMessage() + ". " + e.getApiResponse() + "(" + e.getErrorCode() + "). Params " + e.getParameters(), e);
-            throw new RuntimeException(e);
+            throw new TelegramRequestException(e, sendFileContext.chatId());
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            throw new TelegramException(e);
         }
     }
 
@@ -247,7 +248,7 @@ public class MessageServiceImpl implements MessageService {
         if (sendDocumentContext.replyKeyboard() != null) {
             sendDocument.setReplyMarkup(sendDocumentContext.replyKeyboard());
         }
-        if (sendDocumentContext.caption() != null) {
+        if (StringUtils.isNotBlank(sendDocumentContext.caption())) {
             sendDocument.setCaption(sendDocumentContext.caption());
             sendDocument.setParseMode("html");
         }
@@ -279,9 +280,9 @@ public class MessageServiceImpl implements MessageService {
             return telegramService.execute(sendPhoto).getMessageId();
         } catch (TelegramApiRequestException e) {
             LOGGER.error(e.getMessage() + ". " + e.getApiResponse() + "(" + e.getErrorCode() + "). Params " + e.getParameters(), e);
-            throw new RuntimeException(e);
+            throw new TelegramRequestException(e, sendDocumentContext.chatId());
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            throw new TelegramException(e);
         }
     }
 
