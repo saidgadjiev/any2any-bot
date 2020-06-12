@@ -48,6 +48,10 @@ public class UserService {
         return Locale.getDefault();
     }
 
+    public void activity(int userId) {
+        userDao.updateActivity(userId);
+    }
+
     public void changeLocale(int userId, Locale locale) {
         userDao.updateLocale(userId, locale);
     }

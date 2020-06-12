@@ -21,13 +21,20 @@ public class UserDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    public void updateActivity(int userId) {
+        jdbcTemplate.update(
+                "UPDATE tg_user SET last_activity_at = now() WHERE user_id = ?",
+                ps -> ps.setInt(1, userId)
+        );
+    }
+
     public String createOrUpdate(TgUser user) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(
                 connection -> {
                     var ps = connection.prepareStatement(
                             "INSERT INTO tg_user(user_id, username, locale, original_locale) VALUES (?, ?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET " +
-                                    "last_logged_in_at = now(), username = excluded.username, original_locale = excluded.original_locale " +
+                                    "last_activity_at = now(), username = excluded.username, original_locale = excluded.original_locale " +
                                     "RETURNING CASE WHEN XMAX::text::int > 0 THEN 'updated' ELSE 'inserted' END AS state",
                             Statement.RETURN_GENERATED_KEYS
                     );
