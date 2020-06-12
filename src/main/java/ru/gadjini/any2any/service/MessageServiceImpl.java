@@ -17,7 +17,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.exception.TelegramMethodException;
+import ru.gadjini.any2any.exception.TelegramException;
+import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.model.EditMessageContext;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendMessageContext;
@@ -49,9 +50,9 @@ public class MessageServiceImpl implements MessageService {
         try {
             return telegramService.execute(getChatMember);
         } catch (TelegramApiRequestException ex) {
-            throw new TelegramMethodException(ex, chatId);
+            throw new TelegramRequestException(ex, chatId);
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            throw new TelegramException(e);
         }
     }
 
@@ -78,7 +79,7 @@ public class MessageServiceImpl implements MessageService {
         try {
             telegramService.execute(sendMessage);
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            throw new TelegramException(ex);
         }
     }
 
@@ -141,9 +142,9 @@ public class MessageServiceImpl implements MessageService {
             telegramService.execute(sendSticker);
         } catch (TelegramApiRequestException e) {
             LOGGER.error(e.getMessage() + ". " + e.getApiResponse() + "(" + e.getErrorCode() + "). Params " + e.getParameters(), e);
-            throw new RuntimeException(e);
+            throw new TelegramRequestException(e, sendFileContext.chatId());
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            throw new TelegramException(e);
         }
     }
 
@@ -168,9 +169,9 @@ public class MessageServiceImpl implements MessageService {
             telegramService.execute(sendDocument);
         } catch (TelegramApiRequestException e) {
             LOGGER.error(e.getMessage() + ". " + e.getApiResponse() + "(" + e.getErrorCode() + "). Params " + e.getParameters(), e);
-            throw new RuntimeException(e);
+            throw new TelegramRequestException(e, sendDocumentContext.chatId());
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            throw new TelegramException(e);
         }
     }
 

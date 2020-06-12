@@ -14,6 +14,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.configuration.SchedulerConfiguration;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.event.QueueItemCanceled;
+import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.service.LocalisationService;
@@ -105,10 +106,16 @@ public class ConverterJob {
         if (candidate != null) {
             LOGGER.debug("Start conversion for user " + fileQueueItem.getUserId() + " from " + fileQueueItem.getFormat() + " to " + fileQueueItem.getTargetFormat() + " id " + fileQueueItem.getId());
             try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
-                logConvertFinished(fileQueueItem, convertResult.time());
                 sendResult(fileQueueItem, convertResult);
                 queueService.complete(fileQueueItem.getId());
-                LOGGER.debug("Conversion " + fileQueueItem.getId() + " completed");
+                LOGGER.debug(
+                        "Convert from {} to {} has taken {}. File size {} id {}",
+                        fileQueueItem.getFormat(),
+                        fileQueueItem.getTargetFormat(),
+                        convertResult.time(),
+                        fileQueueItem.getSize(),
+                        fileQueueItem.getId()
+                );
             } catch (Exception ex) {
                 Future<?> future = processing.get(fileQueueItem.getId());
                 if (future != null && future.isCancelled()) {
@@ -147,28 +154,37 @@ public class ConverterJob {
                         .caption(fileQueueItem.getMessage())
                         .replyMessageId(fileQueueItem.getMessageId())
                         .replyKeyboard(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
-                messageService.sendDocument(sendDocumentContext);
+                try {
+                    messageService.sendDocument(sendDocumentContext);
+                } catch (TelegramRequestException ex) {
+                    if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
+                        LOGGER.debug("Reply message not found try send without reply");
+                        sendDocumentContext.replyMessageId(null);
+                        messageService.sendDocument(sendDocumentContext);
+                    } else {
+                        throw ex;
+                    }
+                }
                 break;
             }
             case STICKER: {
                 SendFileContext sendFileContext = new SendFileContext(fileQueueItem.getUserId(), ((FileResult) convertResult).getFile())
                         .replyMessageId(fileQueueItem.getMessageId())
                         .replyKeyboard(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
-                messageService.sendSticker(sendFileContext);
+                try {
+                    messageService.sendSticker(sendFileContext);
+                } catch (TelegramRequestException ex) {
+                    if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
+                        LOGGER.debug("Reply message not found try send without reply");
+                        sendFileContext.replyMessageId(null);
+                        messageService.sendSticker(sendFileContext);
+                    } else {
+                        throw ex;
+                    }
+                }
                 break;
             }
         }
-    }
-
-    private void logConvertFinished(FileQueueItem fileQueueItem, long time) {
-        LOGGER.debug(
-                "Convert from {} to {} has taken {}. File size {} id {}",
-                fileQueueItem.getFormat(),
-                fileQueueItem.getTargetFormat(),
-                time,
-                fileQueueItem.getSize(),
-                fileQueueItem.getFileId()
-        );
     }
 
     private void initFonts() {
