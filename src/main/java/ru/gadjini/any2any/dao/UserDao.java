@@ -46,7 +46,11 @@ public class UserDao {
                         ps.setString(2, user.getUsername());
                     }
                     ps.setString(3, user.getLanguageCode());
-                    ps.setString(4, user.getOriginalLocale());
+                    if (StringUtils.isBlank(user.getOriginalLocale())) {
+                        ps.setNull(4, Types.NULL);
+                    } else {
+                        ps.setString(4, user.getOriginalLocale());
+                    }
 
                     return ps;
                 },
