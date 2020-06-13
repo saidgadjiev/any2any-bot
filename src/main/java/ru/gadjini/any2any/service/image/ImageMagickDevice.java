@@ -12,7 +12,7 @@ public class ImageMagickDevice implements ImageDevice {
 
     @Override
     public void convert(String in, String out, String... options) {
-        new ProcessExecutor().execute(getCommand(in, out, options), 10);
+        new ProcessExecutor().execute(getCommand(in, out, options), 2 * 60);
     }
 
     private String[] getCommand(String in, String out, String... options) {

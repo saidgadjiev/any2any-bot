@@ -7,7 +7,7 @@ import ru.gadjini.any2any.service.ProcessExecutor;
 public class ImageTracer {
 
     public void trace(String in, String out) {
-        new ProcessExecutor().execute(command(in, out), 30);
+        new ProcessExecutor().execute(command(in, out), 2 * 60);
     }
 
     private String[] command(String in, String out) {

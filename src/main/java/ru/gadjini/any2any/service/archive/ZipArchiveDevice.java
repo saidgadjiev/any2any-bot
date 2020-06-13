@@ -20,7 +20,7 @@ public class ZipArchiveDevice extends BaseArchiveDevice {
 
     @Override
     public void zip(List<String> files, String out) {
-        new ProcessExecutor().execute(buildCommand(files, out), 10);
+        new ProcessExecutor().execute(buildCommand(files, out), 60);
     }
 
     private String[] buildCommand(List<String> files, String out) {

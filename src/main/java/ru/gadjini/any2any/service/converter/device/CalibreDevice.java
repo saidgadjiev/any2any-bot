@@ -10,7 +10,7 @@ public class CalibreDevice implements ConvertDevice {
 
     @Override
     public void convert(String in, String out) {
-        new ProcessExecutor().execute(buildCommand(in, out), 120);
+        new ProcessExecutor().execute(buildCommand(in, out), 10 * 60);
     }
 
     private String[] buildCommand(String in, String out) {
