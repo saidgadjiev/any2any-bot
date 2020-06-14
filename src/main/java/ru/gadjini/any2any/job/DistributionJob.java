@@ -37,7 +37,7 @@ public class DistributionJob {
         checkDistributions();
     }
 
-    @Scheduled(cron = "* */5 * * * *")
+    @Scheduled(cron = "0 */5 * * * *")
     public void distribute() {
         if (isDisabled()) {
             LOGGER.debug("Distribution job is disabled");

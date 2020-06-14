@@ -90,11 +90,11 @@ public class StateFather implements State {
     }
 
     @Override
-    public void go(ImageEditorCommand command, long chatId, Name name) {
+    public void go(ImageEditorCommand command, long chatId, String queryId, Name name) {
         State state = getState(chatId, command.getHistoryName());
         LOGGER.debug(state.getClass().getSimpleName() + "#go(" + name + ")");
 
-        state.go(command, chatId, name);
+        state.go(command, chatId, queryId, name);
     }
 
     @Override
@@ -103,11 +103,11 @@ public class StateFather implements State {
     }
 
     @Override
-    public void transparentMode(ImageEditorCommand command, long chatId, ModeState.Mode mode) {
+    public void transparentMode(ImageEditorCommand command, long chatId, String queryId, ModeState.Mode mode) {
         State state = getState(chatId, command.getHistoryName());
         LOGGER.debug(state.getClass().getSimpleName() + "#transparentMode(" + mode + ")");
 
-        state.transparentMode(command, chatId, mode);
+        state.transparentMode(command, chatId, queryId, mode);
     }
 
     @Override
@@ -119,11 +119,11 @@ public class StateFather implements State {
     }
 
     @Override
-    public void inaccuracy(ImageEditorCommand command, long chatId, String inaccuracy) {
+    public void inaccuracy(ImageEditorCommand command, long chatId, String queryId, String inaccuracy) {
         State state = getState(chatId, command.getHistoryName());
         LOGGER.debug(state.getClass().getSimpleName() + "#inaccuracy(" + inaccuracy + ")");
 
-        state.inaccuracy(command, chatId, inaccuracy);
+        state.inaccuracy(command, chatId, queryId, inaccuracy);
     }
 
     @Override

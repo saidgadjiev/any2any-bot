@@ -20,7 +20,7 @@ import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
 import ru.gadjini.any2any.service.image.editor.State;
-import ru.gadjini.any2any.service.image.editor.StateFather;
+import ru.gadjini.any2any.service.image.editor.StateFatherProxy;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 
@@ -42,7 +42,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     private ReplyKeyboardService replyKeyboardService;
 
-    private StateFather stateFather;
+    private StateFatherProxy stateFather;
 
     private FormatService formatService;
 
@@ -50,7 +50,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     public ImageEditorCommand(LocalisationService localisationService,
                               @Qualifier("limits") MessageService messageService, UserService userService,
                               @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
-                              StateFather stateFather, FormatService formatService) {
+                              StateFatherProxy stateFather, FormatService formatService) {
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.userService = userService;
@@ -119,22 +119,23 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
         if (requestParams.contains(Arg.GO_BACK.getKey())) {
             stateFather.goBack(this, callbackQuery);
-        } if (requestParams.contains(Arg.IMAGE_SIZE.getKey())) {
+        }
+        if (requestParams.contains(Arg.IMAGE_SIZE.getKey())) {
             stateFather.size(this, callbackQuery.getMessage().getChatId(), callbackQuery.getId(), requestParams.getString(Arg.IMAGE_SIZE.getKey()));
         } else if (requestParams.contains(Arg.IMAGE_FILTER.getKey())) {
             State.Filter effect = State.Filter.valueOf(requestParams.getString(Arg.IMAGE_FILTER.getKey()));
             stateFather.applyFilter(this, callbackQuery.getMessage().getChatId(), callbackQuery.getId(), effect);
         } else if (requestParams.contains(Arg.EDIT_STATE_NAME.getKey())) {
             State.Name name = State.Name.valueOf(requestParams.getString(Arg.EDIT_STATE_NAME.getKey()));
-            stateFather.go(this, callbackQuery.getMessage().getChatId(), name);
+            stateFather.go(this, callbackQuery.getMessage().getChatId(), callbackQuery.getId(), name);
         } else if (requestParams.contains(Arg.TRANSPARENT_MODE.getKey())) {
             ModeState.Mode mode = ModeState.Mode.valueOf(requestParams.getString(Arg.TRANSPARENT_MODE.getKey()));
-            stateFather.transparentMode(this, callbackQuery.getMessage().getChatId(), mode);
+            stateFather.transparentMode(this, callbackQuery.getMessage().getChatId(), callbackQuery.getId(), mode);
         } else if (requestParams.contains(Arg.TRANSPARENT_COLOR.getKey())) {
             String color = requestParams.getString(Arg.TRANSPARENT_COLOR.getKey());
             stateFather.transparentColor(this, callbackQuery.getMessage().getChatId(), callbackQuery.getId(), color);
         } else if (requestParams.contains(Arg.INACCURACY.getKey())) {
-            stateFather.inaccuracy(this, callbackQuery.getMessage().getChatId(), requestParams.getString(Arg.INACCURACY.getKey()));
+            stateFather.inaccuracy(this, callbackQuery.getMessage().getChatId(), callbackQuery.getId(), requestParams.getString(Arg.INACCURACY.getKey()));
         }
     }
 

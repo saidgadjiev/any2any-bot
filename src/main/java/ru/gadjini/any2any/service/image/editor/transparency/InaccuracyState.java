@@ -71,7 +71,7 @@ public class InaccuracyState implements State {
     }
 
     @Override
-    public void inaccuracy(ImageEditorCommand command, long chatId, String inaccuracy) {
+    public void inaccuracy(ImageEditorCommand command, long chatId, String queryId, String inaccuracy) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
         Locale locale = new Locale(state.getLanguage());
         inaccuracy = cleanUp(inaccuracy);
@@ -92,7 +92,7 @@ public class InaccuracyState implements State {
 
     @Override
     public void userText(ImageEditorCommand command, long chatId, String text) {
-        inaccuracy(command, chatId, text);
+        inaccuracy(command, chatId, null, text);
     }
 
     private String cleanUp(String inaccuracy) {

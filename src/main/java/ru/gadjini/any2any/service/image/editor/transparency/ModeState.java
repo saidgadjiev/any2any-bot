@@ -70,7 +70,7 @@ public class ModeState implements State {
     }
 
     @Override
-    public void transparentMode(ImageEditorCommand command, long chatId, Mode mode) {
+    public void transparentMode(ImageEditorCommand command, long chatId, String queryId, Mode mode) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
         state.setMode(mode);
         messageService.editMessageCaption(

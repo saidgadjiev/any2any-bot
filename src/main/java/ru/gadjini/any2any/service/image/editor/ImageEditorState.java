@@ -95,7 +95,7 @@ public class ImageEditorState implements State {
     }
 
     @Override
-    public void go(ImageEditorCommand command, long chatId, Name name) {
+    public void go(ImageEditorCommand command, long chatId, String queryId, Name name) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
 
         switch (name) {

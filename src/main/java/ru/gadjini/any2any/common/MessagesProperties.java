@@ -213,4 +213,6 @@ public class MessagesProperties {
     public static final String MESSAGE_BAD_COLOR = "message.bad.color";
 
     public static final String MESSAGE_BAD_IMAGE_SIZE = "message.bad.image.size";
+
+    public static final String MESSAGE_REQUEST_IS_PROCESSING = "message.request.is.processing";
 }
