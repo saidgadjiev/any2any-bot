@@ -14,6 +14,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.send.SendSticker;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.*;
 import org.telegram.telegrambots.meta.api.objects.ChatMember;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.media.InputMediaDocument;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
@@ -174,8 +175,11 @@ public class MessageServiceImpl implements MessageService {
         editMessageMedia.setChatId(editMediaContext.chatId());
         editMessageMedia.setMessageId(editMediaContext.messageId());
         InputMediaDocument document = new InputMediaDocument();
-        document.setMedia(editMediaContext.file(), editMediaContext.file().getName());
-
+        if (editMediaContext.file() != null) {
+            document.setMedia(editMediaContext.file(), editMediaContext.file().getName());
+        } else if (editMediaContext.fileId() != null) {
+            document.setMedia(editMediaContext.fileId());
+        }
         if (editMediaContext.caption() != null) {
             document.setCaption(editMediaContext.caption());
             document.setParseMode("html");
@@ -238,7 +242,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public int sendDocument(SendFileContext sendDocumentContext) {
+    public SendFileResult sendDocument(SendFileContext sendDocumentContext) {
         SendDocument sendDocument = new SendDocument();
         sendDocument.setChatId(sendDocumentContext.chatId());
         sendDocument.setDocument(sendDocumentContext.file());
@@ -255,7 +259,9 @@ public class MessageServiceImpl implements MessageService {
         }
 
         try {
-            return telegramService.execute(sendDocument).getMessageId();
+            Message message = telegramService.execute(sendDocument);
+
+            return new SendFileResult(message.getMessageId(), message.getDocument().getFileId());
         } catch (TelegramApiRequestException e) {
             LOGGER.error(e.getMessage() + ". " + e.getApiResponse() + "(" + e.getErrorCode() + "). Params " + e.getParameters(), e);
             throw new TelegramRequestException(e, sendDocument.getChatId());

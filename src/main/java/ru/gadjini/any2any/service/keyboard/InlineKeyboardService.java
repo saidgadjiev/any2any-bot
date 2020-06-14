@@ -9,9 +9,9 @@ import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
-import ru.gadjini.any2any.service.image.editor.Color;
-import ru.gadjini.any2any.service.image.editor.ModeState;
 import ru.gadjini.any2any.service.image.editor.State;
+import ru.gadjini.any2any.service.image.editor.transparency.Color;
+import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,16 +36,33 @@ public class InlineKeyboardService {
         List<List<Color>> lists = Lists.partition(colors, 5);
 
         for (List<Color> l : lists) {
-            List<InlineKeyboardButton> buttons = new ArrayList<>();
+            if (l.size() == 5) {
+                List<InlineKeyboardButton> buttons = new ArrayList<>();
 
-            l.forEach(color -> buttons.add(buttonFactory.delegateButton(
-                    "color." + color.name().toLowerCase(),
-                    CommandNames.IMAGE_EDITOR_COMMAND_NAME,
-                    new RequestParams().add(Arg.TRANSPARENT_COLOR.getKey(), color.name().toLowerCase()),
-                    locale
-            )));
-            inlineKeyboardMarkup.getKeyboard().add(buttons);
+                l.forEach(color -> buttons.add(buttonFactory.delegateButton(
+                        "color." + color.name().toLowerCase(),
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME,
+                        new RequestParams().add(Arg.TRANSPARENT_COLOR.getKey(), color.name().toLowerCase()),
+                        locale
+                )));
+                inlineKeyboardMarkup.getKeyboard().add(buttons);
+            } else {
+                List<InlineKeyboardButton> buttons = inlineKeyboardMarkup.getKeyboard().get(inlineKeyboardMarkup.getKeyboard().size() - 1);
+
+                l.forEach(color -> buttons.add(buttonFactory.delegateButton(
+                        "color." + color.name().toLowerCase(),
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME,
+                        new RequestParams().add(Arg.TRANSPARENT_COLOR.getKey(), color.name().toLowerCase()),
+                        locale
+                )));
+            }
         }
+        inlineKeyboardMarkup.getKeyboard().add(
+                List.of(
+                        buttonFactory.moreColorsButton(locale),
+                        buttonFactory.imageColorButton(locale)
+                )
+        );
         if (cancelButton) {
             inlineKeyboardMarkup.getKeyboard().add(List.of(
                     buttonFactory.cancelButton(locale),
@@ -102,7 +119,43 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getEditImageTransparentKeyboard(Locale locale) {
+    public InlineKeyboardMarkup getImageEffectsKeyboard(Locale locale, boolean cancelButton) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.blackAndWhiteEffectButton(locale),
+                buttonFactory.sketchEffectButton(locale)
+        ));
+
+        if (cancelButton) {
+            inlineKeyboardMarkup.getKeyboard().add(List.of(
+                    buttonFactory.cancelButton(locale),
+                    buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
+                            CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale)));
+        } else {
+            inlineKeyboardMarkup.getKeyboard().add(List.of(
+                    buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
+                            CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale)));
+        }
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getImageEditKeyboard(Locale locale, boolean cancelButton) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.transparencyButton(locale),
+                buttonFactory.effectsButton(locale)
+        ));
+        if (cancelButton) {
+            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelButton(locale)));
+        }
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getTransparencyKeyboard(Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
@@ -114,6 +167,11 @@ public class InlineKeyboardService {
         inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.delegateButton(MessagesProperties.TRANSPARENT_INACCURACY_COMMAND_DESCRIPTION,
                         CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.EDIT_STATE_NAME.getKey(), State.Name.INACCURACY.name()), locale
+                )));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale
                 )));
 
         return inlineKeyboardMarkup;

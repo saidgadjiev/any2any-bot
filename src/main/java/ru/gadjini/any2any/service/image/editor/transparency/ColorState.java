@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service.image.editor;
+package ru.gadjini.any2any.service.image.editor.transparency;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -12,11 +12,15 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.AnswerCallbackContext;
 import ru.gadjini.any2any.model.EditMediaContext;
+import ru.gadjini.any2any.model.EditMessageCaptionContext;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.image.device.ImageDevice;
+import ru.gadjini.any2any.service.image.editor.EditMessageBuilder;
+import ru.gadjini.any2any.service.image.editor.EditorState;
+import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 
 import java.io.File;
@@ -29,7 +33,7 @@ public class ColorState implements State {
 
     private static final Pattern HEX = Pattern.compile("^#[0-9a-fA-F]{6}$");
 
-    private EditState editState;
+    private TransparencyState transparencyState;
 
     private CommandStateService commandStateService;
 
@@ -63,8 +67,8 @@ public class ColorState implements State {
     }
 
     @Autowired
-    public void setEditState(EditState editState) {
-        this.editState = editState;
+    public void setTransparencyState(TransparencyState transparencyState) {
+        this.transparencyState = transparencyState;
     }
 
     @Override
@@ -74,16 +78,19 @@ public class ColorState implements State {
 
     @Override
     public void goBack(ImageEditorCommand command, CallbackQuery callbackQuery) {
-        editState.enter(command, callbackQuery.getMessage().getChatId());
+        transparencyState.enter(command, callbackQuery.getMessage().getChatId());
         EditorState state = commandStateService.getState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), true);
-        state.setStateName(editState.getName());
+        state.setStateName(transparencyState.getName());
         commandStateService.setState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), state);
     }
 
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
-        messageService.editReplyKeyboard(chatId, state.getMessageId(), inlineKeyboardService.getColorsKeyboard(new Locale(state.getLanguage()), state.canCancel()));
+        messageService.editMessageCaption(new EditMessageCaptionContext(chatId, state.getMessageId(),
+                messageBuilder.getSettingsStr(state) + "\n\n"
+                        + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, new Locale(state.getLanguage())))
+                .replyKeyboard(inlineKeyboardService.getColorsKeyboard(new Locale(state.getLanguage()), state.canCancel())));
     }
 
     @Override
@@ -94,20 +101,20 @@ public class ColorState implements State {
 
             if (editorState.getMode() == ModeState.Mode.NEGATIVE) {
                 String[] transparentColors = getNegativeTransparentColors(colorText);
-                imageDevice.negativeTransparent(editorState.getEditFilePath(), tempFile.getAbsolutePath(), editorState.getInaccuracy(), transparentColors);
+                imageDevice.negativeTransparent(editorState.getCurrentFilePath(), tempFile.getAbsolutePath(), editorState.getInaccuracy(), transparentColors);
             } else {
-                imageDevice.positiveTransparent(editorState.getEditFilePath(), tempFile.getAbsolutePath(), editorState.getInaccuracy(), getPositiveTransparentColor(colorText));
+                imageDevice.positiveTransparent(editorState.getCurrentFilePath(), tempFile.getAbsolutePath(), editorState.getInaccuracy(), getPositiveTransparentColor(colorText));
             }
-            if (StringUtils.isNotBlank(editorState.getPrevEditFilePath())) {
+            if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
                 try {
-                    SmartTempFile prevFile = new SmartTempFile(new File(editorState.getPrevEditFilePath()), true);
+                    SmartTempFile prevFile = new SmartTempFile(new File(editorState.getPrevFilePath()), true);
                     prevFile.smartDelete();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             }
-            editorState.setPrevEditFilePath(editorState.getEditFilePath());
-            editorState.setEditFilePath(tempFile.getAbsolutePath());
+            editorState.setPrevFilePath(editorState.getCurrentFilePath());
+            editorState.setCurrentFilePath(tempFile.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
             messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), tempFile.getFile())
                     .caption(messageBuilder.getSettingsStr(editorState))
@@ -125,12 +132,12 @@ public class ColorState implements State {
     @Override
     public void cancel(ImageEditorCommand command, long chatId, String queryId) {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
-        if (StringUtils.isNotBlank(editorState.getPrevEditFilePath())) {
-            String editFilePath = editorState.getEditFilePath();
-            editorState.setEditFilePath(editorState.getPrevEditFilePath());
-            editorState.setPrevEditFilePath(null);
+        if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
+            String editFilePath = editorState.getCurrentFilePath();
+            editorState.setCurrentFilePath(editorState.getPrevFilePath());
+            editorState.setPrevFilePath(null);
 
-            messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), new File(editorState.getEditFilePath()))
+            messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), new File(editorState.getCurrentFilePath()))
                     .caption(messageBuilder.getSettingsStr(editorState))
                     .replyKeyboard(inlineKeyboardService.getColorsKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
             commandStateService.setState(chatId, command.getHistoryName(), editorState);

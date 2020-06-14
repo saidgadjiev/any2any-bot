@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 
 import java.util.Locale;
 

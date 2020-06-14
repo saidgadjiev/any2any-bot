@@ -122,12 +122,12 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public int sendDocument(SendFileContext sendDocumentContext) {
+    public SendFileResult sendDocument(SendFileContext sendDocumentContext) {
         if (validate(sendDocumentContext)) {
             return messageService.sendDocument(sendDocumentContext);
         }
 
-        return -1;
+        return null;
     }
 
     @Override

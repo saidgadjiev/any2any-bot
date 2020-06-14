@@ -19,9 +19,9 @@ import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
-import ru.gadjini.any2any.service.image.editor.ModeState;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.image.editor.StateFather;
+import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 
 import java.util.Comparator;
@@ -119,6 +119,9 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
         if (requestParams.contains(Arg.GO_BACK.getKey())) {
             stateFather.goBack(this, callbackQuery);
+        } else if (requestParams.contains(Arg.IMAGE_EFFECT.getKey())) {
+            State.Effect effect = State.Effect.valueOf(requestParams.getString(Arg.IMAGE_EFFECT.getKey()));
+            stateFather.applyEffect(this, callbackQuery.getMessage().getChatId(), callbackQuery.getId(), effect);
         } else if (requestParams.contains(Arg.EDIT_STATE_NAME.getKey())) {
             State.Name name = State.Name.valueOf(requestParams.getString(Arg.EDIT_STATE_NAME.getKey()));
             stateFather.go(this, callbackQuery.getMessage().getChatId(), name);

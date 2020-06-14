@@ -30,7 +30,7 @@ public interface MessageService {
 
     void deleteMessage(long chatId, int messageId);
 
-    int sendDocument(SendFileContext sendDocumentContext);
+    SendFileResult sendDocument(SendFileContext sendDocumentContext);
 
     int sendPhoto(SendFileContext sendDocumentContext);
 

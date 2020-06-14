@@ -22,7 +22,7 @@ public class TextUtils {
         return replaceBrainFuckNumbers(s);
     }
 
-    //Wtf moment with rl text
+    //Wtf moment with url text
     private static String brainFuckOnRlEmojis(String str) {
         return str.replace(" ️", "");
     }

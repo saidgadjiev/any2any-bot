@@ -2,6 +2,7 @@ package ru.gadjini.any2any.service.image.editor;
 
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
+import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 
 public interface State {
 
@@ -39,9 +40,22 @@ public interface State {
 
     }
 
+    default void applyEffect(ImageEditorCommand command, long chatId, String queryId, Effect effect) {
+
+    }
+
+    enum Effect {
+
+        BLACK_AND_WHITE,
+
+        SKETCH
+    }
+
     enum Name {
 
         EDIT,
+
+        TRANSPARENCY,
 
         COLOR,
 
@@ -49,6 +63,8 @@ public interface State {
 
         INACCURACY,
 
-        FATHER
+        FATHER,
+
+        EFFECTS
     }
 }

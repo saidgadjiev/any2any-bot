@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service.image.editor;
+package ru.gadjini.any2any.service.image.editor.transparency;
 
 import java.util.ArrayList;
 import java.util.List;

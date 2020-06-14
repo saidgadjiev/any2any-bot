@@ -158,8 +158,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_IMAGE_EDITOR_WELCOME = "message.image.editor.welcome";
 
-    public static final String MESSAGE_IMAGE_TRANSPARENT_COLOR = "message.image.transparent.color";
-
     public static final String MESSAGE_IMAGE_EDITOR_POSITIVE_MODE = "message.image.editor.positive.mode";
 
     public static final String MESSAGE_IMAGE_EDITOR_NEGATIVE_MODE = "message.image.editor.negative.mode";
@@ -179,4 +177,24 @@ public class MessagesProperties {
     public static final String MESSAGE_CANT_CANCEL_ANSWER = "message.cant.cancel.answer";
 
     public static final String MESSAGE_CONVERSION_FAILED = "message.conversion.failed";
+
+    public static final String MESSAGE_IMAGE_EDITOR_MODE_WELCOME = "message.image.editor.mode.welcome";
+
+    public static final String MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME = "message.image.transparent.color.welcome";
+
+    public static final String MESSAGE_IMAGE_EDITOR_INACCURACY_WELCOME = "message.image.editor.inaccuracy.welcome";
+
+    public static final String MORE_COLORS_COMMAND_DESCRIPTION = "more.colors.command.description";
+
+    public static final String IMAGE_COLOR_COMMAND_DESCRIPTION = "image.color.command.description";
+
+    public static final String IMAGE_EFFECTS_COMMAND_DESCRIPTION = "image.effects.command.description";
+
+    public static final String IMAGE_TRANSPARENCY_COMMAND_DESCRIPTION = "image.transparency.command.description";
+
+    public static final String BLACK_WHITE_EFFECT_COMMAND_DESCRIPTION = "black.white.effect.command.description";
+
+    public static final String SKETCH_EFFECT_COMMAND_DESCRIPTION = "sketch.effect.command.description";
+
+    public static final String MESSAGE_EFFECT_APPLIED_ANSWER = "message.effect.applied.answer";
 }

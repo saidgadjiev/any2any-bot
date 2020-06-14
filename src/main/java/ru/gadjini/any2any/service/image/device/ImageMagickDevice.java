@@ -25,6 +25,41 @@ public class ImageMagickDevice implements ImageDevice {
         new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, false, inaccuracy, color), 10);
     }
 
+    @Override
+    public void applyBlackAndWhiteEffect(String in, String out) {
+        new ProcessExecutor().execute(getBlackAndWhiteEffectCommand(in, out), 10);
+    }
+
+    @Override
+    public void applySketchEffect(String in, String out) {
+        new ProcessExecutor().execute(getSketchEffectCommand(in, out), 10);
+    }
+
+    private String[] getBlackAndWhiteEffectCommand(String in, String out) {
+        List<String> command = new ArrayList<>(commandName());
+        command.add(in);
+        command.add("-colorspace");
+        command.add("Gray");
+        command.add(out);
+
+        return command.toArray(new String[0]);
+    }
+
+    private String[] getSketchEffectCommand(String in, String out) {
+        List<String> command = new ArrayList<>(commandName());
+        command.add(in);
+        command.add("( -clone 0 -negate -blur 0x5 )");
+        command.add("-compose");
+        command.add("colordodge");
+        command.add("-composite");
+        command.add("-modulate");
+        command.add("100,0,100");
+        command.add("-auto-level");
+        command.add(out);
+
+        return command.toArray(new String[0]);
+    }
+
     private String[] getTransparentRemoveCommand(String in, String out, boolean negative, String inaccuracy, String... colors) {
         List<String> command = new ArrayList<>(commandName());
         command.add(in);

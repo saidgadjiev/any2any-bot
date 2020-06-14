@@ -14,12 +14,20 @@ public class EditMediaContext {
 
     private File file;
 
+    private String fileId;
+
     private InlineKeyboardMarkup replyKeyboard;
 
     public EditMediaContext(long chatId, int messageId, File file) {
         this.chatId = chatId;
         this.messageId = messageId;
         this.file = file;
+    }
+
+    public EditMediaContext(long chatId, int messageId, String fileId) {
+        this.chatId = chatId;
+        this.messageId = messageId;
+        this.fileId = fileId;
     }
 
     public long chatId() {
@@ -54,5 +62,9 @@ public class EditMediaContext {
 
     public boolean hasKeyboard() {
         return replyKeyboard != null;
+    }
+
+    public String fileId() {
+        return fileId;
     }
 }

@@ -1,13 +1,18 @@
-package ru.gadjini.any2any.service.image.editor;
+package ru.gadjini.any2any.service.image.editor.transparency;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
+import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.model.EditMessageCaptionContext;
+import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.command.CommandStateService;
+import ru.gadjini.any2any.service.image.editor.EditMessageBuilder;
+import ru.gadjini.any2any.service.image.editor.EditorState;
+import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 
 import java.util.Locale;
@@ -15,7 +20,7 @@ import java.util.Locale;
 @Component
 public class InaccuracyState implements State {
 
-    private EditState editState;
+    private TransparencyState transparencyState;
 
     private CommandStateService commandStateService;
 
@@ -25,18 +30,21 @@ public class InaccuracyState implements State {
 
     private EditMessageBuilder messageBuilder;
 
+    private LocalisationService localisationService;
+
     @Autowired
     public InaccuracyState(CommandStateService commandStateService, InlineKeyboardService inlineKeyboardService,
-                           @Qualifier("limits") MessageService messageService, EditMessageBuilder messageBuilder) {
+                           @Qualifier("limits") MessageService messageService, EditMessageBuilder messageBuilder, LocalisationService localisationService) {
         this.commandStateService = commandStateService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.messageService = messageService;
         this.messageBuilder = messageBuilder;
+        this.localisationService = localisationService;
     }
 
     @Autowired
-    public void setEditState(EditState editState) {
-        this.editState = editState;
+    public void setTransparencyState(TransparencyState transparencyState) {
+        this.transparencyState = transparencyState;
     }
 
     @Override
@@ -46,16 +54,19 @@ public class InaccuracyState implements State {
 
     @Override
     public void goBack(ImageEditorCommand command, CallbackQuery callbackQuery) {
-        editState.enter(command, callbackQuery.getMessage().getChatId());
+        transparencyState.enter(command, callbackQuery.getMessage().getChatId());
         EditorState state = commandStateService.getState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), true);
-        state.setStateName(editState.getName());
+        state.setStateName(transparencyState.getName());
         commandStateService.setState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), state);
     }
 
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
-        messageService.editReplyKeyboard(chatId, state.getMessageId(), inlineKeyboardService.getInaccuracyKeyboard(new Locale(state.getLanguage())));
+        messageService.editMessageCaption(new EditMessageCaptionContext(chatId, state.getMessageId(),
+                messageBuilder.getSettingsStr(state) + "\n\n"
+                        + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_INACCURACY_WELCOME, new Locale(state.getLanguage())))
+                .replyKeyboard(inlineKeyboardService.getInaccuracyKeyboard(new Locale(state.getLanguage()))));
     }
 
     @Override

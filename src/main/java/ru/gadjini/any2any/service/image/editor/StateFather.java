@@ -9,12 +9,15 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendFileContext;
+import ru.gadjini.any2any.model.SendFileResult;
+import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.image.device.ImageDevice;
+import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
@@ -34,7 +37,7 @@ public class StateFather implements State {
 
     private TempFileService fileService;
 
-    private EditMessageBuilder messageBuilder;
+    private LocalisationService localisationService;
 
     private InlineKeyboardService inlineKeyboardService;
 
@@ -45,13 +48,14 @@ public class StateFather implements State {
     @Autowired
     public StateFather(CommandStateService commandStateService, CommonJobExecutor commonJobExecutor,
                        @Qualifier("limits") MessageService messageService, TempFileService fileService,
-                       EditMessageBuilder messageBuilder, InlineKeyboardService inlineKeyboardService,
+                       LocalisationService localisationService,
+                       InlineKeyboardService inlineKeyboardService,
                        TelegramService telegramService, ImageDevice imageDevice) {
         this.commandStateService = commandStateService;
         this.commonJobExecutor = commonJobExecutor;
         this.messageService = messageService;
         this.fileService = fileService;
-        this.messageBuilder = messageBuilder;
+        this.localisationService = localisationService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.telegramService = telegramService;
         this.imageDevice = imageDevice;
@@ -65,6 +69,11 @@ public class StateFather implements State {
     @Override
     public Name getName() {
         return Name.FATHER;
+    }
+
+    @Override
+    public void applyEffect(ImageEditorCommand command, long chatId, String queryId, Effect effect) {
+        getState(chatId, command.getHistoryName()).applyEffect(command, chatId, queryId, effect);
     }
 
     @Override
@@ -111,10 +120,10 @@ public class StateFather implements State {
                 imageDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
                 EditorState state = createState(result.getAbsolutePath(), result.getName());
                 state.setLanguage(locale.getLanguage());
-                int messageId = messageService.sendDocument(new SendFileContext(chatId, result.getFile())
-                        .caption(messageBuilder.getSettingsStr(state))
-                        .replyKeyboard(inlineKeyboardService.getEditImageTransparentKeyboard(locale)));
-                state.setMessageId(messageId);
+                SendFileResult fileResult = messageService.sendDocument(new SendFileContext(chatId, result.getFile())
+                        .replyKeyboard(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())));
+                state.setMessageId(fileResult.getMessageId());
+                state.setFileId(fileResult.getFileId());
                 commandStateService.setState(chatId, command.getHistoryName(), state);
             } finally {
                 file.smartDelete();

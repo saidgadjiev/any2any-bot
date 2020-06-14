@@ -1,12 +1,15 @@
 package ru.gadjini.any2any.service.image.editor;
 
 import org.apache.commons.lang3.StringUtils;
+import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 
 public class EditorState {
 
-    private String editFilePath;
+    private String currentFilePath;
 
-    private String prevEditFilePath;
+    private String prevFilePath;
+
+    private String fileId;
 
     private String fileName;
 
@@ -21,11 +24,11 @@ public class EditorState {
     private State.Name stateName = State.Name.EDIT;
 
     public String getImage() {
-        return editFilePath;
+        return currentFilePath;
     }
 
     public void setImage(String image) {
-        this.editFilePath = image;
+        this.currentFilePath = image;
     }
 
     public int getMessageId() {
@@ -36,12 +39,12 @@ public class EditorState {
         this.messageId = messageId;
     }
 
-    public String getEditFilePath() {
-        return editFilePath;
+    public String getCurrentFilePath() {
+        return currentFilePath;
     }
 
-    public void setEditFilePath(String editFilePath) {
-        this.editFilePath = editFilePath;
+    public void setCurrentFilePath(String currentFilePath) {
+        this.currentFilePath = currentFilePath;
     }
 
     public String getFileName() {
@@ -84,15 +87,23 @@ public class EditorState {
         this.inaccuracy = inaccuracy;
     }
 
-    public String getPrevEditFilePath() {
-        return prevEditFilePath;
+    public String getPrevFilePath() {
+        return prevFilePath;
     }
 
-    public void setPrevEditFilePath(String prevEditFilePath) {
-        this.prevEditFilePath = prevEditFilePath;
+    public void setPrevFilePath(String prevFilePath) {
+        this.prevFilePath = prevFilePath;
+    }
+
+    public String getFileId() {
+        return fileId;
+    }
+
+    public void setFileId(String fileId) {
+        this.fileId = fileId;
     }
 
     public boolean canCancel() {
-        return StringUtils.isNotBlank(prevEditFilePath);
+        return StringUtils.isNotBlank(prevFilePath);
     }
 }
