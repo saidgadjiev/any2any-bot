@@ -13,8 +13,9 @@ import ru.gadjini.any2any.model.EditMediaContext;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.command.CommandStateService;
-import ru.gadjini.any2any.service.image.editor.effects.FiltersState;
+import ru.gadjini.any2any.service.image.editor.filter.FilterState;
 import ru.gadjini.any2any.service.image.editor.transparency.TransparencyState;
+import ru.gadjini.any2any.service.image.resize.ResizeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 
 import java.io.File;
@@ -30,7 +31,9 @@ public class ImageEditorState implements State {
 
     private TransparencyState transparencyState;
 
-    private FiltersState effectsState;
+    private FilterState filterState;
+
+    private ResizeState resizeState;
 
     private MessageService messageService;
 
@@ -52,8 +55,13 @@ public class ImageEditorState implements State {
     }
 
     @Autowired
-    public void setEffectsState(FiltersState effectsState) {
-        this.effectsState = effectsState;
+    public void setFilterState(FilterState filterState) {
+        this.filterState = filterState;
+    }
+
+    @Autowired
+    public void setResizeState(ResizeState resizeState) {
+        this.resizeState = resizeState;
     }
 
     @Override
@@ -96,8 +104,12 @@ public class ImageEditorState implements State {
                 state.setStateName(transparencyState.getName());
                 break;
             case FILTERS:
-                effectsState.enter(command, chatId);
-                state.setStateName(effectsState.getName());
+                filterState.enter(command, chatId);
+                state.setStateName(filterState.getName());
+                break;
+            case RESIZE:
+                resizeState.enter(command, chatId);
+                state.setStateName(resizeState.getName());
                 break;
         }
         commandStateService.setState(chatId, command.getHistoryName(), state);

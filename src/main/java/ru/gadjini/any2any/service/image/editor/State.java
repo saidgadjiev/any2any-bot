@@ -40,15 +40,21 @@ public interface State {
 
     }
 
-    default void applyEffect(ImageEditorCommand command, long chatId, String queryId, Effect effect) {
+    default void applyEffect(ImageEditorCommand command, long chatId, String queryId, Filter effect) {
 
     }
 
-    enum Effect {
+    default void size(ImageEditorCommand command, long chatId, String queryId, String size) {
+
+    }
+
+    enum Filter {
 
         BLACK_AND_WHITE,
 
-        SKETCH
+        SKETCH,
+
+        NEGATIVE
     }
 
     enum Name {
@@ -65,6 +71,8 @@ public interface State {
 
         FATHER,
 
-        FILTERS
+        FILTERS,
+
+        RESIZE
     }
 }

@@ -11,7 +11,8 @@ public enum Arg {
     GO_BACK("g"),
     EDIT_STATE_NAME("k"),
     IMAGE_FILTER("m"),
-    INACCURACY("l");
+    INACCURACY("l"),
+    IMAGE_SIZE("o");
 
     private final String key;
 

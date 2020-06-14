@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service.image.editor.effects;
+package ru.gadjini.any2any.service.image.resize;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -17,7 +17,8 @@ import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
-import ru.gadjini.any2any.service.image.device.ImageDevice;
+import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
+import ru.gadjini.any2any.service.image.device.ImageIdentifyDevice;
 import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.ImageEditorState;
 import ru.gadjini.any2any.service.image.editor.State;
@@ -28,13 +29,15 @@ import java.io.IOException;
 import java.util.Locale;
 
 @Component
-public class FiltersState implements State {
+public class ResizeState implements State {
 
     private CommandStateService commandStateService;
 
     private ImageEditorState imageEditorState;
 
-    private ImageDevice imageDevice;
+    private ImageConvertDevice imageDevice;
+
+    private ImageIdentifyDevice identifyDevice;
 
     private TempFileService tempFileService;
 
@@ -47,12 +50,13 @@ public class FiltersState implements State {
     private CommonJobExecutor commonJobExecutor;
 
     @Autowired
-    public FiltersState(CommandStateService commandStateService, ImageDevice imageDevice,
-                        TempFileService tempFileService, @Qualifier("limits") MessageService messageService,
-                        InlineKeyboardService inlineKeyboardService, LocalisationService localisationService,
-                        CommonJobExecutor commonJobExecutor) {
+    public ResizeState(CommandStateService commandStateService, ImageConvertDevice imageDevice,
+                       ImageIdentifyDevice identifyDevice, TempFileService tempFileService, @Qualifier("limits") MessageService messageService,
+                       InlineKeyboardService inlineKeyboardService, LocalisationService localisationService,
+                       CommonJobExecutor commonJobExecutor) {
         this.commandStateService = commandStateService;
         this.imageDevice = imageDevice;
+        this.identifyDevice = identifyDevice;
         this.tempFileService = tempFileService;
         this.messageService = messageService;
         this.inlineKeyboardService = inlineKeyboardService;
@@ -67,7 +71,7 @@ public class FiltersState implements State {
 
     @Override
     public Name getName() {
-        return Name.FILTERS;
+        return Name.RESIZE;
     }
 
     @Override
@@ -80,8 +84,12 @@ public class FiltersState implements State {
             editorState.setPrevFilePath(null);
             editorState.setPrevFileId(null);
 
+            String size = identifyDevice.getSize(editorState.getCurrentFilePath());
+            Locale locale = new Locale(editorState.getLanguage());
             EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
-                    .replyKeyboard(inlineKeyboardService.getImageEffectsKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
+                    .caption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_SIZE, new Object[]{size}, locale) + "\n\n" +
+                            localisationService.getMessage(MessagesProperties.MESSAGE_RESIZE_IMAGE_WELCOME, locale))
+                    .replyKeyboard(inlineKeyboardService.getResizeKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
             editorState.setCurrentFileId(editMediaResult.getFileId());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
@@ -99,23 +107,20 @@ public class FiltersState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        String size = identifyDevice.getSize(state.getCurrentFilePath());
+        Locale locale = new Locale(state.getLanguage());
         messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getCurrentFileId())
-                .replyKeyboard(inlineKeyboardService.getImageEffectsKeyboard(new Locale(state.getLanguage()), state.canCancel())));
+                .caption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_SIZE, new Object[]{size}, locale) + "\n\n" +
+                        localisationService.getMessage(MessagesProperties.MESSAGE_RESIZE_IMAGE_WELCOME, locale))
+                .replyKeyboard(inlineKeyboardService.getResizeKeyboard(new Locale(state.getLanguage()), state.canCancel())));
     }
 
     @Override
-    public void applyEffect(ImageEditorCommand command, long chatId, String queryId, Effect effect) {
+    public void size(ImageEditorCommand command, long chatId, String queryId, String size) {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         commonJobExecutor.addJob(() -> {
             SmartTempFile result = tempFileService.getTempFile(editorState.getFileName());
-            switch (effect) {
-                case SKETCH:
-                    imageDevice.applySketchEffect(editorState.getCurrentFilePath(), result.getAbsolutePath());
-                    break;
-                case BLACK_AND_WHITE:
-                    imageDevice.applyBlackAndWhiteEffect(editorState.getCurrentFilePath(), result.getAbsolutePath());
-                    break;
-            }
+            imageDevice.resize(editorState.getCurrentFilePath(), result.getAbsolutePath(), size);
             if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
                 try {
                     SmartTempFile prevFile = new SmartTempFile(new File(editorState.getPrevFilePath()), true);
@@ -128,14 +133,17 @@ public class FiltersState implements State {
             editorState.setPrevFileId(editorState.getCurrentFileId());
             editorState.setCurrentFilePath(result.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
+            String newSize = identifyDevice.getSize(editorState.getCurrentFilePath());
             EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), result.getFile())
-                    .replyKeyboard(inlineKeyboardService.getImageEffectsKeyboard(locale, editorState.canCancel())));
+                    .caption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_SIZE, new Object[]{newSize}, locale) + "\n\n" +
+                            localisationService.getMessage(MessagesProperties.MESSAGE_RESIZE_IMAGE_WELCOME, locale))
+                    .replyKeyboard(inlineKeyboardService.getResizeKeyboard(locale, editorState.canCancel())));
             editorState.setCurrentFileId(editMediaResult.getFileId());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
             if (StringUtils.isNotBlank(queryId)) {
                 messageService.sendAnswerCallbackQuery(
-                        new AnswerCallbackContext(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_EFFECT_APPLIED_ANSWER, locale))
+                        new AnswerCallbackContext(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_IMAGES_RESIZED_ANSWER, locale))
                 );
             }
         });
@@ -147,5 +155,10 @@ public class FiltersState implements State {
         state.setStateName(imageEditorState.getName());
         imageEditorState.enter(command, callbackQuery.getMessage().getChatId());
         commandStateService.setState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), state);
+    }
+
+    @Override
+    public void userText(ImageEditorCommand command, long chatId, String text) {
+        size(command, chatId, null, text);
     }
 }

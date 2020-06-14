@@ -1,6 +1,6 @@
 package ru.gadjini.any2any.service.image.device;
 
-public interface ImageDevice {
+public interface ImageConvertDevice {
 
     void convert(String in, String out, String ... options);
 
@@ -8,7 +8,11 @@ public interface ImageDevice {
 
     void positiveTransparent(String in, String out, String inaccuracy, String color);
 
-    void applyBlackAndWhiteEffect(String in, String out);
+    void applyBlackAndWhiteFilter(String in, String out);
 
-    void applySketchEffect(String in, String out);
+    void applyNegativeFilter(String in, String out);
+
+    void applySketchFilter(String in, String out);
+
+    void resize(String in, String out, String size);
 }

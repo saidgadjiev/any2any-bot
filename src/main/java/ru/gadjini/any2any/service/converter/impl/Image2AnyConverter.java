@@ -11,7 +11,7 @@ import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.service.converter.api.result.StickerResult;
-import ru.gadjini.any2any.service.image.device.ImageDevice;
+import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.trace.ImageTracer;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
@@ -29,13 +29,13 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private TempFileService fileService;
 
-    private ImageDevice imageDevice;
+    private ImageConvertDevice imageDevice;
 
     private ImageTracer imageTracer;
 
     @Autowired
     public Image2AnyConverter(TelegramService telegramService, TempFileService fileService,
-                              FormatService formatService, ImageDevice imageDevice, ImageTracer imageTracer) {
+                              FormatService formatService, ImageConvertDevice imageDevice, ImageTracer imageTracer) {
         super(ACCEPT_FORMATS, formatService);
         this.telegramService = telegramService;
         this.fileService = fileService;

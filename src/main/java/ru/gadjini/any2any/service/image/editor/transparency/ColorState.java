@@ -18,7 +18,7 @@ import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
-import ru.gadjini.any2any.service.image.device.ImageDevice;
+import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.editor.EditMessageBuilder;
 import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.State;
@@ -46,7 +46,7 @@ public class ColorState implements State {
 
     private TempFileService fileService;
 
-    private ImageDevice imageDevice;
+    private ImageConvertDevice imageDevice;
 
     private EditMessageBuilder messageBuilder;
 
@@ -55,7 +55,7 @@ public class ColorState implements State {
     @Autowired
     public ColorState(CommandStateService commandStateService, @Qualifier("limits") MessageService messageService,
                       InlineKeyboardService inlineKeyboardService, CommonJobExecutor commonJobExecutor,
-                      TempFileService fileService, ImageDevice imageDevice, EditMessageBuilder messageBuilder,
+                      TempFileService fileService, ImageConvertDevice imageDevice, EditMessageBuilder messageBuilder,
                       LocalisationService localisationService) {
         this.commandStateService = commandStateService;
         this.messageService = messageService;

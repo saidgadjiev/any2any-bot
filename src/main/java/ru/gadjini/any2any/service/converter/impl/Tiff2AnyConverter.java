@@ -14,7 +14,7 @@ import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
-import ru.gadjini.any2any.service.image.device.ImageDevice;
+import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.util.Set;
@@ -27,11 +27,11 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private TempFileService fileService;
 
-    private ImageDevice imageDevice;
+    private ImageConvertDevice imageDevice;
 
     @Autowired
     public Tiff2AnyConverter(FormatService formatService, TelegramService telegramService,
-                             TempFileService fileService, ImageDevice imageDevice) {
+                             TempFileService fileService, ImageConvertDevice imageDevice) {
         super(Set.of(Format.TIFF), formatService);
         this.telegramService = telegramService;
         this.fileService = fileService;

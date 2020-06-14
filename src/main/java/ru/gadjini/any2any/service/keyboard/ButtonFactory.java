@@ -24,14 +24,24 @@ public class ButtonFactory {
         this.localisationService = localisationService;
     }
 
-    public InlineKeyboardButton blackAndWhiteEffectButton(Locale locale) {
-        return delegateButton(MessagesProperties.BLACK_WHITE_EFFECT_COMMAND_DESCRIPTION, CommandNames.IMAGE_EDITOR_COMMAND_NAME,
-                new RequestParams().add(Arg.IMAGE_FILTER.getKey(), State.Effect.BLACK_AND_WHITE.name()), locale);
+    public InlineKeyboardButton resizeButton(Locale locale) {
+        return delegateButton(MessagesProperties.RESIZE_IMAGE_COMMAND_DESCRIPTION, CommandNames.IMAGE_EDITOR_COMMAND_NAME,
+                new RequestParams().add(Arg.EDIT_STATE_NAME.getKey(), State.Name.RESIZE.name()), locale);
     }
 
-    public InlineKeyboardButton sketchEffectButton(Locale locale) {
-        return delegateButton(MessagesProperties.SKETCH_EFFECT_COMMAND_DESCRIPTION, CommandNames.IMAGE_EDITOR_COMMAND_NAME,
-                new RequestParams().add(Arg.IMAGE_FILTER.getKey(), State.Effect.SKETCH.name()), locale);
+    public InlineKeyboardButton blackAndWhiteFilterButton(Locale locale) {
+        return delegateButton(MessagesProperties.BLACK_WHITE_FILTER_COMMAND_DESCRIPTION, CommandNames.IMAGE_EDITOR_COMMAND_NAME,
+                new RequestParams().add(Arg.IMAGE_FILTER.getKey(), State.Filter.BLACK_AND_WHITE.name()), locale);
+    }
+
+    public InlineKeyboardButton sketchFilterButton(Locale locale) {
+        return delegateButton(MessagesProperties.SKETCH_FILTER_COMMAND_DESCRIPTION, CommandNames.IMAGE_EDITOR_COMMAND_NAME,
+                new RequestParams().add(Arg.IMAGE_FILTER.getKey(), State.Filter.SKETCH.name()), locale);
+    }
+
+    public InlineKeyboardButton negativeButton(Locale locale) {
+        return delegateButton(MessagesProperties.NEGATIVE_FILTER_COMMAND_DESCRIPTION, CommandNames.IMAGE_EDITOR_COMMAND_NAME,
+                new RequestParams().add(Arg.IMAGE_FILTER.getKey(), State.Filter.NEGATIVE.name()), locale);
     }
 
     public InlineKeyboardButton transparencyButton(Locale locale) {

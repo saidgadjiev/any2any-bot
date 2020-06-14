@@ -18,7 +18,7 @@ import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.converter.api.Format;
-import ru.gadjini.any2any.service.image.device.ImageDevice;
+import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
@@ -47,13 +47,13 @@ public class StateFather implements State {
 
     private TelegramService telegramService;
 
-    private ImageDevice imageDevice;
+    private ImageConvertDevice imageDevice;
 
     @Autowired
     public StateFather(CommandStateService commandStateService, CommonJobExecutor commonJobExecutor,
                        @Qualifier("limits") MessageService messageService, TempFileService fileService,
                        InlineKeyboardService inlineKeyboardService,
-                       TelegramService telegramService, ImageDevice imageDevice) {
+                       TelegramService telegramService, ImageConvertDevice imageDevice) {
         this.commandStateService = commandStateService;
         this.commonJobExecutor = commonJobExecutor;
         this.messageService = messageService;
@@ -74,8 +74,13 @@ public class StateFather implements State {
     }
 
     @Override
-    public void applyEffect(ImageEditorCommand command, long chatId, String queryId, Effect effect) {
+    public void applyEffect(ImageEditorCommand command, long chatId, String queryId, Filter effect) {
         getState(chatId, command.getHistoryName()).applyEffect(command, chatId, queryId, effect);
+    }
+
+    @Override
+    public void size(ImageEditorCommand command, long chatId, String queryId, String size) {
+        getState(chatId, command.getHistoryName()).size(command, chatId, queryId, size);
     }
 
     @Override
