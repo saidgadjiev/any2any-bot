@@ -17,6 +17,10 @@ public class DistributionService {
         this.distributionDao = distributionDao;
     }
 
+    public boolean isExists() {
+        return distributionDao.isExists();
+    }
+
     public List<Distribution> popDistributions(int limit) {
         return distributionDao.popDistributions(limit);
     }

@@ -20,6 +20,19 @@ public class DistributionDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    public boolean isExists() {
+        return jdbcTemplate.query(
+                "SELECT COUNT(*) as cnt FROM distribution",
+                rs -> {
+                    if (rs.next()) {
+                        return rs.getLong("cnt") > 0;
+                    }
+
+                    return false;
+                }
+        );
+    }
+
     public List<Distribution> popDistributions(int limit) {
         return jdbcTemplate.query("WITH distr AS (\n" +
                         "    DELETE FROM distribution WHERE id IN (SELECT id FROM distribution ORDER BY id LIMIT " + limit + ") RETURNING *\n" +

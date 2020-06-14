@@ -11,10 +11,13 @@ import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.service.DistributionService;
 import ru.gadjini.any2any.service.MessageService;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Component
 public class DistributionJob {
+
+    private static final String DISABLE_JOB = "disableJob";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DistributionJob.class);
 
@@ -29,8 +32,18 @@ public class DistributionJob {
         LOGGER.debug("Distribution job started");
     }
 
-    @Scheduled(cron = "* * * * * *")
+    @PostConstruct
+    public void init() {
+        checkDistributions();
+    }
+
+    @Scheduled(cron = "* */5 * * * *")
     public void distribute() {
+        if (isDisabled()) {
+            LOGGER.debug("Distribution job is disabled");
+            return;
+        }
+        LOGGER.debug("Start send distributions");
         List<Distribution> distributions = distributionService.popDistributions(10);
         for (Distribution distribution : distributions) {
             try {
@@ -39,6 +52,29 @@ public class DistributionJob {
                 LOGGER.error(ex.getMessage(), ex);
             }
         }
+        if (distributions.isEmpty()) {
+            disableJob();
+        }
+    }
+
+    public boolean isDisabled() {
+        String property = System.getProperty(DISABLE_JOB);
+        if ("true".equals(property)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private void checkDistributions() {
+        if (!distributionService.isExists()) {
+            disableJob();
+        }
+    }
+
+    private void disableJob() {
+        System.setProperty(DISABLE_JOB, "true");
+        LOGGER.debug("Disable distribution job");
     }
 
     private void sendDistribution(Distribution distribution) {

@@ -139,7 +139,10 @@ public class StateFather implements State {
     }
 
     public void leave(ImageEditorCommand command, long chatId) {
-        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), false);
+        if (state == null) {
+            return;
+        }
         try {
             messageService.removeInlineKeyboard(chatId, state.getMessageId());
             commandStateService.deleteState(chatId, command.getHistoryName());
