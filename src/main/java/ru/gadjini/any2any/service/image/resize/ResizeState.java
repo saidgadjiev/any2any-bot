@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.AnswerCallbackContext;
@@ -27,9 +28,12 @@ import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 @Component
 public class ResizeState implements State {
+
+    private static final Pattern SIZE_PATTERN = Pattern.compile("\\d*\\.?\\d+[xX]\\d*\\.?\\d+");
 
     private CommandStateService commandStateService;
 
@@ -118,6 +122,7 @@ public class ResizeState implements State {
     @Override
     public void size(ImageEditorCommand command, long chatId, String queryId, String size) {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
+        validateSize(size, new Locale(editorState.getLanguage()));
         commonJobExecutor.addJob(() -> {
             SmartTempFile result = tempFileService.getTempFile(editorState.getFileName());
             imageDevice.resize(editorState.getCurrentFilePath(), result.getAbsolutePath(), size);
@@ -160,5 +165,13 @@ public class ResizeState implements State {
     @Override
     public void userText(ImageEditorCommand command, long chatId, String text) {
         size(command, chatId, null, text);
+    }
+
+    private void validateSize(String size, Locale locale) {
+        if (SIZE_PATTERN.matcher(size).matches()) {
+            return;
+        }
+
+        throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_IMAGE_SIZE, locale));
     }
 }

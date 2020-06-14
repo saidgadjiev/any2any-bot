@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.EditMessageCaptionContext;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
@@ -71,12 +72,20 @@ public class InaccuracyState implements State {
 
     @Override
     public void inaccuracy(ImageEditorCommand command, long chatId, String inaccuracy) {
-        double v = Double.parseDouble(inaccuracy);
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        Locale locale = new Locale(state.getLanguage());
+        inaccuracy = cleanUp(inaccuracy);
+        double v;
+        try {
+            v = Double.parseDouble(inaccuracy);
+        } catch (NumberFormatException ex) {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_INACCURACY, locale));
+        }
         state.setInaccuracy(String.valueOf(v));
         messageService.editMessageCaption(
-                new EditMessageCaptionContext(chatId, state.getMessageId(), messageBuilder.getSettingsStr(state))
-                        .replyKeyboard(inlineKeyboardService.getInaccuracyKeyboard(new Locale(state.getLanguage())))
+                new EditMessageCaptionContext(chatId, state.getMessageId(), messageBuilder.getSettingsStr(state) + "\n\n"
+                        + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_INACCURACY_WELCOME, locale))
+                        .replyKeyboard(inlineKeyboardService.getInaccuracyKeyboard(locale))
         );
         commandStateService.setState(chatId, command.getHistoryName(), state);
     }
@@ -84,5 +93,9 @@ public class InaccuracyState implements State {
     @Override
     public void userText(ImageEditorCommand command, long chatId, String text) {
         inaccuracy(command, chatId, text);
+    }
+
+    private String cleanUp(String inaccuracy) {
+        return inaccuracy.replace("%", "");
     }
 }

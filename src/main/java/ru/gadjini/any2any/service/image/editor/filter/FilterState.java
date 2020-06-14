@@ -104,7 +104,7 @@ public class FilterState implements State {
     }
 
     @Override
-    public void applyEffect(ImageEditorCommand command, long chatId, String queryId, Filter effect) {
+    public void applyFilter(ImageEditorCommand command, long chatId, String queryId, Filter effect) {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         commonJobExecutor.addJob(() -> {
             SmartTempFile result = tempFileService.getTempFile(editorState.getFileName());

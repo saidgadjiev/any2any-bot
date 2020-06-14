@@ -40,7 +40,7 @@ public interface State {
 
     }
 
-    default void applyEffect(ImageEditorCommand command, long chatId, String queryId, Filter effect) {
+    default void applyFilter(ImageEditorCommand command, long chatId, String queryId, Filter effect) {
 
     }
 

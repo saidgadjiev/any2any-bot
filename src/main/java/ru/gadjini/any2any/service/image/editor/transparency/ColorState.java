@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.AnswerCallbackContext;
@@ -96,8 +97,10 @@ public class ColorState implements State {
 
     @Override
     public void transparentColor(ImageEditorCommand command, long chatId, String queryId, String colorText) {
+        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
+        validateColor(colorText, new Locale(editorState.getLanguage()));
+
         commonJobExecutor.addJob(() -> {
-            EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
             SmartTempFile tempFile = fileService.getTempFile(editorState.getFileName());
 
             if (editorState.getMode() == ModeState.Mode.NEGATIVE) {
@@ -169,12 +172,7 @@ public class ColorState implements State {
                 return col.name().toLowerCase();
             }
         }
-        colorText = colorText.startsWith("#") ? colorText : '#' + colorText;
-        if (HEX.matcher(colorText).matches()) {
-            return colorText;
-        }
-
-        throw new IllegalStateException();
+        return colorText.startsWith("#") ? colorText : '#' + colorText;
     }
 
     private String[] getNegativeTransparentColors(String colorText) {
@@ -184,10 +182,21 @@ public class ColorState implements State {
             }
         }
         colorText = colorText.startsWith("#") ? colorText : '#' + colorText;
+
+        return new String[]{colorText};
+    }
+
+    private void validateColor(String colorText, Locale locale) {
+        for (Color col : Color.values()) {
+            if (col.name().equalsIgnoreCase(colorText)) {
+                return;
+            }
+        }
+        colorText = colorText.startsWith("#") ? colorText : '#' + colorText;
         if (HEX.matcher(colorText).matches()) {
-            return new String[]{colorText};
+            return;
         }
 
-        throw new IllegalStateException();
+        throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_COLOR, locale));
     }
 }

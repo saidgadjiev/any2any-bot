@@ -72,6 +72,7 @@ public class ModeState implements State {
     @Override
     public void transparentMode(ImageEditorCommand command, long chatId, Mode mode) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        state.setMode(mode);
         messageService.editMessageCaption(
                 new EditMessageCaptionContext(chatId, state.getMessageId(), messageBuilder.getSettingsStr(state))
                         .replyKeyboard(inlineKeyboardService.getTransparentModeKeyboard(new Locale(state.getLanguage())))

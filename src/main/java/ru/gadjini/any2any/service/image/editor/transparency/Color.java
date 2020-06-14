@@ -43,8 +43,8 @@ public enum Color {
                     "SeaGreen", "SeaGreen3", "SeaGreen1", "SeaGreen4", "SeaGreen2", "MediumForestGreen",
                     "LightGreen", "PaleGreen2", "PaleGreen", "PaleGreen1", "green1", "lime", "LimeGreen", "green2", "green3",
                     "ForestGreen", "green4", "green", "DarkGreen", "LawnGreen", "chartreuse", "chartreuse1", "chartreuse2", "chartreuse3", "chartreuse4",
-                    "GreenYellow", "DarkOliveGreen4", "OliveDrab1", "OliveDrab2", "OliveDrab3", "YellowGreen", "OliveDrab4"
-            };
+                    "GreenYellow", "DarkOliveGreen4", "OliveDrab1", "OliveDrab2", "OliveDrab3", "YellowGreen", "OliveDrab4", "#00ff47", "#2fff00"
+             };
         }
     },
     BLUE {

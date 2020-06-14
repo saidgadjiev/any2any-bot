@@ -123,7 +123,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
             stateFather.size(this, callbackQuery.getMessage().getChatId(), callbackQuery.getId(), requestParams.getString(Arg.IMAGE_SIZE.getKey()));
         } else if (requestParams.contains(Arg.IMAGE_FILTER.getKey())) {
             State.Filter effect = State.Filter.valueOf(requestParams.getString(Arg.IMAGE_FILTER.getKey()));
-            stateFather.applyEffect(this, callbackQuery.getMessage().getChatId(), callbackQuery.getId(), effect);
+            stateFather.applyFilter(this, callbackQuery.getMessage().getChatId(), callbackQuery.getId(), effect);
         } else if (requestParams.contains(Arg.EDIT_STATE_NAME.getKey())) {
             State.Name name = State.Name.valueOf(requestParams.getString(Arg.EDIT_STATE_NAME.getKey()));
             stateFather.go(this, callbackQuery.getMessage().getChatId(), name);

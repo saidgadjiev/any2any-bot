@@ -74,18 +74,27 @@ public class StateFather implements State {
     }
 
     @Override
-    public void applyEffect(ImageEditorCommand command, long chatId, String queryId, Filter effect) {
-        getState(chatId, command.getHistoryName()).applyEffect(command, chatId, queryId, effect);
+    public void applyFilter(ImageEditorCommand command, long chatId, String queryId, Filter filter) {
+        State state = getState(chatId, command.getHistoryName());
+        LOGGER.debug(state.getClass().getSimpleName() + "#applyFilter(" + filter + ")");
+
+        state.applyFilter(command, chatId, queryId, filter);
     }
 
     @Override
     public void size(ImageEditorCommand command, long chatId, String queryId, String size) {
-        getState(chatId, command.getHistoryName()).size(command, chatId, queryId, size);
+        State state = getState(chatId, command.getHistoryName());
+        LOGGER.debug(state.getClass().getSimpleName() + "#size(" + size + ")");
+
+        state.size(command, chatId, queryId, size);
     }
 
     @Override
     public void go(ImageEditorCommand command, long chatId, Name name) {
-        getState(chatId, command.getHistoryName()).go(command, chatId, name);
+        State state = getState(chatId, command.getHistoryName());
+        LOGGER.debug(state.getClass().getSimpleName() + "#go(" + name + ")");
+
+        state.go(command, chatId, name);
     }
 
     @Override
@@ -95,27 +104,42 @@ public class StateFather implements State {
 
     @Override
     public void transparentMode(ImageEditorCommand command, long chatId, ModeState.Mode mode) {
-        getState(chatId, command.getHistoryName()).transparentMode(command, chatId, mode);
+        State state = getState(chatId, command.getHistoryName());
+        LOGGER.debug(state.getClass().getSimpleName() + "#transparentMode(" + mode + ")");
+
+        state.transparentMode(command, chatId, mode);
     }
 
     @Override
     public void transparentColor(ImageEditorCommand command, long chatId, String queryId, String text) {
-        getState(chatId, command.getHistoryName()).transparentColor(command, chatId, queryId, text);
+        State state = getState(chatId, command.getHistoryName());
+        LOGGER.debug(state.getClass().getSimpleName() + "#transparentColor(" + text + ")");
+
+        state.transparentColor(command, chatId, queryId, text);
     }
 
     @Override
     public void inaccuracy(ImageEditorCommand command, long chatId, String inaccuracy) {
-        getState(chatId, command.getHistoryName()).inaccuracy(command, chatId, inaccuracy);
+        State state = getState(chatId, command.getHistoryName());
+        LOGGER.debug(state.getClass().getSimpleName() + "#inaccuracy(" + inaccuracy + ")");
+
+        state.inaccuracy(command, chatId, inaccuracy);
     }
 
     @Override
     public void cancel(ImageEditorCommand command, long chatId, String queryId) {
-        getState(chatId, command.getHistoryName()).cancel(command, chatId, queryId);
+        State state = getState(chatId, command.getHistoryName());
+        LOGGER.debug(state.getClass().getSimpleName() + "#cancel");
+
+        state.cancel(command, chatId, queryId);
     }
 
     @Override
     public void userText(ImageEditorCommand command, long chatId, String text) {
-        getState(chatId, command.getHistoryName()).userText(command, chatId, text);
+        State state = getState(chatId, command.getHistoryName());
+        LOGGER.debug(state.getClass().getSimpleName() + "#userText(" + text + ")");
+
+        state.userText(command, chatId, text);
     }
 
     public void initializeState(ImageEditorCommand command, long chatId, Any2AnyFile any2AnyFile, Locale locale) {
@@ -132,6 +156,7 @@ public class StateFather implements State {
                 state.setMessageId(fileResult.getMessageId());
                 state.setCurrentFileId(fileResult.getFileId());
                 commandStateService.setState(chatId, command.getHistoryName(), state);
+                LOGGER.debug("Image editor state initialized for user " + chatId);
             } finally {
                 file.smartDelete();
             }
@@ -141,11 +166,13 @@ public class StateFather implements State {
     public void leave(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), false);
         if (state == null) {
+            LOGGER.debug("Image editor state is empty");
             return;
         }
         try {
             messageService.removeInlineKeyboard(chatId, state.getMessageId());
             commandStateService.deleteState(chatId, command.getHistoryName());
+            LOGGER.debug("Image editor state deleted for user " + chatId);
         } finally {
             if (StringUtils.isNotBlank(state.getPrevFilePath())) {
                 try {

@@ -207,4 +207,10 @@ public class MessagesProperties {
     public static final String MESSAGE_IMAGE_SIZE = "message.image.size";
 
     public static final String MESSAGE_RESIZE_IMAGE_WELCOME = "message.resize.image.welcome";
+
+    public static final String MESSAGE_BAD_INACCURACY = "message.bad.inaccuracy";
+
+    public static final String MESSAGE_BAD_COLOR = "message.bad.color";
+
+    public static final String MESSAGE_BAD_IMAGE_SIZE = "message.bad.image.size";
 }

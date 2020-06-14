@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gadjini.any2any.common.CommandNames;
+import ru.gadjini.any2any.common.CommonConstants;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
@@ -56,14 +57,14 @@ public class ButtonFactory {
 
     public InlineKeyboardButton moreColorsButton(Locale locale) {
         InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.MORE_COLORS_COMMAND_DESCRIPTION, locale));
-        button.setUrl("www.google.com");
+        button.setUrl(CommonConstants.MORE_COLORS);
 
         return button;
     }
 
     public InlineKeyboardButton imageColorButton(Locale locale) {
         InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.IMAGE_COLOR_COMMAND_DESCRIPTION, locale));
-        button.setUrl("www.google.com");
+        button.setUrl(CommonConstants.COLOR_BY_IMAGE);
 
         return button;
     }
