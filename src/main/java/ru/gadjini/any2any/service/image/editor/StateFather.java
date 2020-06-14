@@ -1,5 +1,8 @@
 package ru.gadjini.any2any.service.image.editor;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -10,7 +13,6 @@ import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendFileResult;
-import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
@@ -21,11 +23,15 @@ import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Locale;
 import java.util.Set;
 
 @Service
 public class StateFather implements State {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(StateFather.class);
 
     private Set<State> states;
 
@@ -37,8 +43,6 @@ public class StateFather implements State {
 
     private TempFileService fileService;
 
-    private LocalisationService localisationService;
-
     private InlineKeyboardService inlineKeyboardService;
 
     private TelegramService telegramService;
@@ -48,14 +52,12 @@ public class StateFather implements State {
     @Autowired
     public StateFather(CommandStateService commandStateService, CommonJobExecutor commonJobExecutor,
                        @Qualifier("limits") MessageService messageService, TempFileService fileService,
-                       LocalisationService localisationService,
                        InlineKeyboardService inlineKeyboardService,
                        TelegramService telegramService, ImageDevice imageDevice) {
         this.commandStateService = commandStateService;
         this.commonJobExecutor = commonJobExecutor;
         this.messageService = messageService;
         this.fileService = fileService;
-        this.localisationService = localisationService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.telegramService = telegramService;
         this.imageDevice = imageDevice;
@@ -123,12 +125,34 @@ public class StateFather implements State {
                 SendFileResult fileResult = messageService.sendDocument(new SendFileContext(chatId, result.getFile())
                         .replyKeyboard(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())));
                 state.setMessageId(fileResult.getMessageId());
-                state.setFileId(fileResult.getFileId());
+                state.setCurrentFileId(fileResult.getFileId());
                 commandStateService.setState(chatId, command.getHistoryName(), state);
             } finally {
                 file.smartDelete();
             }
         });
+    }
+
+    public void leave(ImageEditorCommand command, long chatId) {
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        try {
+            messageService.removeInlineKeyboard(chatId, state.getMessageId());
+            commandStateService.deleteState(chatId, command.getHistoryName());
+        } finally {
+            if (StringUtils.isNotBlank(state.getPrevFilePath())) {
+                try {
+                    new SmartTempFile(new File(state.getPrevFilePath()), true).smartDelete();
+                } catch (IOException e) {
+                    LOGGER.error(e.getMessage(), e);
+                }
+            }
+
+            try {
+                new SmartTempFile(new File(state.getCurrentFilePath()), true).smartDelete();
+            } catch (IOException e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+        }
     }
 
     private State getState(long chatId, String commandName) {

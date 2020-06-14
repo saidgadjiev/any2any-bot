@@ -188,7 +188,7 @@ public class MessagesProperties {
 
     public static final String IMAGE_COLOR_COMMAND_DESCRIPTION = "image.color.command.description";
 
-    public static final String IMAGE_EFFECTS_COMMAND_DESCRIPTION = "image.effects.command.description";
+    public static final String IMAGE_FILTERS_COMMAND_DESCRIPTION = "image.filters.command.description";
 
     public static final String IMAGE_TRANSPARENCY_COMMAND_DESCRIPTION = "image.transparency.command.description";
 

@@ -48,7 +48,13 @@ public class ImageMagickDevice implements ImageDevice {
     private String[] getSketchEffectCommand(String in, String out) {
         List<String> command = new ArrayList<>(commandName());
         command.add(in);
-        command.add("( -clone 0 -negate -blur 0x5 )");
+        command.add("(");
+        command.add("-clone");
+        command.add("0");
+        command.add("-negate");
+        command.add("-blur");
+        command.add("0x5");
+        command.add(")");
         command.add("-compose");
         command.add("colordodge");
         command.add("-composite");

@@ -12,6 +12,7 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.AnswerCallbackContext;
 import ru.gadjini.any2any.model.EditMediaContext;
+import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.TempFileService;
@@ -27,7 +28,7 @@ import java.io.IOException;
 import java.util.Locale;
 
 @Component
-public class EffectsState implements State {
+public class FiltersState implements State {
 
     private CommandStateService commandStateService;
 
@@ -46,7 +47,7 @@ public class EffectsState implements State {
     private CommonJobExecutor commonJobExecutor;
 
     @Autowired
-    public EffectsState(CommandStateService commandStateService, ImageDevice imageDevice,
+    public FiltersState(CommandStateService commandStateService, ImageDevice imageDevice,
                         TempFileService tempFileService, @Qualifier("limits") MessageService messageService,
                         InlineKeyboardService inlineKeyboardService, LocalisationService localisationService,
                         CommonJobExecutor commonJobExecutor) {
@@ -66,7 +67,7 @@ public class EffectsState implements State {
 
     @Override
     public Name getName() {
-        return Name.EFFECTS;
+        return Name.FILTERS;
     }
 
     @Override
@@ -75,10 +76,13 @@ public class EffectsState implements State {
         if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
             String editFilePath = editorState.getCurrentFilePath();
             editorState.setCurrentFilePath(editorState.getPrevFilePath());
+            editorState.setCurrentFileId(editorState.getPrevFileId());
             editorState.setPrevFilePath(null);
+            editorState.setPrevFileId(null);
 
-            messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), new File(editorState.getCurrentFilePath()))
+            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
                     .replyKeyboard(inlineKeyboardService.getImageEffectsKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
+            editorState.setCurrentFileId(editMediaResult.getFileId());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
             File file = new File(editFilePath);
@@ -95,7 +99,7 @@ public class EffectsState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
-        messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getFileId())
+        messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getCurrentFileId())
                 .replyKeyboard(inlineKeyboardService.getImageEffectsKeyboard(new Locale(state.getLanguage()), state.canCancel())));
     }
 
@@ -121,10 +125,12 @@ public class EffectsState implements State {
                 }
             }
             editorState.setPrevFilePath(editorState.getCurrentFilePath());
+            editorState.setPrevFileId(editorState.getCurrentFileId());
             editorState.setCurrentFilePath(result.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
-            messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), result.getFile())
+            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), result.getFile())
                     .replyKeyboard(inlineKeyboardService.getImageEffectsKeyboard(locale, editorState.canCancel())));
+            editorState.setCurrentFileId(editMediaResult.getFileId());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
             if (StringUtils.isNotBlank(queryId)) {

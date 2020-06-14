@@ -22,7 +22,7 @@ public interface MessageService {
 
     void editMessageCaption(EditMessageCaptionContext context);
 
-    void editMessageMedia(EditMediaContext editMediaContext);
+    EditMediaResult editMessageMedia(EditMediaContext editMediaContext);
 
     void sendBotRestartedMessage(long chatId, ReplyKeyboard replyKeyboard, Locale locale);
 

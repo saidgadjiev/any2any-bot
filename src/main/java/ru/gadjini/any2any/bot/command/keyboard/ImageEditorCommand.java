@@ -119,8 +119,8 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
         if (requestParams.contains(Arg.GO_BACK.getKey())) {
             stateFather.goBack(this, callbackQuery);
-        } else if (requestParams.contains(Arg.IMAGE_EFFECT.getKey())) {
-            State.Effect effect = State.Effect.valueOf(requestParams.getString(Arg.IMAGE_EFFECT.getKey()));
+        } else if (requestParams.contains(Arg.IMAGE_FILTER.getKey())) {
+            State.Effect effect = State.Effect.valueOf(requestParams.getString(Arg.IMAGE_FILTER.getKey()));
             stateFather.applyEffect(this, callbackQuery.getMessage().getChatId(), callbackQuery.getId(), effect);
         } else if (requestParams.contains(Arg.EDIT_STATE_NAME.getKey())) {
             State.Name name = State.Name.valueOf(requestParams.getString(Arg.EDIT_STATE_NAME.getKey()));
@@ -134,6 +134,11 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
         } else if (requestParams.contains(Arg.INACCURACY.getKey())) {
             stateFather.inaccuracy(this, callbackQuery.getMessage().getChatId(), requestParams.getString(Arg.INACCURACY.getKey()));
         }
+    }
+
+    @Override
+    public void leave(long chatId) {
+        stateFather.leave(this, chatId);
     }
 
     private boolean isMediaMessage(Message message) {

@@ -65,6 +65,6 @@ public interface State {
 
         FATHER,
 
-        EFFECTS
+        FILTERS
     }
 }

@@ -102,8 +102,8 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public void editMessageMedia(EditMediaContext editMediaContext) {
-        messageService.editMessageMedia(editMediaContext);
+    public EditMediaResult editMessageMedia(EditMediaContext editMediaContext) {
+        return messageService.editMessageMedia(editMediaContext);
     }
 
     @Override

@@ -146,7 +146,7 @@ public class InlineKeyboardService {
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.transparencyButton(locale),
-                buttonFactory.effectsButton(locale)
+                buttonFactory.filtersButton(locale)
         ));
         if (cancelButton) {
             inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelButton(locale)));
