@@ -156,7 +156,9 @@ public class InlineKeyboardService {
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.blackAndWhiteFilterButton(locale),
-                buttonFactory.sketchFilterButton(locale),
+                buttonFactory.sketchFilterButton(locale)
+        ));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.negativeButton(locale)
         ));
 
