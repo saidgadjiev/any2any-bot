@@ -65,6 +65,7 @@ public class ConverterJob {
         this.messageService = messageService;
         this.localisationService = localisationService;
         any2AnyConvertersSet.forEach(any2AnyConverter -> any2AnyConverters.add(any2AnyConverter));
+        LOGGER.debug("Converter job started");
     }
 
     @PostConstruct

@@ -11,7 +11,7 @@ import java.util.Locale;
 @Service
 public class LocalisationService {
 
-    private static final String RU_LOCALE = "ru";
+    public static final String RU_LOCALE = "ru";
 
     public static final String EN_LOCALE = "en";
 
