@@ -16,8 +16,7 @@ public class ImageMagickDevice implements ImageDevice {
     }
 
     private String[] getCommand(String in, String out, String... options) {
-        List<String> command = new ArrayList<>();
-        command.add("convert");
+        List<String> command = new ArrayList<>(commandName());
         command.add("-background");
         command.add("none");
         command.addAll(Arrays.asList(options));
@@ -25,5 +24,9 @@ public class ImageMagickDevice implements ImageDevice {
         command.add(out);
 
         return command.toArray(new String[0]);
+    }
+
+    private List<String> commandName() {
+        return System.getProperty("os.name").contains("Windows") ? List.of("magick", "convert") : List.of("convert");
     }
 }
