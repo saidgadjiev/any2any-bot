@@ -8,16 +8,18 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.AnswerCallbackContext;
 import ru.gadjini.any2any.model.EditMediaContext;
+import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.model.EditMessageCaptionContext;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
-import ru.gadjini.any2any.service.image.device.ImageDevice;
+import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.editor.EditMessageBuilder;
 import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.State;
@@ -45,7 +47,7 @@ public class ColorState implements State {
 
     private TempFileService fileService;
 
-    private ImageDevice imageDevice;
+    private ImageConvertDevice imageDevice;
 
     private EditMessageBuilder messageBuilder;
 
@@ -54,7 +56,7 @@ public class ColorState implements State {
     @Autowired
     public ColorState(CommandStateService commandStateService, @Qualifier("limits") MessageService messageService,
                       InlineKeyboardService inlineKeyboardService, CommonJobExecutor commonJobExecutor,
-                      TempFileService fileService, ImageDevice imageDevice, EditMessageBuilder messageBuilder,
+                      TempFileService fileService, ImageConvertDevice imageDevice, EditMessageBuilder messageBuilder,
                       LocalisationService localisationService) {
         this.commandStateService = commandStateService;
         this.messageService = messageService;
@@ -95,8 +97,10 @@ public class ColorState implements State {
 
     @Override
     public void transparentColor(ImageEditorCommand command, long chatId, String queryId, String colorText) {
+        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
+        validateColor(colorText, new Locale(editorState.getLanguage()));
+
         commonJobExecutor.addJob(() -> {
-            EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
             SmartTempFile tempFile = fileService.getTempFile(editorState.getFileName());
 
             if (editorState.getMode() == ModeState.Mode.NEGATIVE) {
@@ -114,11 +118,13 @@ public class ColorState implements State {
                 }
             }
             editorState.setPrevFilePath(editorState.getCurrentFilePath());
+            editorState.setPrevFileId(editorState.getCurrentFileId());
             editorState.setCurrentFilePath(tempFile.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
-            messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), tempFile.getFile())
+            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), tempFile.getFile())
                     .caption(messageBuilder.getSettingsStr(editorState))
                     .replyKeyboard(inlineKeyboardService.getColorsKeyboard(locale, editorState.canCancel())));
+            editorState.setCurrentFileId(editMediaResult.getFileId());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
             if (StringUtils.isNotBlank(queryId)) {
@@ -135,9 +141,11 @@ public class ColorState implements State {
         if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
             String editFilePath = editorState.getCurrentFilePath();
             editorState.setCurrentFilePath(editorState.getPrevFilePath());
+            editorState.setCurrentFileId(editorState.getPrevFileId());
             editorState.setPrevFilePath(null);
+            editorState.setPrevFileId(null);
 
-            messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), new File(editorState.getCurrentFilePath()))
+            messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
                     .caption(messageBuilder.getSettingsStr(editorState))
                     .replyKeyboard(inlineKeyboardService.getColorsKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
@@ -164,12 +172,7 @@ public class ColorState implements State {
                 return col.name().toLowerCase();
             }
         }
-        colorText = colorText.startsWith("#") ? colorText : '#' + colorText;
-        if (HEX.matcher(colorText).matches()) {
-            return colorText;
-        }
-
-        throw new IllegalStateException();
+        return colorText.startsWith("#") ? colorText : '#' + colorText;
     }
 
     private String[] getNegativeTransparentColors(String colorText) {
@@ -179,10 +182,21 @@ public class ColorState implements State {
             }
         }
         colorText = colorText.startsWith("#") ? colorText : '#' + colorText;
+
+        return new String[]{colorText};
+    }
+
+    private void validateColor(String colorText, Locale locale) {
+        for (Color col : Color.values()) {
+            if (col.name().equalsIgnoreCase(colorText)) {
+                return;
+            }
+        }
+        colorText = colorText.startsWith("#") ? colorText : '#' + colorText;
         if (HEX.matcher(colorText).matches()) {
-            return new String[]{colorText};
+            return;
         }
 
-        throw new IllegalStateException();
+        throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_COLOR, locale));
     }
 }

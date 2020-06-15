@@ -170,7 +170,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public void editMessageMedia(EditMediaContext editMediaContext) {
+    public EditMediaResult editMessageMedia(EditMediaContext editMediaContext) {
         EditMessageMedia editMessageMedia = new EditMessageMedia();
         editMessageMedia.setChatId(editMediaContext.chatId());
         editMessageMedia.setMessageId(editMediaContext.messageId());
@@ -191,7 +191,9 @@ public class MessageServiceImpl implements MessageService {
         }
 
         try {
-            telegramService.execute(editMessageMedia);
+            Message message = (Message) telegramService.execute(editMessageMedia);
+
+            return new EditMediaResult(message.getDocument().getFileId());
         } catch (TelegramApiException e) {
             throw new TelegramException(e);
         }

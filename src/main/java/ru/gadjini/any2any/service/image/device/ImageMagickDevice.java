@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Component
-public class ImageMagickDevice implements ImageDevice {
+public class ImageMagickDevice implements ImageConvertDevice, ImageIdentifyDevice {
 
     @Override
     public void convert(String in, String out, String... options) {
@@ -17,26 +17,73 @@ public class ImageMagickDevice implements ImageDevice {
 
     @Override
     public void negativeTransparent(String in, String out, String inaccuracy, String... colors) {
-        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, true, inaccuracy, colors), 10);
+        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, true, inaccuracy, colors), 60);
     }
 
     @Override
     public void positiveTransparent(String in, String out, String inaccuracy, String color) {
-        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, false, inaccuracy, color), 10);
+        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, false, inaccuracy, color), 60);
     }
 
     @Override
-    public void applyBlackAndWhiteEffect(String in, String out) {
-        new ProcessExecutor().execute(getBlackAndWhiteEffectCommand(in, out), 10);
+    public void applyBlackAndWhiteFilter(String in, String out) {
+        new ProcessExecutor().execute(getBlackAndWhiteFilterCommand(in, out), 60);
     }
 
     @Override
-    public void applySketchEffect(String in, String out) {
-        new ProcessExecutor().execute(getSketchEffectCommand(in, out), 10);
+    public void applyNegativeFilter(String in, String out) {
+        new ProcessExecutor().execute(getNegativeFilterCommand(in, out), 60);
     }
 
-    private String[] getBlackAndWhiteEffectCommand(String in, String out) {
-        List<String> command = new ArrayList<>(commandName());
+    @Override
+    public void applySketchFilter(String in, String out) {
+        new ProcessExecutor().execute(getSketchFilterCommand(in, out), 60);
+    }
+
+    @Override
+    public void resize(String in, String out, String size) {
+        new ProcessExecutor().execute(getResizeCommand(in, out, size), 60);
+    }
+
+    @Override
+    public String getSize(String in) {
+        return new ProcessExecutor().execute(getSizeCommand(in), 60);
+    }
+
+    private String[] getSizeCommand(String in) {
+        List<String> command = new ArrayList<>(identifyCommandName());
+        command.add("-format");
+        command.add("\"%wx%h\"");
+        command.add(in);
+
+        return command.toArray(new String[0]);
+    }
+
+    private String[] getResizeCommand(String in, String out, String size) {
+        List<String> command = new ArrayList<>(convertCommandName());
+        command.add(in);
+        command.add("-resize");
+        command.add(size);
+        command.add("-quality");
+        command.add("100");
+        command.add(out);
+
+        return command.toArray(new String[0]);
+    }
+
+    private String[] getNegativeFilterCommand(String in, String out) {
+        List<String> command = new ArrayList<>(convertCommandName());
+        command.add(in);
+        command.add("-channel");
+        command.add("RGB");
+        command.add("-negate");
+        command.add(out);
+
+        return command.toArray(new String[0]);
+    }
+
+    private String[] getBlackAndWhiteFilterCommand(String in, String out) {
+        List<String> command = new ArrayList<>(convertCommandName());
         command.add(in);
         command.add("-colorspace");
         command.add("Gray");
@@ -45,10 +92,16 @@ public class ImageMagickDevice implements ImageDevice {
         return command.toArray(new String[0]);
     }
 
-    private String[] getSketchEffectCommand(String in, String out) {
-        List<String> command = new ArrayList<>(commandName());
+    private String[] getSketchFilterCommand(String in, String out) {
+        List<String> command = new ArrayList<>(convertCommandName());
         command.add(in);
-        command.add("( -clone 0 -negate -blur 0x5 )");
+        command.add("(");
+        command.add("-clone");
+        command.add("0");
+        command.add("-negate");
+        command.add("-blur");
+        command.add("0x5");
+        command.add(")");
         command.add("-compose");
         command.add("colordodge");
         command.add("-composite");
@@ -61,7 +114,7 @@ public class ImageMagickDevice implements ImageDevice {
     }
 
     private String[] getTransparentRemoveCommand(String in, String out, boolean negative, String inaccuracy, String... colors) {
-        List<String> command = new ArrayList<>(commandName());
+        List<String> command = new ArrayList<>(convertCommandName());
         command.add(in);
         command.add("-fuzz");
         command.add(inaccuracy + "%");
@@ -77,7 +130,7 @@ public class ImageMagickDevice implements ImageDevice {
     }
 
     private String[] getCommand(String in, String out, String... options) {
-        List<String> command = new ArrayList<>(commandName());
+        List<String> command = new ArrayList<>(convertCommandName());
         command.add("-background");
         command.add("none");
         command.addAll(Arrays.asList(options));
@@ -87,7 +140,11 @@ public class ImageMagickDevice implements ImageDevice {
         return command.toArray(new String[0]);
     }
 
-    private List<String> commandName() {
+    private List<String> identifyCommandName() {
+        return System.getProperty("os.name").contains("Windows") ? List.of("magick", "identify") : List.of("identify");
+    }
+
+    private List<String> convertCommandName() {
         return System.getProperty("os.name").contains("Windows") ? List.of("magick", "convert") : List.of("convert");
     }
 }

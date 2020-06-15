@@ -188,13 +188,31 @@ public class MessagesProperties {
 
     public static final String IMAGE_COLOR_COMMAND_DESCRIPTION = "image.color.command.description";
 
-    public static final String IMAGE_EFFECTS_COMMAND_DESCRIPTION = "image.effects.command.description";
+    public static final String IMAGE_FILTERS_COMMAND_DESCRIPTION = "image.filters.command.description";
 
     public static final String IMAGE_TRANSPARENCY_COMMAND_DESCRIPTION = "image.transparency.command.description";
 
-    public static final String BLACK_WHITE_EFFECT_COMMAND_DESCRIPTION = "black.white.effect.command.description";
+    public static final String BLACK_WHITE_FILTER_COMMAND_DESCRIPTION = "black.white.filter.command.description";
 
-    public static final String SKETCH_EFFECT_COMMAND_DESCRIPTION = "sketch.effect.command.description";
+    public static final String SKETCH_FILTER_COMMAND_DESCRIPTION = "sketch.filter.command.description";
 
-    public static final String MESSAGE_EFFECT_APPLIED_ANSWER = "message.effect.applied.answer";
+    public static final String NEGATIVE_FILTER_COMMAND_DESCRIPTION = "negative.filter.command.description";
+
+    public static final String MESSAGE_FILTER_APPLIED_ANSWER = "message.filter.applied.answer";
+
+    public static final String MESSAGE_IMAGES_RESIZED_ANSWER = "message.images.resized.answer";
+
+    public static final String RESIZE_IMAGE_COMMAND_DESCRIPTION = "resize.image.command.description";
+
+    public static final String MESSAGE_IMAGE_SIZE = "message.image.size";
+
+    public static final String MESSAGE_RESIZE_IMAGE_WELCOME = "message.resize.image.welcome";
+
+    public static final String MESSAGE_BAD_INACCURACY = "message.bad.inaccuracy";
+
+    public static final String MESSAGE_BAD_COLOR = "message.bad.color";
+
+    public static final String MESSAGE_BAD_IMAGE_SIZE = "message.bad.image.size";
+
+    public static final String MESSAGE_REQUEST_IS_PROCESSING = "message.request.is.processing";
 }

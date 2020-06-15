@@ -119,12 +119,47 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getImageEffectsKeyboard(Locale locale, boolean cancelButton) {
+    public InlineKeyboardMarkup getResizeKeyboard(Locale locale, boolean cancelButton) {
         InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
-                buttonFactory.blackAndWhiteEffectButton(locale),
-                buttonFactory.sketchEffectButton(locale)
+                buttonFactory.delegateButton("16x16",
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_SIZE.getKey(), "16x16")),
+                buttonFactory.delegateButton("32x32",
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_SIZE.getKey(), "32x32")),
+                buttonFactory.delegateButton("64x64",
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_SIZE.getKey(), "64x64"))));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.delegateButton("480x360",
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_SIZE.getKey(), "480x360")),
+                buttonFactory.delegateButton("640x480",
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_SIZE.getKey(), "640x480")),
+                buttonFactory.delegateButton("1280x720",
+                        CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_SIZE.getKey(), "1280x720"))));
+
+        if (cancelButton) {
+            inlineKeyboardMarkup.getKeyboard().add(List.of(
+                    buttonFactory.cancelButton(locale),
+                    buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
+                            CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale)));
+        } else {
+            inlineKeyboardMarkup.getKeyboard().add(List.of(
+                    buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
+                            CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale)));
+        }
+
+        return inlineKeyboardMarkup;
+    }
+
+    public InlineKeyboardMarkup getImageFiltersKeyboard(Locale locale, boolean cancelButton) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.blackAndWhiteFilterButton(locale),
+                buttonFactory.sketchFilterButton(locale)
+        ));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.negativeButton(locale)
         ));
 
         if (cancelButton) {
@@ -145,8 +180,13 @@ public class InlineKeyboardService {
         InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
-                buttonFactory.transparencyButton(locale),
-                buttonFactory.effectsButton(locale)
+                buttonFactory.transparencyButton(locale)
+        ));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.filtersButton(locale)
+        ));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.resizeButton(locale)
         ));
         if (cancelButton) {
             inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelButton(locale)));

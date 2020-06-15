@@ -8,7 +8,7 @@ public interface State {
 
     Name getName();
 
-    default void go(ImageEditorCommand command, long chatId, Name name) {
+    default void go(ImageEditorCommand command, long chatId, String queryId, Name name) {
 
     }
 
@@ -20,7 +20,7 @@ public interface State {
 
     }
 
-    default void transparentMode(ImageEditorCommand command, long chatId, ModeState.Mode mode) {
+    default void transparentMode(ImageEditorCommand command, long chatId, String queryId, ModeState.Mode mode) {
 
     }
 
@@ -28,7 +28,7 @@ public interface State {
 
     }
 
-    default void inaccuracy(ImageEditorCommand command, long chatId, String inaccuracy) {
+    default void inaccuracy(ImageEditorCommand command, long chatId, String queryId, String inaccuracy) {
 
     }
 
@@ -40,15 +40,21 @@ public interface State {
 
     }
 
-    default void applyEffect(ImageEditorCommand command, long chatId, String queryId, Effect effect) {
+    default void applyFilter(ImageEditorCommand command, long chatId, String queryId, Filter effect) {
 
     }
 
-    enum Effect {
+    default void size(ImageEditorCommand command, long chatId, String queryId, String size) {
+
+    }
+
+    enum Filter {
 
         BLACK_AND_WHITE,
 
-        SKETCH
+        SKETCH,
+
+        NEGATIVE
     }
 
     enum Name {
@@ -65,6 +71,8 @@ public interface State {
 
         FATHER,
 
-        EFFECTS
+        FILTERS,
+
+        RESIZE
     }
 }

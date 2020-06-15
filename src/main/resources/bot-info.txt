@@ -1,12 +1,12 @@
 Description:
-All you need in one bot: converting files, stickers, links, text; create stickers from images;
+All you need in one bot: image editor; converting files, stickers, links, text; create stickers;
 renaming files; extraction files from an archive; creating an archive of files; extraction text from images;
 More useful features coming soon!
 About bot features: https://tgraph.io/Bot-SmartFileUtils-05-25
 О возможностях и работе бота: https://tgraph.io/Formats-05-14
 
 AboutText:
-Files,stickers,links,text conversion; stickers creation; files renaming; archive extraction,creation; text extraction;
+Image editor; files,stickers,links,text conversion; stickers creation; files renaming; archive extraction,creation; text extraction;
 
 Commands:
 start - Restart bot

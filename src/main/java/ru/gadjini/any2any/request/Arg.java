@@ -10,8 +10,9 @@ public enum Arg {
     TRANSPARENT_COLOR("f"),
     GO_BACK("g"),
     EDIT_STATE_NAME("k"),
-    IMAGE_EFFECT("m"),
-    INACCURACY("l");
+    IMAGE_FILTER("m"),
+    INACCURACY("l"),
+    IMAGE_SIZE("o");
 
     private final String key;
 

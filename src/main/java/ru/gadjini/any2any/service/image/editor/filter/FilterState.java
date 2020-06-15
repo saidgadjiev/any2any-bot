@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service.image.editor.effects;
+package ru.gadjini.any2any.service.image.editor.filter;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -12,11 +12,12 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.AnswerCallbackContext;
 import ru.gadjini.any2any.model.EditMediaContext;
+import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
-import ru.gadjini.any2any.service.image.device.ImageDevice;
+import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.ImageEditorState;
 import ru.gadjini.any2any.service.image.editor.State;
@@ -27,13 +28,13 @@ import java.io.IOException;
 import java.util.Locale;
 
 @Component
-public class EffectsState implements State {
+public class FilterState implements State {
 
     private CommandStateService commandStateService;
 
     private ImageEditorState imageEditorState;
 
-    private ImageDevice imageDevice;
+    private ImageConvertDevice imageDevice;
 
     private TempFileService tempFileService;
 
@@ -46,10 +47,10 @@ public class EffectsState implements State {
     private CommonJobExecutor commonJobExecutor;
 
     @Autowired
-    public EffectsState(CommandStateService commandStateService, ImageDevice imageDevice,
-                        TempFileService tempFileService, @Qualifier("limits") MessageService messageService,
-                        InlineKeyboardService inlineKeyboardService, LocalisationService localisationService,
-                        CommonJobExecutor commonJobExecutor) {
+    public FilterState(CommandStateService commandStateService, ImageConvertDevice imageDevice,
+                       TempFileService tempFileService, @Qualifier("limits") MessageService messageService,
+                       InlineKeyboardService inlineKeyboardService, LocalisationService localisationService,
+                       CommonJobExecutor commonJobExecutor) {
         this.commandStateService = commandStateService;
         this.imageDevice = imageDevice;
         this.tempFileService = tempFileService;
@@ -66,7 +67,7 @@ public class EffectsState implements State {
 
     @Override
     public Name getName() {
-        return Name.EFFECTS;
+        return Name.FILTERS;
     }
 
     @Override
@@ -75,10 +76,13 @@ public class EffectsState implements State {
         if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
             String editFilePath = editorState.getCurrentFilePath();
             editorState.setCurrentFilePath(editorState.getPrevFilePath());
+            editorState.setCurrentFileId(editorState.getPrevFileId());
             editorState.setPrevFilePath(null);
+            editorState.setPrevFileId(null);
 
-            messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), new File(editorState.getCurrentFilePath()))
-                    .replyKeyboard(inlineKeyboardService.getImageEffectsKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
+            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
+                    .replyKeyboard(inlineKeyboardService.getImageFiltersKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
+            editorState.setCurrentFileId(editMediaResult.getFileId());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
             File file = new File(editFilePath);
@@ -95,21 +99,24 @@ public class EffectsState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
-        messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getFileId())
-                .replyKeyboard(inlineKeyboardService.getImageEffectsKeyboard(new Locale(state.getLanguage()), state.canCancel())));
+        messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getCurrentFileId())
+                .replyKeyboard(inlineKeyboardService.getImageFiltersKeyboard(new Locale(state.getLanguage()), state.canCancel())));
     }
 
     @Override
-    public void applyEffect(ImageEditorCommand command, long chatId, String queryId, Effect effect) {
+    public void applyFilter(ImageEditorCommand command, long chatId, String queryId, Filter effect) {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         commonJobExecutor.addJob(() -> {
             SmartTempFile result = tempFileService.getTempFile(editorState.getFileName());
             switch (effect) {
                 case SKETCH:
-                    imageDevice.applySketchEffect(editorState.getCurrentFilePath(), result.getAbsolutePath());
+                    imageDevice.applySketchFilter(editorState.getCurrentFilePath(), result.getAbsolutePath());
                     break;
                 case BLACK_AND_WHITE:
-                    imageDevice.applyBlackAndWhiteEffect(editorState.getCurrentFilePath(), result.getAbsolutePath());
+                    imageDevice.applyBlackAndWhiteFilter(editorState.getCurrentFilePath(), result.getAbsolutePath());
+                    break;
+                case NEGATIVE:
+                    imageDevice.applyNegativeFilter(editorState.getCurrentFilePath(), result.getAbsolutePath());
                     break;
             }
             if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
@@ -121,15 +128,17 @@ public class EffectsState implements State {
                 }
             }
             editorState.setPrevFilePath(editorState.getCurrentFilePath());
+            editorState.setPrevFileId(editorState.getCurrentFileId());
             editorState.setCurrentFilePath(result.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
-            messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), result.getFile())
-                    .replyKeyboard(inlineKeyboardService.getImageEffectsKeyboard(locale, editorState.canCancel())));
+            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), result.getFile())
+                    .replyKeyboard(inlineKeyboardService.getImageFiltersKeyboard(locale, editorState.canCancel())));
+            editorState.setCurrentFileId(editMediaResult.getFileId());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
             if (StringUtils.isNotBlank(queryId)) {
                 messageService.sendAnswerCallbackQuery(
-                        new AnswerCallbackContext(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_EFFECT_APPLIED_ANSWER, locale))
+                        new AnswerCallbackContext(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_FILTER_APPLIED_ANSWER, locale))
                 );
             }
         });

@@ -14,7 +14,7 @@ public class ProcessExecutor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessExecutor.class);
 
-    public void execute(String[] command, int timeout) {
+    public String execute(String[] command, int timeout) {
         try {
             Process process = new ProcessBuilder(command).start();
             try {
@@ -29,6 +29,8 @@ public class ProcessExecutor {
                     }
                     LOGGER.error("Exit code " + process.exitValue() + " out: " + error + ". Command: " + Arrays.toString(command));
                 }
+
+                return IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8);
             } finally {
                 process.destroy();
             }

@@ -9,7 +9,9 @@ public class EditorState {
 
     private String prevFilePath;
 
-    private String fileId;
+    private String prevFileId;
+
+    private String currentFileId;
 
     private String fileName;
 
@@ -95,12 +97,20 @@ public class EditorState {
         this.prevFilePath = prevFilePath;
     }
 
-    public String getFileId() {
-        return fileId;
+    public String getCurrentFileId() {
+        return currentFileId;
     }
 
-    public void setFileId(String fileId) {
-        this.fileId = fileId;
+    public void setCurrentFileId(String currentFileId) {
+        this.currentFileId = currentFileId;
+    }
+
+    public String getPrevFileId() {
+        return prevFileId;
+    }
+
+    public void setPrevFileId(String prevFileId) {
+        this.prevFileId = prevFileId;
     }
 
     public boolean canCancel() {
