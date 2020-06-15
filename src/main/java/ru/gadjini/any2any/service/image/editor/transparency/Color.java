@@ -9,9 +9,8 @@ public enum Color {
         @Override
         public String[] transparentColors() {
             return new String[]{
-                    "brown1", "firebrick1",
-                    "firebrick2", "red", "red1", "firebrick3", "red2", "red3",
-                    "firebrick4", "DarkRed", "red4", "maroon", "crimson"
+                    "#F70A38", "#C10A2D", "#AC0727", "#E04563", "#E41A1A", "#B20E0E", "#E6311E", "#A21A0C", "#E36A5E", "#B11B19",
+                    "#9B3A39"
             };
         }
     },
@@ -39,11 +38,8 @@ public enum Color {
         @Override
         public String[] transparentColors() {
             return new String[]{
-                    "MediumSpringGreen", "SpringGreen", "SpringGreen1", "SpringGreen2", "SpringGreen3", "SpringGreen4", "MediumSeaGreen",
-                    "SeaGreen", "SeaGreen3", "SeaGreen1", "SeaGreen4", "SeaGreen2", "MediumForestGreen",
-                    "LightGreen", "PaleGreen2", "PaleGreen", "PaleGreen1", "green1", "lime", "LimeGreen", "green2", "green3",
-                    "ForestGreen", "green4", "green", "DarkGreen", "LawnGreen", "chartreuse", "chartreuse1", "chartreuse2", "chartreuse3", "chartreuse4",
-                    "GreenYellow", "DarkOliveGreen4", "OliveDrab1", "OliveDrab2", "OliveDrab3", "YellowGreen", "OliveDrab4", "#00ff47", "#2fff00"
+                    "#40F909", "#32A210", "#62B749", "#4B9137", "#1E7206", "#8AE96E", "#64F13A", "#40D513", "#23D717", "#31F54C",
+                    "#18B12D", "#6CF17E", "#09F729", "#05A02A", "#4FCF6E", "#35c746", "#1b7c30", "#98efa1"
              };
         }
     },
@@ -54,7 +50,7 @@ public enum Color {
                     "blue", "blue1", "blue2", "blue3", "MediumBlue", "blue4", "DarkBlue", "MidnightBlue", "navy", "NavyBlue", "RoyalBlue", "RoyalBlue1", "RoyalBlue2",
                     "RoyalBlue3", "RoyalBlue4", "CornflowerBlue", "DodgerBlue", "DodgerBlue1", "DodgerBlue2", "DodgerBlue3", "DodgerBlue4",
                     "DeepSkyBlue", "DeepSkyBlue1", "DeepSkyBlue2", "DeepSkyBlue3", "DeepSkyBlue4", "SlateBlue4", "SlateBlue3", "SlateBlue2", "SlateBlue1", "SlateBlue",
-                    "MediumSlateBlue", "LightSlateBlue", "DarkSlateBlue"
+                    "MediumSlateBlue", "LightSlateBlue", "DarkSlateBlue", "#0630d0", "#004af7", "#0222a4", "#3b00f8", "#2849ff"
             };
         }
     },
@@ -62,10 +58,8 @@ public enum Color {
         @Override
         public String[] transparentColors() {
             return new String[]{
-                    "LightPink1", "LightPink2", "LightPink3", "LightPink", "pink", "pink1", "pink2", "pink3", "crimson", "PaleVioletRed4",
-                    "PaleVioletRed", "PaleVioletRed1", "PaleVioletRed2", "PaleVioletRed3", "maroon", "HotPink3", "HotPink2", "HotPink1", "HotPink",
-                    "DeepPink", "DeepPink1", "DeepPink2", "DeepPink3", "DeepPink4", "maroon1", "maroon2", "maroon3", "maroon4", "MediumVioletRed", "VioletRed",
-                    "VioletRed3", "VioletRed2", "VioletRed1", "LightPink4", "pink4", "HotPink4"
+                    "#EA16D3", "#9E2191", "#C43EB6", "#F553E4", "#F392E9", "#B607A4", "#D375CA", "#83317C", "#A25D9C",
+                    "#8E0983", "#5F0757", "#D828F0"
             };
         }
     },
@@ -73,9 +67,9 @@ public enum Color {
         @Override
         public String[] transparentColors() {
             return new String[]{
-                    "purple", "indigo", "BlueViolet", "purple2", "purple3", "purple4", "purple1", "MediumPurple", "MediumPurple1",
-                    "MediumPurple2", "MediumPurple3", "MediumPurple4", "MediumOrchid", "MediumOrchid1", "MediumOrchid2", "MediumOrchid3", "MediumOrchid4",
-                    "DarkViolet", "fuchsia", "magenta", "magenta1", "magenta2", "magenta3", "magenta4", "DarkMagenta", "violet", "orchid2", "orchid1"
+                    "purple", "indigo", "BlueViolet", "purple2", "purple3", "purple4", "purple1",
+                    "MediumOrchid", "MediumOrchid2", "MediumOrchid3", "fuchsia", "magenta", "magenta1", "magenta2", "magenta3",
+                    "DarkViolet", "#cb15ef", "#893f9c", "#b400fa", "DarkMagenta", "magenta4"
             };
         }
     },

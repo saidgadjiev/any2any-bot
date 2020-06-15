@@ -155,6 +155,7 @@ public class StateFather implements State {
                         .replyKeyboard(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())));
                 state.setMessageId(fileResult.getMessageId());
                 state.setCurrentFileId(fileResult.getFileId());
+                deleteCurrentState(chatId, command.getHistoryName());
                 commandStateService.setState(chatId, command.getHistoryName(), state);
                 LOGGER.debug("Image editor state initialized for user " + chatId);
             } finally {
@@ -206,5 +207,13 @@ public class StateFather implements State {
         editorState.setFileName(fileName);
 
         return editorState;
+    }
+
+    private void deleteCurrentState(long chatId, String commandName) {
+        EditorState state = commandStateService.getState(chatId, commandName, false);
+
+        if (state != null) {
+            messageService.removeInlineKeyboard(chatId, state.getMessageId());
+        }
     }
 }
