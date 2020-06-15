@@ -36,6 +36,10 @@ public class FileQueueBusinessService {
         fileQueueDao.updateException(id, FileQueueItem.Status.EXCEPTION.getCode(), exception);
     }
 
+    public void completeWithException(int id, String msg) {
+        fileQueueDao.updateException(id, FileQueueItem.Status.COMPLETED.getCode(), msg);
+    }
+
     public void converterNotFound(int id) {
         fileQueueDao.updateException(id, FileQueueItem.Status.CANDIDATE_NOT_FOUND.getCode(), "Converter not found");
     }

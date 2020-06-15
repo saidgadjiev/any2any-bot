@@ -155,4 +155,6 @@ public class MessagesProperties {
     public static final String MESSAGE_ARCHIVE_CURRENT_FILES = "message.archive.current.files";
 
     public static final String MESSAGE_CONVERSION_FAILED = "message.conversion.failed";
+
+    public static final String MESSAGE_DAMAGED_FILE = "message.damaged.file";
 }

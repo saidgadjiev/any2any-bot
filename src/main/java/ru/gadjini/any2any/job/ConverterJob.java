@@ -14,6 +14,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.configuration.SchedulerConfiguration;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.event.QueueItemCanceled;
+import ru.gadjini.any2any.exception.CorruptedFileException;
 import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendMessageContext;
@@ -115,6 +116,14 @@ public class ConverterJob {
                         convertResult.time(),
                         fileQueueItem.getSize(),
                         fileQueueItem.getId()
+                );
+            } catch (CorruptedFileException ex) {
+                queueService.completeWithException(fileQueueItem.getId(), ex.getMessage());
+                LOGGER.error(ex.getMessage());
+                Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+                messageService.sendMessage(
+                        new SendMessageContext(fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_DAMAGED_FILE, locale))
+                                .replyMessageId(fileQueueItem.getMessageId())
                 );
             } catch (Exception ex) {
                 Future<?> future = processing.get(fileQueueItem.getId());
