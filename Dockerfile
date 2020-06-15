@@ -45,34 +45,15 @@ USER root
 
 RUN sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
 RUN apt-get update -y -qq
-RUN apt-get install -y -qq autoconf libtool 
-RUN apt-get -y -qq build-dep imagemagick libmagickcore-dev libde265 libheif
-
-RUN cd /usr/src/ && \
-git clone https://github.com/strukturag/libde265.git && \
-git clone https://github.com/strukturag/libheif.git
-
-RUN cd /usr/src/libde265/ && \
-./autogen.sh && \
-./configure && \
-make && \
-make install
-
-RUN cd /usr/src/libheif/ && \
-./autogen.sh && \
-./configure && \
-make && \
-make install
+RUN apt-get -y -qq build-dep imagemagick 
+RUN apt-get install -y -qq libwebp-dev libopenjp2-7-dev librsvg2-dev libde265-dev libheif-dev
 
 RUN cd /usr/src/ && \
 wget https://www.imagemagick.org/download/ImageMagick.tar.bz2 && \
-tar xvf ImageMagick.tar.bz2 && \
-cd ImageMagick* && \
-./configure --with-heic=yes && \
-make && \
-make install
-
-RUN ldconfig
+tar xvf ImageMagick.tar.bz2 && cd ImageMagick* && \
+./configure && make -j 4 && \
+make install && \
+make distclean && ldconfig
 
 RUN apt-get install -y -qq tesseract-ocr
 
