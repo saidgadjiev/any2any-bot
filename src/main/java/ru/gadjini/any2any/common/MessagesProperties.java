@@ -217,4 +217,6 @@ public class MessagesProperties {
     public static final String COLOR_PICKER = "color.picker";
 
     public static final String IMAGE_COLOR_PICKER = "image.color.picker";
+
+    public static final String MESSAGE_BAD_IMAGE = "message.bad.image";
 }

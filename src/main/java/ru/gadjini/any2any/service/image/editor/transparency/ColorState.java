@@ -122,7 +122,8 @@ public class ColorState implements State {
             editorState.setCurrentFilePath(tempFile.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
             EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), tempFile.getFile())
-                    .caption(messageBuilder.getSettingsStr(editorState))
+                    .caption(messageBuilder.getSettingsStr(editorState) + "\n\n"
+                            + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, locale))
                     .replyKeyboard(inlineKeyboardService.getColorsKeyboard(locale, editorState.canCancel())));
             editorState.setCurrentFileId(editMediaResult.getFileId());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);

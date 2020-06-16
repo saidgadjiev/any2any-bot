@@ -1,5 +1,8 @@
 package ru.gadjini.any2any.bot.command.keyboard;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -11,6 +14,7 @@ import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.request.Arg;
@@ -18,6 +22,8 @@ import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.converter.api.FormatCategory;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.image.editor.StateFatherProxy;
@@ -31,6 +37,8 @@ import java.util.Set;
 
 @Component
 public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotCommand, CallbackBotCommand {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ImageEditorCommand.class);
 
     private Set<String> names = new HashSet<>();
 
@@ -145,17 +153,40 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     }
 
     private boolean isMediaMessage(Message message) {
-        return message.hasPhoto();
+        return message.hasPhoto() || message.hasDocument();
     }
 
     private Any2AnyFile getEditFile(Message message, Locale locale) {
         Any2AnyFile any2AnyFile = new Any2AnyFile();
 
-        PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
-        any2AnyFile.setFileId(photoSize.getFileId());
-        any2AnyFile.setFileName(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale));
-        any2AnyFile.setFormat(formatService.getImageFormat(photoSize.getFileId()));
+        if (message.hasDocument()) {
+            any2AnyFile.setFileId(message.getDocument().getFileId());
+            any2AnyFile.setFileName(message.getDocument().getFileName());
+            Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
+            any2AnyFile.setFormat(checkFormat(format, message.getDocument().getMimeType(), message.getDocument().getFileName(), message.getDocument().getFileId(), locale));
+        } else if (message.hasPhoto()) {
+            PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
+            any2AnyFile.setFileId(photoSize.getFileId());
+            any2AnyFile.setFileName(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale));
+            any2AnyFile.setFormat(formatService.getImageFormat(photoSize.getFileId()));
+        }
 
         return any2AnyFile;
+    }
+
+    private Format checkFormat(Format format, String mimeType, String fileName, String fileId, Locale locale) {
+        if (format == null) {
+            if (StringUtils.isNotBlank(mimeType)) {
+                LOGGER.debug("Format not resolved for " + mimeType + " and fileName " + fileName);
+            } else {
+                LOGGER.debug("Format not resolved for image " + fileId);
+            }
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_IMAGE, locale));
+        }
+        if (format.getCategory() != FormatCategory.IMAGES) {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_IMAGE, locale));
+        }
+
+        return format;
     }
 }
