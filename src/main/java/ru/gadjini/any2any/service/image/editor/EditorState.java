@@ -19,7 +19,7 @@ public class EditorState {
 
     private String language;
 
-    private String inaccuracy = "10.0";
+    private String inaccuracy = "20.0";
 
     private ModeState.Mode mode = ModeState.Mode.NEGATIVE;
 

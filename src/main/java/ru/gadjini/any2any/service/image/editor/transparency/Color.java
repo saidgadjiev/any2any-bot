@@ -46,7 +46,7 @@ public enum Color {
         @Override
         public String[] transparentColors() {
             return new String[]{
-                    "#FF1493", "#FFC0CB", "#FF69B4"
+                    "#FF1493"
             };
         }
     },
@@ -54,7 +54,7 @@ public enum Color {
         @Override
         public String[] transparentColors() {
             return new String[]{
-                    "#800080", "#FF00FF"
+                    "#FF00FF"
             };
         }
     },

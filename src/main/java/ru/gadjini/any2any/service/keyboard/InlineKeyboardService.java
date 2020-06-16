@@ -57,12 +57,8 @@ public class InlineKeyboardService {
                 )));
             }
         }
-        inlineKeyboardMarkup.getKeyboard().add(
-                List.of(
-                        buttonFactory.moreColorsButton(locale),
-                        buttonFactory.imageColorButton(locale)
-                )
-        );
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.moreColorsButton(locale)));
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.imageColorButton(locale)));
         if (cancelButton) {
             inlineKeyboardMarkup.getKeyboard().add(List.of(
                     buttonFactory.cancelButton(locale),
