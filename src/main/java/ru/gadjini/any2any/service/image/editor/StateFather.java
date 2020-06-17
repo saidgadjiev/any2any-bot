@@ -158,7 +158,7 @@ public class StateFather implements State {
                 state.setCurrentFileId(fileResult.getFileId());
                 deleteCurrentState(chatId, command.getHistoryName());
                 commandStateService.setState(chatId, command.getHistoryName(), state);
-                LOGGER.debug("Image editor state initialized for user " + chatId);
+                LOGGER.debug("Image editor state initialized for user " + chatId + " file id " + any2AnyFile.getFileId() + " format " + any2AnyFile.getFormat());
             } finally {
                 file.smartDelete();
             }
