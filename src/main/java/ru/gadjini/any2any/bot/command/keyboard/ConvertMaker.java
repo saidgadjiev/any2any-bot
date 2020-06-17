@@ -95,7 +95,7 @@ public class ConvertMaker {
             commandStateService.setState(message.getChatId(), controllerName, convertState);
         } else if (message.hasText()) {
             ConvertState convertState = commandStateService.getState(message.getChatId(), controllerName, true);
-            Format targetFormat = checkTargetFormat(convertState.getFormat(), formatService.getAssociatedFormat(text), locale);
+            Format targetFormat = checkTargetFormat(convertState.getFormat(), formatService.getAssociatedFormat(text), text, locale);
             if (targetFormat == Format.GIF) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_GIF_WARN, locale));
             }
@@ -157,6 +157,7 @@ public class ConvertMaker {
                 || message.hasSticker()) {
             return;
         }
+        LOGGER.debug("Unsupported format of message " + message);
 
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
@@ -171,17 +172,20 @@ public class ConvertMaker {
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
         if (format.getCategory() == FormatCategory.ARCHIVE) {
+            LOGGER.debug("Archive unsupported for conversion");
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
 
         return format;
     }
 
-    private Format checkTargetFormat(Format format, Format target, Locale locale) {
+    private Format checkTargetFormat(Format format, Format target, String text, Locale locale) {
         if (target == null) {
+            LOGGER.debug("Conversion unsupported format " + format + " target " + text);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
         if (Objects.equals(format, target)) {
+            LOGGER.debug("Conversion unsupported for the same formats: " + format);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_ANOTHER_FORMAT, locale));
         }
         boolean result = formatService.isConvertAvailable(format, target);
