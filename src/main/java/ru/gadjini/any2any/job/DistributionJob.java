@@ -10,7 +10,7 @@ import ru.gadjini.any2any.domain.Distribution;
 import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.service.DistributionService;
-import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
 
 import javax.annotation.PostConstruct;

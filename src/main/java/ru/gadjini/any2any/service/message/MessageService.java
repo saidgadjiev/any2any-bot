@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service;
+package ru.gadjini.any2any.service.message;
 
 import org.telegram.telegrambots.meta.api.objects.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;

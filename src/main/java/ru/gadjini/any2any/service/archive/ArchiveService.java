@@ -13,6 +13,7 @@ import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.service.*;
 import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.io.File;

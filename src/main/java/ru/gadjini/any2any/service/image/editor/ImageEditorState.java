@@ -10,7 +10,7 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.AnswerCallbackContext;
 import ru.gadjini.any2any.model.EditMediaContext;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.image.editor.filter.FilterState;
 import ru.gadjini.any2any.service.image.editor.transparency.TransparencyState;

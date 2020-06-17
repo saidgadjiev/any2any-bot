@@ -11,6 +11,7 @@ import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.*;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.Locale;
 

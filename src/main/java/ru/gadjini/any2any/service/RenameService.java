@@ -13,6 +13,7 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.io.File;
 import java.util.Locale;

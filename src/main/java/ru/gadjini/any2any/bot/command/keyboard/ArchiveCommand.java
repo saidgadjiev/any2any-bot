@@ -13,7 +13,7 @@ import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.command.CommandStateService;

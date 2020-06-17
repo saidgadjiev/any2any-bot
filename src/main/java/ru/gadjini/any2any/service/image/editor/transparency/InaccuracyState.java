@@ -9,7 +9,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.EditMessageCaptionContext;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.image.editor.EditMessageBuilder;
 import ru.gadjini.any2any.service.image.editor.EditorState;

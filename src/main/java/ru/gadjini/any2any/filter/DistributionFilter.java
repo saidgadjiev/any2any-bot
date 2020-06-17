@@ -9,7 +9,7 @@ import ru.gadjini.any2any.job.DistributionJob;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.service.DistributionService;
-import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 @Component
 public class DistributionFilter extends BaseBotFilter {

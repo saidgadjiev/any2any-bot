@@ -14,7 +14,7 @@ import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.EditMediaContext;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendFileResult;
-import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;

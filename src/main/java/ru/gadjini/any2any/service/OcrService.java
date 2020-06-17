@@ -14,6 +14,7 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.List;
 import java.util.Locale;

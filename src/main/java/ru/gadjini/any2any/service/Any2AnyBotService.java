@@ -16,6 +16,7 @@ import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.service.command.CommandExecutor;
 import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
 import ru.gadjini.any2any.service.keyboard.CurrReplyKeyboard;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.Locale;
 

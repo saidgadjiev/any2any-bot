@@ -10,7 +10,7 @@ import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.model.EditMessageContext;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
-import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.filequeue.FileQueueMessageBuilder;
 import ru.gadjini.any2any.service.filequeue.FileQueueService;

@@ -16,7 +16,7 @@ import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.OcrService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;

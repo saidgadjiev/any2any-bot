@@ -13,7 +13,7 @@ import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.utils.ExFileUtils;

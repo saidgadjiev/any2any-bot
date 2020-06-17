@@ -13,7 +13,7 @@ import ru.gadjini.any2any.filter.BotFilter;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.property.BotProperties;
-import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
 
 @Component

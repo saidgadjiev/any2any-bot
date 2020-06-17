@@ -5,6 +5,9 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class TgMessage {
 
     private long chatId;
@@ -16,6 +19,8 @@ public class TgMessage {
     private User user;
 
     private String text;
+    
+    private List<MetaType> metaTypes;
 
     public long getChatId() {
         return chatId;
@@ -57,6 +62,14 @@ public class TgMessage {
         this.text = text;
     }
 
+    public List<MetaType> getMetaTypes() {
+        return metaTypes;
+    }
+
+    public void setMetaTypes(List<MetaType> metaTypes) {
+        this.metaTypes = metaTypes;
+    }
+
     public static TgMessage from(CallbackQuery callbackQuery) {
         TgMessage tgMessage = new TgMessage();
 
@@ -76,6 +89,7 @@ public class TgMessage {
         tgMessage.messageId = message.getMessageId();
         tgMessage.user = message.getFrom();
         tgMessage.text = message.hasText() ? message.getText().trim() : "";
+        tgMessage.setMetaTypes(getMetaTypes(message));
 
         return tgMessage;
     }
@@ -118,5 +132,52 @@ public class TgMessage {
         }
 
         return update.getMessage().getFrom();
+    }
+
+    private static List<MetaType> getMetaTypes(Message message) {
+        List<MetaType> metaTypes = new ArrayList<>();
+
+        if (message.hasDocument()) {
+            metaTypes.add(MetaType.DOCUMENT);
+        }
+        if (message.hasText()) {
+            metaTypes.add(MetaType.TEXT);
+        }
+        if (message.hasPhoto()) {
+            metaTypes.add(MetaType.PHOTO);
+        }
+        if (message.hasVideo()) {
+            metaTypes.add(MetaType.VIDEO);
+        }
+        if (message.hasAudio()) {
+            metaTypes.add(MetaType.AUDIO);
+        }
+        if (message.hasLocation()) {
+            metaTypes.add(MetaType.LOCATION);
+        }
+        if (message.hasContact()) {
+            metaTypes.add(MetaType.CONTACT);
+        }
+
+        return metaTypes;
+    }
+    
+    public enum MetaType {
+
+        TEXT,
+
+        DOCUMENT,
+
+        AUDIO,
+
+        VIDEO,
+
+        PHOTO,
+
+        VOICE,
+
+        CONTACT,
+
+        LOCATION
     }
 }

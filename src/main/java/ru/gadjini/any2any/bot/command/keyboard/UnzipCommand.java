@@ -13,7 +13,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatCategory;

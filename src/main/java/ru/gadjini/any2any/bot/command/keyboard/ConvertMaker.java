@@ -18,8 +18,8 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
@@ -29,6 +29,7 @@ import ru.gadjini.any2any.service.converter.impl.FormatService;
 import ru.gadjini.any2any.service.filequeue.FileQueueMessageBuilder;
 import ru.gadjini.any2any.service.filequeue.FileQueueService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.io.File;
 import java.io.IOException;
@@ -157,7 +158,7 @@ public class ConvertMaker {
                 || message.hasSticker()) {
             return;
         }
-        LOGGER.debug("Unsupported format of message " + message);
+        LOGGER.debug("Unsupported format of message " + TgMessage.from(message));
 
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }

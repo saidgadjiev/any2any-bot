@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service;
+package ru.gadjini.any2any.service.message;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -24,6 +24,8 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TelegramException;
 import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.TelegramService;
 
 import java.util.Locale;
 

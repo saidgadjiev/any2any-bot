@@ -15,7 +15,7 @@ import ru.gadjini.any2any.model.EditMediaContext;
 import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.model.EditMessageCaptionContext;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;

@@ -12,9 +12,14 @@ import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.SendMessageContext;
-import ru.gadjini.any2any.service.*;
+import ru.gadjini.any2any.model.TgMessage;
+import ru.gadjini.any2any.service.FileService;
+import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.RenameService;
+import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -110,7 +115,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand {
         renameState.setFile(fileService.getFile(message, locale));
 
         if (renameState.getFile() == null) {
-            LOGGER.debug("Not file message " + message);
+            LOGGER.debug("Not file message " + TgMessage.from(message));
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FORBIDDEN, locale));
         }
 

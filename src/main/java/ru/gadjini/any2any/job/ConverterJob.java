@@ -19,7 +19,7 @@ import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.converter.api.Any2AnyConverter;
 import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
