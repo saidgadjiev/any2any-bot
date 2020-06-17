@@ -37,6 +37,13 @@ public class DistributionJob {
         checkDistributions();
     }
 
+    @Scheduled(cron = "0 0 * * * *")
+    public void checkDistributions() {
+        if (!distributionService.isExists()) {
+            disableJob();
+        }
+    }
+
     @Scheduled(cron = "0 */5 * * * *")
     public void distribute() {
         if (isDisabled()) {
@@ -65,12 +72,6 @@ public class DistributionJob {
         }
 
         return false;
-    }
-
-    private void checkDistributions() {
-        if (!distributionService.isExists()) {
-            disableJob();
-        }
     }
 
     private void disableJob() {
