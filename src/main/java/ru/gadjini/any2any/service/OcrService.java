@@ -65,7 +65,7 @@ public class OcrService {
                 if (StringUtils.isBlank(result)) {
                     messageService.sendMessage(new SendMessageContext(userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
                 }
-                messageService.sendMessage(new SendMessageContext(userId, result));
+                messageService.sendMessage(new SendMessageContext(userId, result).html(false));
                 LOGGER.debug("Finish ocr for user " + userId + " file id " + any2AnyFile);
             } catch (Exception ex) {
                 messageService.sendErrorMessage(userId, locale);
