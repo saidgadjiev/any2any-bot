@@ -47,6 +47,8 @@ public class DistributionJob {
         LOGGER.debug("Start checkDistributions");
         if (!distributionService.isExists()) {
             disableJob();
+        } else {
+            enableJob();
         }
         LOGGER.debug("Finish checkDistributions");
     }
@@ -54,7 +56,6 @@ public class DistributionJob {
     @Scheduled(cron = "0 */5 * * * *")
     public void distribute() {
         if (isDisabled()) {
-            LOGGER.debug("Distribution job is disabled");
             return;
         }
         LOGGER.debug("Start send distributions");
@@ -83,6 +84,11 @@ public class DistributionJob {
         }
 
         return false;
+    }
+
+    private void enableJob() {
+        System.setProperty(DISABLE_JOB, "false");
+        LOGGER.debug("Enable distribution job");
     }
 
     private void disableJob() {
