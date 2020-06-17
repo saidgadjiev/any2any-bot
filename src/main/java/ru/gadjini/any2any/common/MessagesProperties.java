@@ -231,4 +231,30 @@ public class MessagesProperties {
     public static final String MESSAGE_TRANSPARENCY_MODE_CHANGED = "message.transparency.mode.changed";
 
     public static final String MESSAGE_INACCURACY_CHANGED = "message.inaccuracy.changed";
+
+    public static final String IMAGE_EDITOR_COMMAND_DESCRIPTION = "image.editor.command.description";
+
+    public static final String CONVERT_COMMAND_DESCRIPTION = "convert.command.description";
+
+    public static final String QUERIES_COMMAND_DESCRIPTION = "queries.command.description";
+
+    public static final String RENAME_COMMAND_DESCRIPTION = "rename.command.description";
+
+    public static final String OCR_COMMAND_DESCRIPTION = "ocr.command.description";
+
+    public static final String UNZIP_COMMAND_DESCRIPTION = "unzip.command.description";
+
+    public static final String ARCHIVE_COMMAND_DESCRIPTION = "archive.command.description";
+
+    public static final String LANGUAGE_COMMAND_DESCRIPTION = "language.command.description";
+
+    public static final String START_COMMAND_DESCRIPTION = "start.command.description";
+
+    public static final String HELP_COMMAND_DESCRIPTION = "help.command.description";
+
+    public static final String MESSAGE_CHOOSE_SECTION = "message.choose.section";
+
+    public static final String FORMATS_COMMAND_DESCRIPTION = "formats.command.description";
+
+    public static final String GO_BACK_COMMAND_DESCRIPTION = "go.back.command.description";
 }

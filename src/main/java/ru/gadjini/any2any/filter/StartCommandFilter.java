@@ -10,12 +10,13 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.CreateOrUpdateResult;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.model.TgMessage;
+import ru.gadjini.any2any.service.CommandMessageBuilder;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandParser;
 import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 @Component
 public class StartCommandFilter extends BaseBotFilter {
@@ -32,16 +33,19 @@ public class StartCommandFilter extends BaseBotFilter {
 
     private CommandNavigator commandNavigator;
 
+    private CommandMessageBuilder commandMessageBuilder;
+
     @Autowired
     public StartCommandFilter(CommandParser commandParser, UserService userService,
                               @Qualifier("limits") MessageService messageService, LocalisationService localisationService,
-                              @Qualifier("curr") ReplyKeyboardService replyKeyboardService, CommandNavigator commandNavigator) {
+                              @Qualifier("curr") ReplyKeyboardService replyKeyboardService, CommandNavigator commandNavigator, CommandMessageBuilder commandMessageBuilder) {
         this.commandParser = commandParser;
         this.userService = userService;
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.replyKeyboardService = replyKeyboardService;
         this.commandNavigator = commandNavigator;
+        this.commandMessageBuilder = commandMessageBuilder;
     }
 
     @Override
@@ -71,7 +75,9 @@ public class StartCommandFilter extends BaseBotFilter {
         CreateOrUpdateResult createOrUpdateResult = userService.createOrUpdate(message.getUser());
 
         if (createOrUpdateResult.isCreated()) {
-            String text = localisationService.getMessage(MessagesProperties.MESSAGE_WELCOME, createOrUpdateResult.getUser().getLocale());
+            String text = localisationService.getMessage(MessagesProperties.MESSAGE_WELCOME,
+                    new Object[]{commandMessageBuilder.getCommandsInfo(createOrUpdateResult.getUser().getLocale())},
+                    createOrUpdateResult.getUser().getLocale());
             ReplyKeyboard mainMenu = replyKeyboardService.getMainMenu(message.getChatId(), createOrUpdateResult.getUser().getLocale());
             messageService.sendMessage(
                     new SendMessageContext(message.getChatId(), text)

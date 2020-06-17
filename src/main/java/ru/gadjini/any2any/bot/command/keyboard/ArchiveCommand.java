@@ -3,7 +3,11 @@ package ru.gadjini.any2any.bot.command.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.bots.AbsSender;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
@@ -13,7 +17,6 @@ import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.command.CommandStateService;
@@ -21,11 +24,12 @@ import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatCategory;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.*;
 
 @Component
-public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
+public class ArchiveCommand extends BotCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     private ArchiveService archiveService;
 
@@ -49,6 +53,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
     public ArchiveCommand(ArchiveService archiveService, LocalisationService localisationService, @Qualifier("limits") MessageService messageService,
                           CommandStateService commandStateService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                           UserService userService, FormatService formatService, FileService fileService) {
+        super(CommandNames.ARCHIVE_COMMAND_NAME, "");
         this.archiveService = archiveService;
         this.localisationService = localisationService;
         this.messageService = messageService;
@@ -73,12 +78,20 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
     }
 
     @Override
+    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+        processMessage0(chat.getId(), user.getId());
+    }
+
+    @Override
     public boolean processMessage(Message message, String text) {
-        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-        messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES, locale))
-                .replyKeyboard(replyKeyboardService.archiveTypesKeyboard(message.getChatId(), locale)));
+        processMessage0(message.getChatId(), message.getFrom().getId());
 
         return true;
+    }
+
+    @Override
+    public String getParentCommandName() {
+        return CommandNames.START_COMMAND;
     }
 
     @Override
@@ -144,5 +157,11 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand {
         }
 
         return format;
+    }
+
+    private void processMessage0(long chatId, int userId) {
+        Locale locale = userService.getLocaleOrDefault(userId);
+        messageService.sendMessage(new SendMessageContext(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES, locale))
+                .replyKeyboard(replyKeyboardService.archiveTypesKeyboard(chatId, locale)));
     }
 }

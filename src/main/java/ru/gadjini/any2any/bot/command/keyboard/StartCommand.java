@@ -14,11 +14,12 @@ import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.model.TgMessage;
+import ru.gadjini.any2any.service.CommandMessageBuilder;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.Locale;
 
@@ -35,22 +36,18 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
 
     private ReplyKeyboardService replyKeyboardService;
 
-    private ConvertMaker convertMaker;
+    private CommandMessageBuilder commandMessageBuilder;
 
     @Autowired
     public StartCommand(CommandStateService commandStateService, UserService userService, @Qualifier("limits") MessageService messageService,
-                        LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService) {
+                        LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService, CommandMessageBuilder commandMessageBuilder) {
         super(CommandNames.START_COMMAND, "");
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.replyKeyboardService = replyKeyboardService;
-    }
-
-    @Autowired
-    public void setConvertMaker(ConvertMaker convertMaker) {
-        this.convertMaker = convertMaker;
+        this.commandMessageBuilder = commandMessageBuilder;
     }
 
     @Override
@@ -69,7 +66,15 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        convertMaker.processNonCommandUpdate(getHistoryName(), message, text, () -> getKeyboard(message.getChatId()));
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
+        messageService.sendMessage(
+                new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_SECTION, new Object[]{commandMessageBuilder.getCommandsInfo(locale)}, locale))
+        );
+    }
+
+    @Override
+    public String getParentCommandName() {
+        return CommandNames.START_COMMAND;
     }
 
     @Override

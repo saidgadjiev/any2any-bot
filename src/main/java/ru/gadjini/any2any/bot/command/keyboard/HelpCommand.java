@@ -12,9 +12,10 @@ import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.service.CommandMessageBuilder;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -31,12 +32,16 @@ public class HelpCommand extends BotCommand implements KeyboardBotCommand {
 
     private Set<String> names = new HashSet<>();
 
+    private CommandMessageBuilder commandMessageBuilder;
+
     @Autowired
-    public HelpCommand(@Qualifier("limits") MessageService messageService, LocalisationService localisationService, UserService userService) {
+    public HelpCommand(@Qualifier("limits") MessageService messageService, LocalisationService localisationService,
+                       UserService userService, CommandMessageBuilder commandMessageBuilder) {
         super(CommandNames.HELP_COMMAND, "");
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
+        this.commandMessageBuilder = commandMessageBuilder;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.HELP_COMMAND_NAME, locale));
         }
@@ -61,6 +66,8 @@ public class HelpCommand extends BotCommand implements KeyboardBotCommand {
 
     private void sendHelpMessage(int userId, Locale locale) {
         messageService.sendMessage(
-                new SendMessageContext(userId, localisationService.getMessage(MessagesProperties.MESSAGE_HELP, locale)));
+                new SendMessageContext(userId, localisationService.getMessage(MessagesProperties.MESSAGE_HELP,
+                        new Object[]{commandMessageBuilder.getCommandsInfo(locale)},
+                        locale)));
     }
 }

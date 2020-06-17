@@ -5,6 +5,8 @@ import ru.gadjini.any2any.model.TgMessage;
 
 public interface NavigableBotCommand extends MyBotCommand {
 
+    String getParentCommandName();
+
     String getHistoryName();
 
     default void restore(TgMessage message) {

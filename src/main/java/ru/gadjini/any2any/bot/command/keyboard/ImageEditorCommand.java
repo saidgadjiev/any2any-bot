@@ -6,9 +6,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
+import org.telegram.telegrambots.meta.api.objects.*;
+import org.telegram.telegrambots.meta.bots.AbsSender;
 import ru.gadjini.any2any.bot.command.api.CallbackBotCommand;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
@@ -20,7 +20,6 @@ import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatCategory;
@@ -29,6 +28,7 @@ import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.image.editor.StateFather;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -36,7 +36,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotCommand, CallbackBotCommand {
+public class ImageEditorCommand extends BotCommand implements KeyboardBotCommand, NavigableBotCommand, CallbackBotCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImageEditorCommand.class);
 
@@ -59,6 +59,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
                               @Qualifier("limits") MessageService messageService, UserService userService,
                               @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                               StateFather stateFather, FormatService formatService) {
+        super(CommandNames.IMAGE_EDITOR_COMMAND_NAME, "");
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.userService = userService;
@@ -86,16 +87,20 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     }
 
     @Override
-    public boolean processMessage(Message message, String text) {
-        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
+    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+        processMessage0(chat.getId(), user.getId());
+    }
 
-        messageService.sendMessage(
-                new SendMessageContext(message.getChatId(),
-                        localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENCY_WELCOME, locale))
-                        .replyKeyboard(replyKeyboardService.goBack(message.getChatId(), locale))
-        );
+    @Override
+    public boolean processMessage(Message message, String text) {
+        processMessage0(message.getChatId(), message.getFrom().getId());
 
         return true;
+    }
+
+    @Override
+    public String getParentCommandName() {
+        return CommandNames.START_COMMAND;
     }
 
     @Override
@@ -154,6 +159,16 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     private boolean isMediaMessage(Message message) {
         return message.hasPhoto() || message.hasDocument();
+    }
+
+    private void processMessage0(long chatId, int userId) {
+        Locale locale = userService.getLocaleOrDefault(userId);
+
+        messageService.sendMessage(
+                new SendMessageContext(chatId,
+                        localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENCY_WELCOME, locale))
+                        .replyKeyboard(replyKeyboardService.goBack(chatId, locale))
+        );
     }
 
     private Any2AnyFile getEditFile(Message message, Locale locale) {

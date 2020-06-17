@@ -6,11 +6,27 @@ public class CommandNames {
 
     }
 
+    public static final String GO_BACK = "goback";
+
     public static final String START_COMMAND = "start";
 
     public static final String HELP_COMMAND = "help";
 
     public static final String QUERIES_COMMAND = "queries";
+
+    public static final String IMAGE_EDITOR_COMMAND_NAME = "imageditor";
+
+    public static final String CONVERT_COMMAND_NAME = "conversion";
+
+    public static final String OCR_COMMAND_NAME = "ocr";
+
+    public static final String RENAME_COMMAND_NAME = "rename";
+
+    public static final String UNZIP_COMMAND_NAME = "unzip";
+
+    public static final String ARCHIVE_COMMAND_NAME = "archive";
+
+    public static final String LANGUAGE_COMMAND_NAME = "language";
 
     public static final String QUERY_ITEM_DETAILS_COMMAND = "b";
 
@@ -21,20 +37,6 @@ public class CommandNames {
     public static final String FORMATS_COMMAND = "formats";
 
     public static final String REPORT_COMMAND_NAME = "e";
-
-    public static final String RENAME_COMMAND_NAME = "f";
-
-    public static final String UNZIP_COMMAND_NAME = "g";
-
-    public static final String CONVERT_COMMAND_NAME = "i";
-
-    public static final String EXTRACT_TEXT_COMMAND_NAME = "j";
-
-    public static final String LANGUAGE_COMMAND_NAME = "k";
-
-    public static final String ARCHIVE_COMMAND_NAME = "l";
-
-    public static final String IMAGE_EDITOR_COMMAND_NAME = "m";
 
     public static final String CALLBACK_DELEGATE_COMMAND_NAME = "n";
 

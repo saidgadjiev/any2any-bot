@@ -48,7 +48,6 @@ public class CommandNavigator {
                 return;
             }
             currCommand.leave(chatId);
-            navigatorDao.pushParent(chatId, currCommand.getHistoryName());
         }
 
         setCurrentCommand(chatId, navigableBotCommand);
@@ -68,7 +67,7 @@ public class CommandNavigator {
             parentCommand.restore(message);
         } else {
             if (currentCommand.canLeave(chatId)) {
-                String parentHistoryName = navigatorDao.popParent(chatId, CommandNames.START_COMMAND);
+                String parentHistoryName = currentCommand.getParentCommandName();
 
                 if (StringUtils.isNotBlank(parentHistoryName)) {
                     currentCommand.leave(chatId);
@@ -92,7 +91,7 @@ public class CommandNavigator {
         }
         navigableBotCommand.leave(chatId);
 
-        String parentHistoryName = navigatorDao.popParent(chatId, CommandNames.START_COMMAND);
+        String parentHistoryName = navigableBotCommand.getParentCommandName();
         NavigableBotCommand parentCommand = navigableBotCommands.get(parentHistoryName);
 
         setCurrentCommand(chatId, parentCommand);

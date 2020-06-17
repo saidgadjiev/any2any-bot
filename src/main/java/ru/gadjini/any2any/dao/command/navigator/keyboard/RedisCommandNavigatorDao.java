@@ -11,8 +11,6 @@ public class RedisCommandNavigatorDao implements CommandNavigatorDao {
 
     private static final String CURRENT_KEY = "keyboard:command:navigator:current";
 
-    private static final String HISTORY_KEY = "keyboard:command:navigator:history";
-
     private StringRedisTemplate redisTemplate;
 
     @Autowired
@@ -30,15 +28,4 @@ public class RedisCommandNavigatorDao implements CommandNavigatorDao {
         return (String) redisTemplate.opsForHash().get(CURRENT_KEY, String.valueOf(chatId));
     }
 
-    @Override
-    public void pushParent(long chatId, String command) {
-        redisTemplate.opsForList().rightPush(HISTORY_KEY + ":" + chatId, command);
-    }
-
-    @Override
-    public String popParent(long chatId, String defaultCommand) {
-        String result = redisTemplate.opsForList().rightPop(HISTORY_KEY + ":" + chatId);
-
-        return result == null ? defaultCommand : result;
-    }
 }

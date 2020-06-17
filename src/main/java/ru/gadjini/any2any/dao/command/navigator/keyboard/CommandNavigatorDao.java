@@ -5,7 +5,4 @@ public interface CommandNavigatorDao {
 
     String get(long chatId);
 
-    void pushParent(long chatId, String command);
-
-    String popParent(long chatId, String defaultCommand);
 }

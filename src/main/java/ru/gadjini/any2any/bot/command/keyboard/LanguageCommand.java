@@ -3,24 +3,28 @@ package ru.gadjini.any2any.bot.command.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
+import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.User;
+import org.telegram.telegrambots.meta.bots.AbsSender;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand {
+public class LanguageCommand extends BotCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     private Set<String> names = new HashSet<>();
 
@@ -37,6 +41,7 @@ public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand 
     @Autowired
     public LanguageCommand(LocalisationService localisationService, @Qualifier("limits") MessageService messageService,
                            UserService userService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService) {
+        super(CommandNames.LANGUAGE_COMMAND_NAME, "");
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.userService = userService;
@@ -57,12 +62,26 @@ public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand 
     }
 
     @Override
+    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
+        processMessage0(chat.getId(), user.getId());
+    }
+
+    @Override
     public boolean processMessage(Message message, String text) {
-        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-        messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_LANGUAGE, locale))
-                .replyKeyboard(replyKeyboardService.languageKeyboard(message.getChatId(), locale)));
+        processMessage0(message.getChatId(), message.getFrom().getId());
 
         return true;
+    }
+
+    private void processMessage0(long chatId, int userId) {
+        Locale locale = userService.getLocaleOrDefault(userId);
+        messageService.sendMessage(new SendMessageContext(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_LANGUAGE, locale))
+                .replyKeyboard(replyKeyboardService.languageKeyboard(chatId, locale)));
+    }
+
+    @Override
+    public String getParentCommandName() {
+        return CommandNames.START_COMMAND;
     }
 
     @Override
@@ -73,7 +92,7 @@ public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         text = text.toLowerCase();
-        for (Locale locale: localisationService.getSupportedLocales()) {
+        for (Locale locale : localisationService.getSupportedLocales()) {
             if (text.equals(locale.getDisplayLanguage(locale).toLowerCase())) {
                 changeLocale(message, locale);
                 return;
@@ -89,5 +108,4 @@ public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand 
         );
         commandNavigator.silentPop(message.getChatId());
     }
-
 }
