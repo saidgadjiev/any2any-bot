@@ -52,7 +52,7 @@ public class OcrService {
 
     public void extractText(int userId, Any2AnyFile any2AnyFile, Locale ocrLocale) {
         commonJobExecutor.addJob(() -> {
-            LOGGER.debug("Start ocr. File id " + any2AnyFile.getFileId());
+            LOGGER.debug("Start ocr. File id " + any2AnyFile + " for user " + userId);
             SmartTempFile file = telegramService.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFormat().getExt());
             ITesseract tesseract = new Tesseract();
             tesseract.setLanguage(ocrLocale.getISO3Language());
@@ -66,6 +66,7 @@ public class OcrService {
                     messageService.sendMessage(new SendMessageContext(userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
                 }
                 messageService.sendMessage(new SendMessageContext(userId, result));
+                LOGGER.debug("Finish ocr for user " + userId + " file id " + any2AnyFile);
             } catch (Exception ex) {
                 messageService.sendErrorMessage(userId, locale);
                 throw new TextExtractionFailedException(ex);

@@ -95,7 +95,7 @@ public class ConvertMaker {
             commandStateService.setState(message.getChatId(), controllerName, convertState);
         } else if (message.hasText()) {
             ConvertState convertState = commandStateService.getState(message.getChatId(), controllerName, true);
-            Format targetFormat = checkTargetFormat(convertState.getFormat(), formatService.getAssociatedFormat(text), text, locale);
+            Format targetFormat = checkTargetFormat(message.getFrom().getId(), convertState.getFormat(), formatService.getAssociatedFormat(text), text, locale);
             if (targetFormat == Format.GIF) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_GIF_WARN, locale));
             }
@@ -117,7 +117,7 @@ public class ConvertMaker {
             convertState.setFileName(message.getDocument().getFileName());
             convertState.setMimeType(message.getDocument().getMimeType());
             Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-            convertState.setFormat(checkFormat(format, message.getDocument().getMimeType(), message.getDocument().getFileName(), message.getDocument().getFileId(), locale));
+            convertState.setFormat(checkFormat(message.getFrom().getId(), format, message.getDocument().getMimeType(), message.getDocument().getFileName(), message.getDocument().getFileId(), locale));
             if (convertState.getFormat() == Format.HTML && isBaseUrlMissed(message.getDocument().getFileId())) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_NO_BASE_URL_IN_HTML, locale));
             }
@@ -162,30 +162,30 @@ public class ConvertMaker {
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
 
-    private Format checkFormat(Format format, String mimeType, String fileName, String fileId, Locale locale) {
+    private Format checkFormat(int userId, Format format, String mimeType, String fileName, String fileId, Locale locale) {
         if (format == null) {
             if (StringUtils.isNotBlank(mimeType)) {
-                LOGGER.debug("Format not resolved for " + mimeType + " and fileName " + fileName);
+                LOGGER.debug("Format not resolved for " + mimeType + " and fileName " + fileName + " for user " + userId);
             } else {
-                LOGGER.debug("Format not resolved for image " + fileId);
+                LOGGER.debug("Format not resolved for image " + fileId + " for user " + userId);
             }
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
         if (format.getCategory() == FormatCategory.ARCHIVE) {
-            LOGGER.debug("Archive unsupported for conversion");
+            LOGGER.debug("Archive unsupported for conversion for user " + userId);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
 
         return format;
     }
 
-    private Format checkTargetFormat(Format format, Format target, String text, Locale locale) {
+    private Format checkTargetFormat(int userId, Format format, Format target, String text, Locale locale) {
         if (target == null) {
-            LOGGER.debug("Conversion unsupported format " + format + " target " + text);
+            LOGGER.debug("Conversion unsupported format " + format + " target " + text + " for user " + userId);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
         if (Objects.equals(format, target)) {
-            LOGGER.debug("Conversion unsupported for the same formats: " + format);
+            LOGGER.debug("Conversion unsupported for the same formats: " + format + " for user " + userId);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_ANOTHER_FORMAT, locale));
         }
         boolean result = formatService.isConvertAvailable(format, target);
@@ -193,7 +193,7 @@ public class ConvertMaker {
             return target;
         }
 
-        LOGGER.debug("Convert is not available for " + format + " to " + target);
+        LOGGER.debug("Convert is not available for " + format + " to " + target + " for user " + userId);
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
 

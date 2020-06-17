@@ -1,6 +1,8 @@
 package ru.gadjini.any2any.bot.command.keyboard;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -30,6 +32,8 @@ import java.util.Set;
 
 @Component
 public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(OcrCommand.class);
 
     private Set<String> names = new HashSet<>();
 
@@ -99,7 +103,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand {
                     commandStateService.setState(message.getChatId(), getHistoryName(), l.getLanguage());
                     messageService.sendMessage(new SendMessageContext(message.getChatId(),
                             localisationService.getMessage(MessagesProperties.MESSAGE_OCR_LANGUAGE_CHANGED,
-                                    new Object[] {StringUtils.capitalize(l.getDisplayLanguage(userLocale))}, userLocale)));
+                                    new Object[]{StringUtils.capitalize(l.getDisplayLanguage(userLocale))}, userLocale)));
                     return;
                 }
             }
@@ -119,7 +123,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand {
     private Any2AnyFile getFile(Message message) {
         if (message.hasDocument()) {
             Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-            checkFormat(message.getFrom().getId(), format);
+            checkFormat(message.getFrom().getId(), format, message.getDocument().getFileId(), message.getDocument().getFileName(), message.getDocument().getMimeType());
 
             Any2AnyFile any2AnyFile = new Any2AnyFile();
             any2AnyFile.setFileId(message.getDocument().getFileId());
@@ -137,14 +141,16 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand {
         }
     }
 
-    private void checkFormat(int userId, Format format) {
+    private void checkFormat(int userId, Format format, String fileId, String fileName, String mimeType) {
         if (format == null) {
             Locale locale = userService.getLocaleOrDefault(userId);
+            LOGGER.debug("Ocr impossible for user " + userId + " file id " + fileId + " fileName " + fileName + " mimeType " + mimeType);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_IMPOSSIBLE, locale));
         }
 
         if (format.getCategory() != FormatCategory.IMAGES) {
             Locale locale = userService.getLocaleOrDefault(userId);
+            LOGGER.debug("Ocr impossible for category " + format.getCategory() + " for user " + userId + " file id " + fileId + " fileName " + fileName + " mimeType " + mimeType);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_IMPOSSIBLE, locale));
         }
     }

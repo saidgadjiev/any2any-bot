@@ -43,4 +43,14 @@ public class Any2AnyFile {
     public void setMimeType(String mimeType) {
         this.mimeType = mimeType;
     }
+
+    @Override
+    public String toString() {
+        return "Any2AnyFile{" +
+                "fileId='" + fileId + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", mimeType='" + mimeType + '\'' +
+                ", format=" + format +
+                '}';
+    }
 }
