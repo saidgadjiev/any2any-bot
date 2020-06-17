@@ -17,13 +17,8 @@ public class SmartTempFile {
 
     private boolean deleteParentDir;
 
-    public SmartTempFile(File file, boolean deleteParentDir) throws IOException {
+    public SmartTempFile(File file, boolean deleteParentDir) {
         this.file = file;
-        if (deleteParentDir) {
-            FileUtils.forceDeleteOnExit(file.getParentFile());
-        } else {
-            FileUtils.forceDeleteOnExit(file);
-        }
         this.deleteParentDir = deleteParentDir;
     }
 
