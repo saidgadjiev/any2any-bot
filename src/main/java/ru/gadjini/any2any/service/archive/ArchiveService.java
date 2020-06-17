@@ -2,6 +2,8 @@ package ru.gadjini.any2any.service.archive;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class ArchiveService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ArchiveService.class);
 
     private Set<ArchiveDevice> archiveDevices;
 
@@ -62,6 +66,7 @@ public class ArchiveService {
     }
 
     public void createArchive(int userId, List<Any2AnyFile> any2AnyFiles, Format format, Locale locale) {
+        LOGGER.debug("Start createArchive({}, {})", userId, format);
         normalizeFileNames(any2AnyFiles);
 
         commonJobExecutor.addJob(() -> {
@@ -74,6 +79,7 @@ public class ArchiveService {
                     ArchiveDevice archiveDevice = getCandidate(format, locale);
                     archiveDevice.zip(files.stream().map(SmartTempFile::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
                     sendResult(userId, archive.getFile());
+                    LOGGER.debug("Finish createArchive({}, {})", userId, format);
                 } catch (Exception ex) {
                     messageService.sendErrorMessage(userId, locale);
                     throw ex;
