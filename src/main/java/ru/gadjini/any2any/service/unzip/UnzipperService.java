@@ -54,7 +54,7 @@ public class UnzipperService {
     }
 
     public void unzip(int userId, String fileId, Format format, Locale locale) {
-        LOGGER.debug(format + " unzip: " + fileId);
+        LOGGER.debug("Start unzip({}, {}, {})", format, fileId, userId);
         UnzipDevice zipService = getCandidate(format, locale);
 
         unzipperJob.addJob(() -> {
@@ -67,6 +67,7 @@ public class UnzipperService {
                     List<File> files = new ArrayList<>();
                     ExFileUtils.list(out.getAbsolutePath(), files);
                     sendFiles(userId, files, locale);
+                    LOGGER.debug("Finish unzip({}, {}, {})", format, fileId, userId);
                 } catch (Exception ex) {
                     messageService.sendErrorMessage(userId, locale);
                     throw ex;
