@@ -69,4 +69,16 @@ public class SendMessageContext {
     public Integer replyMessageId() {
         return replyMessageId;
     }
+
+    @Override
+    public String toString() {
+        return "SendMessageContext{" +
+                "chatId=" + chatId +
+                ", text='" + text + '\'' +
+                ", replyMessageId=" + replyMessageId +
+                ", replyKeyboard=" + replyKeyboard +
+                ", html=" + html +
+                ", webPagePreview=" + webPagePreview +
+                '}';
+    }
 }

@@ -96,6 +96,9 @@ public class MessageServiceImpl implements MessageService {
 
         try {
             telegramService.execute(sendMessage);
+        } catch (TelegramApiRequestException ex) {
+            LOGGER.error("Error send message. With context: " + messageContext.toString());
+            throw new TelegramRequestException(ex, sendMessage.getChatId());
         } catch (Exception ex) {
             throw new TelegramException(ex);
         }

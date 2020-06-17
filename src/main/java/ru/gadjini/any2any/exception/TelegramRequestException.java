@@ -11,14 +11,14 @@ public class TelegramRequestException extends RuntimeException {
     private final String chatId;
 
     public TelegramRequestException(TelegramApiRequestException apiException, long chatId) {
-        super(apiException.getApiResponse() + "(" + chatId + ")", apiException);
+        super(apiException.getApiResponse() + "(" + chatId + ") error code " + apiException.getErrorCode(), apiException);
         this.errorCode = apiException.getErrorCode();
         this.response = apiException.getApiResponse();
         this.chatId = String.valueOf(chatId);
     }
 
     public TelegramRequestException(TelegramApiRequestException apiException, String chatId) {
-        super(apiException.getApiResponse() + "(" + chatId + ")", apiException);
+        super(apiException.getApiResponse() + "(" + chatId + ") error code " + apiException.getErrorCode(), apiException);
         this.errorCode = apiException.getErrorCode();
         this.response = apiException.getApiResponse();
         this.chatId = chatId;
