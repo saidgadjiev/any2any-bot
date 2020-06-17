@@ -161,7 +161,19 @@ public class TgMessage {
 
         return metaTypes;
     }
-    
+
+    @Override
+    public String toString() {
+        return "TgMessage{" +
+                "chatId=" + chatId +
+                ", messageId=" + messageId +
+                ", callbackQueryId='" + callbackQueryId + '\'' +
+                ", user=" + user +
+                ", text='" + text + '\'' +
+                ", metaTypes=" + metaTypes +
+                '}';
+    }
+
     public enum MetaType {
 
         TEXT,
