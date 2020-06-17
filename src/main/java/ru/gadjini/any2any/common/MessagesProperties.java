@@ -223,4 +223,12 @@ public class MessagesProperties {
     public static final String MESSAGE_BAD_IMAGE = "message.bad.image";
 
     public static final String MESSAGE_IMAGE_EDITOR_WELCOME = "message.image.editor.welcome";
+
+    public static final String MESSAGE_POSITIVE_MODE_DESCRIPTION = "message.positive.mode.description";
+
+    public static final String MESSAGE_NEGATIVE_MODE_DESCRIPTION = "message.negative.mode.description";
+
+    public static final String MESSAGE_TRANSPARENCY_MODE_CHANGED = "message.transparency.mode.changed";
+
+    public static final String MESSAGE_INACCURACY_CHANGED = "message.inaccuracy.changed";
 }

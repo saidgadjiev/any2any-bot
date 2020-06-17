@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.model.AnswerCallbackContext;
 import ru.gadjini.any2any.model.EditMessageCaptionContext;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.message.MessageService;
@@ -72,10 +73,19 @@ public class ModeState implements State {
     @Override
     public void transparentMode(ImageEditorCommand command, long chatId, String queryId, Mode mode) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        Locale locale = new Locale(state.getLanguage());
+        if (state.getMode() == mode) {
+            messageService.sendAnswerCallbackQuery(
+                    new AnswerCallbackContext(queryId,
+                            localisationService.getMessage(MessagesProperties.MESSAGE_TRANSPARENCY_MODE_CHANGED, locale))
+            );
+            return;
+        }
         state.setMode(mode);
         messageService.editMessageCaption(
-                new EditMessageCaptionContext(chatId, state.getMessageId(), messageBuilder.getSettingsStr(state))
-                        .replyKeyboard(inlineKeyboardService.getTransparentModeKeyboard(new Locale(state.getLanguage())))
+                new EditMessageCaptionContext(chatId, state.getMessageId(), messageBuilder.getSettingsStr(state) + "\n\n" +
+                        localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MODE_WELCOME, locale))
+                        .replyKeyboard(inlineKeyboardService.getTransparentModeKeyboard(locale))
         );
         commandStateService.setState(chatId, command.getHistoryName(), state);
     }

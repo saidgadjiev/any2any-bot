@@ -81,7 +81,7 @@ public class StateFather implements State {
     @Override
     public void applyFilter(ImageEditorCommand command, long chatId, String queryId, Filter filter) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#applyFilter(" + filter + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#applyFilter(" + filter + ") user id(" + chatId + ")");
 
         state.applyFilter(command, chatId, queryId, filter);
     }
@@ -89,7 +89,7 @@ public class StateFather implements State {
     @Override
     public void size(ImageEditorCommand command, long chatId, String queryId, String size) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#size(" + size + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#size(" + size + ") user id(" + chatId + ")");
 
         state.size(command, chatId, queryId, size);
     }
@@ -97,20 +97,23 @@ public class StateFather implements State {
     @Override
     public void go(ImageEditorCommand command, long chatId, String queryId, Name name) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#go(" + name + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#go(" + name + ") user id(" + chatId + ")");
 
         state.go(command, chatId, queryId, name);
     }
 
     @Override
     public void goBack(ImageEditorCommand command, CallbackQuery callbackQuery) {
-        getState(callbackQuery.getMessage().getChatId(), command.getHistoryName()).goBack(command, callbackQuery);
+        State state = getState(callbackQuery.getMessage().getChatId(), command.getHistoryName());
+        LOGGER.debug(state.getClass().getSimpleName() + "#goBack() user id(" + callbackQuery.getMessage().getChatId() + ")");
+
+        state.goBack(command, callbackQuery);
     }
 
     @Override
     public void transparentMode(ImageEditorCommand command, long chatId, String queryId, ModeState.Mode mode) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#transparentMode(" + mode + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#transparentMode(" + mode + ") user id(" + chatId + ")");
 
         state.transparentMode(command, chatId, queryId, mode);
     }
@@ -118,7 +121,7 @@ public class StateFather implements State {
     @Override
     public void transparentColor(ImageEditorCommand command, long chatId, String queryId, String text) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#transparentColor(" + text + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#transparentColor(" + text + ") user id(" + chatId + ")");
 
         state.transparentColor(command, chatId, queryId, text);
     }
@@ -126,7 +129,7 @@ public class StateFather implements State {
     @Override
     public void inaccuracy(ImageEditorCommand command, long chatId, String queryId, String inaccuracy) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#inaccuracy(" + inaccuracy + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#inaccuracy(" + inaccuracy + ") user id(" + chatId + ")");
 
         state.inaccuracy(command, chatId, queryId, inaccuracy);
     }
@@ -134,7 +137,7 @@ public class StateFather implements State {
     @Override
     public void cancel(ImageEditorCommand command, long chatId, String queryId) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#cancel");
+        LOGGER.debug(state.getClass().getSimpleName() + "#cancel() user id(" + chatId + ")");
 
         state.cancel(command, chatId, queryId);
     }
@@ -142,7 +145,7 @@ public class StateFather implements State {
     @Override
     public void userText(ImageEditorCommand command, long chatId, String text) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#userText(" + text + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#userText(" + text + ") user id(" + chatId + ")");
 
         state.userText(command, chatId, text);
     }
@@ -173,7 +176,7 @@ public class StateFather implements State {
     public void leave(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), false);
         if (state == null) {
-            LOGGER.debug("Image editor state is empty");
+            LOGGER.debug("Image editor state is empty user id(" + chatId + ")");
             return;
         }
         try {

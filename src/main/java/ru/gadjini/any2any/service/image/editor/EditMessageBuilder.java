@@ -23,8 +23,8 @@ public class EditMessageBuilder {
         return localisationService.getMessage(
                 MessagesProperties.MESSAGE_EDITOR_SETTINGS,
                 new Object[]{
-                        editorState.getMode() == ModeState.Mode.NEGATIVE ? localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_NEGATIVE_MODE, locale)
-                                : localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_POSITIVE_MODE, locale),
+                        editorState.getMode() == ModeState.Mode.NEGATIVE ? localisationService.getMessage(MessagesProperties.MESSAGE_NEGATIVE_MODE_DESCRIPTION, locale)
+                                : localisationService.getMessage(MessagesProperties.MESSAGE_POSITIVE_MODE_DESCRIPTION, locale),
                         editorState.getInaccuracy() + "%"
                 },
                 locale

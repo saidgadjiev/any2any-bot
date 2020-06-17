@@ -7,14 +7,15 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
+import ru.gadjini.any2any.model.AnswerCallbackContext;
 import ru.gadjini.any2any.model.EditMessageCaptionContext;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.image.editor.EditMessageBuilder;
 import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.Locale;
 
@@ -74,14 +75,15 @@ public class InaccuracyState implements State {
     public void inaccuracy(ImageEditorCommand command, long chatId, String queryId, String inaccuracy) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
         Locale locale = new Locale(state.getLanguage());
-        inaccuracy = cleanUp(inaccuracy);
-        double v;
-        try {
-            v = Double.parseDouble(inaccuracy);
-        } catch (NumberFormatException ex) {
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_INACCURACY, locale));
+        inaccuracy = validateAndGet(inaccuracy, locale);
+        if (state.getInaccuracy().equals(inaccuracy)) {
+            messageService.sendAnswerCallbackQuery(
+                    new AnswerCallbackContext(queryId,
+                            localisationService.getMessage(MessagesProperties.MESSAGE_INACCURACY_CHANGED, locale))
+            );
+            return;
         }
-        state.setInaccuracy(String.valueOf(v));
+        state.setInaccuracy(inaccuracy);
         messageService.editMessageCaption(
                 new EditMessageCaptionContext(chatId, state.getMessageId(), messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_INACCURACY_WELCOME, locale))
@@ -97,5 +99,20 @@ public class InaccuracyState implements State {
 
     private String cleanUp(String inaccuracy) {
         return inaccuracy.replace("%", "");
+    }
+
+    private String validateAndGet(String inaccuracy, Locale locale) {
+        inaccuracy = cleanUp(inaccuracy);
+        double v;
+        try {
+            v = Double.parseDouble(inaccuracy);
+        } catch (NumberFormatException ex) {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_INACCURACY, locale));
+        }
+        if (v < 0 || v > 100) {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_INACCURACY, locale));
+        }
+
+        return String.valueOf(v);
     }
 }
