@@ -10,12 +10,12 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.AnswerCallbackContext;
 import ru.gadjini.any2any.model.EditMediaContext;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.image.editor.filter.FilterState;
 import ru.gadjini.any2any.service.image.editor.transparency.TransparencyState;
 import ru.gadjini.any2any.service.image.resize.ResizeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.io.File;
 import java.util.Locale;
@@ -111,7 +111,9 @@ public class ImageEditorState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        Locale locale = new Locale(state.getLanguage());
         messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getCurrentFileId())
-                .replyKeyboard(inlineKeyboardService.getImageEditKeyboard(new Locale(state.getLanguage()), state.canCancel())));
+                .caption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
+                .replyKeyboard(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())));
     }
 }

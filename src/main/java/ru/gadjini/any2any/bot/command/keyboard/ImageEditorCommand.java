@@ -91,7 +91,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
         messageService.sendMessage(
                 new SendMessageContext(message.getChatId(),
-                        localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
+                        localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENCY_WELCOME, locale))
                         .replyKeyboard(replyKeyboardService.goBack(message.getChatId(), locale))
         );
 

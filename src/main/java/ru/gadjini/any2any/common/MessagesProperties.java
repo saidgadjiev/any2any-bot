@@ -156,7 +156,7 @@ public class MessagesProperties {
 
     public static final String IMAGE_EDITOR_COMMAND_NAME = "image.editor.command.name";
 
-    public static final String MESSAGE_IMAGE_EDITOR_WELCOME = "message.image.editor.welcome";
+    public static final String MESSAGE_IMAGE_TRANSPARENCY_WELCOME = "message.image.transparency.welcome";
 
     public static final String MESSAGE_IMAGE_EDITOR_POSITIVE_MODE = "message.image.editor.positive.mode";
 
@@ -221,4 +221,6 @@ public class MessagesProperties {
     public static final String IMAGE_COLOR_PICKER = "image.color.picker";
 
     public static final String MESSAGE_BAD_IMAGE = "message.bad.image";
+
+    public static final String MESSAGE_IMAGE_EDITOR_WELCOME = "message.image.editor.welcome";
 }

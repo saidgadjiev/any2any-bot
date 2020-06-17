@@ -8,12 +8,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
+import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.EditMediaContext;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendFileResult;
+import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
@@ -49,11 +51,13 @@ public class StateFather implements State {
 
     private ImageConvertDevice imageDevice;
 
+    private LocalisationService localisationService;
+
     @Autowired
     public StateFather(CommandStateService commandStateService, CommonJobExecutor commonJobExecutor,
                        @Qualifier("limits") MessageService messageService, TempFileService tempFileService,
                        InlineKeyboardService inlineKeyboardService,
-                       TelegramService telegramService, ImageConvertDevice imageDevice) {
+                       TelegramService telegramService, ImageConvertDevice imageDevice, LocalisationService localisationService) {
         this.commandStateService = commandStateService;
         this.commonJobExecutor = commonJobExecutor;
         this.messageService = messageService;
@@ -61,6 +65,7 @@ public class StateFather implements State {
         this.inlineKeyboardService = inlineKeyboardService;
         this.telegramService = telegramService;
         this.imageDevice = imageDevice;
+        this.localisationService = localisationService;
     }
 
     @Autowired
@@ -152,6 +157,7 @@ public class StateFather implements State {
                 EditorState state = createState(result.getAbsolutePath(), result.getName());
                 state.setLanguage(locale.getLanguage());
                 SendFileResult fileResult = messageService.sendDocument(new SendFileContext(chatId, result.getFile())
+                        .caption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
                         .replyKeyboard(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())));
                 state.setMessageId(fileResult.getMessageId());
                 state.setCurrentFileId(fileResult.getFileId());
