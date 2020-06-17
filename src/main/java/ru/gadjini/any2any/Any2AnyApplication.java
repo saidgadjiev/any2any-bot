@@ -2,8 +2,6 @@ package ru.gadjini.any2any;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -15,9 +13,7 @@ import ru.gadjini.any2any.property.ConversionProperties;
 import ru.gadjini.any2any.property.DetectLanguageProperties;
 import ru.gadjini.any2any.property.ProxyProperties;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.TelegramService;
 
-import java.io.File;
 import java.time.ZoneOffset;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -30,7 +26,7 @@ import java.util.TimeZone;
 })
 @EnableScheduling
 @SpringBootApplication
-public class Any2AnyApplication implements CommandLineRunner {
+public class Any2AnyApplication {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Any2AnyApplication.class);
 
@@ -51,13 +47,5 @@ public class Any2AnyApplication implements CommandLineRunner {
     private static void setDefaultLocaleAndTZ() {
         Locale.setDefault(new Locale(LocalisationService.EN_LOCALE));
         TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.UTC));
-    }
-
-    @Autowired
-    private TelegramService telegramService;
-
-    @Override
-    public void run(String... args) throws Exception {
-        telegramService.downloadFileByFileId("BQACAgIAAxkBAAISt17n3d8W1UUOoIlnGnI0A21kiyvhAAIFCAAC4ZdAS1xPvgABuQ6H5BoE", new File("C:/test5352/testeeff/test.doc"));
     }
 }
