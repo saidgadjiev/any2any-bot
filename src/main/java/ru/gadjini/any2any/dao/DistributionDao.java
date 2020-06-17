@@ -37,9 +37,10 @@ public class DistributionDao {
         return jdbcTemplate.query("WITH distr AS (\n" +
                         "    DELETE FROM distribution WHERE id IN (SELECT id FROM distribution ORDER BY id LIMIT " + limit + ") RETURNING *\n" +
                         ")\n" +
-                        "SELECT distr.*, tu.locale\n" +
+                        "SELECT distr.*, dm.message_ru, dm.message_en, tu.locale\n" +
                         "FROM distr\n" +
-                        "         INNER JOIN tg_user tu ON distr.user_id = tu.user_id;",
+                        "         INNER JOIN distribution_message dm ON distr.message_id = dm.id\n" +
+                        "         INNER JOIN tg_user tu ON distr.user_id = tu.user_id",
                 (rs, rowNum) -> map(rs));
     }
 
@@ -47,8 +48,9 @@ public class DistributionDao {
         return jdbcTemplate.query("WITH distr AS (\n" +
                         "    DELETE FROM distribution WHERE id IN (SELECT id FROM distribution WHERE user_id = ? ORDER BY id LIMIT 1) RETURNING *\n" +
                         ")\n" +
-                        "SELECT distr.*, tu.locale\n" +
+                        "SELECT distr.*, dm.message_en, dm.message_ru, tu.locale\n" +
                         "FROM distr\n" +
+                        "         INNER JOIN distribution_message dm ON distr.message_id = dm.id\n" +
                         "         INNER JOIN tg_user tu ON distr.user_id = tu.user_id;",
                 ps -> ps.setInt(1, userId),
                 rs -> {
