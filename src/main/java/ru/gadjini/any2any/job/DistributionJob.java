@@ -39,9 +39,11 @@ public class DistributionJob {
 
     @Scheduled(cron = "0 0 * * * *")
     public void checkDistributions() {
+        LOGGER.debug("Start checkDistributions");
         if (!distributionService.isExists()) {
             disableJob();
         }
+        LOGGER.debug("Finish checkDistributions");
     }
 
     @Scheduled(cron = "0 */5 * * * *")
