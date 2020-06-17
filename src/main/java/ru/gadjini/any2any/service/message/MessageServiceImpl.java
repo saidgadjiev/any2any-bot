@@ -24,6 +24,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TelegramException;
 import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 
@@ -39,10 +40,13 @@ public class MessageServiceImpl implements MessageService {
 
     private LocalisationService localisationService;
 
+    private FileService fileService;
+
     @Autowired
-    public MessageServiceImpl(TelegramService telegramService, LocalisationService localisationService) {
+    public MessageServiceImpl(TelegramService telegramService, LocalisationService localisationService, FileService fileService) {
         this.telegramService = telegramService;
         this.localisationService = localisationService;
+        this.fileService = fileService;
     }
 
     @Override
@@ -200,7 +204,7 @@ public class MessageServiceImpl implements MessageService {
         try {
             Message message = (Message) telegramService.execute(editMessageMedia);
 
-            return new EditMediaResult(message.getDocument().getFileId());
+            return new EditMediaResult(fileService.getFileId(message));
         } catch (TelegramApiException e) {
             throw new TelegramException(e);
         }
@@ -270,7 +274,7 @@ public class MessageServiceImpl implements MessageService {
         try {
             Message message = telegramService.execute(sendDocument);
 
-            return new SendFileResult(message.getMessageId(), message.getDocument().getFileId());
+            return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
         } catch (TelegramApiRequestException e) {
             LOGGER.error(e.getMessage() + ". " + e.getApiResponse() + "(" + e.getErrorCode() + "). Params " + e.getParameters(), e);
             throw new TelegramRequestException(e, sendDocumentContext.chatId());

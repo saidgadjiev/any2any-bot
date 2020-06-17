@@ -26,6 +26,26 @@ public class FileService {
         this.formatService = formatService;
     }
 
+    public String getFileId(Message message) {
+        if (message.hasDocument()) {
+            return message.getDocument().getFileId();
+        } else if (message.hasPhoto()) {
+            PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
+
+            return photoSize.getFileId();
+        } else if (message.hasVideo()) {
+            return message.getVideo().getFileId();
+        } else if (message.hasAudio()) {
+            return message.getAudio().getFileId();
+        } else if (message.hasSticker()) {
+            Sticker sticker = message.getSticker();
+
+            return sticker.getFileId();
+        }
+
+        return null;
+    }
+
     public Any2AnyFile getFile(Message message, Locale locale) {
         Any2AnyFile any2AnyFile = new Any2AnyFile();
 
