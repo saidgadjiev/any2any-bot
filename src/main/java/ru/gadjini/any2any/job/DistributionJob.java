@@ -52,6 +52,7 @@ public class DistributionJob {
                 LOGGER.error(ex.getMessage(), ex);
             }
         }
+        LOGGER.debug("Finish send distributions");
         if (distributions.isEmpty()) {
             disableJob();
         }
