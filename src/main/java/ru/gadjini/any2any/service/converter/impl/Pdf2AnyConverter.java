@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.exception.CorruptedFileException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
@@ -15,6 +16,7 @@ import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.service.converter.device.ConvertDevice;
+import ru.gadjini.any2any.service.converter.file.FileValidator;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.util.Set;
@@ -29,30 +31,42 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private ConvertDevice convertDevice;
 
+    private FileValidator fileValidator;
+
     @Autowired
     public Pdf2AnyConverter(FormatService formatService, TempFileService fileService,
-                            TelegramService telegramService, @Qualifier("calibre") ConvertDevice convertDevice) {
+                            TelegramService telegramService, @Qualifier("calibre") ConvertDevice convertDevice,
+                            FileValidator fileValidator) {
         super(Set.of(Format.PDF), formatService);
         this.fileService = fileService;
         this.telegramService = telegramService;
         this.convertDevice = convertDevice;
+        this.fileValidator = fileValidator;
     }
 
     @Override
     public ConvertResult convert(FileQueueItem fileQueueItem) {
-        if (fileQueueItem.getTargetFormat() == Format.EPUB) {
-            return toEpub(fileQueueItem);
-        }
-        if (fileQueueItem.getTargetFormat() == Format.TIFF) {
-            return toTiff(fileQueueItem);
-        }
+        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
-        return doConvert(fileQueueItem);
+        try {
+            boolean validPdf = fileValidator.isValidPdf(file.getFile().getAbsolutePath());
+            if (!validPdf) {
+                throw new CorruptedFileException("Damaged pdf file");
+            }
+            if (fileQueueItem.getTargetFormat() == Format.EPUB) {
+                return toEpub(fileQueueItem, file);
+            }
+            if (fileQueueItem.getTargetFormat() == Format.TIFF) {
+                return toTiff(fileQueueItem, file);
+            }
+
+            return doConvert(fileQueueItem, file);
+        } finally {
+            file.smartDelete();
+        }
     }
 
-    private FileResult toTiff(FileQueueItem queueItem) {
-        SmartTempFile pdfFile = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
-
+    private FileResult toTiff(FileQueueItem queueItem, SmartTempFile pdfFile) {
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
@@ -73,9 +87,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult toEpub(FileQueueItem fileQueueItem) {
-        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
-
+    private FileResult toEpub(FileQueueItem fileQueueItem, SmartTempFile file) {
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
@@ -90,9 +102,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult doConvert(FileQueueItem fileQueueItem) {
-        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
-
+    private FileResult doConvert(FileQueueItem fileQueueItem, SmartTempFile file) {
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();

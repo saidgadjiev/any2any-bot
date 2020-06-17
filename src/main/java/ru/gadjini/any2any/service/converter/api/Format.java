@@ -23,6 +23,7 @@ public enum Format {
     ICO(FormatCategory.IMAGES),
     SVG(FormatCategory.IMAGES),
     JPG(FormatCategory.IMAGES),
+    JP2(FormatCategory.IMAGES),
     BMP(FormatCategory.IMAGES),
     TXT(FormatCategory.DOCUMENTS),
     TIFF(FormatCategory.IMAGES),

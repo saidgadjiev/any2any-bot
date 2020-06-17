@@ -48,6 +48,7 @@ RUN apt-get update -y -qq
 RUN apt-get -y -qq build-dep imagemagick 
 RUN apt-get install -y -qq libwebp-dev libopenjp2-7-dev librsvg2-dev libde265-dev libheif-dev
 
+RUN echo 'Imagemagick 7.0.10-19'
 RUN cd /usr/src/ && \
 wget https://www.imagemagick.org/download/ImageMagick.tar.bz2 && \
 tar xvf ImageMagick.tar.bz2 && cd ImageMagick* && \

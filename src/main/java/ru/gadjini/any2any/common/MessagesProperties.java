@@ -178,6 +178,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_CONVERSION_FAILED = "message.conversion.failed";
 
+    public static final String MESSAGE_DAMAGED_FILE = "message.damaged.file";
+
     public static final String MESSAGE_IMAGE_EDITOR_MODE_WELCOME = "message.image.editor.mode.welcome";
 
     public static final String MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME = "message.image.transparent.color.welcome";

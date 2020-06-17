@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PHOTO, Format.HEIC, Format.HEIF, Format.PNG, Format.SVG,
-            Format.JPG, Format.BMP, Format.WEBP);
+           Format.JP2, Format.JPG, Format.BMP, Format.WEBP);
 
     private TelegramService telegramService;
 
