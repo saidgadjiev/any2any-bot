@@ -6,7 +6,7 @@ About bot features: https://tgraph.io/Bot-SmartFileUtils-05-25
 О возможностях и работе бота: https://tgraph.io/Formats-05-14
 
 AboutText:
-Image editor; files,stickers,links,text conversion; stickers creation; files renaming; archive extraction,creation; text extraction;
+Image editor;files,stickers,links,text stickers conversion;files renaming;archive extraction,creation;text extraction;
 
 Commands:
 start - Restart bot
