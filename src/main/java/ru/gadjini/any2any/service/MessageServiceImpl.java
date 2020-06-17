@@ -98,7 +98,7 @@ public class MessageServiceImpl implements MessageService {
             telegramService.execute(sendMessage);
         } catch (TelegramApiRequestException ex) {
             LOGGER.error("Error send message. With context: " + messageContext.toString());
-            throw new TelegramRequestException(ex, sendMessage.getChatId());
+            throw new TelegramRequestException(ex, messageContext.chatId());
         } catch (Exception ex) {
             throw new TelegramException(ex);
         }
@@ -271,7 +271,7 @@ public class MessageServiceImpl implements MessageService {
             return new SendFileResult(message.getMessageId(), message.getDocument().getFileId());
         } catch (TelegramApiRequestException e) {
             LOGGER.error(e.getMessage() + ". " + e.getApiResponse() + "(" + e.getErrorCode() + "). Params " + e.getParameters(), e);
-            throw new TelegramRequestException(e, sendDocument.getChatId());
+            throw new TelegramRequestException(e, sendDocumentContext.chatId());
         } catch (TelegramApiException e) {
             throw new TelegramException(e);
         }

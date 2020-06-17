@@ -7,9 +7,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.Distribution;
+import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.model.SendMessageContext;
 import ru.gadjini.any2any.service.DistributionService;
 import ru.gadjini.any2any.service.MessageService;
+import ru.gadjini.any2any.service.UserService;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -23,11 +25,14 @@ public class DistributionJob {
 
     private MessageService messageService;
 
+    private UserService userService;
+
     private DistributionService distributionService;
 
     @Autowired
-    public DistributionJob(@Qualifier("limits") MessageService messageService, DistributionService distributionService) {
+    public DistributionJob(@Qualifier("limits") MessageService messageService, UserService userService, DistributionService distributionService) {
         this.messageService = messageService;
+        this.userService = userService;
         this.distributionService = distributionService;
         LOGGER.debug("Distribution job started");
     }
@@ -46,7 +51,7 @@ public class DistributionJob {
         LOGGER.debug("Finish checkDistributions");
     }
 
-    @Scheduled(cron = "0 */5 * * * *")
+    @Scheduled(cron = "* * * * * *")
     public void distribute() {
         if (isDisabled()) {
             LOGGER.debug("Distribution job is disabled");
@@ -58,7 +63,11 @@ public class DistributionJob {
             try {
                 sendDistribution(distribution);
             } catch (Exception ex) {
-                LOGGER.error(ex.getMessage(), ex);
+                if (userService.deadlock(ex)) {
+                    LOGGER.debug("Blocked user " + ((TelegramRequestException) ex).getChatId());
+                } else {
+                    LOGGER.error(ex.getMessage(), ex);
+                }
             }
         }
         LOGGER.debug("Finish send distributions");

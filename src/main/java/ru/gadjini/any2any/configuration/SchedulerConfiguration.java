@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import ru.gadjini.any2any.exception.TelegramRequestException;
+import ru.gadjini.any2any.service.UserService;
 
 @Configuration
 public class SchedulerConfiguration {
@@ -17,11 +19,17 @@ public class SchedulerConfiguration {
     public static final int QUEUE_SIZE = 100;
 
     @Bean
-    public TaskScheduler jobsThreadPoolTaskScheduler() {
+    public TaskScheduler jobsThreadPoolTaskScheduler(UserService userService) {
         ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
         threadPoolTaskScheduler.setPoolSize(3);
         threadPoolTaskScheduler.setThreadNamePrefix("JobsThreadPoolTaskScheduler");
-        threadPoolTaskScheduler.setErrorHandler(throwable -> LOGGER.error(throwable.getMessage(), throwable));
+        threadPoolTaskScheduler.setErrorHandler(ex -> {
+            if (userService.deadlock(ex)) {
+                LOGGER.debug("Blocked user " + ((TelegramRequestException) ex).getChatId());
+            } else {
+                LOGGER.error(ex.getMessage(), ex);
+            }
+        });
 
         LOGGER.debug("Jobs thread pool scheduler initialized with pool size: {}", threadPoolTaskScheduler.getPoolSize());
 

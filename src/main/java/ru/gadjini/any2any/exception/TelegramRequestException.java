@@ -8,21 +8,21 @@ public class TelegramRequestException extends RuntimeException {
 
     private final String response;
 
-    private final String chatId;
+    private long chatId;
 
     public TelegramRequestException(TelegramApiRequestException apiException, long chatId) {
-        super(apiException.getApiResponse() + "(" + chatId + ") error code " + apiException.getErrorCode() + ". "  + apiException.getMessage(),
+        super(apiException.getApiResponse() + "(" + chatId + ") error code " + apiException.getErrorCode() + ". " + apiException.getMessage(),
                 apiException);
         this.errorCode = apiException.getErrorCode();
         this.response = apiException.getApiResponse();
-        this.chatId = String.valueOf(chatId);
+        this.chatId = chatId;
     }
 
     public TelegramRequestException(TelegramApiRequestException apiException, String chatId) {
         super(apiException.getApiResponse() + "(" + chatId + ") error code " + apiException.getErrorCode() + ". " + apiException.getMessage(), apiException);
         this.errorCode = apiException.getErrorCode();
         this.response = apiException.getApiResponse();
-        this.chatId = chatId;
+        this.chatId = -1;
     }
 
     public int getErrorCode() {
@@ -33,7 +33,7 @@ public class TelegramRequestException extends RuntimeException {
         return response;
     }
 
-    public String getChatId() {
+    public long getChatId() {
         return chatId;
     }
 }

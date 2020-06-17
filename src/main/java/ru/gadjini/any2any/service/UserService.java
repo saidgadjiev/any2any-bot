@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import ru.gadjini.any2any.dao.UserDao;
 import ru.gadjini.any2any.domain.CreateOrUpdateResult;
 import ru.gadjini.any2any.domain.TgUser;
+import ru.gadjini.any2any.exception.TelegramRequestException;
 
 import java.util.Locale;
 
@@ -63,6 +64,23 @@ public class UserService {
             createOrUpdate(user);
             LOGGER.debug("User not found and created with user id " + user.getId());
         }
+    }
+
+    public void blockUser(int userId) {
+        userDao.blockUser(userId);
+    }
+
+    public boolean deadlock(Throwable ex) {
+        if (ex instanceof TelegramRequestException) {
+            TelegramRequestException exception = (TelegramRequestException) ex;
+            if (exception.getErrorCode() == 403) {
+                blockUser((int) exception.getChatId());
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public void changeLocale(int userId, Locale locale) {

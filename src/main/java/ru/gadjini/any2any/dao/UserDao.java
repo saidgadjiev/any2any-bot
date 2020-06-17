@@ -34,7 +34,7 @@ public class UserDao {
                 connection -> {
                     var ps = connection.prepareStatement(
                             "INSERT INTO tg_user(user_id, username, locale, original_locale) VALUES (?, ?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET " +
-                                    "last_activity_at = now(), username = excluded.username, original_locale = excluded.original_locale " +
+                                    "last_activity_at = now(), username = excluded.username, original_locale = excluded.original_locale, blocked = false " +
                                     "RETURNING CASE WHEN XMAX::text::int > 0 THEN 'updated' ELSE 'inserted' END AS state",
                             Statement.RETURN_GENERATED_KEYS
                     );
@@ -67,6 +67,12 @@ public class UserDao {
                     ps.setString(1, locale.getLanguage());
                     ps.setInt(2, userId);
                 }
+        );
+    }
+
+    public void blockUser(int userId) {
+        jdbcTemplate.update(
+                "UPDATE tg_user SET blocked = true WHERE user_id = " + userId
         );
     }
 
