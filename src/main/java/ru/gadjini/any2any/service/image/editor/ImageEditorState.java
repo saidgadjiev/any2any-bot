@@ -1,6 +1,5 @@
 package ru.gadjini.any2any.service.image.editor;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -19,7 +18,6 @@ import ru.gadjini.any2any.service.image.resize.ResizeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Locale;
 
 @Component
@@ -83,12 +81,7 @@ public class ImageEditorState implements State {
                     .replyKeyboard(inlineKeyboardService.getImageEditKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
-            File file = new File(editFilePath);
-            try {
-                new SmartTempFile(file, true).smartDelete();
-            } catch (IOException e) {
-                FileUtils.deleteQuietly(file.getParentFile());
-            }
+            new SmartTempFile(new File(editFilePath), true).smartDelete();
         } else {
             messageService.sendAnswerCallbackQuery(new AnswerCallbackContext(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_CANT_CANCEL_ANSWER, new Locale(editorState.getLanguage()))));
         }

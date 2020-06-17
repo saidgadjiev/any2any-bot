@@ -25,7 +25,6 @@ import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Locale;
 import java.util.Set;
 
@@ -42,7 +41,7 @@ public class StateFather implements State {
 
     private MessageService messageService;
 
-    private TempFileService fileService;
+    private TempFileService tempFileService;
 
     private InlineKeyboardService inlineKeyboardService;
 
@@ -52,13 +51,13 @@ public class StateFather implements State {
 
     @Autowired
     public StateFather(CommandStateService commandStateService, CommonJobExecutor commonJobExecutor,
-                       @Qualifier("limits") MessageService messageService, TempFileService fileService,
+                       @Qualifier("limits") MessageService messageService, TempFileService tempFileService,
                        InlineKeyboardService inlineKeyboardService,
                        TelegramService telegramService, ImageConvertDevice imageDevice) {
         this.commandStateService = commandStateService;
         this.commonJobExecutor = commonJobExecutor;
         this.messageService = messageService;
-        this.fileService = fileService;
+        this.tempFileService = tempFileService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.telegramService = telegramService;
         this.imageDevice = imageDevice;
@@ -145,10 +144,10 @@ public class StateFather implements State {
 
     public void initializeState(ImageEditorCommand command, long chatId, Any2AnyFile any2AnyFile, Locale locale) {
         commonJobExecutor.addJob(() -> {
-            SmartTempFile file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), any2AnyFile.getFormat().getExt()));
+            SmartTempFile file = tempFileService.createTempFile(Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), any2AnyFile.getFormat().getExt()));
             telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file.getFile());
             try {
-                SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(file.getName(), Format.PNG.getExt()));
+                SmartTempFile result = tempFileService.createTempFile(Any2AnyFileNameUtils.getFileName(file.getName(), Format.PNG.getExt()));
                 imageDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
                 EditorState state = createState(result.getAbsolutePath(), result.getName());
                 state.setLanguage(locale.getLanguage());
@@ -177,23 +176,15 @@ public class StateFather implements State {
             LOGGER.debug("Image editor state deleted for user " + chatId);
         } finally {
             if (StringUtils.isNotBlank(state.getPrevFilePath())) {
-                try {
-                    new SmartTempFile(new File(state.getPrevFilePath()), true).smartDelete();
-                } catch (IOException e) {
-                    LOGGER.error(e.getMessage(), e);
-                }
+                new SmartTempFile(new File(state.getPrevFilePath()), true).smartDelete();
             }
 
-            try {
-                new SmartTempFile(new File(state.getCurrentFilePath()), true).smartDelete();
-            } catch (IOException e) {
-                LOGGER.error(e.getMessage(), e);
-            }
+            new SmartTempFile(new File(state.getCurrentFilePath()), true).smartDelete();
         }
     }
 
     private State getState(long chatId, String commandName) {
-        EditorState state = commandStateService.getState(chatId, commandName, true);
+        EditorState state = getEditorState(chatId, commandName);
 
         return findState(state.getStateName());
     }
@@ -216,5 +207,20 @@ public class StateFather implements State {
         if (state != null) {
             messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getCurrentFileId()));
         }
+    }
+
+    private EditorState getEditorState(long chatId, String commandName) {
+        EditorState editorState = commandStateService.getState(chatId, commandName, true);
+
+        try {
+            telegramService.restoreFileIfNeed(editorState.getCurrentFilePath(), editorState.getCurrentFileId());
+            if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
+                telegramService.restoreFileIfNeed(editorState.getPrevFilePath(), editorState.getPrevFileId());
+            }
+        } catch (Exception ex) {
+            LOGGER.error(ex.getMessage(), ex);
+        }
+
+        return editorState;
     }
 }

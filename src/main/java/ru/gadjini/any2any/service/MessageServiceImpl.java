@@ -167,6 +167,8 @@ public class MessageServiceImpl implements MessageService {
 
         try {
             telegramService.execute(editMessageCaption);
+        } catch (TelegramApiRequestException apiException) {
+            LOGGER.error(apiException.getApiResponse() + "(" + context.chatId() + ") error code " + apiException.getErrorCode() + ". " + apiException.getMessage(), apiException);
         } catch (TelegramApiException e) {
             LOGGER.error(e.getMessage(), e);
         }

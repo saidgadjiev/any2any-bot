@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.DefaultAbsSender;
@@ -13,6 +15,8 @@ import java.io.File;
 
 @Service
 public class TelegramService extends DefaultAbsSender {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramService.class);
 
     private final BotProperties botProperties;
 
@@ -56,5 +60,12 @@ public class TelegramService extends DefaultAbsSender {
         downloadFileByFileId(fileId, smartTempFile.getFile());
 
         return smartTempFile;
+    }
+
+    public void restoreFileIfNeed(String filePath, String fileId) {
+        if (!new File(filePath).exists()) {
+            downloadFileByFileId(fileId, new File(filePath));
+            LOGGER.debug("Temp file " + filePath + " file id " + fileId + " restored");
+        }
     }
 }

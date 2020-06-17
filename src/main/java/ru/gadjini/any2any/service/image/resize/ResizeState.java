@@ -1,6 +1,5 @@
 package ru.gadjini.any2any.service.image.resize;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,7 +25,6 @@ import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -97,12 +95,7 @@ public class ResizeState implements State {
             editorState.setCurrentFileId(editMediaResult.getFileId());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
-            File file = new File(editFilePath);
-            try {
-                new SmartTempFile(file, true).smartDelete();
-            } catch (IOException e) {
-                FileUtils.deleteQuietly(file.getParentFile());
-            }
+            new SmartTempFile(new File(editFilePath), true).smartDelete();
         } else {
             messageService.sendAnswerCallbackQuery(new AnswerCallbackContext(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_CANT_CANCEL_ANSWER, new Locale(editorState.getLanguage()))));
         }
@@ -127,12 +120,8 @@ public class ResizeState implements State {
             SmartTempFile result = tempFileService.getTempFile(editorState.getFileName());
             imageDevice.resize(editorState.getCurrentFilePath(), result.getAbsolutePath(), size);
             if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
-                try {
-                    SmartTempFile prevFile = new SmartTempFile(new File(editorState.getPrevFilePath()), true);
-                    prevFile.smartDelete();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                SmartTempFile prevFile = new SmartTempFile(new File(editorState.getPrevFilePath()), true);
+                prevFile.smartDelete();
             }
             editorState.setPrevFilePath(editorState.getCurrentFilePath());
             editorState.setPrevFileId(editorState.getCurrentFileId());
