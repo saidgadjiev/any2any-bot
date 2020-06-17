@@ -15,7 +15,6 @@ import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.MessageService;
 import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.utils.UserUtils;
 
 import java.util.Locale;
 
@@ -68,7 +67,7 @@ public class SubscriptionFilter extends BaseBotFilter {
 
     private void sendNeedSubscription(User user) {
         Locale locale = userService.getLocaleOrDefault(user.getId());
-        String msg = localisationService.getMessage(MessagesProperties.MESSAGE_NEED_SUBSCRIPTION, new Object[]{UserUtils.userLink(user)}, locale);
+        String msg = localisationService.getMessage(MessagesProperties.MESSAGE_NEED_SUBSCRIPTION, locale);
         messageService.sendMessage(new SendMessageContext(user.getId(), msg));
     }
 }

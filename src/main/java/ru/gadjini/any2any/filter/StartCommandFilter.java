@@ -16,7 +16,6 @@ import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandParser;
 import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
-import ru.gadjini.any2any.utils.UserUtils;
 
 @Component
 public class StartCommandFilter extends BaseBotFilter {
@@ -72,7 +71,7 @@ public class StartCommandFilter extends BaseBotFilter {
         CreateOrUpdateResult createOrUpdateResult = userService.createOrUpdate(message.getUser());
 
         if (createOrUpdateResult.isCreated()) {
-            String text = localisationService.getMessage(MessagesProperties.MESSAGE_WELCOME, new Object[]{UserUtils.userLink(message.getUser())}, createOrUpdateResult.getUser().getLocale());
+            String text = localisationService.getMessage(MessagesProperties.MESSAGE_WELCOME, createOrUpdateResult.getUser().getLocale());
             ReplyKeyboard mainMenu = replyKeyboardService.getMainMenu(message.getChatId(), createOrUpdateResult.getUser().getLocale());
             messageService.sendMessage(
                     new SendMessageContext(message.getChatId(), text)
