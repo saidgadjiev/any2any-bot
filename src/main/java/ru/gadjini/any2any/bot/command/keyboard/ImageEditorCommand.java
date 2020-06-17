@@ -26,7 +26,7 @@ import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatCategory;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
 import ru.gadjini.any2any.service.image.editor.State;
-import ru.gadjini.any2any.service.image.editor.StateFatherProxy;
+import ru.gadjini.any2any.service.image.editor.StateFather;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 
@@ -50,7 +50,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     private ReplyKeyboardService replyKeyboardService;
 
-    private StateFatherProxy stateFather;
+    private StateFather stateFather;
 
     private FormatService formatService;
 
@@ -58,7 +58,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     public ImageEditorCommand(LocalisationService localisationService,
                               @Qualifier("limits") MessageService messageService, UserService userService,
                               @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
-                              StateFatherProxy stateFather, FormatService formatService) {
+                              StateFather stateFather, FormatService formatService) {
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.userService = userService;

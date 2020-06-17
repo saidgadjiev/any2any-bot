@@ -11,6 +11,7 @@ import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.model.EditMediaContext;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.service.MessageService;
@@ -171,7 +172,7 @@ public class StateFather implements State {
             return;
         }
         try {
-            messageService.removeInlineKeyboard(chatId, state.getMessageId());
+            messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getCurrentFileId()));
             commandStateService.deleteState(chatId, command.getHistoryName());
             LOGGER.debug("Image editor state deleted for user " + chatId);
         } finally {
@@ -213,7 +214,7 @@ public class StateFather implements State {
         EditorState state = commandStateService.getState(chatId, commandName, false);
 
         if (state != null) {
-            messageService.removeInlineKeyboard(chatId, state.getMessageId());
+            messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getCurrentFileId()));
         }
     }
 }
