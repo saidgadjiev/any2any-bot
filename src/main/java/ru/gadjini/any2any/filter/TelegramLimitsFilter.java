@@ -145,7 +145,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     private boolean isLargeFile(long size) {
-        return size >= 50 * 1000 * 1000;
+        return size > 50 * 1024 * 1024;
     }
 
     private void checkInMediaSize(Message message) {
@@ -160,7 +160,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
             size = photoSize.getFileSize();
             fileId = photoSize.getFileId();
         }
-        if (size >= 20 * 1000 * 1000) {
+        if (size > 20 * 1024 * 1024) {
             LOGGER.debug("Too large in file " + fileId + " size " + size);
             throw new UserException(localisationService.getMessage(
                     MessagesProperties.MESSAGE_TOO_LARGE_IN_FILE,
