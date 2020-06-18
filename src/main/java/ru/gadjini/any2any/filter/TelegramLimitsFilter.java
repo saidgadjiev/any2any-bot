@@ -13,8 +13,8 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.*;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
 import java.util.Comparator;
@@ -161,7 +161,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
             fileId = photoSize.getFileId();
         }
         if (size > 20 * 1024 * 1024) {
-            LOGGER.debug("Too large in file " + fileId + " size " + size);
+            LOGGER.debug("Too large in file({}, {}, {})", fileId, size, message.getFrom().getId());
             throw new UserException(localisationService.getMessage(
                     MessagesProperties.MESSAGE_TOO_LARGE_IN_FILE,
                     new Object[]{MemoryUtils.humanReadableByteCount(message.getDocument().getFileSize())},
@@ -171,7 +171,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
 
     private boolean validate(SendFileContext sendFileContext) {
         if (sendFileContext.file().length() == 0) {
-            LOGGER.debug("Empty file: " + sendFileContext.file().getAbsolutePath());
+            LOGGER.debug("Empty file({}, {})", sendFileContext.file().getAbsolutePath(), sendFileContext.chatId());
             sendMessage(new SendMessageContext(sendFileContext.chatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZERO_LENGTH_FILE, userService.getLocaleOrDefault((int) sendFileContext.chatId())))
                     .replyKeyboard(sendFileContext.replyKeyboard())
                     .replyMessageId(sendFileContext.replyMessageId()));
@@ -182,7 +182,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
         if (!largeFile) {
             return true;
         } else {
-            LOGGER.debug("Large out file " + sendFileContext.file().length());
+            LOGGER.debug("Too large out file({}, {})", sendFileContext.file().length(), sendFileContext.chatId());
             String text = localisationService.getMessage(MessagesProperties.MESSAGE_TOO_LARGE_OUT_FILE,
                     new Object[]{sendFileContext.file().getName(), MemoryUtils.humanReadableByteCount(sendFileContext.file().length())},
                     userService.getLocaleOrDefault((int) sendFileContext.chatId()));
