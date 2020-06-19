@@ -183,6 +183,8 @@ public class StateFather implements State {
             messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getCurrentFileId()));
             commandStateService.deleteState(chatId, command.getHistoryName());
             LOGGER.debug("Image editor state deleted for user " + chatId);
+        } catch (Exception ex) {
+            LOGGER.error(ex.getMessage(), ex);
         } finally {
             if (StringUtils.isNotBlank(state.getPrevFilePath())) {
                 new SmartTempFile(new File(state.getPrevFilePath()), true).smartDelete();
@@ -214,7 +216,11 @@ public class StateFather implements State {
         EditorState state = commandStateService.getState(chatId, commandName, false);
 
         if (state != null) {
-            messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getCurrentFileId()));
+            try {
+                messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getCurrentFileId()));
+            } catch (Exception ex) {
+                LOGGER.error(ex.getMessage(), ex);
+            }
         }
     }
 
