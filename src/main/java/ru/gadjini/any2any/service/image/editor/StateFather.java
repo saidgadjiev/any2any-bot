@@ -12,11 +12,9 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.EditMediaContext;
 import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
@@ -24,6 +22,7 @@ import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.io.File;
@@ -92,6 +91,14 @@ public class StateFather implements State {
         LOGGER.debug(state.getClass().getSimpleName() + "#size(" + size + ") user id(" + chatId + ")");
 
         state.size(command, chatId, queryId, size);
+    }
+
+    @Override
+    public void update(ImageEditorCommand command, long chatId, String queryId) {
+        State state = getState(chatId, command.getHistoryName());
+        LOGGER.debug(state.getClass().getSimpleName() + "#update(" + chatId + ")");
+
+        state.update(command, chatId, queryId);
     }
 
     @Override
@@ -180,7 +187,8 @@ public class StateFather implements State {
             return;
         }
         try {
-            messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getCurrentFileId()));
+            messageService.sendDocument(new SendFileContext(chatId, state.getCurrentFileId()));
+            messageService.deleteMessage(chatId, state.getMessageId());
             commandStateService.deleteState(chatId, command.getHistoryName());
             LOGGER.debug("Image editor state deleted for user " + chatId);
         } catch (Exception ex) {
@@ -217,7 +225,8 @@ public class StateFather implements State {
 
         if (state != null) {
             try {
-                messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getCurrentFileId()));
+                messageService.sendDocument(new SendFileContext(chatId, state.getCurrentFileId()));
+                messageService.deleteMessage(chatId, state.getMessageId());
             } catch (Exception ex) {
                 LOGGER.error(ex.getMessage(), ex);
             }

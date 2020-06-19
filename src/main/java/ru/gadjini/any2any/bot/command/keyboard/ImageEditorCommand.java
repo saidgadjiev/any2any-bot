@@ -132,8 +132,9 @@ public class ImageEditorCommand extends BotCommand implements KeyboardBotCommand
     public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
         if (requestParams.contains(Arg.GO_BACK.getKey())) {
             stateFather.goBack(this, callbackQuery);
-        }
-        if (requestParams.contains(Arg.IMAGE_SIZE.getKey())) {
+        } else if (requestParams.contains(Arg.UPDATE_EDITED_IMAGE.getKey())) {
+            stateFather.update(this, callbackQuery.getMessage().getChatId(), callbackQuery.getId());
+        } else if (requestParams.contains(Arg.IMAGE_SIZE.getKey())) {
             stateFather.size(this, callbackQuery.getMessage().getChatId(), callbackQuery.getId(), requestParams.getString(Arg.IMAGE_SIZE.getKey()));
         } else if (requestParams.contains(Arg.IMAGE_FILTER.getKey())) {
             State.Filter effect = State.Filter.valueOf(requestParams.getString(Arg.IMAGE_FILTER.getKey()));
@@ -166,7 +167,7 @@ public class ImageEditorCommand extends BotCommand implements KeyboardBotCommand
 
         messageService.sendMessage(
                 new SendMessageContext(chatId,
-                        localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENCY_WELCOME, locale))
+                        localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MAIN_WELCOME, locale))
                         .replyKeyboard(replyKeyboardService.goBack(chatId, locale))
         );
     }

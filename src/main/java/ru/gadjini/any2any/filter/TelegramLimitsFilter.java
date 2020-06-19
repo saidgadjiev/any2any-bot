@@ -1,6 +1,7 @@
 package ru.gadjini.any2any.filter;
 
 import com.google.common.base.Splitter;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -170,6 +171,9 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     private boolean validate(SendFileContext sendFileContext) {
+        if (StringUtils.isNotBlank(sendFileContext.fileId())) {
+            return true;
+        }
         if (sendFileContext.file().length() == 0) {
             LOGGER.debug("Empty file({}, {})", sendFileContext.file().getAbsolutePath(), sendFileContext.chatId());
             sendMessage(new SendMessageContext(sendFileContext.chatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZERO_LENGTH_FILE, userService.getLocaleOrDefault((int) sendFileContext.chatId())))

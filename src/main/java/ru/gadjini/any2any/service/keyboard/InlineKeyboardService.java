@@ -59,13 +59,18 @@ public class InlineKeyboardService {
         }
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.moreColorsButton(locale)));
         inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.imageColorButton(locale)));
+
         if (cancelButton) {
             inlineKeyboardMarkup.getKeyboard().add(List.of(
                     buttonFactory.cancelButton(locale),
+                    buttonFactory.updateButton(locale)));
+
+            inlineKeyboardMarkup.getKeyboard().add(List.of(
                     buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
                             CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale)));
         } else {
             inlineKeyboardMarkup.getKeyboard().add(List.of(
+                    buttonFactory.updateButton(locale),
                     buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
                             CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale)));
         }
@@ -136,10 +141,14 @@ public class InlineKeyboardService {
         if (cancelButton) {
             inlineKeyboardMarkup.getKeyboard().add(List.of(
                     buttonFactory.cancelButton(locale),
+                    buttonFactory.updateButton(locale)));
+
+            inlineKeyboardMarkup.getKeyboard().add(List.of(
                     buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
                             CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale)));
         } else {
             inlineKeyboardMarkup.getKeyboard().add(List.of(
+                    buttonFactory.updateButton(locale),
                     buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
                             CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale)));
         }
@@ -161,10 +170,14 @@ public class InlineKeyboardService {
         if (cancelButton) {
             inlineKeyboardMarkup.getKeyboard().add(List.of(
                     buttonFactory.cancelButton(locale),
+                    buttonFactory.updateButton(locale)));
+
+            inlineKeyboardMarkup.getKeyboard().add(List.of(
                     buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
                             CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale)));
         } else {
             inlineKeyboardMarkup.getKeyboard().add(List.of(
+                    buttonFactory.updateButton(locale),
                     buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
                             CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale)));
         }
@@ -179,13 +192,16 @@ public class InlineKeyboardService {
                 buttonFactory.transparencyButton(locale)
         ));
         inlineKeyboardMarkup.getKeyboard().add(List.of(
-                buttonFactory.filtersButton(locale)
-        ));
-        inlineKeyboardMarkup.getKeyboard().add(List.of(
+                buttonFactory.filtersButton(locale),
                 buttonFactory.resizeButton(locale)
         ));
+
         if (cancelButton) {
-            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelButton(locale)));
+            inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelButton(locale), buttonFactory.updateButton(locale)));
+        } else {
+            inlineKeyboardMarkup.getKeyboard().add(List.of(
+                    buttonFactory.updateButton(locale))
+            );
         }
 
         return inlineKeyboardMarkup;

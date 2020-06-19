@@ -258,7 +258,11 @@ public class MessageServiceImpl implements MessageService {
     public SendFileResult sendDocument(SendFileContext sendDocumentContext) {
         SendDocument sendDocument = new SendDocument();
         sendDocument.setChatId(sendDocumentContext.chatId());
-        sendDocument.setDocument(sendDocumentContext.file());
+        if (sendDocumentContext.file() != null) {
+            sendDocument.setDocument(sendDocumentContext.file());
+        } else {
+            sendDocument.setDocument(sendDocumentContext.fileId());
+        }
 
         if (sendDocumentContext.replyMessageId() != null) {
             sendDocument.setReplyToMessageId(sendDocumentContext.replyMessageId());

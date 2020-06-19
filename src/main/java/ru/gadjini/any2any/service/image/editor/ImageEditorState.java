@@ -6,9 +6,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.AnswerCallbackContext;
 import ru.gadjini.any2any.model.EditMediaContext;
+import ru.gadjini.any2any.model.SendFileContext;
+import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.image.editor.filter.FilterState;
@@ -17,7 +18,6 @@ import ru.gadjini.any2any.service.image.resize.ResizeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
 
-import java.io.File;
 import java.util.Locale;
 
 @Component
@@ -68,22 +68,18 @@ public class ImageEditorState implements State {
     }
 
     @Override
-    public void cancel(ImageEditorCommand command, long chatId, String queryId) {
+    public void update(ImageEditorCommand command, long chatId, String queryId) {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
-        if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
-            String editFilePath = editorState.getCurrentFilePath();
-            editorState.setCurrentFilePath(editorState.getPrevFilePath());
-            editorState.setCurrentFileId(editorState.getPrevFileId());
-            editorState.setPrevFilePath(null);
-            editorState.setPrevFileId(null);
+        messageService.deleteMessage(chatId, editorState.getMessageId());
+        Locale locale = new Locale(editorState.getLanguage());
+        SendFileResult sendFileResult = messageService.sendDocument(new SendFileContext(chatId, editorState.getCurrentFileId())
+                .caption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
+                .replyKeyboard(inlineKeyboardService.getImageEditKeyboard(locale, editorState.canCancel())));
 
-            messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
-                    .replyKeyboard(inlineKeyboardService.getImageEditKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
-            commandStateService.setState(chatId, command.getHistoryName(), editorState);
-
-            new SmartTempFile(new File(editFilePath), true).smartDelete();
-        } else {
-            messageService.sendAnswerCallbackQuery(new AnswerCallbackContext(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_CANT_CANCEL_ANSWER, new Locale(editorState.getLanguage()))));
+        editorState.setMessageId(sendFileResult.getMessageId());
+        commandStateService.setState(chatId, command.getHistoryName(), editorState);
+        if (StringUtils.isNotBlank(queryId)) {
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackContext(queryId, localisationService.getMessage(MessagesProperties.UPDATE_CALLBACK_ANSWER, locale)));
         }
     }
 

@@ -10,6 +10,8 @@ public class SendFileContext {
 
     private File file;
 
+    private String fileId;
+
     private Integer replyMessageId;
 
     private ReplyKeyboard replyKeyboard;
@@ -19,6 +21,11 @@ public class SendFileContext {
     public SendFileContext(long chatId, File file) {
         this.chatId = chatId;
         this.file = file;
+    }
+
+    public SendFileContext(long chatId, String fileId) {
+        this.chatId = chatId;
+        this.fileId = fileId;
     }
 
     public long chatId() {
@@ -54,5 +61,9 @@ public class SendFileContext {
     public SendFileContext caption(final String caption) {
         this.caption = caption;
         return this;
+    }
+
+    public String fileId() {
+        return fileId;
     }
 }

@@ -39,6 +39,11 @@ public class ButtonFactory {
                 new RequestParams().add(Arg.IMAGE_FILTER.getKey(), State.Filter.SKETCH.name()), locale);
     }
 
+    public InlineKeyboardButton updateButton(Locale locale) {
+        return delegateButton(MessagesProperties.UPDATE_EDITED_IMAGE_COMMAND_DESCRIPTION, CommandNames.IMAGE_EDITOR_COMMAND_NAME,
+                new RequestParams().add(Arg.UPDATE_EDITED_IMAGE.getKey(), "u"), locale);
+    }
+
     public InlineKeyboardButton negativeButton(Locale locale) {
         return delegateButton(MessagesProperties.NEGATIVE_FILTER_COMMAND_DESCRIPTION, CommandNames.IMAGE_EDITOR_COMMAND_NAME,
                 new RequestParams().add(Arg.IMAGE_FILTER.getKey(), State.Filter.NEGATIVE.name()), locale);

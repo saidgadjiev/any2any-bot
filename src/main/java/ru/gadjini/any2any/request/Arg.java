@@ -12,7 +12,8 @@ public enum Arg {
     EDIT_STATE_NAME("k"),
     IMAGE_FILTER("m"),
     INACCURACY("l"),
-    IMAGE_SIZE("o");
+    IMAGE_SIZE("o"),
+    UPDATE_EDITED_IMAGE("p"),;
 
     private final String key;
 

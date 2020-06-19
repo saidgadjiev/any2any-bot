@@ -8,6 +8,10 @@ public interface State {
 
     Name getName();
 
+    default void update(ImageEditorCommand command, long chatId, String queryId) {
+
+    }
+
     default void go(ImageEditorCommand command, long chatId, String queryId, Name name) {
 
     }

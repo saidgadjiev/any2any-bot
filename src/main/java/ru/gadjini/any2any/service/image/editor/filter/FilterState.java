@@ -9,11 +9,8 @@ import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
-import ru.gadjini.any2any.model.AnswerCallbackContext;
-import ru.gadjini.any2any.model.EditMediaContext;
-import ru.gadjini.any2any.model.EditMediaResult;
+import ru.gadjini.any2any.model.*;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
@@ -21,6 +18,7 @@ import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.ImageEditorState;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.io.File;
 import java.util.Locale;
@@ -69,6 +67,21 @@ public class FilterState implements State {
     }
 
     @Override
+    public void update(ImageEditorCommand command, long chatId, String queryId) {
+        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
+        messageService.deleteMessage(chatId, editorState.getMessageId());
+        Locale locale = new Locale(editorState.getLanguage());
+        SendFileResult sendFileResult = messageService.sendDocument(new SendFileContext(chatId, editorState.getCurrentFileId())
+                .replyKeyboard(inlineKeyboardService.getImageFiltersKeyboard(locale, editorState.canCancel())));
+
+        editorState.setMessageId(sendFileResult.getMessageId());
+        commandStateService.setState(chatId, command.getHistoryName(), editorState);
+        if (StringUtils.isNotBlank(queryId)) {
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackContext(queryId, localisationService.getMessage(MessagesProperties.UPDATE_CALLBACK_ANSWER, locale)));
+        }
+    }
+
+    @Override
     public void cancel(ImageEditorCommand command, long chatId, String queryId) {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
@@ -78,9 +91,9 @@ public class FilterState implements State {
             editorState.setPrevFilePath(null);
             editorState.setPrevFileId(null);
 
-            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
+            messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
                     .replyKeyboard(inlineKeyboardService.getImageFiltersKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
-            editorState.setCurrentFileId(editMediaResult.getFileId());
+
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
             new SmartTempFile(new File(editFilePath), true).smartDelete();

@@ -10,12 +10,8 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
-import ru.gadjini.any2any.model.AnswerCallbackContext;
-import ru.gadjini.any2any.model.EditMediaContext;
-import ru.gadjini.any2any.model.EditMediaResult;
-import ru.gadjini.any2any.model.EditMessageCaptionContext;
+import ru.gadjini.any2any.model.*;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
@@ -23,6 +19,7 @@ import ru.gadjini.any2any.service.image.editor.EditMessageBuilder;
 import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.io.File;
 import java.util.Locale;
@@ -74,6 +71,23 @@ public class ColorState implements State {
     @Override
     public Name getName() {
         return Name.COLOR;
+    }
+
+    @Override
+    public void update(ImageEditorCommand command, long chatId, String queryId) {
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        messageService.deleteMessage(chatId, state.getMessageId());
+        Locale locale = new Locale(state.getLanguage());
+        SendFileResult sendFileResult = messageService.sendDocument(new SendFileContext(chatId, state.getCurrentFileId())
+                .caption(messageBuilder.getSettingsStr(state) + "\n\n"
+                        + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, locale))
+                .replyKeyboard(inlineKeyboardService.getColorsKeyboard(locale, state.canCancel())));
+        state.setMessageId(sendFileResult.getMessageId());
+        commandStateService.setState(chatId, command.getHistoryName(), state);
+
+        if (StringUtils.isNotBlank(queryId)) {
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackContext(queryId, localisationService.getMessage(MessagesProperties.UPDATE_CALLBACK_ANSWER, locale)));
+        }
     }
 
     @Override

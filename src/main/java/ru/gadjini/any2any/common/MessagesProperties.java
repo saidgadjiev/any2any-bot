@@ -156,7 +156,7 @@ public class MessagesProperties {
 
     public static final String IMAGE_EDITOR_COMMAND_NAME = "image.editor.command.name";
 
-    public static final String MESSAGE_IMAGE_TRANSPARENCY_WELCOME = "message.image.transparency.welcome";
+    public static final String MESSAGE_IMAGE_EDITOR_MAIN_WELCOME = "message.image.editor.main.welcome";
 
     public static final String MESSAGE_IMAGE_EDITOR_POSITIVE_MODE = "message.image.editor.positive.mode";
 
@@ -256,5 +256,7 @@ public class MessagesProperties {
 
     public static final String FORMATS_COMMAND_DESCRIPTION = "formats.command.description";
 
-    public static final String GO_BACK_COMMAND_DESCRIPTION = "go.back.command.description";
+    public static final String UPDATE_EDITED_IMAGE_COMMAND_DESCRIPTION = "update.edited.image.command.description";
+
+    public static final String UPDATE_CALLBACK_ANSWER = "update.callback.answer";
 }
