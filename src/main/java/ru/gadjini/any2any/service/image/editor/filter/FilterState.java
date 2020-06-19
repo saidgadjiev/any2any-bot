@@ -71,9 +71,10 @@ public class FilterState implements State {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         messageService.deleteMessage(chatId, editorState.getMessageId());
         Locale locale = new Locale(editorState.getLanguage());
-        SendFileResult sendFileResult = messageService.sendDocument(new SendFileContext(chatId, editorState.getCurrentFileId())
+        SendFileResult sendFileResult = messageService.sendDocument(new SendFileContext(chatId, new File(editorState.getCurrentFilePath()))
                 .replyKeyboard(inlineKeyboardService.getImageFiltersKeyboard(locale, editorState.canCancel())));
 
+        editorState.setCurrentFileId(sendFileResult.getFileId());
         editorState.setMessageId(sendFileResult.getMessageId());
         commandStateService.setState(chatId, command.getHistoryName(), editorState);
         if (StringUtils.isNotBlank(queryId)) {

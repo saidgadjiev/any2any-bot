@@ -159,6 +159,8 @@ public class StateFather implements State {
 
     public void initializeState(ImageEditorCommand command, long chatId, Any2AnyFile any2AnyFile, Locale locale) {
         commonJobExecutor.addJob(() -> {
+            deleteCurrentState(chatId, command.getHistoryName());
+
             SmartTempFile file = tempFileService.createTempFile(Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), any2AnyFile.getFormat().getExt()));
             telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file.getFile());
             try {
@@ -171,7 +173,6 @@ public class StateFather implements State {
                         .replyKeyboard(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())));
                 state.setMessageId(fileResult.getMessageId());
                 state.setCurrentFileId(fileResult.getFileId());
-                deleteCurrentState(chatId, command.getHistoryName());
                 commandStateService.setState(chatId, command.getHistoryName(), state);
                 LOGGER.debug("Image editor state initialized for user " + chatId + " file id " + any2AnyFile.getFileId() + " format " + any2AnyFile.getFormat());
             } finally {
@@ -187,7 +188,7 @@ public class StateFather implements State {
             return;
         }
         try {
-            messageService.sendDocument(new SendFileContext(chatId, state.getCurrentFileId()));
+            messageService.sendDocument(new SendFileContext(chatId, new File(state.getCurrentFilePath())));
             messageService.deleteMessage(chatId, state.getMessageId());
             commandStateService.deleteState(chatId, command.getHistoryName());
             LOGGER.debug("Image editor state deleted for user " + chatId);
@@ -225,7 +226,7 @@ public class StateFather implements State {
 
         if (state != null) {
             try {
-                messageService.sendDocument(new SendFileContext(chatId, state.getCurrentFileId()));
+                messageService.sendDocument(new SendFileContext(chatId, new File(state.getCurrentFilePath())));
                 messageService.deleteMessage(chatId, state.getMessageId());
             } catch (Exception ex) {
                 LOGGER.error(ex.getMessage(), ex);

@@ -82,11 +82,12 @@ public class ResizeState implements State {
         messageService.deleteMessage(chatId, editorState.getMessageId());
         String size = identifyDevice.getSize(editorState.getCurrentFilePath());
         Locale locale = new Locale(editorState.getLanguage());
-        SendFileResult sendFileResult = messageService.sendDocument(new SendFileContext(chatId, editorState.getCurrentFileId())
+        SendFileResult sendFileResult = messageService.sendDocument(new SendFileContext(chatId, new File(editorState.getCurrentFilePath()))
                 .caption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_SIZE, new Object[]{size}, locale) + "\n\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_RESIZE_IMAGE_WELCOME, locale))
                 .replyKeyboard(inlineKeyboardService.getResizeKeyboard(locale, editorState.canCancel())));
         editorState.setMessageId(sendFileResult.getMessageId());
+        editorState.setCurrentFileId(sendFileResult.getFileId());
         commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
         if (StringUtils.isNotBlank(queryId)) {
