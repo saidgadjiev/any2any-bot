@@ -22,6 +22,7 @@ import ru.gadjini.any2any.service.message.MessageService;
 import java.io.File;
 import java.util.Locale;
 
+@SuppressWarnings("CPD-START")
 @Component
 public class ImageEditorState implements State {
 
