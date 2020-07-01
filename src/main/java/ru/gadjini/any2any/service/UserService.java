@@ -5,11 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.User;
 import ru.gadjini.any2any.dao.UserDao;
 import ru.gadjini.any2any.domain.CreateOrUpdateResult;
 import ru.gadjini.any2any.domain.TgUser;
 import ru.gadjini.any2any.exception.TelegramRequestException;
+import ru.gadjini.any2any.model.bot.api.object.User;
 
 import java.util.Locale;
 

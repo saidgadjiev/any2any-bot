@@ -3,15 +3,12 @@ package ru.gadjini.any2any.bot.command.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.bots.AbsSender;
+import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.method.SendMessage;
 import ru.gadjini.any2any.service.CommandMessageBuilder;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
@@ -22,7 +19,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class HelpCommand extends BotCommand implements KeyboardBotCommand {
+public class HelpCommand implements KeyboardBotCommand, BotCommand {
 
     private final MessageService messageService;
 
@@ -37,7 +34,6 @@ public class HelpCommand extends BotCommand implements KeyboardBotCommand {
     @Autowired
     public HelpCommand(@Qualifier("limits") MessageService messageService, LocalisationService localisationService,
                        UserService userService, CommandMessageBuilder commandMessageBuilder) {
-        super(CommandNames.HELP_COMMAND, "");
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
@@ -48,8 +44,13 @@ public class HelpCommand extends BotCommand implements KeyboardBotCommand {
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] strings) {
-        sendHelpMessage(user.getId(), userService.getLocaleOrDefault(user.getId()));
+    public void processMessage(Message message) {
+        processMessage(message, null);
+    }
+
+    @Override
+    public String getCommandIdentifier() {
+        return CommandNames.HELP_COMMAND;
     }
 
     @Override
@@ -66,7 +67,7 @@ public class HelpCommand extends BotCommand implements KeyboardBotCommand {
 
     private void sendHelpMessage(int userId, Locale locale) {
         messageService.sendMessage(
-                new SendMessageContext(userId, localisationService.getMessage(MessagesProperties.MESSAGE_HELP,
+                new SendMessage(userId, localisationService.getMessage(MessagesProperties.MESSAGE_HELP,
                         new Object[]{commandMessageBuilder.getCommandsInfo(locale)},
                         locale)));
     }

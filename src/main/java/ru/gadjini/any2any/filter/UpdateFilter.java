@@ -1,7 +1,7 @@
 package ru.gadjini.any2any.filter;
 
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.gadjini.any2any.model.bot.api.object.Update;
 
 @Component
 public class UpdateFilter extends BaseBotFilter {

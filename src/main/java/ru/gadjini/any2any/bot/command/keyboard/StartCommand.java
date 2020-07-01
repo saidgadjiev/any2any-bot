@@ -3,17 +3,14 @@ package ru.gadjini.any2any.bot.command.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.bots.AbsSender;
+import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.method.SendMessage;
 import ru.gadjini.any2any.model.TgMessage;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
 import ru.gadjini.any2any.service.CommandMessageBuilder;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
@@ -24,7 +21,7 @@ import ru.gadjini.any2any.service.message.MessageService;
 import java.util.Locale;
 
 @Component
-public class StartCommand extends BotCommand implements NavigableBotCommand {
+public class StartCommand implements NavigableBotCommand, BotCommand {
 
     private CommandStateService commandStateService;
 
@@ -41,7 +38,6 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
     @Autowired
     public StartCommand(CommandStateService commandStateService, UserService userService, @Qualifier("limits") MessageService messageService,
                         LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService, CommandMessageBuilder commandMessageBuilder) {
-        super(CommandNames.START_COMMAND, "");
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.messageService = messageService;
@@ -56,19 +52,24 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] strings) {
-        Locale locale = userService.getLocaleOrDefault(user.getId());
+    public void processMessage(Message message) {
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
-                new SendMessageContext(chat.getId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
-                        .replyKeyboard(replyKeyboardService.getMainMenu(chat.getId(), locale))
+                new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
+                        .setReplyMarkup(replyKeyboardService.getMainMenu(message.getChat().getId(), locale))
         );
+    }
+
+    @Override
+    public String getCommandIdentifier() {
+        return CommandNames.START_COMMAND;
     }
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
-                new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_SECTION, new Object[]{commandMessageBuilder.getCommandsInfo(locale)}, locale))
+                new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_SECTION, new Object[]{commandMessageBuilder.getCommandsInfo(locale)}, locale))
         );
     }
 
@@ -86,8 +87,8 @@ public class StartCommand extends BotCommand implements NavigableBotCommand {
     public void restore(TgMessage message) {
         commandStateService.deleteState(message.getChatId(), getHistoryName());
         Locale locale = userService.getLocaleOrDefault(message.getUser().getId());
-        messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
-                .replyKeyboard(replyKeyboardService.getMainMenu(message.getChatId(), locale)));
+        messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
+                .setReplyMarkup(replyKeyboardService.getMainMenu(message.getChatId(), locale)));
     }
 
     @Override

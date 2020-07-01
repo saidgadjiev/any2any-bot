@@ -3,18 +3,15 @@ package ru.gadjini.any2any.bot.command.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.bots.AbsSender;
+import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.method.SendMessage;
 import ru.gadjini.any2any.model.TgMessage;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
@@ -26,7 +23,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class ConvertCommand extends BotCommand implements KeyboardBotCommand, NavigableBotCommand {
+public class ConvertCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand {
 
     private Set<String> names = new HashSet<>();
 
@@ -46,7 +43,6 @@ public class ConvertCommand extends BotCommand implements KeyboardBotCommand, Na
     public ConvertCommand(CommandStateService commandStateService, UserService userService,
                           @Qualifier("limits") MessageService messageService, LocalisationService localisationService,
                           @Qualifier("curr") ReplyKeyboardService replyKeyboardService) {
-        super(CommandNames.CONVERT_COMMAND_NAME, "");
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.messageService = messageService;
@@ -86,8 +82,8 @@ public class ConvertCommand extends BotCommand implements KeyboardBotCommand, Na
     public void restore(TgMessage message) {
         commandStateService.deleteState(message.getChatId(), getHistoryName());
         Locale locale = userService.getLocaleOrDefault(message.getUser().getId());
-        messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
-                .replyKeyboard(replyKeyboardService.goBack(message.getChatId(), locale)));
+        messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
+                .setReplyMarkup(replyKeyboardService.goBack(message.getChatId(), locale)));
     }
 
     @Override
@@ -101,8 +97,13 @@ public class ConvertCommand extends BotCommand implements KeyboardBotCommand, Na
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        processMessage0(chat.getId(), user.getId());
+    public void processMessage(Message message) {
+        processMessage(message, null);
+    }
+
+    @Override
+    public String getCommandIdentifier() {
+        return CommandNames.CONVERT_COMMAND_NAME;
     }
 
     @Override
@@ -115,8 +116,8 @@ public class ConvertCommand extends BotCommand implements KeyboardBotCommand, Na
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
         messageService.sendMessage(
-                new SendMessageContext(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
-                        .replyKeyboard(replyKeyboardService.goBack(chatId, locale))
+                new SendMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
+                        .setReplyMarkup(replyKeyboardService.goBack(chatId, locale))
 
         );
     }

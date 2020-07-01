@@ -5,12 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
-import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.TgMessage;
+import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.object.PhotoSize;
+import ru.gadjini.any2any.model.bot.api.object.Sticker;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
 
 import java.util.Comparator;

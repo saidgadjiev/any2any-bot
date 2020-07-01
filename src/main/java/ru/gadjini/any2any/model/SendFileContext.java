@@ -1,6 +1,6 @@
 package ru.gadjini.any2any.model;
 
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 
 import java.io.File;
 

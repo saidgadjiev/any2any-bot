@@ -4,16 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.Distribution;
 import ru.gadjini.any2any.exception.TelegramRequestException;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.bot.api.method.SendMessage;
 import ru.gadjini.any2any.service.DistributionService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Component
@@ -37,12 +35,12 @@ public class DistributionJob {
         LOGGER.debug("Distribution job started");
     }
 
-    @PostConstruct
+    //@PostConstruct
     public void init() {
         checkDistributions();
     }
 
-    @Scheduled(cron = "0 0 * * * *")
+    //@Scheduled(cron = "0 0 * * * *")
     public void checkDistributions() {
         LOGGER.debug("Start checkDistributions");
         if (!distributionService.isExists()) {
@@ -53,7 +51,7 @@ public class DistributionJob {
         LOGGER.debug("Finish checkDistributions");
     }
 
-    @Scheduled(cron = "0 */5 * * * *")
+    //@Scheduled(cron = "0 */5 * * * *")
     public void distribute() {
         if (isDisabled()) {
             return;
@@ -98,6 +96,6 @@ public class DistributionJob {
 
     private void sendDistribution(Distribution distribution) {
         String message = distribution.getLocalisedMessage();
-        messageService.sendMessage(new SendMessageContext(distribution.getUserId(), message));
+        messageService.sendMessage(new SendMessage(distribution.getUserId(), message));
     }
 }

@@ -6,19 +6,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
-import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.bots.AbsSender;
+import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.object.PhotoSize;
+import ru.gadjini.any2any.model.bot.api.method.SendMessage;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.OcrService;
 import ru.gadjini.any2any.service.UserService;
@@ -35,7 +32,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class OcrCommand extends BotCommand implements KeyboardBotCommand, NavigableBotCommand {
+public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OcrCommand.class);
 
@@ -59,7 +56,6 @@ public class OcrCommand extends BotCommand implements KeyboardBotCommand, Naviga
     public OcrCommand(CommandStateService commandStateService, OcrService ocrService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                       UserService userService, LocalisationService localisationService,
                       @Qualifier("limits") MessageService messageService, FormatService formatService) {
-        super(CommandNames.OCR_COMMAND_NAME, "");
         this.commandStateService = commandStateService;
         this.ocrService = ocrService;
         this.replyKeyboardService = replyKeyboardService;
@@ -78,8 +74,13 @@ public class OcrCommand extends BotCommand implements KeyboardBotCommand, Naviga
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        processMessage0(chat.getId(), user.getId());
+    public void processMessage(Message message) {
+        processMessage(message, null);
+    }
+
+    @Override
+    public String getCommandIdentifier() {
+        return CommandNames.OCR_COMMAND_NAME;
     }
 
     @Override
@@ -92,9 +93,9 @@ public class OcrCommand extends BotCommand implements KeyboardBotCommand, Naviga
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
         commandStateService.setState(chatId, getHistoryName(), locale.getLanguage());
-        messageService.sendMessage(new SendMessageContext(chatId,
+        messageService.sendMessage(new SendMessage(chatId,
                 localisationService.getMessage(MessagesProperties.MESSAGE_FILE_TO_EXTRACT, new Object[]{StringUtils.capitalize(locale.getDisplayLanguage(locale))}, locale))
-                .replyKeyboard(replyKeyboardService.getOcrKeyboard(chatId, locale)));
+                .setReplyMarkup(replyKeyboardService.getOcrKeyboard(chatId, locale)));
     }
 
     @Override
@@ -120,7 +121,7 @@ public class OcrCommand extends BotCommand implements KeyboardBotCommand, Naviga
             for (Locale l : OcrService.SUPPORTED_LOCALES) {
                 if (text.equals(l.getDisplayLanguage(userLocale).toLowerCase())) {
                     commandStateService.setState(message.getChatId(), getHistoryName(), l.getLanguage());
-                    messageService.sendMessage(new SendMessageContext(message.getChatId(),
+                    messageService.sendMessage(new SendMessage(message.getChatId(),
                             localisationService.getMessage(MessagesProperties.MESSAGE_OCR_LANGUAGE_CHANGED,
                                     new Object[]{StringUtils.capitalize(l.getDisplayLanguage(userLocale))}, userLocale)));
                     return;
@@ -129,7 +130,7 @@ public class OcrCommand extends BotCommand implements KeyboardBotCommand, Naviga
         } else {
             Locale locale = new Locale(commandStateService.getState(message.getChatId(), getHistoryName(), true));
             ocrService.extractText(message.getFrom().getId(), getFile(message), locale);
-            messageService.sendMessage(new SendMessageContext(message.getChatId(),
+            messageService.sendMessage(new SendMessage(message.getChatId(),
                     localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_PROCESSING, userService.getLocaleOrDefault(message.getFrom().getId()))));
         }
     }

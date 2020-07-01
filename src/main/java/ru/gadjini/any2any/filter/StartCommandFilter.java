@@ -3,13 +3,13 @@ package ru.gadjini.any2any.filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.CreateOrUpdateResult;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.bot.api.method.SendMessage;
 import ru.gadjini.any2any.model.TgMessage;
+import ru.gadjini.any2any.model.bot.api.object.Update;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.service.CommandMessageBuilder;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
@@ -80,8 +80,8 @@ public class StartCommandFilter extends BaseBotFilter {
                     createOrUpdateResult.getUser().getLocale());
             ReplyKeyboard mainMenu = replyKeyboardService.getMainMenu(message.getChatId(), createOrUpdateResult.getUser().getLocale());
             messageService.sendMessage(
-                    new SendMessageContext(message.getChatId(), text)
-                            .replyKeyboard(mainMenu)
+                    new SendMessage(message.getChatId(), text)
+                            .setReplyMarkup(mainMenu)
             );
 
             commandNavigator.setCurrentCommand(message.getChatId(), CommandNames.START_COMMAND);

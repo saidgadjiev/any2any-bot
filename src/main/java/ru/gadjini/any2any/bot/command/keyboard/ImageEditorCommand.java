@@ -6,17 +6,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.meta.api.objects.*;
-import org.telegram.telegrambots.meta.bots.AbsSender;
+import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.CallbackBotCommand;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
+import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.object.PhotoSize;
+import ru.gadjini.any2any.model.bot.api.method.SendMessage;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.LocalisationService;
@@ -36,7 +37,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class ImageEditorCommand extends BotCommand implements KeyboardBotCommand, NavigableBotCommand, CallbackBotCommand {
+public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotCommand, CallbackBotCommand, BotCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImageEditorCommand.class);
 
@@ -59,7 +60,6 @@ public class ImageEditorCommand extends BotCommand implements KeyboardBotCommand
                               @Qualifier("limits") MessageService messageService, UserService userService,
                               @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                               StateFather stateFather, FormatService formatService) {
-        super(CommandNames.IMAGE_EDITOR_COMMAND_NAME, "");
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.userService = userService;
@@ -87,8 +87,13 @@ public class ImageEditorCommand extends BotCommand implements KeyboardBotCommand
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        processMessage0(chat.getId(), user.getId());
+    public void processMessage(Message message) {
+        processMessage(message, null);
+    }
+
+    @Override
+    public String getCommandIdentifier() {
+        return CommandNames.IMAGE_EDITOR_COMMAND_NAME;
     }
 
     @Override
@@ -166,9 +171,9 @@ public class ImageEditorCommand extends BotCommand implements KeyboardBotCommand
         Locale locale = userService.getLocaleOrDefault(userId);
 
         messageService.sendMessage(
-                new SendMessageContext(chatId,
+                new SendMessage(chatId,
                         localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MAIN_WELCOME, locale))
-                        .replyKeyboard(replyKeyboardService.goBack(chatId, locale))
+                        .setReplyMarkup(replyKeyboardService.goBack(chatId, locale))
         );
     }
 

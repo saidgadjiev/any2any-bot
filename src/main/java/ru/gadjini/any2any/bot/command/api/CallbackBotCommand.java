@@ -1,6 +1,6 @@
 package ru.gadjini.any2any.bot.command.api;
 
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.request.RequestParams;
 
 public interface CallbackBotCommand extends MyBotCommand {

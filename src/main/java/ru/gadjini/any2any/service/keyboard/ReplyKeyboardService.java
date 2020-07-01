@@ -1,8 +1,8 @@
 package ru.gadjini.any2any.service.keyboard;
 
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.buttons.KeyboardRow;
 import ru.gadjini.any2any.service.converter.api.Format;
 
 import java.util.ArrayList;

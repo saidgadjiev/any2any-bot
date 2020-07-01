@@ -4,11 +4,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.telegram.telegrambots.meta.api.objects.User;
 import ru.gadjini.any2any.bot.command.convert.ConvertState;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.dao.FileQueueDao;
 import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.model.bot.api.object.User;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.converter.api.Format;
 

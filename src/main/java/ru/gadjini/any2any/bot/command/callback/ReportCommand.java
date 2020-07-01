@@ -3,14 +3,16 @@ package ru.gadjini.any2any.bot.command.callback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.api.CallbackBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
+import ru.gadjini.any2any.model.bot.api.method.SendMessage;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
-import ru.gadjini.any2any.service.*;
+import ru.gadjini.any2any.service.FileReportService;
+import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.Locale;
@@ -49,7 +51,7 @@ public class ReportCommand implements CallbackBotCommand {
         messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
         messageService.sendMessage(
-                new SendMessageContext(callbackQuery.getMessage().getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_REPLY, locale))
+                new SendMessage(callbackQuery.getMessage().getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_REPLY, locale))
         );
 
         return null;

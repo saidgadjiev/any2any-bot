@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.configuration.SchedulerConfiguration;
 import ru.gadjini.any2any.domain.FileQueueItem;
@@ -17,7 +16,7 @@ import ru.gadjini.any2any.event.QueueItemCanceled;
 import ru.gadjini.any2any.exception.CorruptedFileException;
 import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.model.SendFileContext;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.bot.api.method.SendMessage;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
@@ -32,7 +31,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
-@Component
+//@Component
 public class ConverterJob {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConverterJob.class);
@@ -72,7 +71,7 @@ public class ConverterJob {
     @PostConstruct
     public void init() {
         initFonts();
-        applyLicense();
+        //applyLicense();
         queueService.resetProcessing();
     }
 
@@ -123,8 +122,8 @@ public class ConverterJob {
                 LOGGER.error(ex.getMessage());
                 Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
                 messageService.sendMessage(
-                        new SendMessageContext(fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_DAMAGED_FILE, locale))
-                                .replyMessageId(fileQueueItem.getMessageId())
+                        new SendMessage(fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_DAMAGED_FILE, locale))
+                                .setReplyToMessageId(fileQueueItem.getMessageId())
                 );
             } catch (Exception ex) {
                 Future<?> future = processing.get(fileQueueItem.getId());
@@ -135,8 +134,8 @@ public class ConverterJob {
                     LOGGER.error(ex.getMessage(), ex);
                     Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
                     messageService.sendMessage(
-                            new SendMessageContext(fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_FAILED, locale))
-                                    .replyMessageId(fileQueueItem.getMessageId())
+                            new SendMessage(fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_FAILED, locale))
+                                    .setReplyToMessageId(fileQueueItem.getMessageId())
                     );
                 }
             }

@@ -1,9 +1,9 @@
 package ru.gadjini.any2any.model;
 
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
+import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
+import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.object.Update;
+import ru.gadjini.any2any.model.bot.api.object.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -97,8 +97,6 @@ public class TgMessage {
     public static TgMessage from(Update update) {
         if (update.hasCallbackQuery()) {
             return from(update.getCallbackQuery());
-        } else if (update.hasEditedMessage()) {
-            return from(update.getEditedMessage());
         }
 
         return from(update.getMessage());
@@ -107,8 +105,6 @@ public class TgMessage {
     public static long getChatId(Update update) {
         if (update.hasCallbackQuery()) {
             return update.getCallbackQuery().getMessage().getChatId();
-        } else if (update.hasEditedMessage()) {
-            return update.getEditedMessage().getChatId();
         }
 
         return update.getMessage().getChatId();
@@ -117,8 +113,6 @@ public class TgMessage {
     public static int getUserId(Update update) {
         if (update.hasCallbackQuery()) {
             return update.getCallbackQuery().getFrom().getId();
-        } else if (update.hasEditedMessage()) {
-            return update.getEditedMessage().getFrom().getId();
         }
 
         return update.getMessage().getFrom().getId();
@@ -127,8 +121,6 @@ public class TgMessage {
     public static User getUser(Update update) {
         if (update.hasCallbackQuery()) {
             return update.getCallbackQuery().getFrom();
-        } else if (update.hasEditedMessage()) {
-            return update.getEditedMessage().getFrom();
         }
 
         return update.getMessage().getFrom();
@@ -151,12 +143,6 @@ public class TgMessage {
         }
         if (message.hasAudio()) {
             metaTypes.add(MetaType.AUDIO);
-        }
-        if (message.hasLocation()) {
-            metaTypes.add(MetaType.LOCATION);
-        }
-        if (message.hasContact()) {
-            metaTypes.add(MetaType.CONTACT);
         }
 
         return metaTypes;

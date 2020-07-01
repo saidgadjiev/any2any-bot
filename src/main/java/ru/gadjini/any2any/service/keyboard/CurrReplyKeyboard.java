@@ -2,9 +2,9 @@ package ru.gadjini.any2any.service.keyboard;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import ru.gadjini.any2any.dao.command.keyboard.ReplyKeyboardDao;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
 import ru.gadjini.any2any.service.converter.api.Format;
 
 import java.util.Locale;

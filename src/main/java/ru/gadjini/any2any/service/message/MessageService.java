@@ -1,18 +1,19 @@
 package ru.gadjini.any2any.service.message;
-
-import org.telegram.telegrambots.meta.api.objects.ChatMember;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
+import ru.gadjini.any2any.model.bot.api.object.ChatMember;
+import ru.gadjini.any2any.model.bot.api.method.SendMessage;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 
 import java.util.Locale;
 
 public interface MessageService {
-    void sendAnswerCallbackQuery(AnswerCallbackContext callbackContext);
+    void sendAnswerCallbackQuery(AnswerCallbackQuery answerCallbackQuery);
 
     ChatMember getChatMember(String chatId, int userId);
 
-    void sendMessage(SendMessageContext messageContext);
+    void sendMessage(SendMessage sendMessage);
 
     void removeInlineKeyboard(long chatId, int messageId);
 

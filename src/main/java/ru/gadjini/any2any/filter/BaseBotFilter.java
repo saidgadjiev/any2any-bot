@@ -1,6 +1,6 @@
 package ru.gadjini.any2any.filter;
 
-import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.gadjini.any2any.model.bot.api.object.Update;
 
 public class BaseBotFilter implements BotFilter {
 

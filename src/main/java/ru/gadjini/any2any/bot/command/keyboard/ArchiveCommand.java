@@ -3,18 +3,15 @@ package ru.gadjini.any2any.bot.command.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.bots.AbsSender;
+import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.method.SendMessage;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
@@ -29,7 +26,7 @@ import ru.gadjini.any2any.service.message.MessageService;
 import java.util.*;
 
 @Component
-public class ArchiveCommand extends BotCommand implements KeyboardBotCommand, NavigableBotCommand {
+public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand {
 
     private ArchiveService archiveService;
 
@@ -53,7 +50,6 @@ public class ArchiveCommand extends BotCommand implements KeyboardBotCommand, Na
     public ArchiveCommand(ArchiveService archiveService, LocalisationService localisationService, @Qualifier("limits") MessageService messageService,
                           CommandStateService commandStateService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                           UserService userService, FormatService formatService, FileService fileService) {
-        super(CommandNames.ARCHIVE_COMMAND_NAME, "");
         this.archiveService = archiveService;
         this.localisationService = localisationService;
         this.messageService = messageService;
@@ -78,8 +74,13 @@ public class ArchiveCommand extends BotCommand implements KeyboardBotCommand, Na
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        processMessage0(chat.getId(), user.getId());
+    public void processMessage(Message message) {
+        processMessage(message, null);
+    }
+
+    @Override
+    public String getCommandIdentifier() {
+        return CommandNames.ARCHIVE_COMMAND_NAME;
     }
 
     @Override
@@ -105,12 +106,12 @@ public class ArchiveCommand extends BotCommand implements KeyboardBotCommand, Na
         if (message.hasText()) {
             List<Any2AnyFile> files = commandStateService.getState(message.getChatId(), getHistoryName(), false);
             if (files == null || files.isEmpty()) {
-                messageService.sendMessage(new SendMessageContext(message.getChatId(),
+                messageService.sendMessage(new SendMessage(message.getChatId(),
                         localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale)));
             } else {
                 Format associatedFormat = checkFormat(formatService.getAssociatedFormat(message.getText()), locale);
                 archiveService.createArchive(message.getFrom().getId(), files, associatedFormat, locale);
-                messageService.sendMessage(new SendMessageContext(message.getChatId(),
+                messageService.sendMessage(new SendMessage(message.getChatId(),
                         localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale)));
                 commandStateService.deleteState(message.getChatId(), getHistoryName());
             }
@@ -122,7 +123,7 @@ public class ArchiveCommand extends BotCommand implements KeyboardBotCommand, Na
             files.add(createFile(message, locale));
             commandStateService.setState(message.getChatId(), getHistoryName(), files);
             messageService.sendMessage(
-                    new SendMessageContext(
+                    new SendMessage(
                             message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CURRENT_FILES, new Object[]{toString(files)}, locale)
                     )
             );
@@ -161,7 +162,7 @@ public class ArchiveCommand extends BotCommand implements KeyboardBotCommand, Na
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(new SendMessageContext(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES, locale))
-                .replyKeyboard(replyKeyboardService.archiveTypesKeyboard(chatId, locale)));
+        messageService.sendMessage(new SendMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES, locale))
+                .setReplyMarkup(replyKeyboardService.archiveTypesKeyboard(chatId, locale)));
     }
 }
