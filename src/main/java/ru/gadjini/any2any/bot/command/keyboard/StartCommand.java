@@ -53,7 +53,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     @Override
     public void processMessage(Message message) {
-        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
         messageService.sendMessage(
                 new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
                         .setReplyMarkup(replyKeyboardService.getMainMenu(message.getChat().getId(), locale))
@@ -67,7 +67,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
         messageService.sendMessage(
                 new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_SECTION, new Object[]{commandMessageBuilder.getCommandsInfo(locale)}, locale))
         );

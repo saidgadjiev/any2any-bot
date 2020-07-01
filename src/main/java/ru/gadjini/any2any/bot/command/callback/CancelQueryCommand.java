@@ -45,7 +45,7 @@ public class CancelQueryCommand implements CallbackBotCommand {
     public String processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int queryItemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
         fileQueueBusinessService.cancel(queryItemId);
-        Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(callbackQuery.getFromUser().getId());
 
         String actionFrom = requestParams.getString(Arg.ACTION_FROM.getKey());
         if (actionFrom.equals(CommandNames.QUERY_ITEM_DETAILS_COMMAND)) {

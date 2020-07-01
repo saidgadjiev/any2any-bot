@@ -85,7 +85,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFrom().getId());
+        processMessage0(message.getChatId(), message.getFromUser().getId());
 
         return true;
     }
@@ -102,7 +102,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
         if (message.hasText()) {
             List<Any2AnyFile> files = commandStateService.getState(message.getChatId(), getHistoryName(), false);
             if (files == null || files.isEmpty()) {
@@ -110,7 +110,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
                         localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale)));
             } else {
                 Format associatedFormat = checkFormat(formatService.getAssociatedFormat(message.getText()), locale);
-                archiveService.createArchive(message.getFrom().getId(), files, associatedFormat, locale);
+                archiveService.createArchive(message.getFromUser().getId(), files, associatedFormat, locale);
                 messageService.sendMessage(new SendMessage(message.getChatId(),
                         localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale)));
                 commandStateService.deleteState(message.getChatId(), getHistoryName());

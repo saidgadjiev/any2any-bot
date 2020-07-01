@@ -82,7 +82,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFrom().getId());
+        processMessage0(message.getChatId(), message.getFromUser().getId());
 
         return true;
     }
@@ -96,8 +96,8 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-        unzipperService.unzip(message.getFrom().getId(), message.getDocument().getFileId(), checkFormat(format, message.getDocument().getMimeType(), message.getDocument().getFileName(), message.getDocument().getFileId(), locale), locale);
+        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+        unzipperService.unzip(message.getFromUser().getId(), message.getDocument().getFileId(), checkFormat(format, message.getDocument().getMimeType(), message.getDocument().getFileName(), message.getDocument().getFileId(), locale), locale);
         messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_UNZIP_PROCESSING, locale)));
     }
 

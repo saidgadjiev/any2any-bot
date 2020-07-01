@@ -85,7 +85,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFrom().getId());
+        processMessage0(message.getChatId(), message.getFromUser().getId());
 
         return true;
     }
@@ -116,7 +116,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         if (message.hasText()) {
-            Locale userLocale = userService.getLocaleOrDefault(message.getFrom().getId());
+            Locale userLocale = userService.getLocaleOrDefault(message.getFromUser().getId());
             text = text.toLowerCase();
             for (Locale l : OcrService.SUPPORTED_LOCALES) {
                 if (text.equals(l.getDisplayLanguage(userLocale).toLowerCase())) {
@@ -129,9 +129,9 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
             }
         } else {
             Locale locale = new Locale(commandStateService.getState(message.getChatId(), getHistoryName(), true));
-            ocrService.extractText(message.getFrom().getId(), getFile(message), locale);
+            ocrService.extractText(message.getFromUser().getId(), getFile(message), locale);
             messageService.sendMessage(new SendMessage(message.getChatId(),
-                    localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_PROCESSING, userService.getLocaleOrDefault(message.getFrom().getId()))));
+                    localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_PROCESSING, userService.getLocaleOrDefault(message.getFromUser().getId()))));
         }
     }
 
@@ -143,7 +143,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
     private Any2AnyFile getFile(Message message) {
         if (message.hasDocument()) {
             Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-            checkFormat(message.getFrom().getId(), format, message.getDocument().getFileId(), message.getDocument().getFileName(), message.getDocument().getMimeType());
+            checkFormat(message.getFromUser().getId(), format, message.getDocument().getFileId(), message.getDocument().getFileName(), message.getDocument().getMimeType());
 
             Any2AnyFile any2AnyFile = new Any2AnyFile();
             any2AnyFile.setFileId(message.getDocument().getFileId());

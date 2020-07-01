@@ -85,7 +85,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFrom().getId());
+        processMessage0(message.getChatId(), message.getFromUser().getId());
 
         return true;
     }
@@ -108,7 +108,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
 
         if (!commandStateService.hasState(message.getChatId(), getHistoryName())) {
             RenameState renameState = createState(message, locale);

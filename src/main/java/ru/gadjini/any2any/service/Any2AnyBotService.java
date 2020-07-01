@@ -69,7 +69,7 @@ public class Any2AnyBotService {
                     messageService.sendMessage(
                             new SendMessage(
                                     update.getMessage().getChatId(),
-                                    localisationService.getMessage(MessagesProperties.MESSAGE_UNKNOWN_COMMAND, userService.getLocaleOrDefault(update.getMessage().getFrom().getId()))));
+                                    localisationService.getMessage(MessagesProperties.MESSAGE_UNKNOWN_COMMAND, userService.getLocaleOrDefault(update.getMessage().getFromUser().getId()))));
                     return;
                 }
             }

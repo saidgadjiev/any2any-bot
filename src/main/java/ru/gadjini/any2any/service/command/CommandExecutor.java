@@ -101,7 +101,7 @@ public class CommandExecutor {
         BotCommand botCommand = botCommands.get(commandParseResult.getCommandName());
 
         if (botCommand != null) {
-            LOGGER.debug("Bot command " + botCommand.getClass().getSimpleName() + "(" + message.getFrom().getId() + ")");
+            LOGGER.debug("Bot command " + botCommand.getClass().getSimpleName() + "(" + message.getFromUser().getId() + ")");
             botCommand.processMessage(message);
 
             if (botCommand instanceof NavigableBotCommand) {
@@ -120,7 +120,7 @@ public class CommandExecutor {
                 .findFirst()
                 .orElseThrow();
 
-        LOGGER.debug("Keyboard command " + botCommand.getClass().getSimpleName() + "(" + message.getFrom().getId() + ")");
+        LOGGER.debug("Keyboard command " + botCommand.getClass().getSimpleName() + "(" + message.getFromUser().getId() + ")");
         boolean pushToHistory = botCommand.processMessage(message, message.getText());
 
         if (pushToHistory) {
@@ -132,7 +132,7 @@ public class CommandExecutor {
         CommandParser.CommandParseResult parseResult = commandParser.parseCallbackCommand(callbackQuery);
         CallbackBotCommand botCommand = callbackBotCommands.get(parseResult.getCommandName());
 
-        LOGGER.debug("Callback command " + botCommand.getClass().getSimpleName() + "(" + callbackQuery.getFrom().getId() + ")");
+        LOGGER.debug("Callback command " + botCommand.getClass().getSimpleName() + "(" + callbackQuery.getFromUser().getId() + ")");
         try {
             if (botCommand instanceof NavigableCallbackBotCommand) {
                 callbackCommandNavigator.push(callbackQuery.getMessage().getChatId(), (NavigableCallbackBotCommand) botCommand);

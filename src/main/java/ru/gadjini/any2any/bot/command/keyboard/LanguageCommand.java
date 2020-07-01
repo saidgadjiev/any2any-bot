@@ -69,7 +69,7 @@ public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand,
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFrom().getId());
+        processMessage0(message.getChatId(), message.getFromUser().getId());
 
         return true;
     }
@@ -102,7 +102,7 @@ public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand,
     }
 
     private void changeLocale(Message message, Locale locale) {
-        userService.changeLocale(message.getFrom().getId(), locale);
+        userService.changeLocale(message.getFromUser().getId(), locale);
         messageService.sendMessage(
                 new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_LANGUAGE_SELECTED, locale))
                         .setReplyMarkup(replyKeyboardService.getMainMenu(message.getChatId(), locale))

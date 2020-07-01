@@ -46,10 +46,10 @@ public class ReportCommand implements CallbackBotCommand {
     public String processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int itemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
 
-        fileReportService.createReport(callbackQuery.getFrom().getId(), itemId);
+        fileReportService.createReport(callbackQuery.getFromUser().getId(), itemId);
 
         messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
-        Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(callbackQuery.getFromUser().getId());
         messageService.sendMessage(
                 new SendMessage(callbackQuery.getMessage().getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_REPLY, locale))
         );

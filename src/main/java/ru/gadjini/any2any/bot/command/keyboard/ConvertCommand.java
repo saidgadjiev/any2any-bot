@@ -108,7 +108,7 @@ public class ConvertCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFrom().getId());
+        processMessage0(message.getChatId(), message.getFromUser().getId());
 
         return true;
     }

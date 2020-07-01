@@ -69,9 +69,9 @@ public class QueriesCommand implements KeyboardBotCommand, NavigableCallbackBotC
 
     @Override
     public void processMessage(Message message) {
-        List<FileQueueItem> queries = fileQueueService.getActiveItems(message.getFrom().getId());
+        List<FileQueueItem> queries = fileQueueService.getActiveItems(message.getFromUser().getId());
         messageService.sendMessage(
-                new SendMessage(message.getChat().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFrom().getId())))
+                new SendMessage(message.getChat().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFromUser().getId())))
                         .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(FileQueueItem::getId).collect(Collectors.toList())))
         );
     }
@@ -83,9 +83,9 @@ public class QueriesCommand implements KeyboardBotCommand, NavigableCallbackBotC
 
     @Override
     public boolean processMessage(Message message, String text) {
-        List<FileQueueItem> queries = fileQueueService.getActiveItems(message.getFrom().getId());
+        List<FileQueueItem> queries = fileQueueService.getActiveItems(message.getFromUser().getId());
         messageService.sendMessage(
-                new SendMessage(message.getFrom().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFrom().getId())))
+                new SendMessage(message.getFromUser().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFromUser().getId())))
                         .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(FileQueueItem::getId).collect(Collectors.toList())))
         );
 

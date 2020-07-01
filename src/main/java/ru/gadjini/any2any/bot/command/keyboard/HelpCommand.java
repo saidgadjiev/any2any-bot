@@ -60,7 +60,7 @@ public class HelpCommand implements KeyboardBotCommand, BotCommand {
 
     @Override
     public boolean processMessage(Message message, String text) {
-        sendHelpMessage(message.getFrom().getId(), userService.getLocaleOrDefault(message.getFrom().getId()));
+        sendHelpMessage(message.getFromUser().getId(), userService.getLocaleOrDefault(message.getFromUser().getId()));
 
         return false;
     }

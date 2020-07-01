@@ -7,7 +7,7 @@ import java.util.List;
 
 public class Message {
     private static final String MESSAGEID_FIELD = "message_id";
-    private static final String FROM_FIELD = "from";
+    private static final String FROM_FIELD = "from_user";
     private static final String CHAT_FIELD = "chat";
     private static final String TEXT_FIELD = "text";
     private static final String ENTITIES_FIELD = "entities";
@@ -21,7 +21,7 @@ public class Message {
     @JsonProperty(MESSAGEID_FIELD)
     private Integer messageId;
     @JsonProperty(FROM_FIELD)
-    private User from;
+    private User fromUser;
     @JsonProperty(CHAT_FIELD)
     private Chat chat;
     @JsonProperty(TEXT_FIELD)
@@ -49,8 +49,8 @@ public class Message {
         return messageId;
     }
 
-    public User getFrom() {
-        return from;
+    public User getFromUser() {
+        return fromUser;
     }
 
     public Chat getChat() {
@@ -137,7 +137,7 @@ public class Message {
     public String toString() {
         return "Message{" +
                 "messageId=" + messageId +
-                ", from=" + from +
+                ", from=" + fromUser +
                 ", chat=" + chat +
                 ", text='" + text + '\'' +
                 ", entities=" + entities +

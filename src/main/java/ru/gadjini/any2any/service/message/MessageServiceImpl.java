@@ -1,12 +1,16 @@
 package ru.gadjini.any2any.service.message;
 
+import com.aspose.imaging.internal.fX.H;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -33,29 +37,20 @@ public class MessageServiceImpl implements MessageService {
 
     private FileService fileService;
 
-    private WebClient webClient;
+    private RestTemplate restTemplate;
 
     @Autowired
     public MessageServiceImpl(LocalisationService localisationService, FileService fileService) {
         this.localisationService = localisationService;
         this.fileService = fileService;
-        this.webClient = WebClient.create("http://localhost:5005");
+        this.restTemplate = new RestTemplate();
     }
 
     @Override
     public void sendAnswerCallbackQuery(AnswerCallbackQuery answerCallbackQuery) {
-        webClient.post().uri("/answercallbackquery")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(answerCallbackQuery), AnswerCallbackQuery.class)
-                .exchange()
-                .doOnNext(new Consumer<ClientResponse>() {
-                    @Override
-                    public void accept(ClientResponse clientResponse) {
-                        if (clientResponse.statusCode() != HttpStatus.OK) {
-                            LOGGER.error(clientResponse.statusCode().name());
-                        }
-                    }
-                });
+        HttpEntity<AnswerCallbackQuery> request = new HttpEntity<>(answerCallbackQuery);
+        ResponseEntity responseEntity = restTemplate.postForEntity("http://localhost:5005/answercallbackquery", request, Boolean.class);
+        LOGGER.debug(responseEntity.getStatusCode().name());
     }
 
     @Override
@@ -77,16 +72,10 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public void sendMessage(SendMessage sendMessage) {
-        webClient.post().uri("/sendmessage").body(Mono.just(sendMessage), SendMessage.class)
-                .exchange()
-                .doOnNext(new Consumer<ClientResponse>() {
-                    @Override
-                    public void accept(ClientResponse clientResponse) {
-                        if (clientResponse.statusCode() != HttpStatus.OK) {
-                            LOGGER.error(clientResponse.statusCode().name());
-                        }
-                    }
-                });
+        HttpEntity<SendMessage> request = new HttpEntity<>(sendMessage);
+        ResponseEntity responseEntity = restTemplate.postForEntity("http://localhost:5000/sendmessage", request, Void.class);
+
+        LOGGER.debug(responseEntity.getStatusCode().name());
     }
 
     @Override
