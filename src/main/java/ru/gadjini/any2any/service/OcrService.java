@@ -13,6 +13,7 @@ import ru.gadjini.any2any.exception.TextExtractionFailedException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.service.message.MessageService;
 
@@ -64,9 +65,9 @@ public class OcrService {
                 String result = tesseract.doOCR(file.getFile());
                 result = result.replace("\n\n", "\n");
                 if (StringUtils.isBlank(result)) {
-                    messageService.sendMessage(new SendMessage(userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
+                    messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
                 }
-                messageService.sendMessage(new SendMessage(userId, result));
+                messageService.sendMessage(new SendMessage((long) userId, result));
                 LOGGER.debug("Finish ocr for user " + userId + " file id " + any2AnyFile);
             } catch (Exception ex) {
                 messageService.sendErrorMessage(userId, locale);

@@ -7,8 +7,8 @@ import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.message.MessageService;
@@ -63,6 +63,6 @@ public class FormatsCommand implements KeyboardBotCommand, BotCommand {
 
     private void processMessage0(int userId, Locale locale) {
         messageService.sendMessage(
-                new SendMessage(userId, localisationService.getMessage(MessagesProperties.MESSAGE_FORMATS, locale)));
+                new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_FORMATS, locale)));
     }
 }

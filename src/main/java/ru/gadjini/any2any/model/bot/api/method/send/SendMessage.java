@@ -20,9 +20,9 @@ public class SendMessage {
     private static final String DISABLENOTIFICATION_FIELD = "disable_notification";
 
     @JsonProperty(CHATID_FIELD)
-    private String chatId; 
+    private String chatId;
     @JsonProperty(TEXT_FIELD)
-    private String text; 
+    private String text;
     @JsonProperty(PARSEMODE_FIELD)
     private String parseMode;
     @JsonProperty(DISABLEWEBPAGEPREVIEW_FIELD)
@@ -30,10 +30,10 @@ public class SendMessage {
     @JsonProperty(DISABLENOTIFICATION_FIELD)
     private Boolean disableNotification;
     @JsonProperty(REPLYTOMESSAGEID_FIELD)
-    private Integer replyToMessageId; 
+    private Integer replyToMessageId;
     @JsonProperty(REPLYMARKUP_FIELD)
     @JsonDeserialize()
-    private ReplyKeyboard replyMarkup; 
+    private ReplyKeyboard replyMarkup;
 
     public SendMessage() {
     }
@@ -44,13 +44,7 @@ public class SendMessage {
     }
 
     public SendMessage(Long chatId, String text) {
-        this.chatId = checkNotNull(chatId).toString();
-        this.text = checkNotNull(text);
-    }
-
-    public SendMessage(int userId, String text) {
-        this.chatId = Integer.toString(userId);
-        this.text = checkNotNull(text);
+        this(chatId.toString(), text);
     }
 
     public String getChatId() {
@@ -157,35 +151,8 @@ public class SendMessage {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o == this) return true;
-        if (!(o instanceof SendMessage)) {
-            return false;
-        }
-        SendMessage sendMessage = (SendMessage) o;
-        return Objects.equals(chatId, sendMessage.chatId)
-                && Objects.equals(disableWebPagePreview, sendMessage.disableWebPagePreview)
-                && Objects.equals(parseMode, sendMessage.parseMode)
-                && Objects.equals(replyMarkup, sendMessage.replyMarkup)
-                && Objects.equals(replyToMessageId, sendMessage.replyToMessageId)
-                && Objects.equals(text, sendMessage.text)
-                ;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(
-                chatId,
-                disableWebPagePreview,
-                parseMode,
-                replyMarkup,
-                replyToMessageId,
-                text);
-    }
-
-    @Override
     public String toString() {
-        return "SendMessage{" +
+        return "HtmlMessage{" +
                 "chatId='" + chatId + '\'' +
                 ", text='" + text + '\'' +
                 ", parseMode='" + parseMode + '\'' +

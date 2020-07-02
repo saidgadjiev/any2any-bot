@@ -13,9 +13,9 @@ import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.PhotoSize;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.OcrService;
 import ru.gadjini.any2any.service.UserService;
@@ -93,7 +93,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
         commandStateService.setState(chatId, getHistoryName(), locale.getLanguage());
-        messageService.sendMessage(new SendMessage(chatId,
+        messageService.sendMessage(new HtmlMessage(chatId,
                 localisationService.getMessage(MessagesProperties.MESSAGE_FILE_TO_EXTRACT, new Object[]{StringUtils.capitalize(locale.getDisplayLanguage(locale))}, locale))
                 .setReplyMarkup(replyKeyboardService.getOcrKeyboard(chatId, locale)));
     }
@@ -121,7 +121,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
             for (Locale l : OcrService.SUPPORTED_LOCALES) {
                 if (text.equals(l.getDisplayLanguage(userLocale).toLowerCase())) {
                     commandStateService.setState(message.getChatId(), getHistoryName(), l.getLanguage());
-                    messageService.sendMessage(new SendMessage(message.getChatId(),
+                    messageService.sendMessage(new HtmlMessage(message.getChatId(),
                             localisationService.getMessage(MessagesProperties.MESSAGE_OCR_LANGUAGE_CHANGED,
                                     new Object[]{StringUtils.capitalize(l.getDisplayLanguage(userLocale))}, userLocale)));
                     return;
@@ -130,7 +130,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
         } else {
             Locale locale = new Locale(commandStateService.getState(message.getChatId(), getHistoryName(), true));
             ocrService.extractText(message.getFromUser().getId(), getFile(message), locale);
-            messageService.sendMessage(new SendMessage(message.getChatId(),
+            messageService.sendMessage(new HtmlMessage(message.getChatId(),
                     localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_PROCESSING, userService.getLocaleOrDefault(message.getFromUser().getId()))));
         }
     }

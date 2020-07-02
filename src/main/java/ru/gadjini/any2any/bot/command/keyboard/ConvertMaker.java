@@ -14,9 +14,9 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.PhotoSize;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.object.Sticker;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.service.LocalisationService;
@@ -85,7 +85,7 @@ public class ConvertMaker {
             check(message, locale);
             ConvertState convertState = createState(message, locale);
             messageService.sendMessage(
-                    new SendMessage(message.getChatId(), queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
+                    new HtmlMessage(message.getChatId(), queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
                             .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFormat(), locale))
             );
             convertState.deleteWarns();
@@ -102,7 +102,7 @@ public class ConvertMaker {
             }
             FileQueueItem queueItem = fileQueueService.add(message.getFromUser(), convertState, targetFormat);
             String queuedMessage = queueMessageBuilder.getQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
-            messageService.sendMessage(new SendMessage(message.getChatId(), queuedMessage).setReplyMarkup(replyKeyboard.get()));
+            messageService.sendMessage(new HtmlMessage(message.getChatId(), queuedMessage).setReplyMarkup(replyKeyboard.get()));
             commandStateService.deleteState(message.getChatId(), controllerName);
         }
     }

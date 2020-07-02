@@ -9,7 +9,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.filter.BotFilter;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.object.Update;
 import ru.gadjini.any2any.service.UserService;
@@ -47,7 +47,7 @@ public class BotController {
             botFilter.doFilter(update);
         } catch (UserException ex) {
             LOGGER.error(ex.getMessage(), ex);
-            messageService.sendMessage(new SendMessage(TgMessage.getChatId(update), ex.getMessage()));
+            messageService.sendMessage(new HtmlMessage(TgMessage.getChatId(update), ex.getMessage()));
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
             TgMessage tgMessage = TgMessage.from(update);

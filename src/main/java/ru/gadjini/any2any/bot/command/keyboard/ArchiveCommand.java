@@ -10,8 +10,8 @@ import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
@@ -106,12 +106,12 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
         if (message.hasText()) {
             List<Any2AnyFile> files = commandStateService.getState(message.getChatId(), getHistoryName(), false);
             if (files == null || files.isEmpty()) {
-                messageService.sendMessage(new SendMessage(message.getChatId(),
+                messageService.sendMessage(new HtmlMessage(message.getChatId(),
                         localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale)));
             } else {
                 Format associatedFormat = checkFormat(formatService.getAssociatedFormat(message.getText()), locale);
                 archiveService.createArchive(message.getFromUser().getId(), files, associatedFormat, locale);
-                messageService.sendMessage(new SendMessage(message.getChatId(),
+                messageService.sendMessage(new HtmlMessage(message.getChatId(),
                         localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale)));
                 commandStateService.deleteState(message.getChatId(), getHistoryName());
             }
@@ -123,7 +123,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
             files.add(createFile(message, locale));
             commandStateService.setState(message.getChatId(), getHistoryName(), files);
             messageService.sendMessage(
-                    new SendMessage(
+                    new HtmlMessage(
                             message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CURRENT_FILES, new Object[]{toString(files)}, locale)
                     )
             );
@@ -162,7 +162,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(new SendMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES, locale))
+        messageService.sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES, locale))
                 .setReplyMarkup(replyKeyboardService.archiveTypesKeyboard(chatId, locale)));
     }
 }

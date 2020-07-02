@@ -17,7 +17,7 @@ import ru.gadjini.any2any.model.*;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.PhotoSize;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.LocalisationService;
@@ -171,7 +171,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
         Locale locale = userService.getLocaleOrDefault(userId);
 
         messageService.sendMessage(
-                new SendMessage(chatId,
+                new HtmlMessage(chatId,
                         localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MAIN_WELCOME, locale))
                         .setReplyMarkup(replyKeyboardService.goBack(chatId, locale))
         );

@@ -15,8 +15,8 @@ import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.event.QueueItemCanceled;
 import ru.gadjini.any2any.exception.CorruptedFileException;
 import ru.gadjini.any2any.exception.TelegramRequestException;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
@@ -123,7 +123,7 @@ public class ConverterJob {
                 LOGGER.error(ex.getMessage());
                 Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
                 messageService.sendMessage(
-                        new SendMessage(fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_DAMAGED_FILE, locale))
+                        new HtmlMessage((long) fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_DAMAGED_FILE, locale))
                                 .setReplyToMessageId(fileQueueItem.getMessageId())
                 );
             } catch (Exception ex) {
@@ -135,7 +135,7 @@ public class ConverterJob {
                     LOGGER.error(ex.getMessage(), ex);
                     Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
                     messageService.sendMessage(
-                            new SendMessage(fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_FAILED, locale))
+                            new HtmlMessage((long) fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_FAILED, locale))
                                     .setReplyToMessageId(fileQueueItem.getMessageId())
                     );
                 }

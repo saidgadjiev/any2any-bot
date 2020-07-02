@@ -11,7 +11,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.request.RequestParams;
@@ -71,7 +71,7 @@ public class QueriesCommand implements KeyboardBotCommand, NavigableCallbackBotC
     public void processMessage(Message message) {
         List<FileQueueItem> queries = fileQueueService.getActiveItems(message.getFromUser().getId());
         messageService.sendMessage(
-                new SendMessage(message.getChat().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFromUser().getId())))
+                new HtmlMessage(message.getChat().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFromUser().getId())))
                         .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(FileQueueItem::getId).collect(Collectors.toList())))
         );
     }
@@ -85,7 +85,7 @@ public class QueriesCommand implements KeyboardBotCommand, NavigableCallbackBotC
     public boolean processMessage(Message message, String text) {
         List<FileQueueItem> queries = fileQueueService.getActiveItems(message.getFromUser().getId());
         messageService.sendMessage(
-                new SendMessage(message.getFromUser().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFromUser().getId())))
+                new HtmlMessage((long) message.getFromUser().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFromUser().getId())))
                         .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(FileQueueItem::getId).collect(Collectors.toList())))
         );
 

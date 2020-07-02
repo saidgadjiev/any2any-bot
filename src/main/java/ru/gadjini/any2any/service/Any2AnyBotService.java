@@ -8,8 +8,8 @@ import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.object.Update;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.buttons.KeyboardRow;
@@ -67,7 +67,7 @@ public class Any2AnyBotService {
                     return;
                 } else {
                     messageService.sendMessage(
-                            new SendMessage(
+                            new HtmlMessage(
                                     update.getMessage().getChatId(),
                                     localisationService.getMessage(MessagesProperties.MESSAGE_UNKNOWN_COMMAND, userService.getLocaleOrDefault(update.getMessage().getFromUser().getId()))));
                     return;

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.CommonConstants;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TelegramRequestException;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.object.Update;
 import ru.gadjini.any2any.model.bot.api.object.User;
@@ -68,6 +68,6 @@ public class SubscriptionFilter extends BaseBotFilter {
     private void sendNeedSubscription(User user) {
         Locale locale = userService.getLocaleOrDefault(user.getId());
         String msg = localisationService.getMessage(MessagesProperties.MESSAGE_NEED_SUBSCRIPTION, locale);
-        messageService.sendMessage(new SendMessage(user.getId(), msg));
+        messageService.sendMessage(new HtmlMessage((long) user.getId(), msg));
     }
 }

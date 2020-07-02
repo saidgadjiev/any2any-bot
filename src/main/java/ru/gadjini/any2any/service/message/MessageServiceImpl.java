@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
@@ -74,7 +75,7 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public void sendMessage(SendMessage sendMessage) {
         HttpEntity<SendMessage> request = new HttpEntity<>(sendMessage);
-        ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(SendMessage.METHOD), request, Void.class);
+        ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(HtmlMessage.METHOD), request, Void.class);
 
         if (responseEntity.getStatusCode() != HttpStatus.OK) {
             LOGGER.error("Code: {}", responseEntity.getStatusCode().value());
@@ -138,7 +139,7 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public void sendBotRestartedMessage(long chatId, ReplyKeyboard replyKeyboard, Locale locale) {
         sendMessage(
-                new SendMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_BOT_RESTARTED, locale))
+                new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_BOT_RESTARTED, locale))
                         .setReplyMarkup(replyKeyboard)
         );
     }
@@ -180,7 +181,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public void sendErrorMessage(long chatId, Locale locale) {
-        sendMessage(new SendMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ERROR, locale)));
+        sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ERROR, locale)));
     }
 
     private String getUrl(String method) {

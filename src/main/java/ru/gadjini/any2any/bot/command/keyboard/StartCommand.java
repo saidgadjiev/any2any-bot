@@ -7,8 +7,8 @@ import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
 import ru.gadjini.any2any.service.CommandMessageBuilder;
@@ -55,7 +55,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     public void processMessage(Message message) {
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
         messageService.sendMessage(
-                new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
+                new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
                         .setReplyMarkup(replyKeyboardService.getMainMenu(message.getChat().getId(), locale))
         );
     }
@@ -69,7 +69,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     public void processNonCommandUpdate(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
         messageService.sendMessage(
-                new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_SECTION, new Object[]{commandMessageBuilder.getCommandsInfo(locale)}, locale))
+                new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_SECTION, new Object[]{commandMessageBuilder.getCommandsInfo(locale)}, locale))
         );
     }
 
@@ -87,7 +87,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     public void restore(TgMessage message) {
         commandStateService.deleteState(message.getChatId(), getHistoryName());
         Locale locale = userService.getLocaleOrDefault(message.getUser().getId());
-        messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
+        messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
                 .setReplyMarkup(replyKeyboardService.getMainMenu(message.getChatId(), locale)));
     }
 

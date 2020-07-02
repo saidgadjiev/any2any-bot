@@ -8,8 +8,8 @@ import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
@@ -76,7 +76,7 @@ public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand,
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(new SendMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_LANGUAGE, locale))
+        messageService.sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_LANGUAGE, locale))
                 .setReplyMarkup(replyKeyboardService.languageKeyboard(chatId, locale)));
     }
 
@@ -104,7 +104,7 @@ public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand,
     private void changeLocale(Message message, Locale locale) {
         userService.changeLocale(message.getFromUser().getId(), locale);
         messageService.sendMessage(
-                new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_LANGUAGE_SELECTED, locale))
+                new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_LANGUAGE_SELECTED, locale))
                         .setReplyMarkup(replyKeyboardService.getMainMenu(message.getChatId(), locale))
         );
         commandNavigator.silentPop(message.getChatId());
