@@ -7,7 +7,7 @@ import ru.gadjini.any2any.bot.command.api.CallbackBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
-import ru.gadjini.any2any.model.EditMessageContext;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.message.MessageService;
@@ -54,12 +54,12 @@ public class QueryItemDetailsCommand implements CallbackBotCommand {
         FileQueueItem item = fileQueueService.getItem(queryItemId);
         if (item == null) {
             messageService.editMessage(
-                    new EditMessageContext(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), messageBuilder.queryItemNotFound(locale))
+                    new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), messageBuilder.queryItemNotFound(locale))
             );
         } else {
             messageService.editMessage(
-                    new EditMessageContext(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), messageBuilder.getItem(item, locale))
-                            .replyKeyboard(inlineKeyboardService.getQueryDetailsKeyboard(queryItemId, locale))
+                    new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), messageBuilder.getItem(item, locale))
+                            .setReplyMarkup(inlineKeyboardService.getQueryDetailsKeyboard(queryItemId, locale))
             );
         }
 

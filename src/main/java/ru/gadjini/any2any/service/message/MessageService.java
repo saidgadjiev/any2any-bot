@@ -1,8 +1,13 @@
 package ru.gadjini.any2any.service.message;
 import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.ChatMember;
-import ru.gadjini.any2any.model.bot.api.method.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 
@@ -17,23 +22,21 @@ public interface MessageService {
 
     void removeInlineKeyboard(long chatId, int messageId);
 
-    void editMessage(EditMessageContext messageContext);
+    void editMessage(EditMessageText messageContext);
 
     void editReplyKeyboard(long chatId, int messageId, InlineKeyboardMarkup replyKeyboard);
 
-    void editMessageCaption(EditMessageCaptionContext context);
+    void editMessageCaption(EditMessageCaption context);
 
-    EditMediaResult editMessageMedia(EditMediaContext editMediaContext);
+    EditMediaResult editMessageMedia(EditMessageMedia editMediaContext);
 
     void sendBotRestartedMessage(long chatId, ReplyKeyboard replyKeyboard, Locale locale);
 
-    void sendSticker(SendFileContext sendFileContext);
+    void sendSticker(SendSticker sendSticker);
 
     void deleteMessage(long chatId, int messageId);
 
-    SendFileResult sendDocument(SendFileContext sendDocumentContext);
-
-    int sendPhoto(SendFileContext sendDocumentContext);
+    SendFileResult sendDocument(SendDocument sendDocumentContext);
 
     void sendErrorMessage(long chatId, Locale locale);
 }

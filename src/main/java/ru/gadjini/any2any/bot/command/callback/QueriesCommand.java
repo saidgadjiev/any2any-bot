@@ -9,9 +9,9 @@ import ru.gadjini.any2any.bot.command.api.NavigableCallbackBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.FileQueueItem;
-import ru.gadjini.any2any.model.EditMessageContext;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.model.bot.api.method.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.request.RequestParams;
@@ -96,8 +96,8 @@ public class QueriesCommand implements KeyboardBotCommand, NavigableCallbackBotC
     public void restore(TgMessage tgMessage, ReplyKeyboard replyKeyboard, RequestParams requestParams) {
         List<FileQueueItem> queries = fileQueueService.getActiveItems(tgMessage.getUser().getId());
         messageService.editMessage(
-                new EditMessageContext(tgMessage.getUser().getId(), tgMessage.getMessageId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(tgMessage.getUser().getId())))
-                        .replyKeyboard(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(FileQueueItem::getId).collect(Collectors.toList())))
+                new EditMessageText(tgMessage.getUser().getId(), tgMessage.getMessageId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(tgMessage.getUser().getId())))
+                        .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(FileQueueItem::getId).collect(Collectors.toList())))
         );
     }
 }

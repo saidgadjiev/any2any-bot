@@ -9,7 +9,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.filter.BotFilter;
-import ru.gadjini.any2any.model.bot.api.method.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.object.Update;
 import ru.gadjini.any2any.service.UserService;

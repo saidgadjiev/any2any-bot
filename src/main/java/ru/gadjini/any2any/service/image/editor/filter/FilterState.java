@@ -8,7 +8,10 @@ import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
-import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.model.EditMediaResult;
+import ru.gadjini.any2any.model.SendFileResult;
+import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.service.LocalisationService;
@@ -72,8 +75,8 @@ public class FilterState implements State {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         messageService.deleteMessage(chatId, editorState.getMessageId());
         Locale locale = new Locale(editorState.getLanguage());
-        SendFileResult sendFileResult = messageService.sendDocument(new SendFileContext(chatId, new File(editorState.getCurrentFilePath()))
-                .replyKeyboard(inlineKeyboardService.getImageFiltersKeyboard(locale, editorState.canCancel())));
+        SendFileResult sendFileResult = messageService.sendDocument(new SendDocument(chatId, new File(editorState.getCurrentFilePath()))
+                .setReplyMarkup(inlineKeyboardService.getImageFiltersKeyboard(locale, editorState.canCancel())));
 
         editorState.setCurrentFileId(sendFileResult.getFileId());
         editorState.setMessageId(sendFileResult.getMessageId());
@@ -93,8 +96,8 @@ public class FilterState implements State {
             editorState.setPrevFilePath(null);
             editorState.setPrevFileId(null);
 
-            messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
-                    .replyKeyboard(inlineKeyboardService.getImageFiltersKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
+            messageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
+                    .setReplyMarkup(inlineKeyboardService.getImageFiltersKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
 
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
@@ -107,8 +110,8 @@ public class FilterState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
-        messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getCurrentFileId())
-                .replyKeyboard(inlineKeyboardService.getImageFiltersKeyboard(new Locale(state.getLanguage()), state.canCancel())));
+        messageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId())
+                .setReplyMarkup(inlineKeyboardService.getImageFiltersKeyboard(new Locale(state.getLanguage()), state.canCancel())));
     }
 
     @Override
@@ -135,8 +138,8 @@ public class FilterState implements State {
             editorState.setPrevFileId(editorState.getCurrentFileId());
             editorState.setCurrentFilePath(result.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
-            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), result.getFile())
-                    .replyKeyboard(inlineKeyboardService.getImageFiltersKeyboard(locale, editorState.canCancel())));
+            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), result.getFile())
+                    .setReplyMarkup(inlineKeyboardService.getImageFiltersKeyboard(locale, editorState.canCancel())));
             editorState.setCurrentFileId(editMediaResult.getFileId());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 

@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
-import ru.gadjini.any2any.model.EditMessageCaptionContext;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.image.editor.EditMessageBuilder;
@@ -93,9 +93,9 @@ public class TransparencyState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
-        messageService.editMessageCaption(new EditMessageCaptionContext(chatId, state.getMessageId(),
+        messageService.editMessageCaption(new EditMessageCaption(chatId, state.getMessageId(),
                 messageBuilder.getSettingsStr(state))
-                .replyKeyboard(inlineKeyboardService.getTransparencyKeyboard(new Locale(state.getLanguage()))));
+                .setReplyMarkup(inlineKeyboardService.getTransparencyKeyboard(new Locale(state.getLanguage()))));
     }
 
     @Override

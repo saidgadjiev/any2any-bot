@@ -8,6 +8,10 @@ public class TelegramRequestException extends RuntimeException {
 
     private long chatId;
 
+    public TelegramRequestException(int errorCode) {
+        this.errorCode = errorCode;
+    }
+
     public int getErrorCode() {
         return errorCode;
     }

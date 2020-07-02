@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.Distribution;
 import ru.gadjini.any2any.exception.TelegramRequestException;
-import ru.gadjini.any2any.model.bot.api.method.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.service.DistributionService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;

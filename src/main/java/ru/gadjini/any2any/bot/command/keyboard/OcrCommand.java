@@ -15,7 +15,7 @@ import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.PhotoSize;
-import ru.gadjini.any2any.model.bot.api.method.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.OcrService;
 import ru.gadjini.any2any.service.UserService;

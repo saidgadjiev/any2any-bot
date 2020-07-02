@@ -8,7 +8,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
-import ru.gadjini.any2any.model.EditMessageCaptionContext;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.image.editor.EditMessageBuilder;
@@ -65,10 +65,10 @@ public class InaccuracyState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
-        messageService.editMessageCaption(new EditMessageCaptionContext(chatId, state.getMessageId(),
+        messageService.editMessageCaption(new EditMessageCaption(chatId, state.getMessageId(),
                 messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_INACCURACY_WELCOME, new Locale(state.getLanguage())))
-                .replyKeyboard(inlineKeyboardService.getInaccuracyKeyboard(new Locale(state.getLanguage()))));
+                .setReplyMarkup(inlineKeyboardService.getInaccuracyKeyboard(new Locale(state.getLanguage()))));
     }
 
     @Override
@@ -85,9 +85,9 @@ public class InaccuracyState implements State {
         }
         state.setInaccuracy(inaccuracy);
         messageService.editMessageCaption(
-                new EditMessageCaptionContext(chatId, state.getMessageId(), messageBuilder.getSettingsStr(state) + "\n\n"
+                new EditMessageCaption(chatId, state.getMessageId(), messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_INACCURACY_WELCOME, locale))
-                        .replyKeyboard(inlineKeyboardService.getInaccuracyKeyboard(locale))
+                        .setReplyMarkup(inlineKeyboardService.getInaccuracyKeyboard(locale))
         );
         commandStateService.setState(chatId, command.getHistoryName(), state);
     }

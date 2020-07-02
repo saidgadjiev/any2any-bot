@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.Distribution;
 import ru.gadjini.any2any.job.DistributionJob;
-import ru.gadjini.any2any.model.bot.api.method.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.object.Update;
 import ru.gadjini.any2any.service.DistributionService;

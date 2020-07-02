@@ -6,12 +6,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.ChatMember;
-import ru.gadjini.any2any.model.bot.api.method.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.object.Update;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.message.MessageService;
@@ -69,7 +74,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public void editMessage(EditMessageContext messageContext) {
+    public void editMessage(EditMessageText messageContext) {
         messageService.editMessage(messageContext);
     }
 
@@ -79,12 +84,12 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public void editMessageCaption(EditMessageCaptionContext context) {
+    public void editMessageCaption(EditMessageCaption context) {
         messageService.editMessageCaption(context);
     }
 
     @Override
-    public EditMediaResult editMessageMedia(EditMediaContext editMediaContext) {
+    public EditMediaResult editMessageMedia(EditMessageMedia editMediaContext) {
         return messageService.editMessageMedia(editMediaContext);
     }
 
@@ -94,8 +99,8 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public void sendSticker(SendFileContext sendFileContext) {
-        messageService.sendSticker(sendFileContext);
+    public void sendSticker(SendSticker sendSticker) {
+        messageService.sendSticker(sendSticker);
     }
 
     @Override
@@ -104,13 +109,8 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public SendFileResult sendDocument(SendFileContext sendDocumentContext) {
+    public SendFileResult sendDocument(SendDocument sendDocumentContext) {
         return messageService.sendDocument(sendDocumentContext);
-    }
-
-    @Override
-    public int sendPhoto(SendFileContext sendDocumentContext) {
-        return messageService.sendPhoto(sendDocumentContext);
     }
 
     @Override

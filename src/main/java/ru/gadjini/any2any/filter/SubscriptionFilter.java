@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.CommonConstants;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TelegramRequestException;
-import ru.gadjini.any2any.model.bot.api.method.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.object.Update;
 import ru.gadjini.any2any.model.bot.api.object.User;

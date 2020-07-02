@@ -12,7 +12,7 @@ import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.SendFileContext;
+import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.service.*;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.message.MessageService;
@@ -93,7 +93,7 @@ public class ArchiveService {
     }
 
     private void sendResult(int userId, File archive) {
-        messageService.sendDocument(new SendFileContext(userId, archive));
+        messageService.sendDocument(new SendDocument((long) userId, archive));
     }
 
     private List<SmartTempFile> downloadFiles(List<Any2AnyFile> any2AnyFiles) {

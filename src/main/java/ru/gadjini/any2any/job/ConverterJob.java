@@ -15,16 +15,17 @@ import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.event.QueueItemCanceled;
 import ru.gadjini.any2any.exception.CorruptedFileException;
 import ru.gadjini.any2any.exception.TelegramRequestException;
-import ru.gadjini.any2any.model.SendFileContext;
-import ru.gadjini.any2any.model.bot.api.method.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.converter.api.Any2AnyConverter;
 import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.service.filequeue.FileQueueBusinessService;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -159,16 +160,16 @@ public class ConverterJob {
         Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
         switch (convertResult.resultType()) {
             case FILE: {
-                SendFileContext sendDocumentContext = new SendFileContext(fileQueueItem.getUserId(), ((FileResult) convertResult).getFile())
-                        .caption(fileQueueItem.getMessage())
-                        .replyMessageId(fileQueueItem.getMessageId())
-                        .replyKeyboard(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
+                SendDocument sendDocumentContext = new SendDocument((long) fileQueueItem.getUserId(), ((FileResult) convertResult).getFile())
+                        .setCaption(fileQueueItem.getMessage())
+                        .setReplyToMessageId(fileQueueItem.getMessageId())
+                        .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                 try {
                     messageService.sendDocument(sendDocumentContext);
                 } catch (TelegramRequestException ex) {
                     if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
                         LOGGER.debug("Reply message not found try send without reply");
-                        sendDocumentContext.replyMessageId(null);
+                        sendDocumentContext.setReplyToMessageId(null);
                         messageService.sendDocument(sendDocumentContext);
                     } else {
                         throw ex;
@@ -177,15 +178,15 @@ public class ConverterJob {
                 break;
             }
             case STICKER: {
-                SendFileContext sendFileContext = new SendFileContext(fileQueueItem.getUserId(), ((FileResult) convertResult).getFile())
-                        .replyMessageId(fileQueueItem.getMessageId())
-                        .replyKeyboard(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
+                SendSticker sendFileContext = new SendSticker((long) fileQueueItem.getUserId(), ((FileResult) convertResult).getFile())
+                        .setReplyToMessageId(fileQueueItem.getMessageId())
+                        .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                 try {
                     messageService.sendSticker(sendFileContext);
                 } catch (TelegramRequestException ex) {
                     if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
                         LOGGER.debug("Reply message not found try send without reply");
-                        sendFileContext.replyMessageId(null);
+                        sendFileContext.setReplyToMessageId(null);
                         messageService.sendSticker(sendFileContext);
                     } else {
                         throw ex;

@@ -10,8 +10,11 @@ import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
@@ -79,10 +82,10 @@ public class ColorState implements State {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
         messageService.deleteMessage(chatId, state.getMessageId());
         Locale locale = new Locale(state.getLanguage());
-        SendFileResult sendFileResult = messageService.sendDocument(new SendFileContext(chatId, new File(state.getCurrentFilePath()))
-                .caption(messageBuilder.getSettingsStr(state) + "\n\n"
+        SendFileResult sendFileResult = messageService.sendDocument(new SendDocument(chatId, new File(state.getCurrentFilePath()))
+                .setCaption(messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, locale))
-                .replyKeyboard(inlineKeyboardService.getColorsKeyboard(locale, state.canCancel())));
+                .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(locale, state.canCancel())));
         state.setCurrentFileId(sendFileResult.getFileId());
         state.setMessageId(sendFileResult.getMessageId());
         commandStateService.setState(chatId, command.getHistoryName(), state);
@@ -103,10 +106,10 @@ public class ColorState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
-        messageService.editMessageCaption(new EditMessageCaptionContext(chatId, state.getMessageId(),
+        messageService.editMessageCaption(new EditMessageCaption(chatId, state.getMessageId(),
                 messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, new Locale(state.getLanguage())))
-                .replyKeyboard(inlineKeyboardService.getColorsKeyboard(new Locale(state.getLanguage()), state.canCancel())));
+                .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(new Locale(state.getLanguage()), state.canCancel())));
     }
 
     @Override
@@ -131,10 +134,9 @@ public class ColorState implements State {
             editorState.setPrevFileId(editorState.getCurrentFileId());
             editorState.setCurrentFilePath(tempFile.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
-            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), tempFile.getFile())
-                    .caption(messageBuilder.getSettingsStr(editorState) + "\n\n"
+            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), tempFile.getFile(), messageBuilder.getSettingsStr(editorState) + "\n\n"
                             + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, locale))
-                    .replyKeyboard(inlineKeyboardService.getColorsKeyboard(locale, editorState.canCancel())));
+                    .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(locale, editorState.canCancel())));
             editorState.setCurrentFileId(editMediaResult.getFileId());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
@@ -156,9 +158,8 @@ public class ColorState implements State {
             editorState.setPrevFilePath(null);
             editorState.setPrevFileId(null);
 
-            messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
-                    .caption(messageBuilder.getSettingsStr(editorState))
-                    .replyKeyboard(inlineKeyboardService.getColorsKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
+            messageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), editorState.getCurrentFileId(), messageBuilder.getSettingsStr(editorState))
+                    .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
             new SmartTempFile(new File(editFilePath), true).smartDelete();

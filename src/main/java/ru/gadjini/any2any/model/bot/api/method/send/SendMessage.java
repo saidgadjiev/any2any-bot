@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.model.bot.api.method;
+package ru.gadjini.any2any.model.bot.api.method.send;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -10,6 +10,7 @@ import java.util.Objects;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class SendMessage {
+    public static final String METHOD = "sendmessage";
     private static final String CHATID_FIELD = "chat_id";
     private static final String TEXT_FIELD = "text";
     private static final String PARSEMODE_FIELD = "parse_mode";
@@ -27,7 +28,7 @@ public class SendMessage {
     @JsonProperty(DISABLEWEBPAGEPREVIEW_FIELD)
     private Boolean disableWebPagePreview;
     @JsonProperty(DISABLENOTIFICATION_FIELD)
-    private Boolean disableNotification; ///< Optional. Sends the message silently. Users will receive a notification with no sound.
+    private Boolean disableNotification;
     @JsonProperty(REPLYTOMESSAGEID_FIELD)
     private Integer replyToMessageId; 
     @JsonProperty(REPLYMARKUP_FIELD)

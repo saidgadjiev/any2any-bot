@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.bot.command.keyboard.rename.RenameState;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
-import ru.gadjini.any2any.model.SendFileContext;
+import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
 import ru.gadjini.any2any.service.message.MessageService;
 
@@ -76,7 +76,7 @@ public class RenameService {
 
     private void sendMessage(long chatId, int replyMessageId, File renamed) {
         try {
-            messageService.sendDocument(new SendFileContext(chatId, renamed).replyMessageId(replyMessageId));
+            messageService.sendDocument(new SendDocument(chatId, renamed).setReplyToMessageId(replyMessageId));
         } finally {
             FileUtils.deleteQuietly(renamed);
         }

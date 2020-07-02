@@ -9,8 +9,8 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.job.CommonJobExecutor;
-import ru.gadjini.any2any.model.SendFileContext;
-import ru.gadjini.any2any.model.bot.api.method.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.message.MessageService;
@@ -85,7 +85,7 @@ public class UnzipperService {
             sendNoFilesMessage(userId, locale);
         } else {
             for (File file : files) {
-                messageService.sendDocument(new SendFileContext(userId, file));
+                messageService.sendDocument(new SendDocument((long) userId, file));
             }
         }
     }

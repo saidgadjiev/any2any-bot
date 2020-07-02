@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class AnswerCallbackQuery {
 
+    public static final String METHOD = "answercallbackquery";
+
     private static final String CALLBACKQUERYID_FIELD = "callback_query_id";
 
     private static final String TEXT_FIELD = "text";
