@@ -41,7 +41,8 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toPdf(FileQueueItem fileQueueItem) {
-        File file = telegramService.downloadFileByFileId(fileQueueItem.getFileId());
+        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getTargetFormat().getExt());
+
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
@@ -59,7 +60,7 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
-            FileUtils.deleteQuietly(file);
+            file.smartDelete();
         }
     }
 }

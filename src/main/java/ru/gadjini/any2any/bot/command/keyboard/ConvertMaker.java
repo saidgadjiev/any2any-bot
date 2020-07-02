@@ -13,7 +13,8 @@ import ru.gadjini.any2any.bot.command.convert.ConvertState;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.FileQueueItem;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.io.SmartTempFile;
+import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.PhotoSize;
@@ -31,7 +32,6 @@ import ru.gadjini.any2any.service.filequeue.FileQueueService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
@@ -142,14 +142,17 @@ public class ConvertMaker {
     }
 
     private boolean isBaseUrlMissed(String fileId) {
-        File file = telegramService.downloadFileByFileId(fileId);
+        SmartTempFile file = telegramService.downloadFileByFileId(fileId, Format.HTML.getExt());
+
         try {
-            Document parse = Jsoup.parse(file, StandardCharsets.UTF_8.name());
+            Document parse = Jsoup.parse(file.getFile(), StandardCharsets.UTF_8.name());
             Elements base = parse.head().getElementsByTag("base");
 
             return base == null || base.isEmpty();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            file.smartDelete();
         }
     }
 

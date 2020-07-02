@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.configuration.SchedulerConfiguration;
 import ru.gadjini.any2any.domain.FileQueueItem;
@@ -32,7 +33,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
-//@Component
+@Component
 public class ConverterJob {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConverterJob.class);

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
@@ -42,7 +43,7 @@ public class BotController {
     }
 
     @PostMapping("/update")
-    public Mono<ServerResponse> update(@RequestBody Update update) {
+    public ResponseEntity<?> update(@RequestBody Update update) {
         try {
             botFilter.doFilter(update);
         } catch (UserException ex) {
@@ -54,6 +55,6 @@ public class BotController {
             messageService.sendErrorMessage(tgMessage.getChatId(), userService.getLocaleOrDefault(tgMessage.getUser().getId()));
         }
 
-        return ServerResponse.ok().build();
+        return ResponseEntity.ok().build();
     }
 }

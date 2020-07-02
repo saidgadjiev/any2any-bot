@@ -1,15 +1,11 @@
 package ru.gadjini.any2any.service;
 
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.io.SmartTempFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.SecureRandom;
 
 @Service
@@ -17,15 +13,8 @@ public class TempFileService {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    @Value("temp.dir")
+    @Value("${temp.dir:#{systemProperties['java.io.tmpdir']}}")
     private String tempDir;
-
-    @Autowired
-    public TempFileService() {
-        if (StringUtils.isBlank(tempDir)) {
-            tempDir = System.getProperty("java.io.tmpdir");
-        }
-    }
 
     public SmartTempFile createTempFile0(String prefix, String ext) {
         try {
@@ -39,18 +28,15 @@ public class TempFileService {
     }
 
     public SmartTempFile getTempFile(String fileName) {
-        try {
-            Path tmpdir = Files.createTempDirectory("tmpdir");
+        File tmpdir = new File(tempDir, "tmpdir" + generateUniquePart());
 
-            return new SmartTempFile(new File(tmpdir.toFile(), fileName), true);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return new SmartTempFile(new File(tmpdir, fileName), true);
     }
 
     public SmartTempFile createTempFile(String fileName) {
         try {
             File tmpDir = new File(tempDir, "tmpdir" + generateUniquePart());
+            tmpDir.mkdirs();
             File file = new File(tmpDir, fileName);
             file.createNewFile();
 

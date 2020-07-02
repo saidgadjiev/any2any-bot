@@ -35,7 +35,7 @@ public class MessageServiceImpl implements MessageService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MessageServiceImpl.class);
 
-    private static final String API = "http://localhost:5005/";
+    private static final String API = "http://localhost:5000/";
 
     private LocalisationService localisationService;
 
