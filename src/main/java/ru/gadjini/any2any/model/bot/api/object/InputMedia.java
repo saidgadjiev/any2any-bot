@@ -7,6 +7,7 @@ public class InputMedia {
     public static final String MEDIA_FILE_ID_FIELD = "media_file_id";
     public static final String MEDIA_FILE_PATH_FIELD = "media_file_path";
     public static final String MEDIA_FILE_CAPTION = "media_file_caption";
+    private static final String PARSE_MODE_FIELD = "parse_mode";
 
     @JsonProperty(MEDIA_FILE_ID_FIELD)
     private String fileId;
@@ -14,6 +15,8 @@ public class InputMedia {
     private String filePath;
     @JsonProperty(MEDIA_FILE_CAPTION)
     private String caption;
+    @JsonProperty(PARSE_MODE_FIELD)
+    private String parseMode;
 
     public InputMedia() {}
 
@@ -39,5 +42,13 @@ public class InputMedia {
 
     public void setCaption(String caption) {
         this.caption = caption;
+    }
+
+    public String getParseMode() {
+        return parseMode;
+    }
+
+    public void setParseMode(String parseMode) {
+        this.parseMode = parseMode;
     }
 }

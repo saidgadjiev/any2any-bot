@@ -1,7 +1,5 @@
 package ru.gadjini.any2any.model.bot.api.method.send;
 
-import ru.gadjini.any2any.model.bot.api.object.ParseMode;
-
 public class HtmlMessage extends SendMessage {
 
     public HtmlMessage() {

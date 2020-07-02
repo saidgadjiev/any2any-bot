@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service.message;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import ru.gadjini.any2any.model.bot.api.method.updatemessages.*;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.ChatMember;
 import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.object.ParseMode;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.service.FileService;
@@ -94,6 +96,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public void editMessage(EditMessageText editMessageText) {
+        editMessageText.setParseMode(ParseMode.HTML);
         HttpEntity<EditMessageText> request = new HttpEntity<>(editMessageText);
         ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(EditMessageText.METHOD), request, Void.class);
 
@@ -115,6 +118,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public void editMessageCaption(EditMessageCaption editMessageCaption) {
+        editMessageCaption.setParseMode(ParseMode.HTML);
         HttpEntity<EditMessageCaption> request = new HttpEntity<>(editMessageCaption);
         ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(EditMessageCaption.METHOD), request, Void.class);
 
@@ -125,6 +129,9 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public EditMediaResult editMessageMedia(EditMessageMedia editMessageMedia) {
+        if (StringUtils.isNotBlank(editMessageMedia.getMedia().getCaption())) {
+            editMessageMedia.getMedia().setParseMode(ParseMode.HTML);
+        }
         HttpEntity<EditMessageMedia> request = new HttpEntity<>(editMessageMedia);
         ResponseEntity<Message> responseEntity = restTemplate.postForEntity(getUrl(EditMessageMedia.METHOD), request, Message.class);
 
@@ -167,6 +174,10 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public SendFileResult sendDocument(SendDocument sendDocument) {
+        if (StringUtils.isNotBlank(sendDocument.getCaption())) {
+            sendDocument.setParseMode(ParseMode.HTML);
+        }
+
         HttpEntity<SendDocument> request = new HttpEntity<>(sendDocument);
         ResponseEntity<Message> responseEntity = restTemplate.postForEntity(getUrl(SendDocument.METHOD), request, Message.class);
 
