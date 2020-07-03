@@ -93,6 +93,12 @@ public class SendMessage {
         return disableWebPagePreview;
     }
 
+    public SendMessage setDisableWebPagePreview(Boolean disable) {
+        disableWebPagePreview = disable;
+
+        return this;
+    }
+
     public SendMessage disableWebPagePreview() {
         disableWebPagePreview = true;
         return this;
@@ -106,6 +112,10 @@ public class SendMessage {
     public SendMessage setParseMode(String parseMode) {
         this.parseMode = parseMode;
         return this;
+    }
+
+    public String getParseMode() {
+        return parseMode;
     }
 
     public SendMessage enableMarkdown(boolean enable) {

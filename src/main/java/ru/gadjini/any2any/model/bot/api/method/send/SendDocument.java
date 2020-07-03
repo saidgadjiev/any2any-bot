@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.model.bot.api.method.send;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import ru.gadjini.any2any.model.bot.api.object.InputFile;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
@@ -19,6 +20,8 @@ public class SendDocument {
 
     @JsonProperty(CHATID_FIELD)
     private String chatId;
+    @JsonIgnore
+    private int userId;
     @JsonProperty(DOCUMENT_FIELD)
     private InputFile document;
     @JsonProperty(CAPTION_FIELD)
@@ -99,6 +102,10 @@ public class SendDocument {
     public SendDocument setParseMode(String parseMode) {
         this.parseMode = parseMode;
         return this;
+    }
+
+    public int getUserId() {
+        return userId;
     }
 
     @Override
