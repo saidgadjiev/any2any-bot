@@ -2,7 +2,6 @@ package ru.gadjini.any2any.model.bot.api.method.send;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import ru.gadjini.any2any.model.bot.api.object.InputFile;
-import ru.gadjini.any2any.model.bot.api.object.InputMedia;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 
 import java.io.File;

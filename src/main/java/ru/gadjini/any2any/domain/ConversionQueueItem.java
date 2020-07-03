@@ -4,9 +4,9 @@ import ru.gadjini.any2any.service.converter.api.Format;
 
 import java.time.ZonedDateTime;
 
-public class FileQueueItem {
+public class ConversionQueueItem {
 
-    public static final String TYPE = "queue";
+    public static final String TYPE = "conversion_queue";
 
     public static final String ID = "id";
 

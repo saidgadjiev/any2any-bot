@@ -1,29 +1,29 @@
-package ru.gadjini.any2any.service.filequeue;
+package ru.gadjini.any2any.service.queue.conversion;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import ru.gadjini.any2any.dao.FileQueueDao;
-import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.dao.ConversionQueueDao;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.event.QueueItemCanceled;
 
 import java.util.List;
 
 @Service
-public class FileQueueBusinessService {
+public class ConversionQueueBusinessService {
 
     private ApplicationEventPublisher eventPublisher;
 
-    private FileQueueDao fileQueueDao;
+    private ConversionQueueDao fileQueueDao;
 
     @Autowired
-    public FileQueueBusinessService(ApplicationEventPublisher eventPublisher, FileQueueDao fileQueueDao) {
+    public ConversionQueueBusinessService(ApplicationEventPublisher eventPublisher, ConversionQueueDao fileQueueDao) {
         this.eventPublisher = eventPublisher;
         this.fileQueueDao = fileQueueDao;
     }
 
-    public List<FileQueueItem> takeItems(int limit) {
+    public List<ConversionQueueItem> takeItems(int limit) {
         return fileQueueDao.takeItems(limit);
     }
 
@@ -33,19 +33,19 @@ public class FileQueueBusinessService {
 
     public void exception(int id, Exception ex) {
         String exception = ExceptionUtils.getMessage(ex) + "\n" + ExceptionUtils.getStackTrace(ex);
-        fileQueueDao.updateException(id, FileQueueItem.Status.EXCEPTION.getCode(), exception);
+        fileQueueDao.updateException(id, ConversionQueueItem.Status.EXCEPTION.getCode(), exception);
     }
 
     public void completeWithException(int id, String msg) {
-        fileQueueDao.updateException(id, FileQueueItem.Status.COMPLETED.getCode(), msg);
+        fileQueueDao.updateException(id, ConversionQueueItem.Status.COMPLETED.getCode(), msg);
     }
 
     public void converterNotFound(int id) {
-        fileQueueDao.updateException(id, FileQueueItem.Status.CANDIDATE_NOT_FOUND.getCode(), "Converter not found");
+        fileQueueDao.updateException(id, ConversionQueueItem.Status.CANDIDATE_NOT_FOUND.getCode(), "Converter not found");
     }
 
     public void complete(int id) {
-        fileQueueDao.updateCompletedAt(id, FileQueueItem.Status.COMPLETED.getCode());
+        fileQueueDao.updateCompletedAt(id, ConversionQueueItem.Status.COMPLETED.getCode());
     }
 
     public void cancel(int id) {

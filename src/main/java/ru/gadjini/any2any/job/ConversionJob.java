@@ -12,7 +12,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.configuration.SchedulerConfiguration;
-import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.event.QueueItemCanceled;
 import ru.gadjini.any2any.exception.CorruptedFileException;
 import ru.gadjini.any2any.exception.TelegramRequestException;
@@ -24,9 +24,9 @@ import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.converter.api.Any2AnyConverter;
 import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
-import ru.gadjini.any2any.service.filequeue.FileQueueBusinessService;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.any2any.service.queue.conversion.ConversionQueueBusinessService;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
@@ -34,9 +34,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
 @Component
-public class ConverterJob {
+public class ConversionJob {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConverterJob.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConversionJob.class);
 
     private static final int REMAINING_SIZE = 70;
 
@@ -44,7 +44,7 @@ public class ConverterJob {
 
     private ThreadPoolTaskExecutor taskExecutor;
 
-    private FileQueueBusinessService queueService;
+    private ConversionQueueBusinessService queueService;
 
     private InlineKeyboardService inlineKeyboardService;
 
@@ -57,23 +57,25 @@ public class ConverterJob {
     private LocalisationService localisationService;
 
     @Autowired
-    public ConverterJob(FileQueueBusinessService queueService, Set<Any2AnyConverter> any2AnyConvertersSet,
-                        @Qualifier("converterTaskExecutor") ThreadPoolTaskExecutor taskExecutor, InlineKeyboardService inlineKeyboardService,
-                        UserService userService, @Qualifier("limits") MessageService messageService, LocalisationService localisationService) {
+    public ConversionJob(ConversionQueueBusinessService queueService, Set<Any2AnyConverter> any2AnyConvertersSet,
+                         @Qualifier("conversionTaskExecutor") ThreadPoolTaskExecutor taskExecutor,
+                         InlineKeyboardService inlineKeyboardService,
+                         UserService userService, @Qualifier("limits") MessageService messageService,
+                         LocalisationService localisationService) {
         this.queueService = queueService;
         this.taskExecutor = taskExecutor;
         this.inlineKeyboardService = inlineKeyboardService;
         this.userService = userService;
         this.messageService = messageService;
         this.localisationService = localisationService;
-        any2AnyConvertersSet.forEach(any2AnyConverter -> any2AnyConverters.add(any2AnyConverter));
+        any2AnyConvertersSet.forEach(any2AnyConverters::add);
         LOGGER.debug("Converter job started");
     }
 
     @PostConstruct
     public void init() {
         initFonts();
-        //applyLicense();
+        applyAsposeLicenses();
         queueService.resetProcessing();
     }
 
@@ -91,8 +93,8 @@ public class ConverterJob {
         int busy = SchedulerConfiguration.QUEUE_SIZE - remainingCapacity;
 
         if (busy < REMAINING_SIZE) {
-            List<FileQueueItem> items = queueService.takeItems(REMAINING_SIZE - busy);
-            for (FileQueueItem fileQueueItem : items) {
+            List<ConversionQueueItem> items = queueService.takeItems(REMAINING_SIZE - busy);
+            for (ConversionQueueItem fileQueueItem : items) {
                 processing.put(fileQueueItem.getId(), taskExecutor.submit(() -> {
                     try {
                         convert(fileQueueItem);
@@ -104,7 +106,7 @@ public class ConverterJob {
         }
     }
 
-    private void convert(FileQueueItem fileQueueItem) {
+    private void convert(ConversionQueueItem fileQueueItem) {
         Any2AnyConverter<ConvertResult> candidate = getCandidate(fileQueueItem);
         if (candidate != null) {
             LOGGER.debug("Start conversion for user " + fileQueueItem.getUserId() + " from " + fileQueueItem.getFormat() + " to " + fileQueueItem.getTargetFormat() + " id " + fileQueueItem.getId());
@@ -147,7 +149,7 @@ public class ConverterJob {
         }
     }
 
-    private Any2AnyConverter<ConvertResult> getCandidate(FileQueueItem fileQueueItem) {
+    private Any2AnyConverter<ConvertResult> getCandidate(ConversionQueueItem fileQueueItem) {
         for (Any2AnyConverter<ConvertResult> any2AnyConverter : any2AnyConverters) {
             if (any2AnyConverter.accept(fileQueueItem.getFormat(), fileQueueItem.getTargetFormat())) {
                 return any2AnyConverter;
@@ -157,7 +159,7 @@ public class ConverterJob {
         return null;
     }
 
-    private void sendResult(FileQueueItem fileQueueItem, ConvertResult convertResult) {
+    private void sendResult(ConversionQueueItem fileQueueItem, ConvertResult convertResult) {
         Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
         switch (convertResult.resultType()) {
             case FILE: {
@@ -202,7 +204,7 @@ public class ConverterJob {
         LOGGER.debug("Pdf fonts paths " + Document.getLocalFontPaths());
     }
 
-    private void applyLicense() {
+    private void applyAsposeLicenses() {
         try {
             new License().setLicense("license/license-19.lic");
             LOGGER.debug("Word license applied");

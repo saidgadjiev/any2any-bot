@@ -2,11 +2,10 @@ package ru.gadjini.any2any.service.converter.impl;
 
 import com.aspose.slides.Presentation;
 import com.aspose.slides.SaveFormat;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TempFileService;
@@ -15,7 +14,6 @@ import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.result.FileResult;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
-import java.io.File;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -44,11 +42,11 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     @Override
-    public FileResult convert(FileQueueItem fileQueueItem) {
+    public FileResult convert(ConversionQueueItem fileQueueItem) {
         return toPdf(fileQueueItem);
     }
 
-    private FileResult toPdf(FileQueueItem fileQueueItem) {
+    private FileResult toPdf(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getTargetFormat().getExt());
 
         try {

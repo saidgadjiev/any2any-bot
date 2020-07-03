@@ -8,7 +8,7 @@ import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableCallbackBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
@@ -17,8 +17,8 @@ import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.service.filequeue.FileQueueMessageBuilder;
-import ru.gadjini.any2any.service.filequeue.FileQueueService;
+import ru.gadjini.any2any.service.queue.conversion.ConversionQueueMessageBuilder;
+import ru.gadjini.any2any.service.queue.conversion.ConversionQueueService;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
 
@@ -33,7 +33,7 @@ public class QueriesCommand implements KeyboardBotCommand, NavigableCallbackBotC
 
     private Set<String> names = new HashSet<>();
 
-    private FileQueueService fileQueueService;
+    private ConversionQueueService fileQueueService;
 
     private MessageService messageService;
 
@@ -41,12 +41,12 @@ public class QueriesCommand implements KeyboardBotCommand, NavigableCallbackBotC
 
     private InlineKeyboardService inlineKeyboardService;
 
-    private FileQueueMessageBuilder messageBuilder;
+    private ConversionQueueMessageBuilder messageBuilder;
 
     @Autowired
-    public QueriesCommand(FileQueueService fileQueueService, LocalisationService localisationService,
+    public QueriesCommand(ConversionQueueService fileQueueService, LocalisationService localisationService,
                           @Qualifier("limits") MessageService messageService, UserService userService, InlineKeyboardService inlineKeyboardService,
-                          FileQueueMessageBuilder messageBuilder) {
+                          ConversionQueueMessageBuilder messageBuilder) {
         this.fileQueueService = fileQueueService;
         this.userService = userService;
         this.messageBuilder = messageBuilder;
@@ -69,10 +69,10 @@ public class QueriesCommand implements KeyboardBotCommand, NavigableCallbackBotC
 
     @Override
     public void processMessage(Message message) {
-        List<FileQueueItem> queries = fileQueueService.getActiveItems(message.getFromUser().getId());
+        List<ConversionQueueItem> queries = fileQueueService.getActiveItems(message.getFromUser().getId());
         messageService.sendMessage(
                 new HtmlMessage(message.getChat().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFromUser().getId())))
-                        .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(FileQueueItem::getId).collect(Collectors.toList())))
+                        .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(ConversionQueueItem::getId).collect(Collectors.toList())))
         );
     }
 
@@ -83,10 +83,10 @@ public class QueriesCommand implements KeyboardBotCommand, NavigableCallbackBotC
 
     @Override
     public boolean processMessage(Message message, String text) {
-        List<FileQueueItem> queries = fileQueueService.getActiveItems(message.getFromUser().getId());
+        List<ConversionQueueItem> queries = fileQueueService.getActiveItems(message.getFromUser().getId());
         messageService.sendMessage(
                 new HtmlMessage((long) message.getFromUser().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFromUser().getId())))
-                        .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(FileQueueItem::getId).collect(Collectors.toList())))
+                        .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(ConversionQueueItem::getId).collect(Collectors.toList())))
         );
 
         return false;
@@ -94,10 +94,10 @@ public class QueriesCommand implements KeyboardBotCommand, NavigableCallbackBotC
 
     @Override
     public void restore(TgMessage tgMessage, ReplyKeyboard replyKeyboard, RequestParams requestParams) {
-        List<FileQueueItem> queries = fileQueueService.getActiveItems(tgMessage.getUser().getId());
+        List<ConversionQueueItem> queries = fileQueueService.getActiveItems(tgMessage.getUser().getId());
         messageService.editMessage(
                 new EditMessageText(tgMessage.getUser().getId(), tgMessage.getMessageId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(tgMessage.getUser().getId())))
-                        .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(FileQueueItem::getId).collect(Collectors.toList())))
+                        .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(ConversionQueueItem::getId).collect(Collectors.toList())))
         );
     }
 }

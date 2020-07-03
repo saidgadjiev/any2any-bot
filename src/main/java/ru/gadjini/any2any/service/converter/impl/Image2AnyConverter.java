@@ -3,7 +3,7 @@ package ru.gadjini.any2any.service.converter.impl;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TempFileService;
@@ -44,7 +44,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     @Override
-    public FileResult convert(FileQueueItem fileQueueItem) {
+    public FileResult convert(ConversionQueueItem fileQueueItem) {
         if (fileQueueItem.getFormat() == Format.HEIC && fileQueueItem.getTargetFormat() == Format.PDF) {
             return doConvertHeicToPdf(fileQueueItem);
         }
@@ -58,7 +58,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         return doConvert(fileQueueItem);
     }
 
-    private FileResult doConvert(FileQueueItem fileQueueItem) {
+    private FileResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
         normalize(file.getFile(), fileQueueItem);
 
@@ -80,7 +80,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult doConvertHeicToPdf(FileQueueItem fileQueueItem) {
+    private FileResult doConvertHeicToPdf(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
         StopWatch stopWatch = new StopWatch();
@@ -104,7 +104,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private void normalize(File file, FileQueueItem fileQueueItem) {
+    private void normalize(File file, ConversionQueueItem fileQueueItem) {
         if (fileQueueItem.getFormat() == Format.PHOTO) {
             Format format = formatService.getImageFormat(file, fileQueueItem.getFileId());
             format = format == null ? Format.JPG : format;
@@ -112,7 +112,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult doConvertToIco(FileQueueItem fileQueueItem) {
+    private FileResult doConvertToIco(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
         StopWatch stopWatch = new StopWatch();
@@ -132,7 +132,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult doConvertToSvg(FileQueueItem fileQueueItem) {
+    private FileResult doConvertToSvg(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
         StopWatch stopWatch = new StopWatch();

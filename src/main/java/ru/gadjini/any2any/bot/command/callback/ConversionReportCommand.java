@@ -10,7 +10,7 @@ import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
-import ru.gadjini.any2any.service.FileReportService;
+import ru.gadjini.any2any.service.ConversinoReportService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.message.MessageService;
@@ -18,9 +18,9 @@ import ru.gadjini.any2any.service.message.MessageService;
 import java.util.Locale;
 
 @Component
-public class ReportCommand implements CallbackBotCommand {
+public class ConversionReportCommand implements CallbackBotCommand {
 
-    private FileReportService fileReportService;
+    private ConversinoReportService fileReportService;
 
     private MessageService messageService;
 
@@ -29,8 +29,8 @@ public class ReportCommand implements CallbackBotCommand {
     private LocalisationService localisationService;
 
     @Autowired
-    public ReportCommand(FileReportService fileReportService, @Qualifier("limits") MessageService messageService,
-                         UserService userService, LocalisationService localisationService) {
+    public ConversionReportCommand(ConversinoReportService fileReportService, @Qualifier("limits") MessageService messageService,
+                                   UserService userService, LocalisationService localisationService) {
         this.fileReportService = fileReportService;
         this.messageService = messageService;
         this.userService = userService;

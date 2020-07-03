@@ -8,7 +8,7 @@ import com.google.common.io.Files;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TempFileService;
@@ -40,7 +40,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
     }
 
     @Override
-    public ConvertResult convert(FileQueueItem fileQueueItem) {
+    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
         if (fileQueueItem.getTargetFormat() == Format.PDF) {
             return toPdf(fileQueueItem);
         }
@@ -48,7 +48,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
         return toWord(fileQueueItem);
     }
 
-    private FileResult toWord(FileQueueItem fileQueueItem) {
+    private FileResult toWord(ConversionQueueItem fileQueueItem) {
         SmartTempFile txt = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
         try {
@@ -72,7 +72,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult toPdf(FileQueueItem fileQueueItem) {
+    private FileResult toPdf(ConversionQueueItem fileQueueItem) {
         SmartTempFile txt = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
         try {

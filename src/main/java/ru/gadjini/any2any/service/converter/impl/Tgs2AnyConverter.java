@@ -3,7 +3,7 @@ package ru.gadjini.any2any.service.converter.impl;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.ProcessExecutor;
@@ -37,11 +37,11 @@ public class Tgs2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     @Override
-    public ConvertResult convert(FileQueueItem fileQueueItem) {
+    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
         return toGiff(fileQueueItem);
     }
 
-    private FileResult toGiff(FileQueueItem fileQueueItem) {
+    private FileResult toGiff(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
         try {

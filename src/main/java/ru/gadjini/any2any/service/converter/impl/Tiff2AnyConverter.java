@@ -7,7 +7,7 @@ import com.aspose.words.DocumentBuilder;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TempFileService;
@@ -39,7 +39,7 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     @Override
-    public FileResult convert(FileQueueItem fileQueueItem) {
+    public FileResult convert(ConversionQueueItem fileQueueItem) {
         if (fileQueueItem.getTargetFormat() == Format.PDF) {
             return toPdf(fileQueueItem);
         }
@@ -47,7 +47,7 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         return toWord(fileQueueItem);
     }
 
-    private FileResult toWord(FileQueueItem queueItem) {
+    private FileResult toWord(ConversionQueueItem queueItem) {
         SmartTempFile tiff = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
 
         StopWatch stopWatch = new StopWatch();
@@ -73,7 +73,7 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult toPdf(FileQueueItem queueItem) {
+    private FileResult toPdf(ConversionQueueItem queueItem) {
         SmartTempFile tiff = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
 
         StopWatch stopWatch = new StopWatch();

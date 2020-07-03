@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TempFileService;
@@ -43,14 +43,14 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     @Override
-    public FileResult convert(FileQueueItem fileQueueItem) {
+    public FileResult convert(ConversionQueueItem fileQueueItem) {
         if (fileQueueItem.getTargetFormat() == Format.TXT) {
             return toTxt(fileQueueItem);
         }
         return toWordOrPdf(fileQueueItem);
     }
 
-    private FileResult toTxt(FileQueueItem fileQueueItem) {
+    private FileResult toTxt(ConversionQueueItem fileQueueItem) {
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
@@ -67,7 +67,7 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult toWordOrPdf(FileQueueItem fileQueueItem) {
+    private FileResult toWordOrPdf(ConversionQueueItem fileQueueItem) {
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();

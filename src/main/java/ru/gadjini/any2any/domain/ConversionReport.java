@@ -1,8 +1,8 @@
 package ru.gadjini.any2any.domain;
 
-public class FileReport {
+public class ConversionReport {
 
-    public static final String TYPE = "file_report";
+    public static final String TYPE = "conversion_report";
 
     public static final String ID = "id";
 

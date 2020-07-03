@@ -4,7 +4,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TelegramService;
@@ -37,7 +37,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     @Override
-    public ConvertResult convert(FileQueueItem fileQueueItem) {
+    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
         if (fileQueueItem.getFormat() == Format.URL) {
             return urlToPdf(fileQueueItem);
         }
@@ -45,7 +45,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         return htmlToPdf(fileQueueItem);
     }
 
-    private FileResult htmlToPdf(FileQueueItem fileQueueItem) {
+    private FileResult htmlToPdf(ConversionQueueItem fileQueueItem) {
         SmartTempFile html = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
         try {
@@ -64,7 +64,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult urlToPdf(FileQueueItem fileQueueItem) {
+    private FileResult urlToPdf(ConversionQueueItem fileQueueItem) {
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();

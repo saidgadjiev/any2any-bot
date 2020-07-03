@@ -7,7 +7,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TelegramService;
@@ -41,7 +41,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     @Override
-    public FileResult convert(FileQueueItem queueItem) {
+    public FileResult convert(ConversionQueueItem queueItem) {
         if (queueItem.getTargetFormat() == Format.EPUB) {
             if (queueItem.getFormat() == Format.DOCX) {
                 return docxToEpub(queueItem);
@@ -56,7 +56,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         return doConvert(queueItem);
     }
 
-    private FileResult docToEpub(FileQueueItem queueItem) {
+    private FileResult docToEpub(ConversionQueueItem queueItem) {
         SmartTempFile file = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
 
         try {
@@ -87,7 +87,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult docxToEpub(FileQueueItem queueItem) {
+    private FileResult docxToEpub(ConversionQueueItem queueItem) {
         SmartTempFile file = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
 
         try {
@@ -106,7 +106,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult toTiff(FileQueueItem queueItem) {
+    private FileResult toTiff(ConversionQueueItem queueItem) {
         SmartTempFile file = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
 
         try {
@@ -139,7 +139,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult doConvert(FileQueueItem queueItem) {
+    private FileResult doConvert(ConversionQueueItem queueItem) {
         SmartTempFile file = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
 
         try {

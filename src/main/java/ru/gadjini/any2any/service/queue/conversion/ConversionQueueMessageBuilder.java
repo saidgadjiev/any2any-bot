@@ -1,10 +1,10 @@
-package ru.gadjini.any2any.service.filequeue;
+package ru.gadjini.any2any.service.queue.conversion;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.Time2TextService;
 import ru.gadjini.any2any.service.TimeCreator;
@@ -17,7 +17,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Service
-public class FileQueueMessageBuilder {
+public class ConversionQueueMessageBuilder {
 
     private static final Set<Format> NON_DISPLAY_FORMATS = Set.of(Format.TEXT);
 
@@ -30,19 +30,19 @@ public class FileQueueMessageBuilder {
     private Time2TextService time2TextService;
 
     @Autowired
-    public FileQueueMessageBuilder(LocalisationService localisationService, TimeCreator timeCreator, Time2TextService time2TextService) {
+    public ConversionQueueMessageBuilder(LocalisationService localisationService, TimeCreator timeCreator, Time2TextService time2TextService) {
         this.localisationService = localisationService;
         this.timeCreator = timeCreator;
         this.time2TextService = time2TextService;
     }
 
-    public String getItems(List<FileQueueItem> queueItems, Locale locale) {
+    public String getItems(List<ConversionQueueItem> queueItems, Locale locale) {
         if (queueItems.isEmpty()) {
             return localisationService.getMessage(MessagesProperties.MESSAGE_QUERIES_EMPTY, locale);
         }
         StringBuilder message = new StringBuilder();
         int i = 1;
-        for (FileQueueItem fileQueueItem : queueItems) {
+        for (ConversionQueueItem fileQueueItem : queueItems) {
             if (message.length() > 0) {
                 message.append("\n");
             }
@@ -60,7 +60,7 @@ public class FileQueueMessageBuilder {
         return localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, locale);
     }
 
-    public String getItem(FileQueueItem fileQueueItem, Locale locale) {
+    public String getItem(ConversionQueueItem fileQueueItem, Locale locale) {
         StringBuilder message = new StringBuilder();
         message
                 .append(getFileName(fileQueueItem)).append(" ")
@@ -91,7 +91,7 @@ public class FileQueueMessageBuilder {
         return message.toString();
     }
 
-    public String getQueuedMessage(FileQueueItem queueItem, Set<String> warns, Locale locale) {
+    public String getQueuedMessage(ConversionQueueItem queueItem, Set<String> warns, Locale locale) {
         StringBuilder text = new StringBuilder();
         text.append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_QUEUED, new Object[]{queueItem.getTargetFormat().name(), queueItem.getPlaceInQueue()}, locale));
 
@@ -130,7 +130,7 @@ public class FileQueueMessageBuilder {
         return null;
     }
 
-    private String getFileName(FileQueueItem fileQueueItem) {
+    private String getFileName(ConversionQueueItem fileQueueItem) {
         switch (fileQueueItem.getFormat()) {
             case TEXT:
             case URL:
@@ -144,7 +144,7 @@ public class FileQueueMessageBuilder {
         }
     }
 
-    private String getStatus(FileQueueItem fileQueueItem, Locale locale) {
+    private String getStatus(ConversionQueueItem fileQueueItem, Locale locale) {
         switch (fileQueueItem.getStatus()) {
             case WAITING:
                 return localisationService.getMessage(MessagesProperties.MESSAGE_STATUS_WAITING, new Object[]{fileQueueItem.getPlaceInQueue()}, locale);

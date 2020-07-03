@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.bot.command.convert.ConvertState;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.TgMessage;
@@ -27,8 +27,8 @@ import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.converter.api.Format;
 import ru.gadjini.any2any.service.converter.api.FormatCategory;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
-import ru.gadjini.any2any.service.filequeue.FileQueueMessageBuilder;
-import ru.gadjini.any2any.service.filequeue.FileQueueService;
+import ru.gadjini.any2any.service.queue.conversion.ConversionQueueMessageBuilder;
+import ru.gadjini.any2any.service.queue.conversion.ConversionQueueService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
 
@@ -48,9 +48,9 @@ public class ConvertMaker {
 
     private UserService userService;
 
-    private FileQueueService fileQueueService;
+    private ConversionQueueService fileQueueService;
 
-    private FileQueueMessageBuilder queueMessageBuilder;
+    private ConversionQueueMessageBuilder queueMessageBuilder;
 
     private MessageService messageService;
 
@@ -63,8 +63,8 @@ public class ConvertMaker {
     private TelegramService telegramService;
 
     @Autowired
-    public ConvertMaker(CommandStateService commandStateService, UserService userService, FileQueueService fileQueueService,
-                        FileQueueMessageBuilder queueMessageBuilder, @Qualifier("limits") MessageService messageService,
+    public ConvertMaker(CommandStateService commandStateService, UserService userService, ConversionQueueService fileQueueService,
+                        ConversionQueueMessageBuilder queueMessageBuilder, @Qualifier("limits") MessageService messageService,
                         LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                         FormatService formatService, TelegramService telegramService) {
         this.commandStateService = commandStateService;
@@ -100,7 +100,7 @@ public class ConvertMaker {
             if (targetFormat == Format.GIF) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_GIF_WARN, locale));
             }
-            FileQueueItem queueItem = fileQueueService.add(message.getFromUser(), convertState, targetFormat);
+            ConversionQueueItem queueItem = fileQueueService.add(message.getFromUser(), convertState, targetFormat);
             String queuedMessage = queueMessageBuilder.getQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
             messageService.sendMessage(new HtmlMessage(message.getChatId(), queuedMessage).setReplyMarkup(replyKeyboard.get()));
             commandStateService.deleteState(message.getChatId(), controllerName);

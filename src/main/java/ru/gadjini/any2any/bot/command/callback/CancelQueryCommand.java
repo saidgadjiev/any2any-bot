@@ -11,7 +11,7 @@ import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.*;
-import ru.gadjini.any2any.service.filequeue.FileQueueBusinessService;
+import ru.gadjini.any2any.service.queue.conversion.ConversionQueueBusinessService;
 import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.Locale;
@@ -19,7 +19,7 @@ import java.util.Locale;
 @Component
 public class CancelQueryCommand implements CallbackBotCommand {
 
-    private FileQueueBusinessService fileQueueBusinessService;
+    private ConversionQueueBusinessService fileQueueBusinessService;
 
     private MessageService messageService;
 
@@ -28,7 +28,7 @@ public class CancelQueryCommand implements CallbackBotCommand {
     private UserService userService;
 
     @Autowired
-    public CancelQueryCommand(FileQueueBusinessService fileQueueBusinessService, @Qualifier("limits") MessageService messageService,
+    public CancelQueryCommand(ConversionQueueBusinessService fileQueueBusinessService, @Qualifier("limits") MessageService messageService,
                               LocalisationService localisationService, UserService userService) {
         this.fileQueueBusinessService = fileQueueBusinessService;
         this.messageService = messageService;

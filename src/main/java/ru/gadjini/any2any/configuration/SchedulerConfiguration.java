@@ -37,10 +37,10 @@ public class SchedulerConfiguration {
     }
 
     @Bean
-    @Qualifier("converterTaskExecutor")
+    @Qualifier("conversionTaskExecutor")
     public ThreadPoolTaskExecutor converterExecutorService() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(2 * Runtime.getRuntime().availableProcessors());
+        taskExecutor.setCorePoolSize(Runtime.getRuntime().availableProcessors());
         taskExecutor.setMaxPoolSize(2 * Runtime.getRuntime().availableProcessors());
         taskExecutor.setQueueCapacity(QUEUE_SIZE);
         taskExecutor.setThreadNamePrefix("ConverterExecutor");

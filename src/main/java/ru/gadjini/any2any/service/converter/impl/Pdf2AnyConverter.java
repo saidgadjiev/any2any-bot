@@ -7,7 +7,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.CorruptedFileException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TelegramService;
@@ -45,7 +45,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     @Override
-    public ConvertResult convert(FileQueueItem fileQueueItem) {
+    public ConvertResult convert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
 
         try {
@@ -66,7 +66,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult toTiff(FileQueueItem queueItem, SmartTempFile pdfFile) {
+    private FileResult toTiff(ConversionQueueItem queueItem, SmartTempFile pdfFile) {
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
@@ -87,7 +87,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult toEpub(FileQueueItem fileQueueItem, SmartTempFile file) {
+    private FileResult toEpub(ConversionQueueItem fileQueueItem, SmartTempFile file) {
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
@@ -102,7 +102,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         }
     }
 
-    private FileResult doConvert(FileQueueItem fileQueueItem, SmartTempFile file) {
+    private FileResult doConvert(ConversionQueueItem fileQueueItem, SmartTempFile file) {
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
