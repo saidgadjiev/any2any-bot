@@ -20,7 +20,7 @@ import ru.gadjini.any2any.service.conversion.api.FormatCategory;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
-import ru.gadjini.any2any.service.unzip.UnzipperService;
+import ru.gadjini.any2any.service.unzip.UnzipService;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -33,7 +33,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
 
     private Set<String> names = new HashSet<>();
 
-    private UnzipperService unzipperService;
+    private UnzipService unzipperService;
 
     private LocalisationService localisationService;
 
@@ -46,7 +46,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
     private FormatService formatService;
 
     @Autowired
-    public UnzipCommand(LocalisationService localisationService, UnzipperService unzipperService,
+    public UnzipCommand(LocalisationService localisationService, UnzipService unzipperService,
                         @Qualifier("limits") MessageService messageService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                         UserService userService, FormatService formatService) {
         this.localisationService = localisationService;

@@ -13,6 +13,7 @@ import ru.gadjini.any2any.service.RenameService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.conversion.ConversionService;
+import ru.gadjini.any2any.service.unzip.UnzipService;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -23,7 +24,7 @@ public class SchedulerConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerConfiguration.class);
 
-    public static final int QUEUE_SIZE = 60;
+    public static final int QUEUE_SIZE = 50;
 
     @Bean
     public TaskScheduler jobsThreadPoolTaskScheduler(UserService userService) {
@@ -66,12 +67,11 @@ public class SchedulerConfiguration {
 
     @Bean
     @Qualifier("commonTaskExecutor")
-    public ThreadPoolTaskExecutor commonExecutorService() {
+    public ThreadPoolTaskExecutor commonTaskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
         taskExecutor.setCorePoolSize(Runtime.getRuntime().availableProcessors());
         taskExecutor.setMaxPoolSize(Runtime.getRuntime().availableProcessors());
-        taskExecutor.setQueueCapacity(QUEUE_SIZE);
-        taskExecutor.setThreadNamePrefix("CommonExecutor");
+        taskExecutor.setThreadNamePrefix("CommonTaskExecutor");
         taskExecutor.initialize();
 
         LOGGER.debug("Common thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
@@ -106,7 +106,7 @@ public class SchedulerConfiguration {
         ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(QUEUE_SIZE),
-                (r, executor) -> archiveService.rejectRenameTask((ArchiveService.ArchiveTask) r)) {
+                (r, executor) -> archiveService.rejectTask((ArchiveService.ArchiveTask) r)) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
                 Runnable poll = archiveService.getTask();
@@ -117,6 +117,27 @@ public class SchedulerConfiguration {
         };
 
         LOGGER.debug("Archive thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
+
+        return taskExecutor;
+    }
+
+    @Bean
+    @Qualifier("unzipTaskExecutor")
+    public ThreadPoolExecutor unzipTaskExecutor(UnzipService unzipService) {
+        ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(QUEUE_SIZE),
+                (r, executor) -> unzipService.rejectTask((UnzipService.UnzipTask) r)) {
+            @Override
+            protected void afterExecute(Runnable r, Throwable t) {
+                Runnable poll = unzipService.getTask();
+                if (poll != null) {
+                    execute(poll);
+                }
+            }
+        };
+
+        LOGGER.debug("Unzip thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
 
         return taskExecutor;
     }

@@ -3,13 +3,14 @@ package ru.gadjini.any2any.service.image.resize;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.job.CommonJobExecutor;
-import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.model.EditMediaResult;
+import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
@@ -51,13 +52,14 @@ public class ResizeState implements State {
 
     private LocalisationService localisationService;
 
-    private CommonJobExecutor commonJobExecutor;
+    private ThreadPoolTaskExecutor executor;
 
     @Autowired
     public ResizeState(CommandStateService commandStateService, ImageConvertDevice imageDevice,
-                       ImageIdentifyDevice identifyDevice, TempFileService tempFileService, @Qualifier("limits") MessageService messageService,
+                       ImageIdentifyDevice identifyDevice, TempFileService tempFileService,
+                       @Qualifier("limits") MessageService messageService,
                        InlineKeyboardService inlineKeyboardService, LocalisationService localisationService,
-                       CommonJobExecutor commonJobExecutor) {
+                       @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor) {
         this.commandStateService = commandStateService;
         this.imageDevice = imageDevice;
         this.identifyDevice = identifyDevice;
@@ -65,7 +67,7 @@ public class ResizeState implements State {
         this.messageService = messageService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.localisationService = localisationService;
-        this.commonJobExecutor = commonJobExecutor;
+        this.executor = executor;
     }
 
     @Autowired
@@ -137,7 +139,7 @@ public class ResizeState implements State {
     public void size(ImageEditorCommand command, long chatId, String queryId, String size) {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         validateSize(size, new Locale(editorState.getLanguage()));
-        commonJobExecutor.addJob(() -> {
+        executor.execute(() -> {
             SmartTempFile result = tempFileService.getTempFile(editorState.getFileName());
             imageDevice.resize(editorState.getCurrentFilePath(), result.getAbsolutePath(), size);
             if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {

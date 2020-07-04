@@ -3,18 +3,19 @@ package ru.gadjini.any2any.service.image.editor.transparency;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.job.CommonJobExecutor;
-import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.model.EditMediaResult;
+import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
-import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
@@ -42,7 +43,7 @@ public class ColorState implements State {
 
     private InlineKeyboardService inlineKeyboardService;
 
-    private CommonJobExecutor commonJobExecutor;
+    private ThreadPoolTaskExecutor executor;
 
     private TempFileService fileService;
 
@@ -54,13 +55,13 @@ public class ColorState implements State {
 
     @Autowired
     public ColorState(CommandStateService commandStateService, @Qualifier("limits") MessageService messageService,
-                      InlineKeyboardService inlineKeyboardService, CommonJobExecutor commonJobExecutor,
+                      InlineKeyboardService inlineKeyboardService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
                       TempFileService fileService, ImageConvertDevice imageDevice, EditMessageBuilder messageBuilder,
                       LocalisationService localisationService) {
         this.commandStateService = commandStateService;
         this.messageService = messageService;
         this.inlineKeyboardService = inlineKeyboardService;
-        this.commonJobExecutor = commonJobExecutor;
+        this.executor = executor;
         this.fileService = fileService;
         this.imageDevice = imageDevice;
         this.messageBuilder = messageBuilder;
@@ -117,7 +118,7 @@ public class ColorState implements State {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         validateColor(colorText, new Locale(editorState.getLanguage()));
 
-        commonJobExecutor.addJob(() -> {
+        executor.execute(() -> {
             SmartTempFile tempFile = fileService.getTempFile(editorState.getFileName());
 
             if (editorState.getMode() == ModeState.Mode.NEGATIVE) {

@@ -3,11 +3,11 @@ package ru.gadjini.any2any.service.image.editor.filter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
@@ -44,20 +44,20 @@ public class FilterState implements State {
 
     private LocalisationService localisationService;
 
-    private CommonJobExecutor commonJobExecutor;
+    private ThreadPoolTaskExecutor executor;
 
     @Autowired
     public FilterState(CommandStateService commandStateService, ImageConvertDevice imageDevice,
                        TempFileService tempFileService, @Qualifier("limits") MessageService messageService,
                        InlineKeyboardService inlineKeyboardService, LocalisationService localisationService,
-                       CommonJobExecutor commonJobExecutor) {
+                       @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor) {
         this.commandStateService = commandStateService;
         this.imageDevice = imageDevice;
         this.tempFileService = tempFileService;
         this.messageService = messageService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.localisationService = localisationService;
-        this.commonJobExecutor = commonJobExecutor;
+        this.executor = executor;
     }
 
     @Autowired
@@ -117,7 +117,7 @@ public class FilterState implements State {
     @Override
     public void applyFilter(ImageEditorCommand command, long chatId, String queryId, Filter effect) {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
-        commonJobExecutor.addJob(() -> {
+        executor.execute(() -> {
             SmartTempFile result = tempFileService.getTempFile(editorState.getFileName());
             switch (effect) {
                 case SKETCH:

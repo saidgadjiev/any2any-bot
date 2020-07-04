@@ -7,11 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TextExtractionFailedException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
@@ -34,7 +34,7 @@ public class OcrService {
 
     private TelegramService telegramService;
 
-    private CommonJobExecutor commonJobExecutor;
+    private ThreadPoolTaskExecutor executor;
 
     private MessageService messageService;
 
@@ -43,17 +43,18 @@ public class OcrService {
     private LocalisationService localisationService;
 
     @Autowired
-    public OcrService(TelegramService telegramService, CommonJobExecutor commonJobExecutor, @Qualifier("limits") MessageService messageService,
+    public OcrService(TelegramService telegramService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
+                      @Qualifier("limits") MessageService messageService,
                       UserService userService, LocalisationService localisationService) {
         this.telegramService = telegramService;
-        this.commonJobExecutor = commonJobExecutor;
+        this.executor = executor;
         this.messageService = messageService;
         this.userService = userService;
         this.localisationService = localisationService;
     }
 
     public void extractText(int userId, Any2AnyFile any2AnyFile, Locale ocrLocale) {
-        commonJobExecutor.addJob(() -> {
+        executor.execute(() -> {
             LOGGER.debug("Start ocr. File id " + any2AnyFile + " for user " + userId);
             SmartTempFile file = telegramService.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFormat().getExt());
             ITesseract tesseract = new Tesseract();

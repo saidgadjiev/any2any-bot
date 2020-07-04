@@ -5,12 +5,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.job.CommonJobExecutor;
-import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
@@ -38,7 +39,7 @@ public class StateFather implements State {
 
     private CommandStateService commandStateService;
 
-    private CommonJobExecutor commonJobExecutor;
+    private ThreadPoolTaskExecutor executor;
 
     private MessageService messageService;
 
@@ -53,12 +54,12 @@ public class StateFather implements State {
     private LocalisationService localisationService;
 
     @Autowired
-    public StateFather(CommandStateService commandStateService, CommonJobExecutor commonJobExecutor,
+    public StateFather(CommandStateService commandStateService,  @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
                        @Qualifier("limits") MessageService messageService, TempFileService tempFileService,
                        InlineKeyboardService inlineKeyboardService,
                        TelegramService telegramService, ImageConvertDevice imageDevice, LocalisationService localisationService) {
         this.commandStateService = commandStateService;
-        this.commonJobExecutor = commonJobExecutor;
+        this.executor = executor;
         this.messageService = messageService;
         this.tempFileService = tempFileService;
         this.inlineKeyboardService = inlineKeyboardService;
@@ -158,7 +159,7 @@ public class StateFather implements State {
     }
 
     public void initializeState(ImageEditorCommand command, long chatId, Any2AnyFile any2AnyFile, Locale locale) {
-        commonJobExecutor.addJob(() -> {
+        executor.execute(() -> {
             deleteCurrentState(chatId, command.getHistoryName());
 
             SmartTempFile file = tempFileService.createTempFile(Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), any2AnyFile.getFormat().getExt()));

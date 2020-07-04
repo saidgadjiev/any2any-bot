@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.domain;
 
+import org.apache.commons.lang3.StringUtils;
 import org.postgresql.util.PGobject;
 
 import java.sql.SQLException;
@@ -7,6 +8,14 @@ import java.sql.SQLException;
 public class TgFile {
 
     public static final String TYPE = "tg_file";
+
+    public static final String FILE_ID = "file_id";
+
+    public static final String FILE_NAME = "file_name";
+
+    public static final String MIME_TYPE = "mime_type";
+
+    public static final String SIZE = "size";
 
     private String fileId;
 
@@ -49,12 +58,21 @@ public class TgFile {
     }
 
     public String sql() {
-        StringBuilder sql = new StringBuilder();
+        StringBuilder sql = new StringBuilder("(");
 
         sql.append(fileId).append(",");
-        sql.append(fileName).append(",");
-        sql.append(mimeType).append(",");
+        if (StringUtils.isNotBlank(fileName)) {
+            sql.append(fileName).append(",");
+        } else {
+            sql.append(",");
+        }
+        if (StringUtils.isNotBlank(mimeType)) {
+            sql.append(mimeType).append(",");
+        } else {
+            sql.append(",");
+        }
         sql.append(size);
+        sql.append(")");
 
         return sql.toString();
     }

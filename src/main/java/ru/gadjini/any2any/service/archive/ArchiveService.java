@@ -74,7 +74,7 @@ public class ArchiveService {
         this.executor = executor;
     }
 
-    public void rejectRenameTask(ArchiveTask renameTask) {
+    public void rejectTask(ArchiveTask renameTask) {
         archiveQueueService.setWaiting(renameTask.jobId);
     }
 
@@ -199,6 +199,7 @@ public class ArchiveService {
                     archive.smartDelete();
                 }
             } finally {
+                archiveQueueService.delete(jobId);
                 files.forEach(SmartTempFile::smartDelete);
             }
         }
