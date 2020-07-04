@@ -79,10 +79,12 @@ public class RenameQueueDao {
         item.setId(resultSet.getInt(RenameQueueItem.ID));
 
         TgFile tgFile = new TgFile();
-        tgFile.setFileId(resultSet.getString(RenameQueueItem.FILE_ID));
-        tgFile.setFileName(resultSet.getString(RenameQueueItem.FILE_NAME));
+        tgFile.setFileId(resultSet.getString(TgFile.FILE_ID));
+        tgFile.setFileName(resultSet.getString(TgFile.FILE_NAME));
+        tgFile.setMimeType(resultSet.getString(TgFile.MIME_TYPE));
+        item.setFile(tgFile);
+
         item.setNewFileName(resultSet.getString(RenameQueueItem.NEW_FILE_NAME));
-        tgFile.setMimeType(resultSet.getString(RenameQueueItem.MIME_TYPE));
         item.setReplyToMessageId(resultSet.getInt(RenameQueueItem.REPLY_TO_MESSAGE_ID));
         item.setUserId(resultSet.getInt(RenameQueueItem.USER_ID));
 

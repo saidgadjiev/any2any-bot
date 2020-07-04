@@ -6,11 +6,7 @@ public class RenameQueueItem {
 
     public static final String ID = "id";
 
-    public static final String FILE_ID = "file_id";
-
-    public static final String MIME_TYPE = "mime_type";
-
-    public static final String FILE_NAME = "file_name";
+    public static final String FILE = "file";
 
     public static final String NEW_FILE_NAME = "new_file_name";
 
