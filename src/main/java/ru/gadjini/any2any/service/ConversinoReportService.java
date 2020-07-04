@@ -2,7 +2,7 @@ package ru.gadjini.any2any.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.gadjini.any2any.dao.ConversionReportDao;
+import ru.gadjini.any2any.dao.queue.ConversionReportDao;
 import ru.gadjini.any2any.domain.ConversionReport;
 
 @Service

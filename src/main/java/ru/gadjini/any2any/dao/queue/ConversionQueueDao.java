@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.dao;
+package ru.gadjini.any2any.dao.queue;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

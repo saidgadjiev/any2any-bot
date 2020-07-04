@@ -4,7 +4,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import ru.gadjini.any2any.dao.ConversionQueueDao;
+import ru.gadjini.any2any.dao.queue.ConversionQueueDao;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.event.QueueItemCanceled;
 

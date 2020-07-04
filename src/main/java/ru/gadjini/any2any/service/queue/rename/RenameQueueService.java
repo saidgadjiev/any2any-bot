@@ -3,7 +3,7 @@ package ru.gadjini.any2any.service.queue.rename;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.bot.command.keyboard.rename.RenameState;
-import ru.gadjini.any2any.dao.RenameQueueDao;
+import ru.gadjini.any2any.dao.queue.RenameQueueDao;
 import ru.gadjini.any2any.domain.RenameQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
 

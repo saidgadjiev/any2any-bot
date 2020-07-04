@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.gadjini.any2any.bot.command.convert.ConvertState;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.dao.ConversionQueueDao;
+import ru.gadjini.any2any.dao.queue.ConversionQueueDao;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.model.bot.api.object.User;
 import ru.gadjini.any2any.service.LocalisationService;

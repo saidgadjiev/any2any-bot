@@ -2,7 +2,7 @@ package ru.gadjini.any2any.service.queue.archive;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.gadjini.any2any.dao.ArchiveQueueDao;
+import ru.gadjini.any2any.dao.queue.ArchiveQueueDao;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
