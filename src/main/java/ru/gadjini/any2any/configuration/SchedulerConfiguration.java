@@ -11,6 +11,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.service.RenameService;
 import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.archive.ArchiveService;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -73,7 +74,7 @@ public class SchedulerConfiguration {
 
     @Bean
     @Qualifier("renameTaskExecutor")
-    public ThreadPoolExecutor renameJobExecutor(RenameService renameService) {
+    public ThreadPoolExecutor renameTaskExecutor(RenameService renameService) {
         ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(4, 4,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(QUEUE_SIZE),
@@ -81,6 +82,27 @@ public class SchedulerConfiguration {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
                 Runnable poll = renameService.getTask();
+                if (poll != null) {
+                    execute(poll);
+                }
+            }
+        };
+
+        LOGGER.debug("Common thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
+
+        return taskExecutor;
+    }
+
+    @Bean
+    @Qualifier("archiveTaskExecutor")
+    public ThreadPoolExecutor archiveTaskExecutor(ArchiveService archiveService) {
+        ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(4, 4,
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(QUEUE_SIZE),
+                (r, executor) -> archiveService.rejectRenameTask((ArchiveService.ArchiveTask) r)) {
+            @Override
+            protected void afterExecute(Runnable r, Throwable t) {
+                Runnable poll = archiveService.getTask();
                 if (poll != null) {
                     execute(poll);
                 }

@@ -20,11 +20,7 @@ public class RenameQueueItem {
 
     private int id;
 
-    private String fileId;
-
-    private String mimeType;
-
-    private String fileName;
+    private TgFile file;
 
     private String newFileName;
 
@@ -42,28 +38,12 @@ public class RenameQueueItem {
         this.id = id;
     }
 
-    public String getFileId() {
-        return fileId;
+    public TgFile getFile() {
+        return file;
     }
 
-    public void setFileId(String fileId) {
-        this.fileId = fileId;
-    }
-
-    public String getMimeType() {
-        return mimeType;
-    }
-
-    public void setMimeType(String mimeType) {
-        this.mimeType = mimeType;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
+    public void setFile(TgFile file) {
+        this.file = file;
     }
 
     public String getNewFileName() {
@@ -113,15 +93,6 @@ public class RenameQueueItem {
 
         public int getCode() {
             return code;
-        }
-
-        public static Status fromCode(int code) {
-            for (Status status : values()) {
-                if (status.code == code) {
-                    return status;
-                }
-            }
-            throw new IllegalArgumentException("Unknown queue item status " + code);
         }
     }
 }

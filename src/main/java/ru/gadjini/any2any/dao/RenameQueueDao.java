@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.RenameQueueItem;
+import ru.gadjini.any2any.domain.TgFile;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,16 +27,14 @@ public class RenameQueueDao {
 
         jdbcTemplate.update(
                 con -> {
-                    PreparedStatement ps = con.prepareStatement("INSERT INTO rename_queue(user_id, file_id, file_name, new_file_name, mime_type, reply_to_message_id, status) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+                    PreparedStatement ps = con.prepareStatement("INSERT INTO rename_queue(user_id, file, new_file_name, reply_to_message_id, status) " +
+                            "VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 
                     ps.setInt(1, renameQueueItem.getUserId());
-                    ps.setString(2, renameQueueItem.getFileId());
-                    ps.setString(3, renameQueueItem.getFileName());
-                    ps.setString(4, renameQueueItem.getNewFileName());
-                    ps.setString(5, renameQueueItem.getMimeType());
-                    ps.setInt(6, renameQueueItem.getReplyToMessageId());
-                    ps.setInt(7, renameQueueItem.getStatus().getCode());
+                    ps.setObject(2, renameQueueItem.getFile().sql());
+                    ps.setString(3, renameQueueItem.getNewFileName());
+                    ps.setInt(4, renameQueueItem.getReplyToMessageId());
+                    ps.setInt(5, renameQueueItem.getStatus().getCode());
 
                     return ps;
                 },
@@ -59,7 +58,7 @@ public class RenameQueueDao {
                 "WITH r AS (\n" +
                         "    UPDATE rename_queue SET status = 1 WHERE id = (SELECT id FROM rename_queue WHERE status = 0 ORDER BY created_at LIMIT 1) RETURNING *\n" +
                         ")\n" +
-                        "SELECT *\n" +
+                        "SELECT *, (file).*\n" +
                         "FROM r",
                 rs -> {
                     if (rs.next()) {
@@ -78,10 +77,12 @@ public class RenameQueueDao {
     private RenameQueueItem map(ResultSet resultSet) throws SQLException {
         RenameQueueItem item = new RenameQueueItem();
         item.setId(resultSet.getInt(RenameQueueItem.ID));
-        item.setFileId(resultSet.getString(RenameQueueItem.FILE_ID));
-        item.setFileName(resultSet.getString(RenameQueueItem.FILE_NAME));
+
+        TgFile tgFile = new TgFile();
+        tgFile.setFileId(resultSet.getString(RenameQueueItem.FILE_ID));
+        tgFile.setFileName(resultSet.getString(RenameQueueItem.FILE_NAME));
         item.setNewFileName(resultSet.getString(RenameQueueItem.NEW_FILE_NAME));
-        item.setMimeType(resultSet.getString(RenameQueueItem.MIME_TYPE));
+        tgFile.setMimeType(resultSet.getString(RenameQueueItem.MIME_TYPE));
         item.setReplyToMessageId(resultSet.getInt(RenameQueueItem.REPLY_TO_MESSAGE_ID));
         item.setUserId(resultSet.getInt(RenameQueueItem.USER_ID));
 

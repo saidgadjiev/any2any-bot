@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.bot.command.keyboard.rename.RenameState;
 import ru.gadjini.any2any.dao.RenameQueueDao;
 import ru.gadjini.any2any.domain.RenameQueueItem;
+import ru.gadjini.any2any.domain.TgFile;
 
 @Service
 public class RenameQueueService {
@@ -23,11 +24,15 @@ public class RenameQueueService {
     public int createProcessingItem(int userId, RenameState renameState, String newFileName) {
         RenameQueueItem renameQueueItem = new RenameQueueItem();
         renameQueueItem.setUserId(userId);
-        renameQueueItem.setFileName(renameState.getFile().getFileName());
         renameQueueItem.setNewFileName(newFileName);
         renameQueueItem.setReplyToMessageId(renameState.getReplyMessageId());
-        renameQueueItem.setFileId(renameState.getFile().getFileId());
-        renameQueueItem.setMimeType(renameState.getFile().getMimeType());
+
+        TgFile file = new TgFile();
+        file.setFileName(renameState.getFile().getFileName());
+        file.setFileId(renameState.getFile().getFileId());
+        file.setMimeType(renameState.getFile().getMimeType());
+        renameQueueItem.setFile(file);
+
         renameQueueItem.setStatus(RenameQueueItem.Status.PROCESSING);
 
         return renameQueueDao.create(renameQueueItem);
