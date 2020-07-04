@@ -2,6 +2,7 @@ package ru.gadjini.any2any.configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,12 +25,32 @@ public class SchedulerConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerConfiguration.class);
 
-    public static final int QUEUE_SIZE = 50;
+    private static final int QUEUE_SIZE = 50;
+
+    private ConversionService conversionService;
+
+    private UnzipService unzipService;
+
+    private ArchiveService archiveService;
+
+    private RenameService renameService;
+
+    private UserService userService;
+
+    @Autowired
+    public SchedulerConfiguration(ConversionService conversionService, UnzipService unzipService,
+                                  ArchiveService archiveService, RenameService renameService, UserService userService) {
+        this.conversionService = conversionService;
+        this.unzipService = unzipService;
+        this.archiveService = archiveService;
+        this.renameService = renameService;
+        this.userService = userService;
+    }
 
     @Bean
-    public TaskScheduler jobsThreadPoolTaskScheduler(UserService userService) {
+    public TaskScheduler jobsThreadPoolTaskScheduler() {
         ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setPoolSize(3);
+        threadPoolTaskScheduler.setPoolSize(1);
         threadPoolTaskScheduler.setThreadNamePrefix("JobsThreadPoolTaskScheduler");
         threadPoolTaskScheduler.setErrorHandler(ex -> {
             if (userService.deadlock(ex)) {
@@ -46,7 +67,7 @@ public class SchedulerConfiguration {
 
     @Bean
     @Qualifier("conversionTaskExecutor")
-    public ThreadPoolExecutor conversionTaskExecutor(ConversionService conversionService) {
+    public ThreadPoolExecutor conversionTaskExecutor() {
         ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(QUEUE_SIZE),
@@ -81,7 +102,7 @@ public class SchedulerConfiguration {
 
     @Bean
     @Qualifier("renameTaskExecutor")
-    public ThreadPoolExecutor renameTaskExecutor(RenameService renameService) {
+    public ThreadPoolExecutor renameTaskExecutor() {
         ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(QUEUE_SIZE),
@@ -102,7 +123,7 @@ public class SchedulerConfiguration {
 
     @Bean
     @Qualifier("archiveTaskExecutor")
-    public ThreadPoolExecutor archiveTaskExecutor(ArchiveService archiveService) {
+    public ThreadPoolExecutor archiveTaskExecutor() {
         ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(QUEUE_SIZE),
@@ -123,7 +144,7 @@ public class SchedulerConfiguration {
 
     @Bean
     @Qualifier("unzipTaskExecutor")
-    public ThreadPoolExecutor unzipTaskExecutor(UnzipService unzipService) {
+    public ThreadPoolExecutor unzipTaskExecutor() {
         ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(QUEUE_SIZE),

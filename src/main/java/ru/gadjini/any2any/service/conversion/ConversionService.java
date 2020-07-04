@@ -61,6 +61,7 @@ public class ConversionService {
 
     private ThreadPoolExecutor executor;
 
+    @Autowired
     public ConversionService(@Qualifier("limits") MessageService messageService,
                              ConversionQueueBusinessService conversionQueueService,
                              LocalisationService localisationService, UserService userService,

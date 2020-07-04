@@ -24,13 +24,13 @@ import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
+import ru.gadjini.any2any.service.conversion.ConversionService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.FormatCategory;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
-import ru.gadjini.any2any.service.queue.conversion.ConversionQueueMessageBuilder;
-import ru.gadjini.any2any.service.queue.conversion.ConversionQueueService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.any2any.service.queue.conversion.ConversionQueueMessageBuilder;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -48,7 +48,7 @@ public class ConvertMaker {
 
     private UserService userService;
 
-    private ConversionQueueService fileQueueService;
+    private ConversionService conversionService;
 
     private ConversionQueueMessageBuilder queueMessageBuilder;
 
@@ -63,13 +63,13 @@ public class ConvertMaker {
     private TelegramService telegramService;
 
     @Autowired
-    public ConvertMaker(CommandStateService commandStateService, UserService userService, ConversionQueueService fileQueueService,
-                        ConversionQueueMessageBuilder queueMessageBuilder, @Qualifier("limits") MessageService messageService,
+    public ConvertMaker(CommandStateService commandStateService, UserService userService,
+                        ConversionService conversionService, ConversionQueueMessageBuilder queueMessageBuilder, @Qualifier("limits") MessageService messageService,
                         LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                         FormatService formatService, TelegramService telegramService) {
         this.commandStateService = commandStateService;
         this.userService = userService;
-        this.fileQueueService = fileQueueService;
+        this.conversionService = conversionService;
         this.queueMessageBuilder = queueMessageBuilder;
         this.messageService = messageService;
         this.localisationService = localisationService;
@@ -100,7 +100,7 @@ public class ConvertMaker {
             if (targetFormat == Format.GIF) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_GIF_WARN, locale));
             }
-            ConversionQueueItem queueItem = fileQueueService.add(message.getFromUser(), convertState, targetFormat);
+            ConversionQueueItem queueItem = conversionService.convert(message.getFromUser(), convertState, targetFormat);
             String queuedMessage = queueMessageBuilder.getQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
             messageService.sendMessage(new HtmlMessage(message.getChatId(), queuedMessage).setReplyMarkup(replyKeyboard.get()));
             commandStateService.deleteState(message.getChatId(), controllerName);
