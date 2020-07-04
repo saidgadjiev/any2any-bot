@@ -13,7 +13,7 @@ import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.service.RenameService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
-import ru.gadjini.any2any.service.conversion.ConversionService;
+import ru.gadjini.any2any.service.conversion.ConvertionService;
 import ru.gadjini.any2any.service.unzip.UnzipService;
 
 import java.util.concurrent.LinkedBlockingQueue;
@@ -27,7 +27,7 @@ public class SchedulerConfiguration {
 
     private static final int QUEUE_SIZE = 50;
 
-    private ConversionService conversionService;
+    private ConvertionService conversionService;
 
     private UnzipService unzipService;
 
@@ -38,12 +38,27 @@ public class SchedulerConfiguration {
     private UserService userService;
 
     @Autowired
-    public SchedulerConfiguration(ConversionService conversionService, UnzipService unzipService,
-                                  ArchiveService archiveService, RenameService renameService, UserService userService) {
+    public void setConversionService(ConvertionService conversionService) {
         this.conversionService = conversionService;
+    }
+
+    @Autowired
+    public void setUnzipService(UnzipService unzipService) {
         this.unzipService = unzipService;
+    }
+
+    @Autowired
+    public void setArchiveService(ArchiveService archiveService) {
         this.archiveService = archiveService;
+    }
+
+    @Autowired
+    public void setRenameService(RenameService renameService) {
         this.renameService = renameService;
+    }
+
+    @Autowired
+    public void setUserService(UserService userService) {
         this.userService = userService;
     }
 
@@ -71,7 +86,7 @@ public class SchedulerConfiguration {
         ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(QUEUE_SIZE),
-                (r, executor) -> conversionService.rejectTask((ConversionService.ConversionTask) r)) {
+                (r, executor) -> conversionService.rejectTask((ConvertionService.ConversionTask) r)) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
                 Runnable poll = conversionService.getTask();

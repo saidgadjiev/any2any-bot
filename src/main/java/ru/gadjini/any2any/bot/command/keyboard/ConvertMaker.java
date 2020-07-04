@@ -24,7 +24,7 @@ import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
-import ru.gadjini.any2any.service.conversion.ConversionService;
+import ru.gadjini.any2any.service.conversion.ConvertionService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.FormatCategory;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
@@ -48,7 +48,7 @@ public class ConvertMaker {
 
     private UserService userService;
 
-    private ConversionService conversionService;
+    private ConvertionService conversionService;
 
     private ConversionQueueMessageBuilder queueMessageBuilder;
 
@@ -64,7 +64,7 @@ public class ConvertMaker {
 
     @Autowired
     public ConvertMaker(CommandStateService commandStateService, UserService userService,
-                        ConversionService conversionService, ConversionQueueMessageBuilder queueMessageBuilder, @Qualifier("limits") MessageService messageService,
+                        ConvertionService conversionService, ConversionQueueMessageBuilder queueMessageBuilder, @Qualifier("limits") MessageService messageService,
                         LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                         FormatService formatService, TelegramService telegramService) {
         this.commandStateService = commandStateService;

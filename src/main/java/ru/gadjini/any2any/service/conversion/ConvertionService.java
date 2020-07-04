@@ -39,9 +39,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @Service
-public class ConversionService {
+public class ConvertionService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConversionService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConvertionService.class);
 
     private final Map<Integer, Future<?>> processing = new ConcurrentHashMap<>();
 
@@ -62,7 +62,7 @@ public class ConversionService {
     private ThreadPoolExecutor executor;
 
     @Autowired
-    public ConversionService(@Qualifier("limits") MessageService messageService,
+    public ConvertionService(@Qualifier("limits") MessageService messageService,
                              ConversionQueueBusinessService conversionQueueService,
                              LocalisationService localisationService, UserService userService,
                              Set<Any2AnyConverter> any2AnyConvertersSet, InlineKeyboardService inlineKeyboardService,
@@ -92,7 +92,7 @@ public class ConversionService {
     }
 
     @Autowired
-    public void setExecutor(@Qualifier("archiveTaskExecutor") ThreadPoolExecutor executor) {
+    public void setExecutor(@Qualifier("conversionTaskExecutor") ThreadPoolExecutor executor) {
         this.executor = executor;
     }
 
