@@ -1,6 +1,6 @@
 package ru.gadjini.any2any.service.unzip;
 
-import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.conversion.api.Format;
 
 public interface UnzipDevice {
 

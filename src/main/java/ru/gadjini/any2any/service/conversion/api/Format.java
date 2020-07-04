@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service.converter.api;
+package ru.gadjini.any2any.service.conversion.api;
 
 public enum Format {
 

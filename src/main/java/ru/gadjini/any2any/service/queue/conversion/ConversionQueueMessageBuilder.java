@@ -8,7 +8,7 @@ import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.Time2TextService;
 import ru.gadjini.any2any.service.TimeCreator;
-import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
 import java.time.Duration;

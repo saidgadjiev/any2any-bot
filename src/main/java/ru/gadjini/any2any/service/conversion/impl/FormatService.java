@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service.converter.impl;
+package ru.gadjini.any2any.service.conversion.impl;
 
 import com.aspose.imaging.FileFormat;
 import com.aspose.imaging.Image;
@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TelegramService;
-import ru.gadjini.any2any.service.converter.api.Format;
-import ru.gadjini.any2any.service.converter.api.FormatCategory;
+import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.service.conversion.api.FormatCategory;
 import ru.gadjini.any2any.utils.MimeTypeUtils;
 import ru.gadjini.any2any.utils.UrlUtils;
 
@@ -21,7 +21,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static ru.gadjini.any2any.service.converter.api.Format.*;
+import static ru.gadjini.any2any.service.conversion.api.Format.*;
 
 @Service
 public class FormatService {

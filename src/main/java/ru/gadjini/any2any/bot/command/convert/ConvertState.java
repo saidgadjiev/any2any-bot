@@ -1,7 +1,7 @@
 package ru.gadjini.any2any.bot.command.convert;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.conversion.api.Format;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

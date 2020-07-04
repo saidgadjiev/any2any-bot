@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service.converter.file;
+package ru.gadjini.any2any.service.conversion.file;
 
 import com.aspose.pdf.facades.PdfFileInfo;
 import org.springframework.stereotype.Service;

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.domain.RenameQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
-import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.conversion.api.Format;
 
 import java.sql.*;
 import java.util.ArrayList;

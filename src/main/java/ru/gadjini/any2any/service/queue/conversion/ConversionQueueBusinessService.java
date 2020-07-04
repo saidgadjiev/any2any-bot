@@ -27,6 +27,12 @@ public class ConversionQueueBusinessService {
         return fileQueueDao.takeItems(limit);
     }
 
+    public ConversionQueueItem takeItem() {
+        List<ConversionQueueItem> items = fileQueueDao.takeItems(1);
+
+        return items.isEmpty() ? null : items.iterator().next();
+    }
+
     public void resetProcessing() {
         fileQueueDao.resetProcessing();
     }
@@ -51,5 +57,9 @@ public class ConversionQueueBusinessService {
     public void cancel(int id) {
         fileQueueDao.delete(id);
         eventPublisher.publishEvent(new QueueItemCanceled(id));
+    }
+
+    public void setWaiting(int id) {
+        fileQueueDao.setWaiting(id);
     }
 }

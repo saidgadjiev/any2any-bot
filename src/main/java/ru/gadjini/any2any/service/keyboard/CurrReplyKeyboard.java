@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.dao.command.keyboard.ReplyKeyboardDao;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
-import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.conversion.api.Format;
 
 import java.util.Locale;
 

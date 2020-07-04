@@ -12,7 +12,7 @@ import ru.gadjini.any2any.bot.command.keyboard.rename.RenameState;
 import ru.gadjini.any2any.domain.RenameQueueItem;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
-import ru.gadjini.any2any.service.converter.impl.FormatService;
+import ru.gadjini.any2any.service.conversion.impl.FormatService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.rename.RenameQueueService;
 

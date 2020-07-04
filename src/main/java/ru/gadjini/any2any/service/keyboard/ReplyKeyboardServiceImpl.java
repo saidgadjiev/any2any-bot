@@ -11,8 +11,8 @@ import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardRemove
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.buttons.KeyboardRow;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.OcrService;
-import ru.gadjini.any2any.service.converter.api.Format;
-import ru.gadjini.any2any.service.converter.impl.FormatService;
+import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.service.conversion.impl.FormatService;
 
 import java.util.ArrayList;
 import java.util.Comparator;

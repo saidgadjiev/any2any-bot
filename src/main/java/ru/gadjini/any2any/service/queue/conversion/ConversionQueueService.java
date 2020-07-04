@@ -10,7 +10,7 @@ import ru.gadjini.any2any.dao.ConversionQueueDao;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.model.bot.api.object.User;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.conversion.api.Format;
 
 import java.util.List;
 import java.util.Locale;

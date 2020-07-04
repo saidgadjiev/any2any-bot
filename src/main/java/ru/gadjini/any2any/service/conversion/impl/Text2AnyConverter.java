@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service.converter.impl;
+package ru.gadjini.any2any.service.conversion.impl;
 
 import com.aspose.words.DocumentBuilder;
 import com.aspose.words.Font;
@@ -13,8 +13,8 @@ import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TempFileService;
-import ru.gadjini.any2any.service.converter.api.Format;
-import ru.gadjini.any2any.service.converter.api.result.FileResult;
+import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.service.text.TextDetector;
 import ru.gadjini.any2any.service.text.TextDirection;
 import ru.gadjini.any2any.service.text.TextInfo;

@@ -6,7 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.domain.TgUser;
-import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.utils.JdbcUtils;
 
 import java.sql.ResultSet;
@@ -32,7 +32,7 @@ public class ConversionQueueDao {
 
     public void add(ConversionQueueItem queueItem) {
         jdbcTemplate.query(
-                "INSERT INTO " + TYPE + " (user_id, file_id, format, size, reply_to_message_id, file_name, target_format, mime_type)\n" +
+                "INSERT INTO " + TYPE + " (user_id, file_id, format, size, reply_to_message_id, file_name, target_format, mime_type, status)\n" +
                         "    VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *",
                 ps -> {
                     ps.setInt(1, queueItem.getUserId());
@@ -51,6 +51,7 @@ public class ConversionQueueDao {
                     } else {
                         ps.setNull(8, Types.VARCHAR);
                     }
+                    ps.setInt(9, queueItem.getStatus().getCode());
                 },
                 rs -> {
                     if (rs.next()) {
@@ -194,4 +195,10 @@ public class ConversionQueueDao {
 
         return fileQueueItem;
     }
+
+    public void setWaiting(int id) {
+        jdbcTemplate.update("UPDATE conversion_queue SET status = 0 WHERE id = ?",
+                ps -> ps.setInt(1, id));
+    }
+
 }

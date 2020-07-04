@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service.converter.impl;
+package ru.gadjini.any2any.service.conversion.impl;
 
 import com.aspose.imaging.Image;
 import com.aspose.imaging.fileformats.tiff.TiffFrame;
@@ -12,8 +12,8 @@ import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.TelegramService;
-import ru.gadjini.any2any.service.converter.api.Format;
-import ru.gadjini.any2any.service.converter.api.result.FileResult;
+import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 

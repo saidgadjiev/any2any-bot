@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service.converter.impl;
+package ru.gadjini.any2any.service.conversion.impl;
 
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,9 +9,9 @@ import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.ProcessExecutor;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
-import ru.gadjini.any2any.service.converter.api.Format;
-import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
-import ru.gadjini.any2any.service.converter.api.result.FileResult;
+import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.service.conversion.api.result.ConvertResult;
+import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.util.List;

@@ -12,6 +12,7 @@ import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.service.RenameService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
+import ru.gadjini.any2any.service.conversion.ConversionService;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -44,15 +45,21 @@ public class SchedulerConfiguration {
 
     @Bean
     @Qualifier("conversionTaskExecutor")
-    public ThreadPoolTaskExecutor converterExecutorService() {
-        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(Runtime.getRuntime().availableProcessors());
-        taskExecutor.setMaxPoolSize(2 * Runtime.getRuntime().availableProcessors());
-        taskExecutor.setQueueCapacity(QUEUE_SIZE);
-        taskExecutor.setThreadNamePrefix("ConverterExecutor");
-        taskExecutor.initialize();
+    public ThreadPoolExecutor conversionTaskExecutor(ConversionService conversionService) {
+        ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(QUEUE_SIZE),
+                (r, executor) -> conversionService.rejectTask((ConversionService.ConversionTask) r)) {
+            @Override
+            protected void afterExecute(Runnable r, Throwable t) {
+                Runnable poll = conversionService.getTask();
+                if (poll != null) {
+                    execute(poll);
+                }
+            }
+        };
 
-        LOGGER.debug("Converter thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
+        LOGGER.debug("Rename thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
 
         return taskExecutor;
     }
@@ -75,7 +82,7 @@ public class SchedulerConfiguration {
     @Bean
     @Qualifier("renameTaskExecutor")
     public ThreadPoolExecutor renameTaskExecutor(RenameService renameService) {
-        ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(4, 4,
+        ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(QUEUE_SIZE),
                 (r, executor) -> renameService.rejectRenameTask((RenameService.RenameTask) r)) {
@@ -88,7 +95,7 @@ public class SchedulerConfiguration {
             }
         };
 
-        LOGGER.debug("Common thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
+        LOGGER.debug("Rename thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
 
         return taskExecutor;
     }
@@ -96,7 +103,7 @@ public class SchedulerConfiguration {
     @Bean
     @Qualifier("archiveTaskExecutor")
     public ThreadPoolExecutor archiveTaskExecutor(ArchiveService archiveService) {
-        ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(4, 4,
+        ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(QUEUE_SIZE),
                 (r, executor) -> archiveService.rejectRenameTask((ArchiveService.ArchiveTask) r)) {
@@ -109,7 +116,7 @@ public class SchedulerConfiguration {
             }
         };
 
-        LOGGER.debug("Common thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
+        LOGGER.debug("Archive thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
 
         return taskExecutor;
     }

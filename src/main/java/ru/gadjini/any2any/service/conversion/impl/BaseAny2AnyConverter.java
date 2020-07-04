@@ -1,8 +1,8 @@
-package ru.gadjini.any2any.service.converter.impl;
+package ru.gadjini.any2any.service.conversion.impl;
 
-import ru.gadjini.any2any.service.converter.api.Any2AnyConverter;
-import ru.gadjini.any2any.service.converter.api.Format;
-import ru.gadjini.any2any.service.converter.api.result.ConvertResult;
+import ru.gadjini.any2any.service.conversion.api.Any2AnyConverter;
+import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.service.conversion.api.result.ConvertResult;
 
 import java.util.Set;
 

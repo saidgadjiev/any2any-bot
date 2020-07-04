@@ -11,7 +11,7 @@ import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.PhotoSize;
 import ru.gadjini.any2any.model.bot.api.object.Sticker;
-import ru.gadjini.any2any.service.converter.impl.FormatService;
+import ru.gadjini.any2any.service.conversion.impl.FormatService;
 
 import java.util.Comparator;
 import java.util.Locale;

@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service.converter.api.result;
+package ru.gadjini.any2any.service.conversion.api.result;
 
 public abstract class BaseConvertResult implements ConvertResult {
 

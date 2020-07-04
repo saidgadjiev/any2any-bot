@@ -12,7 +12,7 @@ import ru.gadjini.any2any.exception.UnzipException;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.conversion.api.Format;
 
 import java.util.Locale;
 import java.util.Set;

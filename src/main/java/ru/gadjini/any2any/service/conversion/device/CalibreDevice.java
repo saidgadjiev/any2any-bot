@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service.converter.device;
+package ru.gadjini.any2any.service.conversion.device;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
