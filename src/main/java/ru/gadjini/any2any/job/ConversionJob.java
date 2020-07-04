@@ -87,7 +87,7 @@ public class ConversionJob {
         }
     }
 
-    @Scheduled(cron = "* * * * * *")
+    @Scheduled(cron = "*/20 * * * * *")
     public void processConverts() {
         int remainingCapacity = taskExecutor.getThreadPoolExecutor().getQueue().remainingCapacity();
         int busy = SchedulerConfiguration.QUEUE_SIZE - remainingCapacity;
@@ -127,7 +127,7 @@ public class ConversionJob {
                 Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
                 messageService.sendMessage(
                         new HtmlMessage((long) fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_DAMAGED_FILE, locale))
-                                .setReplyToMessageId(fileQueueItem.getMessageId())
+                                .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                 );
             } catch (Exception ex) {
                 Future<?> future = processing.get(fileQueueItem.getId());
@@ -139,7 +139,7 @@ public class ConversionJob {
                     Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
                     messageService.sendMessage(
                             new HtmlMessage((long) fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_FAILED, locale))
-                                    .setReplyToMessageId(fileQueueItem.getMessageId())
+                                    .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                     );
                 }
             }
@@ -165,7 +165,7 @@ public class ConversionJob {
             case FILE: {
                 SendDocument sendDocumentContext = new SendDocument((long) fileQueueItem.getUserId(), ((FileResult) convertResult).getFile())
                         .setCaption(fileQueueItem.getMessage())
-                        .setReplyToMessageId(fileQueueItem.getMessageId())
+                        .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                         .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                 try {
                     messageService.sendDocument(sendDocumentContext);
@@ -182,7 +182,7 @@ public class ConversionJob {
             }
             case STICKER: {
                 SendSticker sendFileContext = new SendSticker((long) fileQueueItem.getUserId(), ((FileResult) convertResult).getFile())
-                        .setReplyToMessageId(fileQueueItem.getMessageId())
+                        .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                         .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                 try {
                     messageService.sendSticker(sendFileContext);

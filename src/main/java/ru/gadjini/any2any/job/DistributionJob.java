@@ -4,14 +4,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.Distribution;
 import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.service.DistributionService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.message.MessageService;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 
 @Component
@@ -35,12 +37,12 @@ public class DistributionJob {
         LOGGER.debug("Distribution job started");
     }
 
-    //@PostConstruct
+    @PostConstruct
     public void init() {
         checkDistributions();
     }
 
-    //@Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 0 0 * * *")
     public void checkDistributions() {
         LOGGER.debug("Start checkDistributions");
         if (!distributionService.isExists()) {
@@ -51,13 +53,13 @@ public class DistributionJob {
         LOGGER.debug("Finish checkDistributions");
     }
 
-    //@Scheduled(cron = "0 */5 * * * *")
+    @Scheduled(cron = "0 */5 * * * *")
     public void distribute() {
         if (isDisabled()) {
             return;
         }
         LOGGER.debug("Start send distributions");
-        List<Distribution> distributions = distributionService.popDistributions(10);
+        List<Distribution> distributions = distributionService.popDistributions(15);
         for (Distribution distribution : distributions) {
             try {
                 sendDistribution(distribution);
@@ -77,11 +79,8 @@ public class DistributionJob {
 
     public boolean isDisabled() {
         String property = System.getProperty(DISABLE_JOB);
-        if ("true".equals(property)) {
-            return true;
-        }
 
-        return false;
+        return "true".equals(property);
     }
 
     private void enableJob() {

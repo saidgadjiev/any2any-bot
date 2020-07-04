@@ -117,7 +117,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
             commandStateService.setState(message.getChatId(), getHistoryName(), renameState);
         } else if (message.hasText()) {
             RenameState renameState = commandStateService.getState(message.getChatId(), getHistoryName(), true);
-            renameService.rename(message.getChatId(), renameState, text, locale);
+            renameService.rename(message.getFromUser().getId(), renameState, text, locale);
             commandStateService.deleteState(message.getChatId(), getHistoryName());
             messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_RENAMING, locale)));
             LOGGER.debug("Rename request " + renameState.getFile().getFileId() + " with fileName " + renameState.getFile().getFileName() + " to " + text);

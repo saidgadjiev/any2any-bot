@@ -32,14 +32,14 @@ public class ConversionQueueDao {
 
     public void add(ConversionQueueItem queueItem) {
         jdbcTemplate.query(
-                "INSERT INTO " + TYPE + " (user_id, file_id, format, size, message_id, file_name, target_format, mime_type)\n" +
+                "INSERT INTO " + TYPE + " (user_id, file_id, format, size, reply_to_message_id, file_name, target_format, mime_type)\n" +
                         "    VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *",
                 ps -> {
                     ps.setInt(1, queueItem.getUserId());
                     ps.setString(2, queueItem.getFileId());
                     ps.setString(3, queueItem.getFormat().name());
                     ps.setInt(4, queueItem.getSize());
-                    ps.setInt(5, queueItem.getMessageId());
+                    ps.setInt(5, queueItem.getReplyToMessageId());
                     if (queueItem.getFileName() != null) {
                         ps.setString(6, queueItem.getFileName());
                     } else {
@@ -169,7 +169,7 @@ public class ConversionQueueDao {
         ConversionQueueItem fileQueueItem = new ConversionQueueItem();
 
         fileQueueItem.setId(rs.getInt(ConversionQueueItem.ID));
-        fileQueueItem.setMessageId(rs.getInt(ConversionQueueItem.MESSAGE_ID));
+        fileQueueItem.setReplyToMessageId(rs.getInt(ConversionQueueItem.REPLY_TO_MESSAGE_ID));
         fileQueueItem.setFileName(rs.getString(ConversionQueueItem.FILE_NAME));
         fileQueueItem.setFileId(rs.getString(ConversionQueueItem.FILE_ID));
         fileQueueItem.setUserId(rs.getInt(ConversionQueueItem.USER_ID));

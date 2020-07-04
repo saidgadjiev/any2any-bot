@@ -9,14 +9,19 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import ru.gadjini.any2any.exception.TelegramRequestException;
+import ru.gadjini.any2any.service.RenameService;
 import ru.gadjini.any2any.service.UserService;
+
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class SchedulerConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerConfiguration.class);
 
-    public static final int QUEUE_SIZE = 100;
+    public static final int QUEUE_SIZE = 60;
 
     @Bean
     public TaskScheduler jobsThreadPoolTaskScheduler(UserService userService) {
@@ -60,6 +65,27 @@ public class SchedulerConfiguration {
         taskExecutor.setQueueCapacity(QUEUE_SIZE);
         taskExecutor.setThreadNamePrefix("CommonExecutor");
         taskExecutor.initialize();
+
+        LOGGER.debug("Common thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
+
+        return taskExecutor;
+    }
+
+    @Bean
+    @Qualifier("renameTaskExecutor")
+    public ThreadPoolExecutor renameJobExecutor(RenameService renameService) {
+        ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(4, 4,
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(QUEUE_SIZE),
+                (r, executor) -> renameService.rejectRenameTask((RenameService.RenameTask) r)) {
+            @Override
+            protected void afterExecute(Runnable r, Throwable t) {
+                Runnable poll = renameService.getTask();
+                if (poll != null) {
+                    execute(poll);
+                }
+            }
+        };
 
         LOGGER.debug("Common thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
 

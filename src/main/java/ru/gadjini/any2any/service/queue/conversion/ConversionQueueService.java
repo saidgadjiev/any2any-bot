@@ -36,7 +36,7 @@ public class ConversionQueueService {
         fileQueueItem.setSize(convertState.getFileSize());
         fileQueueItem.setFormat(convertState.getFormat());
         fileQueueItem.setUserId(user.getId());
-        fileQueueItem.setMessageId(convertState.getMessageId());
+        fileQueueItem.setReplyToMessageId(convertState.getMessageId());
         fileQueueItem.setFileName(convertState.getFileName());
         fileQueueItem.setMimeType(convertState.getMimeType());
         if (StringUtils.isBlank(fileQueueItem.getFileName())) {

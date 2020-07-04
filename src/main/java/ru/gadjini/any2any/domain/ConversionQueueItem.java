@@ -12,7 +12,7 @@ public class ConversionQueueItem {
 
     public static final String USER_ID = "user_id";
 
-    public static final String MESSAGE_ID = "message_id";
+    public static final String REPLY_TO_MESSAGE_ID = "reply_to_message_id";
 
     public static final String FILE_ID = "file_id";
 
@@ -50,7 +50,7 @@ public class ConversionQueueItem {
 
     private TgUser user;
 
-    private int messageId;
+    private int replyToMessageId;
 
     private String fileId;
 
@@ -118,12 +118,12 @@ public class ConversionQueueItem {
         this.userId = userId;
     }
 
-    public int getMessageId() {
-        return messageId;
+    public int getReplyToMessageId() {
+        return replyToMessageId;
     }
 
-    public void setMessageId(int messageId) {
-        this.messageId = messageId;
+    public void setReplyToMessageId(int replyToMessageId) {
+        this.replyToMessageId = replyToMessageId;
     }
 
     public String getFileId() {

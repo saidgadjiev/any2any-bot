@@ -9,14 +9,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.bot.command.keyboard.rename.RenameState;
+import ru.gadjini.any2any.domain.RenameQueueItem;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.service.converter.impl.FormatService;
 import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.any2any.service.queue.rename.RenameQueueService;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.Locale;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @Service
 public class RenameService {
@@ -31,33 +34,51 @@ public class RenameService {
 
     private MessageService messageService;
 
-    private CommonJobExecutor commonJobExecutor;
+    private RenameQueueService renameQueueService;
+
+    private UserService userService;
+
+    private ThreadPoolExecutor executor;
 
     @Autowired
     public RenameService(TelegramService telegramService, TempFileService fileService, FormatService formatService,
-                         @Qualifier("limits") MessageService messageService, CommonJobExecutor commonJobExecutor) {
+                         @Qualifier("limits") MessageService messageService, RenameQueueService renameQueueService, UserService userService) {
         this.telegramService = telegramService;
         this.fileService = fileService;
         this.formatService = formatService;
         this.messageService = messageService;
-        this.commonJobExecutor = commonJobExecutor;
+        this.renameQueueService = renameQueueService;
+        this.userService = userService;
     }
 
-    public void rename(long chatId, RenameState renameState, String newFileName, Locale locale) {
-        commonJobExecutor.addJob(() -> {
-            String ext = formatService.getExt(renameState.getFile().getFileName(), renameState.getFile().getMimeType());
-            SmartTempFile file = createNewFile(newFileName, ext);
-            telegramService.downloadFileByFileId(renameState.getFile().getFileId(), file.getFile());
-            try {
-                sendMessage(chatId, renameState.getReplyMessageId(), file.getFile());
-                LOGGER.debug("Rename success for " + chatId + " new file name " + newFileName);
-            } catch (Exception ex) {
-                messageService.sendErrorMessage(chatId, locale);
-                throw ex;
-            } finally {
-                file.smartDelete();
-            }
-        });
+    @PostConstruct
+    public void init() {
+        renameQueueService.resetProcessing();
+    }
+
+    @Autowired
+    public void setExecutor(@Qualifier("renameTaskExecutor") ThreadPoolExecutor executor) {
+        this.executor = executor;
+    }
+
+    public void rejectRenameTask(RenameTask renameTask) {
+        renameQueueService.setWaiting(renameTask.jobId);
+    }
+
+    public RenameTask getTask() {
+        synchronized (this) {
+            RenameQueueItem peek = renameQueueService.peek();
+
+            return new RenameTask(peek.getId(), peek.getUserId(), peek.getFileName(), peek.getNewFileName(), peek.getMimeType(),
+                    peek.getFileId(), peek.getReplyToMessageId(), userService.getLocaleOrDefault(peek.getUserId()));
+        }
+    }
+
+    public void rename(int userId, RenameState renameState, String newFileName, Locale locale) {
+        int jobId = renameQueueService.createProcessingItem(userId, renameState, newFileName);
+        executor.execute(new RenameTask(jobId, userId, renameState.getFile().getFileName(), newFileName,
+                renameState.getFile().getMimeType(), renameState.getFile().getFileId(), renameState.getReplyMessageId(),
+                locale));
     }
 
     private SmartTempFile createNewFile(String fileName, String ext) {
@@ -79,6 +100,53 @@ public class RenameService {
             messageService.sendDocument(new SendDocument(chatId, renamed).setReplyToMessageId(replyMessageId));
         } finally {
             FileUtils.deleteQuietly(renamed);
+        }
+    }
+
+    public final class RenameTask implements Runnable {
+
+        private int jobId;
+        private final int userId;
+        private final String fileName;
+        private final String newFileName;
+        private final String mimeType;
+        private final String fileId;
+        private final int replyToMessageId;
+        private final Locale locale;
+
+        private RenameTask(int jobId,
+                           int userId,
+                           String fileName,
+                           String newFileName,
+                           String mimeType,
+                           String fileId,
+                           int replyToMessageId,
+                           Locale locale) {
+            this.jobId = jobId;
+            this.userId = userId;
+            this.fileName = fileName;
+            this.newFileName = newFileName;
+            this.mimeType = mimeType;
+            this.fileId = fileId;
+            this.replyToMessageId = replyToMessageId;
+            this.locale = locale;
+        }
+
+        @Override
+        public void run() {
+            String ext = formatService.getExt(fileName, mimeType);
+            SmartTempFile file = createNewFile(newFileName, ext);
+            telegramService.downloadFileByFileId(fileId, file.getFile());
+            try {
+                sendMessage(userId, replyToMessageId, file.getFile());
+                LOGGER.debug("Rename success for " + userId + " new file name " + newFileName);
+            } catch (Exception ex) {
+                messageService.sendErrorMessage(userId, locale);
+                throw ex;
+            } finally {
+                renameQueueService.delete(jobId);
+                file.smartDelete();
+            }
         }
     }
 }
