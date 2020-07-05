@@ -54,6 +54,13 @@ public class TempFileService {
         return new SmartTempFile(file, true);
     }
 
+    public SmartTempFile createTempDir() {
+        File tmpDir = new File(tempDir, "tmpdir" + generateUniquePart());
+        tmpDir.mkdirs();
+
+        return new SmartTempFile(tmpDir, false);
+    }
+
     private String generateName(String prefix, String ext) {
         long n = RANDOM.nextLong();
 

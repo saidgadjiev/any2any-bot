@@ -41,4 +41,6 @@ public class CommandNames {
     public static final String CALLBACK_DELEGATE_COMMAND_NAME = "n";
 
     public static final String CANCEL_COMMAND_NAME = "o";
+
+    public static final String EXTRACT_FILE_COMMAND_NAME = "p";
 }

@@ -13,7 +13,8 @@ public enum Arg {
     IMAGE_FILTER("m"),
     INACCURACY("l"),
     IMAGE_SIZE("o"),
-    UPDATE_EDITED_IMAGE("p"),;
+    UPDATE_EDITED_IMAGE("p"),
+    EXTRACT_FILE_ID("r");
 
     private final String key;
 

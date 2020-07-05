@@ -13,10 +13,7 @@ import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.image.editor.transparency.Color;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +24,24 @@ public class InlineKeyboardService {
     @Autowired
     public InlineKeyboardService(ButtonFactory buttonFactory) {
         this.buttonFactory = buttonFactory;
+    }
+
+    public InlineKeyboardMarkup getFilesListKeyboard(Set<Integer> filesIds) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+
+        int i = 1;
+        List<List<Integer>> lists = Lists.partition(new ArrayList<>(filesIds), 4);
+        for (List<Integer> list : lists) {
+            List<InlineKeyboardButton> row = new ArrayList<>();
+
+            for (int id : list) {
+                row.add(buttonFactory.extractFileButton(String.valueOf(i++), id));
+            }
+
+            inlineKeyboardMarkup.getKeyboard().add(row);
+        }
+
+        return inlineKeyboardMarkup;
     }
 
     public InlineKeyboardMarkup getColorsKeyboard(Locale locale, boolean cancelButton) {

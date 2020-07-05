@@ -11,15 +11,13 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.ConvertResult;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
-import java.io.File;
-import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
@@ -101,19 +99,6 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
             throw new ConvertException(ex);
         } finally {
             txt.smartDelete();
-        }
-    }
-
-    public static void main(String[] args) throws Exception {
-        File file = new File("C:/test.txt");
-
-        try (PrintWriter printWriter = new PrintWriter(file.getAbsolutePath())) {
-            for (int i = 0; i < 100; ++i) {
-                printWriter.print("Привет я Саид");
-                if (i % 10 == 0) {
-                    printWriter.println();
-                }
-            }
         }
     }
 }

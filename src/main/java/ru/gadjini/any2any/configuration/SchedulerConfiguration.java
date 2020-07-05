@@ -163,7 +163,7 @@ public class SchedulerConfiguration {
         ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(QUEUE_SIZE),
-                (r, executor) -> unzipService.rejectTask((UnzipService.UnzipTask) r)) {
+                (r, executor) -> unzipService.rejectTask(r)) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
                 Runnable poll = unzipService.getTask();

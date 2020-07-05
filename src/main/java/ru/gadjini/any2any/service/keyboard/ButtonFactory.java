@@ -94,6 +94,16 @@ public class ButtonFactory {
         return delegateButton(localisationService.getMessage(nameCode, locale), delegate, requestParams);
     }
 
+    public InlineKeyboardButton extractFileButton(String name, int id) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(name);
+        inlineKeyboardButton.setCallbackData(CommandNames.EXTRACT_FILE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(Arg.EXTRACT_FILE_ID.getKey(), id)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
     public InlineKeyboardButton queryItemDetails(String name, int queryItemId) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(name);
         inlineKeyboardButton.setCallbackData(CommandNames.QUERY_ITEM_DETAILS_COMMAND + CommandParser.COMMAND_NAME_SEPARATOR +
