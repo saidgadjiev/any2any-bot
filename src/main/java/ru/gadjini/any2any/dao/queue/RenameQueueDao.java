@@ -31,7 +31,7 @@ public class RenameQueueDao {
                             "VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 
                     ps.setInt(1, renameQueueItem.getUserId());
-                    ps.setObject(2, renameQueueItem.getFile().sql());
+                    ps.setObject(2, renameQueueItem.getFile().sqlObject());
                     ps.setString(3, renameQueueItem.getNewFileName());
                     ps.setInt(4, renameQueueItem.getReplyToMessageId());
                     ps.setInt(5, renameQueueItem.getStatus().getCode());

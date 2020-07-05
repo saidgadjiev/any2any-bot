@@ -69,8 +69,11 @@ public class RenameService {
         synchronized (this) {
             RenameQueueItem peek = renameQueueService.peek();
 
-            return new RenameTask(peek.getId(), peek.getUserId(), peek.getFile().getFileName(), peek.getNewFileName(), peek.getFile().getMimeType(),
-                    peek.getFile().getFileId(), peek.getReplyToMessageId(), userService.getLocaleOrDefault(peek.getUserId()));
+            if (peek != null) {
+                return new RenameTask(peek.getId(), peek.getUserId(), peek.getFile().getFileName(), peek.getNewFileName(), peek.getFile().getMimeType(),
+                        peek.getFile().getFileId(), peek.getReplyToMessageId(), userService.getLocaleOrDefault(peek.getUserId()));
+            }
+            return null;
         }
     }
 

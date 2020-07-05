@@ -15,7 +15,6 @@ import ru.gadjini.any2any.service.conversion.api.Format;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,12 +40,7 @@ public class ArchiveQueueDao {
 
                     ps.setInt(1, archiveQueueItem.getUserId());
 
-                    Object[] files = archiveQueueItem.getFiles().stream().map(new Function<TgFile, PGobject>() {
-                        @Override
-                        public PGobject apply(TgFile tgFile) {
-                            return tgFile.sqlObject();
-                        }
-                    }).toArray();
+                    Object[] files = archiveQueueItem.getFiles().stream().map(TgFile::sqlObject).toArray();
                     Array array = con.createArrayOf(TgFile.TYPE, files);
                     ps.setArray(2, array);
 

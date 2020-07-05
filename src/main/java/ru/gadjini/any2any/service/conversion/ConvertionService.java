@@ -104,7 +104,10 @@ public class ConvertionService {
         synchronized (this) {
             ConversionQueueItem peek = queueBusinessService.takeItem();
 
-            return new ConversionTask(peek);
+            if (peek != null) {
+                return new ConversionTask(peek);
+            }
+            return null;
         }
     }
 

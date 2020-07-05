@@ -82,8 +82,12 @@ public class ArchiveService {
         synchronized (this) {
             ArchiveQueueItem peek = archiveQueueService.peek();
 
-            return new ArchiveTask(peek.getId(), peek.getFiles(), peek.getUserId(), peek.getType(),
-                    userService.getLocaleOrDefault(peek.getUserId()));
+            if (peek != null) {
+                return new ArchiveTask(peek.getId(), peek.getFiles(), peek.getUserId(), peek.getType(),
+                        userService.getLocaleOrDefault(peek.getUserId()));
+            }
+
+            return null;
         }
     }
 

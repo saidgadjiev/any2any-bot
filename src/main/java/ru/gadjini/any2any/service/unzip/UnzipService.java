@@ -81,9 +81,12 @@ public class UnzipService {
         synchronized (this) {
             UnzipQueueItem peek = queueService.peek();
 
-            UnzipDevice unzipDevice = getCandidate(peek.getType());
-            return new UnzipTask(peek.getId(), peek.getUserId(), peek.getFile().getFileId(), peek.getType(),
-                    userService.getLocaleOrDefault(peek.getUserId()), unzipDevice);
+            if (peek != null) {
+                UnzipDevice unzipDevice = getCandidate(peek.getType());
+                return new UnzipTask(peek.getId(), peek.getUserId(), peek.getFile().getFileId(), peek.getType(),
+                        userService.getLocaleOrDefault(peek.getUserId()), unzipDevice);
+            }
+            return null;
         }
     }
 

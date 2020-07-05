@@ -32,7 +32,7 @@ public class UnzipQueueDao {
                             "VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 
                     ps.setInt(1, unzipQueueItem.getUserId());
-                    ps.setObject(2, unzipQueueItem.getFile().sql());
+                    ps.setObject(2, unzipQueueItem.getFile().sqlObject());
                     ps.setString(3, unzipQueueItem.getType().name());
                     ps.setInt(4, unzipQueueItem.getStatus().getCode());
 

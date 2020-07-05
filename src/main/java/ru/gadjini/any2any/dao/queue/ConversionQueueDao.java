@@ -33,7 +33,7 @@ public class ConversionQueueDao {
     public void add(ConversionQueueItem queueItem) {
         jdbcTemplate.query(
                 "INSERT INTO " + TYPE + " (user_id, file_id, format, size, reply_to_message_id, file_name, target_format, mime_type, status)\n" +
-                        "    VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *",
+                        "    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *",
                 ps -> {
                     ps.setInt(1, queueItem.getUserId());
                     ps.setString(2, queueItem.getFileId());
