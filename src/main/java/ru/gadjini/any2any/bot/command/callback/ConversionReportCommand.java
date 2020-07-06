@@ -43,7 +43,7 @@ public class ConversionReportCommand implements CallbackBotCommand {
     }
 
     @Override
-    public String processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
+    public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int itemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
 
         fileReportService.createReport(callbackQuery.getFromUser().getId(), itemId);
@@ -53,7 +53,5 @@ public class ConversionReportCommand implements CallbackBotCommand {
         messageService.sendMessage(
                 new HtmlMessage(callbackQuery.getMessage().getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_REPLY, locale))
         );
-
-        return null;
     }
 }

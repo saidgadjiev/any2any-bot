@@ -10,9 +10,11 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.UnzipQueueItem;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
+import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
+import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
@@ -109,10 +111,21 @@ public class UnzipService {
         }
     }
 
-    public void extractFile(int userId, int extractFileId) {
-        UnzipQueueItem item = queueService.createProcessingExtractFileItem(userId, extractFileId);
-        startExtracting(userId, item.getId());
-        executor.execute(new ExtractFileTask(item.getId(), extractFileId, userId));
+    public void extractFile(int userId, int extractFileId, String queryId) {
+        UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true);
+        if (unzipState.getFilesCache().containsKey(extractFileId)) {
+            messageService.sendAnswerCallbackQuery(
+                    new AnswerCallbackQuery(
+                            queryId,
+                            localisationService.getMessage(MessagesProperties.MESSAGE_UNZIP_PROCESSING_ANSWER, userService.getLocaleOrDefault(userId))
+                    )
+            );
+            messageService.sendDocument(new SendDocument((long) userId, unzipState.getFilesCache().get(extractFileId)));
+        } else {
+            UnzipQueueItem item = queueService.createProcessingExtractFileItem(userId, extractFileId);
+            startExtracting(userId, item.getId());
+            executor.execute(new ExtractFileTask(item.getId(), extractFileId, userId));
+        }
     }
 
     public void unzip(int userId, String fileId, Format format, Locale locale) {
@@ -130,13 +143,17 @@ public class UnzipService {
     }
 
     public void leave(long chatId) {
-        List<Integer> ids = queueService.deleteByUserId((int) chatId);
-        executor.cancel(ids);
+        cancelCurrentTasks((int) chatId);
         UnzipState state = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false);
         if (state != null) {
             messageService.removeInlineKeyboard(chatId, state.getChooseFilesMessageId());
             commandStateService.deleteState(chatId, CommandNames.UNZIP_COMMAND_NAME);
         }
+    }
+
+    private void cancelCurrentTasks(int userId) {
+        List<Integer> ids = queueService.deleteByUserId(userId);
+        executor.cancel(ids);
     }
 
     private void startExtracting(int userId, int jobId) {
@@ -207,7 +224,9 @@ public class UnzipService {
                     String outFilePath = unzipDevice.unzip(fileHeader, unzipState.getArchivePath(), out.getAbsolutePath());
                     SmartTempFile outFile = new SmartTempFile(new File(outFilePath), false);
                     try {
-                        messageService.sendDocument(new SendDocument((long) userId, outFile.getFile()));
+                        SendFileResult result = messageService.sendDocument(new SendDocument((long) userId, outFile.getFile()));
+                        unzipState.getFilesCache().put(id, result.getFileId());
+                        commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
                         finishExtracting(userId, unzipState);
                     } finally {
                         outFile.smartDelete();
@@ -265,6 +284,7 @@ public class UnzipService {
                 UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, false);
 
                 if (unzipState != null) {
+                    cancelCurrentTasks(userId);
                     messageService.removeInlineKeyboard(userId, unzipState.getChooseFilesMessageId());
                     new SmartTempFile(new File(unzipState.getArchivePath()), false).smartDelete();
                 }

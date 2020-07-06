@@ -42,7 +42,7 @@ public class CancelQueryCommand implements CallbackBotCommand {
     }
 
     @Override
-    public String processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
+    public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int queryItemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
         fileQueueBusinessService.cancel(queryItemId);
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFromUser().getId());
@@ -57,7 +57,5 @@ public class CancelQueryCommand implements CallbackBotCommand {
             messageService.editMessage(
                     new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
         }
-
-        return null;
     }
 }

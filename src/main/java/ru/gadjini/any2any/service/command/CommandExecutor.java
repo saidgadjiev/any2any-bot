@@ -3,12 +3,14 @@ package ru.gadjini.any2any.service.command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.bot.command.api.*;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.service.command.navigator.CallbackCommandNavigator;
 import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -32,9 +34,12 @@ public class CommandExecutor {
 
     private CallbackCommandNavigator callbackCommandNavigator;
 
+    private MessageService messageService;
+
     @Autowired
-    public CommandExecutor(CommandParser commandParser) {
+    public CommandExecutor(CommandParser commandParser, @Qualifier("limits") MessageService messageService) {
         this.commandParser = commandParser;
+        this.messageService = messageService;
     }
 
     @Autowired

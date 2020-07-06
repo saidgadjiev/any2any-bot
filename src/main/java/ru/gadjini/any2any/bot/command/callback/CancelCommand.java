@@ -24,8 +24,7 @@ public class CancelCommand implements CallbackBotCommand {
     }
 
     @Override
-    public String processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
+    public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         commandExecutor.cancelCommand(callbackQuery.getMessage().getChatId(), callbackQuery.getId());
-        return null;
     }
 }

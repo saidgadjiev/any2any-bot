@@ -54,8 +54,10 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public void sendAnswerCallbackQuery(AnswerCallbackQuery answerCallbackQuery) {
         HttpEntity<AnswerCallbackQuery> request = new HttpEntity<>(answerCallbackQuery);
-        ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(AnswerCallbackQuery.METHOD), request, Boolean.class);
-        LOGGER.debug(responseEntity.getStatusCode().name());
+        ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(AnswerCallbackQuery.METHOD), request, Void.class);
+        if (responseEntity.getStatusCode() != HttpStatus.OK) {
+            LOGGER.error(responseEntity.getStatusCode().name());
+        }
     }
 
     @Override

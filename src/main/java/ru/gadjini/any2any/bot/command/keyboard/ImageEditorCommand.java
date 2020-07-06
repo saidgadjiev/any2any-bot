@@ -129,8 +129,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     }
 
     @Override
-    public String processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
-        return null;
+    public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
     }
 
     @Override

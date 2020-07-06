@@ -48,11 +48,9 @@ public class ExtractFileCommand implements CallbackBotCommand {
     }
 
     @Override
-    public String processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
+    public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int id = requestParams.getInt(Arg.EXTRACT_FILE_ID.getKey());
 
-        unzipService.extractFile(callbackQuery.getFromUser().getId(), id);
-
-        return null;
+        unzipService.extractFile(callbackQuery.getFromUser().getId(), id, callbackQuery.getId());
     }
 }

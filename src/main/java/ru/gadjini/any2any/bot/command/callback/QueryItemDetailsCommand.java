@@ -48,7 +48,7 @@ public class QueryItemDetailsCommand implements CallbackBotCommand {
     }
 
     @Override
-    public String processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
+    public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int queryItemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFromUser().getId());
         ConversionQueueItem item = fileQueueService.getItem(queryItemId);
@@ -62,7 +62,5 @@ public class QueryItemDetailsCommand implements CallbackBotCommand {
                             .setReplyMarkup(inlineKeyboardService.getQueryDetailsKeyboard(queryItemId, locale))
             );
         }
-
-        return null;
     }
 }

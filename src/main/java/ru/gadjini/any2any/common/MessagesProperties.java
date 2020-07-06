@@ -261,4 +261,6 @@ public class MessagesProperties {
     public static final String MESSAGE_ARCHIVE_FILES_LIST = "message.archive.files.list";
 
     public static final String MESSAGE_ARCHIVE_PROCESSING = "message.archive.processing";
+
+    public static final String MESSAGE_UNZIP_PROCESSING_ANSWER = "message.unzip.processing.answer";
 }
