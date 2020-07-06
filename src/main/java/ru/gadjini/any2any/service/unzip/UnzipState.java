@@ -14,6 +14,8 @@ public class UnzipState {
 
     private Map<Integer, String> files = new HashMap<>();
 
+    private int chooseFilesMessageId;
+
     public String getArchivePath() {
         return archivePath;
     }
@@ -36,5 +38,14 @@ public class UnzipState {
 
     public Map<Integer, String> getFiles() {
         return files;
+    }
+
+
+    public int getChooseFilesMessageId() {
+        return chooseFilesMessageId;
+    }
+
+    public void setChooseFilesMessageId(int chooseFilesMessageId) {
+        this.chooseFilesMessageId = chooseFilesMessageId;
     }
 }

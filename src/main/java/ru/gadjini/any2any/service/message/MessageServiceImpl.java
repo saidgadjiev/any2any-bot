@@ -12,7 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TelegramRequestException;
-import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.model.EditMediaResult;
+import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
@@ -75,13 +76,15 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public void sendMessage(SendMessage sendMessage) {
+    public Message sendMessage(SendMessage sendMessage) {
         HttpEntity<SendMessage> request = new HttpEntity<>(sendMessage);
-        ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(HtmlMessage.METHOD), request, Void.class);
+        ResponseEntity<Message> responseEntity = restTemplate.postForEntity(getUrl(HtmlMessage.METHOD), request, Message.class);
 
         if (responseEntity.getStatusCode() != HttpStatus.OK) {
             LOGGER.error("Code: {}", responseEntity.getStatusCode().value());
         }
+
+        return responseEntity.getBody();
     }
 
     @Override

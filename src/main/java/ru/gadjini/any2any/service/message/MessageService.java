@@ -8,6 +8,7 @@ import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.ChatMember;
+import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 
@@ -18,7 +19,7 @@ public interface MessageService {
 
     ChatMember getChatMember(String chatId, int userId);
 
-    void sendMessage(SendMessage sendMessage);
+    Message sendMessage(SendMessage sendMessage);
 
     void removeInlineKeyboard(long chatId, int messageId);
 

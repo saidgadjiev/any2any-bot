@@ -12,6 +12,7 @@ import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
+import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
@@ -123,7 +124,11 @@ public class UnzipService {
     public void leave(long chatId) {
         List<Integer> ids = queueService.deleteByUserId((int) chatId);
         executor.cancel(ids);
-        commandStateService.deleteState(chatId, CommandNames.UNZIP_COMMAND_NAME);
+        UnzipState state = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false);
+        if (state != null) {
+            messageService.removeInlineKeyboard(chatId, state.getChooseFilesMessageId());
+            commandStateService.deleteState(chatId, CommandNames.UNZIP_COMMAND_NAME);
+        }
     }
 
     private void sendFile(int userId, File file) {
@@ -171,12 +176,14 @@ public class UnzipService {
             SmartTempFile out = fileService.createTempDir();
             try {
                 UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
-                String outFilePath = unzipDevice.unzip(fileHeader, unzipState.getArchivePath(), out.getAbsolutePath());
-                SmartTempFile outFile = new SmartTempFile(new File(outFilePath), false);
-                try {
-                    sendFile(userId, outFile.getFile());
-                } finally {
-                    outFile.smartDelete();
+                if (new File(unzipState.getArchivePath()).length() > 0) {
+                    String outFilePath = unzipDevice.unzip(fileHeader, unzipState.getArchivePath(), out.getAbsolutePath());
+                    SmartTempFile outFile = new SmartTempFile(new File(outFilePath), false);
+                    try {
+                        sendFile(userId, outFile.getFile());
+                    } finally {
+                        outFile.smartDelete();
+                    }
                 }
             } catch (Exception ex) {
                 messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
@@ -217,13 +224,20 @@ public class UnzipService {
             SmartTempFile in = telegramService.downloadFileByFileId(fileId, format.getExt());
 
             try {
-                UnzipState unzipState = createState(in.getAbsolutePath(), format);
+                UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, false);
+
+                if (unzipState != null) {
+                    messageService.removeInlineKeyboard(userId, unzipState.getChooseFilesMessageId());
+                    new SmartTempFile(new File(unzipState.getArchivePath()), false).smartDelete();
+                }
+                unzipState = createState(in.getAbsolutePath(), format);
                 String message = localisationService.getMessage(
                         MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
                         new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
                         locale);
-                messageService.sendMessage(new SendMessage((long) userId, message)
+                Message sent = messageService.sendMessage(new SendMessage((long) userId, message)
                         .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds())));
+                unzipState.setChooseFilesMessageId(sent.getMessageId());
                 commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
             } catch (Exception e) {
                 in.smartDelete();

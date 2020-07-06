@@ -79,26 +79,28 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public void sendMessage(SendMessage sendMessage) {
+    public Message sendMessage(SendMessage sendMessage) {
         if (sendMessage.getText().length() < TEXT_LENGTH_LIMIT) {
-            messageService.sendMessage(sendMessage);
+            return messageService.sendMessage(sendMessage);
         } else {
             List<String> parts = new ArrayList<>();
             Splitter.fixedLength(TEXT_LENGTH_LIMIT)
                     .split(sendMessage.getText())
                     .forEach(parts::add);
-            for (int i = 0; i < parts.size(); ++i) {
+            for (int i = 0; i < parts.size() - 1; ++i) {
                 SendMessage msg = new SendMessage(sendMessage.getChatId(), parts.get(i))
                         .setReplyToMessageId(sendMessage.getReplyToMessageId())
                         .setDisableWebPagePreview(sendMessage.getDisableWebPagePreview())
                         .setParseMode(sendMessage.getParseMode());
-                if (i + 1 == parts.size()) {
-                    messageService.sendMessage(msg);
-                } else {
-                    msg.setReplyMarkup(sendMessage.getReplyMarkup());
-                    messageService.sendMessage(sendMessage);
-                }
+                messageService.sendMessage(msg);
             }
+
+            SendMessage msg = new SendMessage(sendMessage.getChatId(), parts.get(parts.size() - 1))
+                    .setReplyToMessageId(sendMessage.getReplyToMessageId())
+                    .setDisableWebPagePreview(sendMessage.getDisableWebPagePreview())
+                    .setParseMode(sendMessage.getParseMode())
+                    .setReplyMarkup(sendMessage.getReplyMarkup());
+            return messageService.sendMessage(msg);
         }
     }
 
