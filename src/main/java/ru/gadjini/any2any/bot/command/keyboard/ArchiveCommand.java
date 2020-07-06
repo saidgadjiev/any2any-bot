@@ -16,6 +16,7 @@ import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
+import ru.gadjini.any2any.service.archive.ArchiveState;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.FormatCategory;
@@ -104,30 +105,33 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
     public void processNonCommandUpdate(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
         if (message.hasText()) {
-            List<Any2AnyFile> files = commandStateService.getState(message.getChatId(), getHistoryName(), false);
-            if (files == null || files.isEmpty()) {
+            ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false);
+            if (archiveState.getFiles().isEmpty()) {
                 messageService.sendMessage(new HtmlMessage(message.getChatId(),
                         localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale)));
             } else {
                 Format associatedFormat = checkFormat(formatService.getAssociatedFormat(message.getText()), locale);
-                archiveService.createArchive(message.getFromUser().getId(), files, associatedFormat, locale);
-                messageService.sendMessage(new HtmlMessage(message.getChatId(),
-                        localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale)));
-                commandStateService.deleteState(message.getChatId(), getHistoryName());
+                archiveService.createArchive(message.getFromUser().getId(), archiveState, associatedFormat);
             }
         } else {
-            List<Any2AnyFile> files = commandStateService.getState(message.getChatId(), getHistoryName(), false);
-            if (files == null) {
-                files = new ArrayList<>();
+            ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false);
+            if (archiveState == null) {
+                archiveState = new ArchiveState();
             }
-            files.add(createFile(message, locale));
-            commandStateService.setState(message.getChatId(), getHistoryName(), files);
+            archiveState.getFiles().add(createFile(message, locale));
+            commandStateService.setState(message.getChatId(), getHistoryName(), archiveState);
             messageService.sendMessage(
                     new HtmlMessage(
-                            message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CURRENT_FILES, new Object[]{toString(files)}, locale)
+                            message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CURRENT_FILES,
+                            new Object[]{toString(archiveState.getFiles())}, locale)
                     )
             );
         }
+    }
+
+    @Override
+    public void leave(long chatId) {
+        archiveService.leave(chatId);
     }
 
     private Any2AnyFile createFile(Message message, Locale locale) {

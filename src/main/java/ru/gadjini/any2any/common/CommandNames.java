@@ -49,4 +49,6 @@ public class CommandNames {
     public static final String CANCEL_EXTRACT_FILE = "s";
 
     public static final String CANCEL_RENAME_QUERY = "t";
+
+    public static final String CANCEL_ARCHIVE_QUERY = "u";
 }

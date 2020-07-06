@@ -139,7 +139,7 @@ public class SchedulerConfiguration {
 
     @Bean
     @Qualifier("archiveTaskExecutor")
-    public ThreadPoolExecutor archiveTaskExecutor() {
+    public SmartExecutorService archiveTaskExecutor() {
         ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(QUEUE_SIZE),
@@ -155,7 +155,7 @@ public class SchedulerConfiguration {
 
         LOGGER.debug("Archive thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
 
-        return taskExecutor;
+        return new SmartExecutorService(taskExecutor);
     }
 
     @Bean

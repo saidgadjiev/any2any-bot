@@ -42,8 +42,6 @@ public class RenameService {
 
     private RenameQueueService renameQueueService;
 
-    private UserService userService;
-
     private SmartExecutorService executor;
 
     private LocalisationService localisationService;
@@ -55,14 +53,13 @@ public class RenameService {
     @Autowired
     public RenameService(TelegramService telegramService, TempFileService fileService, FormatService formatService,
                          @Qualifier("limits") MessageService messageService, RenameQueueService renameQueueService,
-                         UserService userService, LocalisationService localisationService, InlineKeyboardService inlineKeyboardService,
+                         LocalisationService localisationService, InlineKeyboardService inlineKeyboardService,
                          CommandStateService commandStateService) {
         this.telegramService = telegramService;
         this.fileService = fileService;
         this.formatService = formatService;
         this.messageService = messageService;
         this.renameQueueService = renameQueueService;
-        this.userService = userService;
         this.localisationService = localisationService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.commandStateService = commandStateService;
@@ -88,30 +85,35 @@ public class RenameService {
 
             if (peek != null) {
                 return new RenameTask(peek.getId(), peek.getUserId(), peek.getFile().getFileName(), peek.getNewFileName(), peek.getFile().getMimeType(),
-                        peek.getFile().getFileId(), peek.getReplyToMessageId(), userService.getLocaleOrDefault(peek.getUserId()));
+                        peek.getFile().getFileId(), peek.getReplyToMessageId());
             }
             return null;
         }
     }
 
-    public void rename(int userId, RenameState renameState, String newFileName, Locale locale) {
+    public void rename(int userId, RenameState renameState, String newFileName) {
         int jobId = renameQueueService.createProcessingItem(userId, renameState, newFileName);
         startRenaming(jobId, userId);
         executor.execute(new RenameTask(jobId, userId, renameState.getFile().getFileName(), newFileName,
-                renameState.getFile().getMimeType(), renameState.getFile().getFileId(), renameState.getReplyMessageId(),
-                locale));
+                renameState.getFile().getMimeType(), renameState.getFile().getFileId(), renameState.getReplyMessageId()));
     }
 
     public void cancelCurrentTasks(long chatId) {
         List<Integer> ids = renameQueueService.deleteByUserId((int) chatId);
         executor.cancel(ids);
+
+        RenameState state = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, false);
+        if (state != null) {
+            messageService.removeInlineKeyboard(chatId, state.getProcessingMessageId());
+        }
     }
 
     public void cancel(int userId, int jobId) {
         renameQueueService.delete(jobId);
         executor.cancel(jobId);
+        RenameState state = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, true);
         commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
-        renamingCanceled(userId);
+        messageService.removeInlineKeyboard(userId, state.getProcessingMessageId());
     }
 
     public void leave(long chatId) {
@@ -119,17 +121,12 @@ public class RenameService {
         commandStateService.deleteState(chatId, CommandNames.RENAME_COMMAND_NAME);
     }
 
-    private void renamingCanceled(int userId) {
-        RenameState state = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, true);
-        messageService.removeInlineKeyboard(userId, state.getProcessingMessageId());
-    }
-
     private void startRenaming(int jobId, int userId) {
-        Locale locale = userService.getLocaleOrDefault(userId);
+        RenameState state = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, true);
+        Locale locale = new Locale(state.getLanguage());
         int messageId = messageService.sendMessage(
                 new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_RENAMING, locale))
                         .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale))).getMessageId();
-        RenameState state = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, true);
         state.setProcessingMessageId(messageId);
         commandStateService.setState(userId, CommandNames.RENAME_COMMAND_NAME, state);
     }
@@ -165,7 +162,6 @@ public class RenameService {
         private final String mimeType;
         private final String fileId;
         private final int replyToMessageId;
-        private final Locale locale;
 
         private RenameTask(int jobId,
                            int userId,
@@ -173,8 +169,7 @@ public class RenameService {
                            String newFileName,
                            String mimeType,
                            String fileId,
-                           int replyToMessageId,
-                           Locale locale) {
+                           int replyToMessageId) {
             this.jobId = jobId;
             this.userId = userId;
             this.fileName = fileName;
@@ -182,7 +177,6 @@ public class RenameService {
             this.mimeType = mimeType;
             this.fileId = fileId;
             this.replyToMessageId = replyToMessageId;
-            this.locale = locale;
         }
 
         @Override
@@ -190,15 +184,16 @@ public class RenameService {
             String ext = formatService.getExt(fileName, mimeType);
             SmartTempFile file = createNewFile(newFileName, ext);
             telegramService.downloadFileByFileId(fileId, file.getFile());
+            RenameState renameState = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, true);
             try {
                 sendMessage(userId, replyToMessageId, file.getFile());
-                commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
                 LOGGER.debug("Rename success for " + userId + " new file name " + newFileName);
             } catch (Exception ex) {
-                messageService.sendErrorMessage(userId, locale);
+                messageService.sendErrorMessage(userId, new Locale(renameState.getLanguage()));
                 throw ex;
             } finally {
                 renameQueueService.delete(jobId);
+                commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
                 file.smartDelete();
             }
         }

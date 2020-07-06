@@ -7,18 +7,24 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.command.CommandStateService;
+import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.archive.ArchiveQueueService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
@@ -26,7 +32,6 @@ import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,7 +43,7 @@ public class ArchiveService {
 
     private TempFileService fileService;
 
-    private ThreadPoolExecutor executor;
+    private SmartExecutorService executor;
 
     private TelegramService telegramService;
 
@@ -50,11 +55,16 @@ public class ArchiveService {
 
     private ArchiveQueueService archiveQueueService;
 
+    private CommandStateService commandStateService;
+
+    private InlineKeyboardService inlineKeyboardService;
+
     @Autowired
     public ArchiveService(Set<ArchiveDevice> archiveDevices, TempFileService fileService,
                           TelegramService telegramService, LocalisationService localisationService,
                           @Qualifier("limits") MessageService messageService, UserService userService,
-                          ArchiveQueueService archiveQueueService) {
+                          ArchiveQueueService archiveQueueService, CommandStateService commandStateService,
+                          InlineKeyboardService inlineKeyboardService) {
         this.archiveDevices = archiveDevices;
         this.fileService = fileService;
         this.telegramService = telegramService;
@@ -62,6 +72,8 @@ public class ArchiveService {
         this.messageService = messageService;
         this.userService = userService;
         this.archiveQueueService = archiveQueueService;
+        this.commandStateService = commandStateService;
+        this.inlineKeyboardService = inlineKeyboardService;
     }
 
     @PostConstruct
@@ -70,7 +82,7 @@ public class ArchiveService {
     }
 
     @Autowired
-    public void setExecutor(@Qualifier("archiveTaskExecutor") ThreadPoolExecutor executor) {
+    public void setExecutor(@Qualifier("archiveTaskExecutor") SmartExecutorService executor) {
         this.executor = executor;
     }
 
@@ -83,8 +95,7 @@ public class ArchiveService {
             ArchiveQueueItem peek = archiveQueueService.peek();
 
             if (peek != null) {
-                return new ArchiveTask(peek.getId(), peek.getFiles(), peek.getUserId(), peek.getType(),
-                        userService.getLocaleOrDefault(peek.getUserId()));
+                return new ArchiveTask(peek.getId(), peek.getFiles(), peek.getUserId(), peek.getType());
             }
 
             return null;
@@ -102,17 +113,46 @@ public class ArchiveService {
         return archive;
     }
 
-    public void createArchive(int userId, List<Any2AnyFile> any2AnyFiles, Format format, Locale locale) {
-        LOGGER.debug("Start createArchive({}, {})", userId, format);
-        normalizeFileNames(any2AnyFiles);
-
-        ArchiveQueueItem item = archiveQueueService.createProcessingItem(userId, any2AnyFiles, format);
-
-        executor.execute(new ArchiveTask(item.getId(), item.getFiles(), item.getUserId(), item.getType(), locale));
+    public void leave(long chatId) {
+        cancelCurrentTasks(chatId);
+        commandStateService.deleteState(chatId, CommandNames.RENAME_COMMAND_NAME);
     }
 
-    private void sendResult(int userId, File archive) {
-        messageService.sendDocument(new SendDocument((long) userId, archive));
+    public void createArchive(int userId, ArchiveState archiveState, Format format) {
+        LOGGER.debug("Start createArchive({}, {})", userId, format);
+        normalizeFileNames(archiveState.getFiles());
+
+        ArchiveQueueItem item = archiveQueueService.createProcessingItem(userId, archiveState.getFiles(), format);
+        startArchiveCreating(userId, item.getId());
+        executor.execute(new ArchiveTask(item.getId(), item.getFiles(), item.getUserId(), item.getType()));
+    }
+
+    public void cancelCurrentTasks(long chatId) {
+        List<Integer> ids = archiveQueueService.deleteByUserId((int) chatId);
+        executor.cancel(ids);
+
+        ArchiveState state = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, false);
+        if (state != null) {
+            messageService.removeInlineKeyboard(chatId, state.getArchiveCreatingMessageId());
+        }
+    }
+
+    public void cancel(int userId, int jobId) {
+        archiveQueueService.delete(jobId);
+        executor.cancel(jobId);
+        ArchiveState state = commandStateService.getState(userId, CommandNames.ARCHIVE_COMMAND_NAME, true);
+        commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+
+        messageService.removeInlineKeyboard(userId, state.getArchiveCreatingMessageId());
+    }
+
+    private void startArchiveCreating(int userId, int jobId) {
+        ArchiveState state = commandStateService.getState(userId, CommandNames.ARCHIVE_COMMAND_NAME, true);
+        Locale locale = new Locale(state.getLanguage());
+        Message message = messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale))
+                .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale)));
+        state.setArchiveCreatingMessageId(message.getMessageId());
+        commandStateService.setState(userId, CommandNames.ARCHIVE_COMMAND_NAME, state);
     }
 
     private List<SmartTempFile> downloadFiles(List<TgFile> tgFiles) {
@@ -164,7 +204,7 @@ public class ArchiveService {
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_TYPE_UNSUPPORTED, new Object[]{format}, locale));
     }
 
-    public class ArchiveTask implements Runnable {
+    public class ArchiveTask implements SmartExecutorService.Job {
 
         private int jobId;
 
@@ -174,19 +214,18 @@ public class ArchiveService {
 
         private Format type;
 
-        private Locale locale;
-
-        private ArchiveTask(int jobId, List<TgFile> archiveFiles, int userId, Format type, Locale locale) {
+        private ArchiveTask(int jobId, List<TgFile> archiveFiles, int userId, Format type) {
             this.jobId = jobId;
             this.archiveFiles = archiveFiles;
             this.userId = userId;
             this.type = type;
-            this.locale = locale;
         }
 
         @Override
         public void run() {
             List<SmartTempFile> files = downloadFiles(archiveFiles);
+            ArchiveState state = commandStateService.getState(userId, CommandNames.ARCHIVE_COMMAND_NAME, true);
+            Locale locale = new Locale(state.getLanguage());
             try {
                 SmartTempFile archive = fileService.getTempFile(
                         Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), type.getExt())
@@ -194,7 +233,7 @@ public class ArchiveService {
                 try {
                     ArchiveDevice archiveDevice = getCandidate(type, locale);
                     archiveDevice.zip(files.stream().map(SmartTempFile::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
-                    sendResult(userId, archive.getFile());
+                    messageService.sendDocument(new SendDocument((long) userId, archive.getFile()));
                     LOGGER.debug("Finish createArchive({}, {})", userId, type);
                 } catch (Exception ex) {
                     messageService.sendErrorMessage(userId, locale);
@@ -204,8 +243,14 @@ public class ArchiveService {
                 }
             } finally {
                 archiveQueueService.delete(jobId);
+                commandStateService.deleteState(userId, CommandNames.ARCHIVE_COMMAND_NAME);
                 files.forEach(SmartTempFile::smartDelete);
             }
+        }
+
+        @Override
+        public int getId() {
+            return jobId;
         }
     }
 }
