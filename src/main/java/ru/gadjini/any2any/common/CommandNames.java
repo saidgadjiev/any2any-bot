@@ -43,4 +43,8 @@ public class CommandNames {
     public static final String CANCEL_COMMAND_NAME = "o";
 
     public static final String EXTRACT_FILE_COMMAND_NAME = "p";
+
+    public static final String UPDATE_EXTRACT_FILE_STATUS = "r";
+
+    public static final String CANCEL_EXTRACT_FILE = "s";
 }

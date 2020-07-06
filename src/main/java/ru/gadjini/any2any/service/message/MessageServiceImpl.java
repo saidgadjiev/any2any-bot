@@ -89,11 +89,15 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public void removeInlineKeyboard(long chatId, int messageId) {
-        HttpEntity<EditMessageReplyMarkup> request = new HttpEntity<>(new EditMessageReplyMarkup(chatId, messageId));
-        ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(EditMessageReplyMarkup.METHOD), request, Void.class);
+        try {
+            HttpEntity<EditMessageReplyMarkup> request = new HttpEntity<>(new EditMessageReplyMarkup(chatId, messageId));
+            ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(EditMessageReplyMarkup.METHOD), request, Void.class);
 
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
-            LOGGER.error("Code: {}", responseEntity.getStatusCode().value());
+            if (responseEntity.getStatusCode() != HttpStatus.OK) {
+                LOGGER.error("Code: {}", responseEntity.getStatusCode().value());
+            }
+        } catch (Exception ignore) {
+
         }
     }
 

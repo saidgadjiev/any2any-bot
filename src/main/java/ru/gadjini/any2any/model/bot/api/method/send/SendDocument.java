@@ -7,13 +7,12 @@ import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 
 import java.io.File;
 import java.util.Objects;
-
 public class SendDocument {
     public static final String METHOD = "senddocument";
 
     public static final String CHATID_FIELD = "chat_id";
     public static final String DOCUMENT_FIELD = "document";
-    public static final String CAPTION_FIELD = "setCaption";
+    public static final String CAPTION_FIELD = "caption";
     public static final String REPLYTOMESSAGEID_FIELD = "reply_to_message_id";
     public static final String REPLYMARKUP_FIELD = "reply_markup";
     public static final String PARSEMODE_FIELD = "parse_mode";

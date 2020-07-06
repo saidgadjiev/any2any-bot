@@ -38,14 +38,17 @@ public class UnzipQueueService {
         return unzipQueueDao.create(queueItem);
     }
 
-    public int createProcessingExtractFileItem(int userId, int extractFileId) {
+    public UnzipQueueItem createProcessingExtractFileItem(int userId, int extractFileId) {
         UnzipQueueItem item = new UnzipQueueItem();
         item.setUserId(userId);
         item.setExtractFileId(extractFileId);
         item.setItemType(UnzipQueueItem.ItemType.EXTRACT_FILE);
         item.setStatus(UnzipQueueItem.Status.PROCESSING);
 
-        return unzipQueueDao.create(item);
+        int jobId = unzipQueueDao.create(item);
+        item.setId(jobId);
+
+        return item;
     }
 
     public void setWaiting(int id) {

@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service.unzip;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
@@ -108,9 +110,11 @@ public class UnzipService {
         }
     }
 
-    public void extractFile(int userId, int extractFileId) {
-        int jobId = queueService.createProcessingExtractFileItem(userId, extractFileId);
-        executor.execute(new ExtractFileTask(jobId, extractFileId, userId));
+    public int extractFile(int userId, int extractFileId) {
+        UnzipQueueItem item = queueService.createProcessingExtractFileItem(userId, extractFileId);
+        executor.execute(new ExtractFileTask(item.getId(), extractFileId, userId));
+
+        return item.getId();
     }
 
     public void unzip(int userId, String fileId, Format format, Locale locale) {
@@ -119,6 +123,11 @@ public class UnzipService {
         int id = queueService.createProcessingUnzipItem(userId, fileId, format);
 
         executor.execute(new UnzipTask(id, userId, fileId, format, locale, unzipDevice));
+    }
+
+    public void cancel(int jobId) {
+        queueService.delete(jobId);
+        executor.cancel(jobId);
     }
 
     public void leave(long chatId) {
@@ -131,8 +140,9 @@ public class UnzipService {
         }
     }
 
-    private void sendFile(int userId, File file) {
-        messageService.sendDocument(new SendDocument((long) userId, file));
+    private int sendFile(int userId, File file, String caption, InlineKeyboardMarkup keyboardMarkup) {
+        return messageService.sendDocument(new SendDocument((long) userId, file).setCaption(caption)
+                .setReplyMarkup(keyboardMarkup)).getMessageId();
     }
 
     private UnzipDevice getCandidate(Format format) {
@@ -180,7 +190,15 @@ public class UnzipService {
                     String outFilePath = unzipDevice.unzip(fileHeader, unzipState.getArchivePath(), out.getAbsolutePath());
                     SmartTempFile outFile = new SmartTempFile(new File(outFilePath), false);
                     try {
-                        sendFile(userId, outFile.getFile());
+                        messageService.deleteMessage(userId, unzipState.getChooseFilesMessageId());
+                        String message = localisationService.getMessage(
+                                MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
+                                new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
+                                userService.getLocaleOrDefault(userId)
+                        );
+                        int newMessageId = sendFile(userId, outFile.getFile(), message, inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds()));
+                        unzipState.setChooseFilesMessageId(newMessageId);
+                        commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
                     } finally {
                         outFile.smartDelete();
                     }
@@ -265,5 +283,9 @@ public class UnzipService {
 
             return unzipState;
         }
+    }
+
+    public static void main(String[] args) throws Exception {
+        System.out.println(new ObjectMapper().writeValueAsString(new SendDocument().setCaption("test")));
     }
 }

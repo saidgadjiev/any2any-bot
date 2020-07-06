@@ -14,7 +14,8 @@ public enum Arg {
     INACCURACY("l"),
     IMAGE_SIZE("o"),
     UPDATE_EDITED_IMAGE("p"),
-    EXTRACT_FILE_ID("r");
+    EXTRACT_FILE_ID("r"),
+    JOB_ID("s");
 
     private final String key;
 

@@ -254,7 +254,7 @@ public class MessagesProperties {
 
     public static final String FORMATS_COMMAND_DESCRIPTION = "formats.command.description";
 
-    public static final String UPDATE_EDITED_IMAGE_COMMAND_DESCRIPTION = "update.edited.image.command.description";
+    public static final String UPDATE_COMMAND_DESCRIPTION = "update.command.description";
 
     public static final String UPDATE_CALLBACK_ANSWER = "update.callback.answer";
 

@@ -44,6 +44,14 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
+    public InlineKeyboardMarkup getUnzipProcessingKeyboard(int jobId, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelExtractFileQuery(jobId, locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
     public InlineKeyboardMarkup getColorsKeyboard(Locale locale, boolean cancelButton) {
         InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
 
