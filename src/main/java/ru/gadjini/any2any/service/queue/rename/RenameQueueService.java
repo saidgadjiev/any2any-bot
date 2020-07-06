@@ -7,6 +7,8 @@ import ru.gadjini.any2any.dao.queue.RenameQueueDao;
 import ru.gadjini.any2any.domain.RenameQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
 
+import java.util.List;
+
 @Service
 public class RenameQueueService {
 
@@ -48,5 +50,9 @@ public class RenameQueueService {
 
     public void delete(int id) {
         renameQueueDao.delete(id);
+    }
+
+    public List<Integer> deleteByUserId(int userId) {
+        return renameQueueDao.deleteByUserId(userId);
     }
 }

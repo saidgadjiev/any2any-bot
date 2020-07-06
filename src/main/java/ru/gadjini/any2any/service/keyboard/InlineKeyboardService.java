@@ -26,6 +26,14 @@ public class InlineKeyboardService {
         this.buttonFactory = buttonFactory;
     }
 
+    public InlineKeyboardMarkup getRenameProcessingKeyboard(int jobId, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelRenameQuery(jobId, locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
     public InlineKeyboardMarkup getFilesListKeyboard(Set<Integer> filesIds) {
         InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
 

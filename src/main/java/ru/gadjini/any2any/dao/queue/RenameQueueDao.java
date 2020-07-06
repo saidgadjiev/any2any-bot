@@ -11,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 
 @Repository
 public class RenameQueueDao {
@@ -72,6 +73,11 @@ public class RenameQueueDao {
 
     public void delete(int id) {
         jdbcTemplate.update("DELETE FROM rename_queue WHERE id = ?", ps -> ps.setInt(1, id));
+    }
+
+    public List<Integer> deleteByUserId(int userId) {
+        return jdbcTemplate.query("WITH r as(DELETE FROM rename_queue WHERE user_id = ? RETURNING id) SELECT id FROM r",
+                ps -> ps.setInt(1, userId), (rs, rowNum) -> rs.getInt("id"));
     }
 
     private RenameQueueItem map(ResultSet resultSet) throws SQLException {
