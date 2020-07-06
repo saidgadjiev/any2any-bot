@@ -81,8 +81,7 @@ public class UnzipService {
 
     @PostConstruct
     public void init() {
-        //TODO: нужен фикс
-        //queueService.resetProcessing();
+        queueService.resetProcessing();
     }
 
     @Autowired
@@ -208,14 +207,20 @@ public class UnzipService {
         public void run() {
             SmartTempFile in = telegramService.downloadFileByFileId(fileId, format.getExt());
 
-            UnzipState unzipState = createState(in.getAbsolutePath(), format);
-            String message = localisationService.getMessage(
-                    MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
-                    new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
-                    locale);
-            messageService.sendMessage(new SendMessage((long) userId, message)
-                    .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds())));
-            commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
+            try {
+                UnzipState unzipState = createState(in.getAbsolutePath(), format);
+                String message = localisationService.getMessage(
+                        MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
+                        new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
+                        locale);
+                messageService.sendMessage(new SendMessage((long) userId, message)
+                        .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds())));
+                commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
+                queueService.delete(jobId);
+            } catch (Exception e) {
+                in.smartDelete();
+                throw e;
+            }
         }
 
         private UnzipState createState(String zipFile, Format archiveType) {
