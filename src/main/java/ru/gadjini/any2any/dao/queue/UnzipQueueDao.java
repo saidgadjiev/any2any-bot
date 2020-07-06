@@ -25,21 +25,36 @@ public class UnzipQueueDao {
 
     public int create(UnzipQueueItem unzipQueueItem) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+        if (unzipQueueItem.getItemType() == UnzipQueueItem.ItemType.UNZIP) {
+            jdbcTemplate.update(
+                    con -> {
+                        PreparedStatement ps = con.prepareStatement("INSERT INTO unzip_queue(user_id, file, type, status, item_type) " +
+                                "VALUES (?, ?, ?, ?, 0)", Statement.RETURN_GENERATED_KEYS);
 
-        jdbcTemplate.update(
-                con -> {
-                    PreparedStatement ps = con.prepareStatement("INSERT INTO unzip_queue(user_id, file, type, status) " +
-                            "VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+                        ps.setInt(1, unzipQueueItem.getUserId());
+                        ps.setObject(2, unzipQueueItem.getFile().sqlObject());
+                        ps.setString(3, unzipQueueItem.getType().name());
+                        ps.setInt(4, unzipQueueItem.getStatus().getCode());
 
-                    ps.setInt(1, unzipQueueItem.getUserId());
-                    ps.setObject(2, unzipQueueItem.getFile().sqlObject());
-                    ps.setString(3, unzipQueueItem.getType().name());
-                    ps.setInt(4, unzipQueueItem.getStatus().getCode());
+                        return ps;
+                    },
+                    keyHolder
+            );
+        } else {
+            jdbcTemplate.update(
+                    con -> {
+                        PreparedStatement ps = con.prepareStatement("INSERT INTO unzip_queue(user_id, extract_file_id, status, item_type) " +
+                                "VALUES (?, ?, ?, 1)", Statement.RETURN_GENERATED_KEYS);
 
-                    return ps;
-                },
-                keyHolder
-        );
+                        ps.setInt(1, unzipQueueItem.getUserId());
+                        ps.setObject(2, unzipQueueItem.getExtractFileId());
+                        ps.setInt(3, unzipQueueItem.getStatus().getCode());
+
+                        return ps;
+                    },
+                    keyHolder
+            );
+        }
 
         return ((Number) keyHolder.getKeys().get(UnzipQueueItem.ID)).intValue();
     }
@@ -77,13 +92,19 @@ public class UnzipQueueDao {
     private UnzipQueueItem map(ResultSet resultSet) throws SQLException {
         UnzipQueueItem item = new UnzipQueueItem();
         item.setId(resultSet.getInt(UnzipQueueItem.ID));
-
-        TgFile tgFile = new TgFile();
-        tgFile.setFileId(resultSet.getString(TgFile.FILE_ID));
-        item.setFile(tgFile);
-
-        item.setType(Format.valueOf(resultSet.getString(UnzipQueueItem.TYPE)));
         item.setUserId(resultSet.getInt(UnzipQueueItem.USER_ID));
+        UnzipQueueItem.ItemType itemType = UnzipQueueItem.ItemType.fromCode(resultSet.getInt(UnzipQueueItem.ITEM_TYPE));
+        item.setItemType(itemType);
+
+        if (itemType == UnzipQueueItem.ItemType.UNZIP) {
+            TgFile tgFile = new TgFile();
+            tgFile.setFileId(resultSet.getString(TgFile.FILE_ID));
+            item.setFile(tgFile);
+
+            item.setType(Format.valueOf(resultSet.getString(UnzipQueueItem.TYPE)));
+        } else {
+            item.setExtractFileId(resultSet.getInt(UnzipQueueItem.EXTRACT_FILE_ID));
+        }
 
         return item;
     }

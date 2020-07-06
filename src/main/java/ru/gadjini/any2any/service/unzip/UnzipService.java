@@ -26,17 +26,13 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
-import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @Service
 public class UnzipService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UnzipService.class);
-
-    private final Queue<ExtractFileTask> extractFileTaskQueue = new LinkedBlockingQueue<>();
 
     private Set<UnzipDevice> unzipDevices;
 
@@ -89,40 +85,37 @@ public class UnzipService {
         this.executor = executor;
     }
 
-    public void rejectTask(Runnable unzipTask) {
-        if (unzipTask instanceof UnzipTask) {
-            queueService.setWaiting(((UnzipTask) unzipTask).jobId);
-        } else {
-            extractFileTaskQueue.add((ExtractFileTask) unzipTask);
-        }
+    public void rejectTask(UnzipJobTask unzipTask) {
+        queueService.setWaiting(unzipTask.getJobId());
     }
 
     public Runnable getTask() {
         synchronized (this) {
-            if (extractFileTaskQueue.isEmpty()) {
-                UnzipQueueItem peek = queueService.peek();
+            UnzipQueueItem peek = queueService.peek();
 
-                if (peek != null) {
+            if (peek != null) {
+                if (peek.getItemType() == UnzipQueueItem.ItemType.UNZIP) {
                     UnzipDevice unzipDevice = getCandidate(peek.getType());
                     return new UnzipTask(peek.getId(), peek.getUserId(), peek.getFile().getFileId(), peek.getType(),
                             userService.getLocaleOrDefault(peek.getUserId()), unzipDevice);
+                } else {
+                    return new ExtractFileTask(peek.getId(), peek.getExtractFileId(), peek.getUserId());
                 }
-
-                return null;
-            } else {
-                return extractFileTaskQueue.poll();
             }
+
+            return null;
         }
     }
 
-    public void extractFile(int userId, int id) {
-        executor.execute(new ExtractFileTask(id, userId));
+    public void extractFile(int userId, int extractFileId) {
+        int jobId = queueService.createProcessingExtractFileItem(userId, extractFileId);
+        executor.execute(new ExtractFileTask(jobId, extractFileId, userId));
     }
 
     public void unzip(int userId, String fileId, Format format, Locale locale) {
         LOGGER.debug("Start unzip({}, {}, {})", format, fileId, userId);
         UnzipDevice unzipDevice = checkCandidate(format, locale);
-        int id = queueService.createProcessingItem(userId, fileId, format);
+        int id = queueService.createProcessingUnzipItem(userId, fileId, format);
 
         executor.execute(new UnzipTask(id, userId, fileId, format, locale, unzipDevice));
     }
@@ -151,14 +144,22 @@ public class UnzipService {
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SUPPORTED_ZIP_FORMATS, locale));
     }
 
-    public class ExtractFileTask implements Runnable {
+    private interface UnzipJobTask {
+
+        int getJobId();
+    }
+
+    public class ExtractFileTask implements Runnable, UnzipJobTask {
+
+        private int jobId;
 
         private int id;
 
         private int userId;
 
-        private ExtractFileTask(int id, int userId) {
-            this.id = id;
+        private ExtractFileTask(int jobId, int extractFileId, int userId) {
+            this.jobId = jobId;
+            this.id = extractFileId;
             this.userId = userId;
         }
 
@@ -183,9 +184,14 @@ public class UnzipService {
                 out.smartDelete();
             }
         }
+
+        @Override
+        public int getJobId() {
+            return jobId;
+        }
     }
 
-    public class UnzipTask implements Runnable {
+    public class UnzipTask implements Runnable, UnzipJobTask {
 
         private final int jobId;
         private final int userId;
@@ -234,6 +240,11 @@ public class UnzipService {
             }
 
             return unzipState;
+        }
+
+        @Override
+        public int getJobId() {
+            return jobId;
         }
     }
 }

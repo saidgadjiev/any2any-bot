@@ -16,6 +16,10 @@ public class UnzipQueueItem {
 
     public static final String STATUS = "status";
 
+    public static final String ITEM_TYPE = "item_type";
+
+    public static final String EXTRACT_FILE_ID = "extract_file_id";
+
     private int id;
 
     private int userId;
@@ -25,6 +29,10 @@ public class UnzipQueueItem {
     private Format type;
 
     private Status status;
+
+    private ItemType itemType;
+
+    private int extractFileId;
 
     public int getId() {
         return id;
@@ -66,6 +74,22 @@ public class UnzipQueueItem {
         this.status = status;
     }
 
+    public ItemType getItemType() {
+        return itemType;
+    }
+
+    public void setItemType(ItemType itemType) {
+        this.itemType = itemType;
+    }
+
+    public int getExtractFileId() {
+        return extractFileId;
+    }
+
+    public void setExtractFileId(int extractFileId) {
+        this.extractFileId = extractFileId;
+    }
+
     public enum Status {
 
         WAITING(0),
@@ -80,6 +104,32 @@ public class UnzipQueueItem {
 
         public int getCode() {
             return code;
+        }
+    }
+
+    public enum ItemType {
+
+        UNZIP(0),
+
+        EXTRACT_FILE(1);
+
+        private final int code;
+
+        ItemType(int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
+
+        public static ItemType fromCode(int code) {
+            for (ItemType itemType : values()) {
+                if (itemType.code == code) {
+                    return itemType;
+                }
+            }
+            throw new IllegalArgumentException("Unknown queue item status " + code);
         }
     }
 }

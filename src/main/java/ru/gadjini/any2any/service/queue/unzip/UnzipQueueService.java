@@ -21,18 +21,29 @@ public class UnzipQueueService {
         unzipQueueDao.resetProcessing();
     }
 
-    public int createProcessingItem(int userId, String fileId, Format format) {
-        UnzipQueueItem renameQueueItem = new UnzipQueueItem();
-        renameQueueItem.setUserId(userId);
-        renameQueueItem.setType(format);
+    public int createProcessingUnzipItem(int userId, String fileId, Format format) {
+        UnzipQueueItem queueItem = new UnzipQueueItem();
+        queueItem.setUserId(userId);
+        queueItem.setType(format);
+        queueItem.setItemType(UnzipQueueItem.ItemType.UNZIP);
 
         TgFile file = new TgFile();
         file.setFileId(fileId);
-        renameQueueItem.setFile(file);
+        queueItem.setFile(file);
 
-        renameQueueItem.setStatus(UnzipQueueItem.Status.PROCESSING);
+        queueItem.setStatus(UnzipQueueItem.Status.PROCESSING);
 
-        return unzipQueueDao.create(renameQueueItem);
+        return unzipQueueDao.create(queueItem);
+    }
+
+    public int createProcessingExtractFileItem(int userId, int extractFileId) {
+        UnzipQueueItem item = new UnzipQueueItem();
+        item.setUserId(userId);
+        item.setExtractFileId(extractFileId);
+        item.setItemType(UnzipQueueItem.ItemType.EXTRACT_FILE);
+        item.setStatus(UnzipQueueItem.Status.PROCESSING);
+
+        return unzipQueueDao.create(item);
     }
 
     public void setWaiting(int id) {
