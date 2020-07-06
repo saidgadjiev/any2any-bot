@@ -12,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 
 @Repository
 public class UnzipQueueDao {
@@ -87,6 +88,15 @@ public class UnzipQueueDao {
 
     public void delete(int id) {
         jdbcTemplate.update("DELETE FROM unzip_queue WHERE id = ?", ps -> ps.setInt(1, id));
+    }
+
+    public List<Integer> deleteByUserId(int userId) {
+        return jdbcTemplate.query("WITH r AS (DELETE FROM unzip_queue WHERE user_id = ? RETURNING id) SELECT id FROM r", ps -> ps.setInt(1, userId),
+                (rs, rowNum) -> rs.getInt(UnzipQueueItem.ID));
+    }
+
+    public Boolean exists(int id) {
+        return jdbcTemplate.query("SELECT true FROM unzip_queue WHERE id = ?", ps -> ps.setInt(1, id), ResultSet::next);
     }
 
     private UnzipQueueItem map(ResultSet resultSet) throws SQLException {

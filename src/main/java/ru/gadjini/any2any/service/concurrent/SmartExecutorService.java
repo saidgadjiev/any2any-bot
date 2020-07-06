@@ -1,105 +1,42 @@
 package ru.gadjini.any2any.service.concurrent;
 
-import javax.annotation.Nonnull;
-import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
-public class SmartExecutorService implements ExecutorService {
-
-    private TaskCompleteListener taskCompleteListener;
+public class SmartExecutorService {
 
     private ExecutorService executorService;
+
+    private final Map<Integer, Future<?>> processing = new ConcurrentHashMap<>();
 
     public SmartExecutorService(ExecutorService executorService) {
         this.executorService = executorService;
     }
 
-    @Override
-    public void shutdown() {
-        executorService.shutdown();
+    public void execute(Job job) {
+        Future<?> submit = executorService.submit(job);
+        processing.put(job.getId(), submit);
     }
 
-    @Nonnull
-    @Override
-    public List<Runnable> shutdownNow() {
-        return executorService.shutdownNow();
+    public void complete(int jobId) {
+        processing.remove(jobId);
     }
 
-    @Override
-    public boolean isShutdown() {
-        return executorService.isShutdown();
+    public void cancel(int jobId) {
+        Future<?> future = processing.get(jobId);
+        if (future != null && (!future.isCancelled() || !future.isDone())) {
+            future.cancel(true);
+        }
     }
 
-    @Override
-    public boolean isTerminated() {
-        return executorService.isTerminated();
+    public void cancel(List<Integer> ids) {
+        ids.forEach(this::cancel);
     }
 
-    @Override
-    public boolean awaitTermination(long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
-        return executorService.awaitTermination(timeout, unit);
-    }
-
-    @Nonnull
-    @Override
-    public <T> Future<T> submit(@Nonnull Callable<T> task) {
-        return executorService.submit(task);
-    }
-
-    @Nonnull
-    @Override
-    public <T> Future<T> submit(@Nonnull Runnable task, T result) {
-        return executorService.submit(task, result);
-    }
-
-    @Nonnull
-    @Override
-    public Future<?> submit(@Nonnull Runnable task) {
-        return executorService.submit(task);
-    }
-
-    @Nonnull
-    @Override
-    public <T> List<Future<T>> invokeAll(@Nonnull Collection<? extends Callable<T>> tasks) throws InterruptedException {
-        return executorService.invokeAll(tasks);
-    }
-
-    @Nonnull
-    @Override
-    public <T> List<Future<T>> invokeAll(@Nonnull Collection<? extends Callable<T>> tasks, long timeout, @Nonnull TimeUnit unit) throws InterruptedException {
-        return executorService.invokeAll(tasks, timeout, unit);
-    }
-
-    @Nonnull
-    @Override
-    public <T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
-        return executorService.invokeAny(tasks);
-    }
-
-    @Nonnull
-    @Override
-    public <T> T invokeAny(@Nonnull Collection<? extends Callable<T>> tasks, long timeout, @Nonnull TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return executorService.invokeAny(tasks, timeout, unit);
-    }
-
-    @Override
-    public void execute(@Nonnull Runnable command) {
-        executorService.execute(new Runnable() {
-            @Override
-            public void run() {
-                command.run();
-                taskCompleteListener.taskCompleted();
-            }
-        });
-    }
-
-    public void setTaskCompleteListener(TaskCompleteListener taskCompleteListener) {
-        this.taskCompleteListener = taskCompleteListener;
-    }
-
-    public interface TaskCompleteListener {
-
-        void taskCompleted();
+    public interface Job extends Runnable {
+        int getId();
     }
 }

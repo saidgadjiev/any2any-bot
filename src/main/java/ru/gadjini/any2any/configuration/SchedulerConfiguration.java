@@ -13,6 +13,7 @@ import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.service.RenameService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
+import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.ConvertionService;
 import ru.gadjini.any2any.service.unzip.UnzipService;
 
@@ -159,11 +160,11 @@ public class SchedulerConfiguration {
 
     @Bean
     @Qualifier("unzipTaskExecutor")
-    public ThreadPoolExecutor unzipTaskExecutor() {
+    public SmartExecutorService unzipTaskExecutor() {
         ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(QUEUE_SIZE),
-                (r, executor) -> unzipService.rejectTask(r)) {
+                (r, executor) -> unzipService.rejectTask((SmartExecutorService.Job) r)) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
                 Runnable poll = unzipService.getTask();
@@ -175,6 +176,6 @@ public class SchedulerConfiguration {
 
         LOGGER.debug("Unzip thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
 
-        return taskExecutor;
+        return new SmartExecutorService(taskExecutor);
     }
 }

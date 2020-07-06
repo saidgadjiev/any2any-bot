@@ -7,6 +7,8 @@ import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.domain.UnzipQueueItem;
 import ru.gadjini.any2any.service.conversion.api.Format;
 
+import java.util.List;
+
 @Service
 public class UnzipQueueService {
 
@@ -56,5 +58,13 @@ public class UnzipQueueService {
 
     public void delete(int id) {
         unzipQueueDao.delete(id);
+    }
+
+    public List<Integer> deleteByUserId(int userId) {
+        return unzipQueueDao.deleteByUserId(userId);
+    }
+
+    public boolean exists(int jobId) {
+        return unzipQueueDao.exists(jobId);
     }
 }

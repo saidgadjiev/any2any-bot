@@ -33,7 +33,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
 
     private Set<String> names = new HashSet<>();
 
-    private UnzipService unzipperService;
+    private UnzipService unzipService;
 
     private LocalisationService localisationService;
 
@@ -46,11 +46,11 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
     private FormatService formatService;
 
     @Autowired
-    public UnzipCommand(LocalisationService localisationService, UnzipService unzipperService,
+    public UnzipCommand(LocalisationService localisationService, UnzipService unzipService,
                         @Qualifier("limits") MessageService messageService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                         UserService userService, FormatService formatService) {
         this.localisationService = localisationService;
-        this.unzipperService = unzipperService;
+        this.unzipService = unzipService;
         this.messageService = messageService;
         this.replyKeyboardService = replyKeyboardService;
         this.userService = userService;
@@ -97,7 +97,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
     public void processNonCommandUpdate(Message message, String text) {
         Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
-        unzipperService.unzip(message.getFromUser().getId(), message.getDocument().getFileId(), checkFormat(format, message.getDocument().getMimeType(), message.getDocument().getFileName(), message.getDocument().getFileId(), locale), locale);
+        unzipService.unzip(message.getFromUser().getId(), message.getDocument().getFileId(), checkFormat(format, message.getDocument().getMimeType(), message.getDocument().getFileName(), message.getDocument().getFileId(), locale), locale);
         messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_PROCESSING, locale)));
     }
 
@@ -109,6 +109,11 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
     @Override
     public String getHistoryName() {
         return CommandNames.UNZIP_COMMAND_NAME;
+    }
+
+    @Override
+    public void leave(long chatId) {
+        unzipService.leave(chatId);
     }
 
     private Format checkFormat(Format format, String mimeType, String fileName, String fileId, Locale locale) {

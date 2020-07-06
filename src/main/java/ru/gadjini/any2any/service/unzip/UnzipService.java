@@ -17,6 +17,7 @@ import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
+import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
@@ -27,7 +28,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.concurrent.ThreadPoolExecutor;
 
 @Service
 public class UnzipService {
@@ -38,7 +38,7 @@ public class UnzipService {
 
     private LocalisationService localisationService;
 
-    private ThreadPoolExecutor executor;
+    private SmartExecutorService executor;
 
     private MessageService messageService;
 
@@ -81,12 +81,12 @@ public class UnzipService {
     }
 
     @Autowired
-    public void setExecutor(@Qualifier("unzipTaskExecutor") ThreadPoolExecutor executor) {
+    public void setExecutor(@Qualifier("unzipTaskExecutor") SmartExecutorService executor) {
         this.executor = executor;
     }
 
-    public void rejectTask(UnzipJobTask unzipTask) {
-        queueService.setWaiting(unzipTask.getJobId());
+    public void rejectTask(SmartExecutorService.Job unzipTask) {
+        queueService.setWaiting(unzipTask.getId());
     }
 
     public Runnable getTask() {
@@ -120,6 +120,12 @@ public class UnzipService {
         executor.execute(new UnzipTask(id, userId, fileId, format, locale, unzipDevice));
     }
 
+    public void leave(long chatId) {
+        List<Integer> ids = queueService.deleteByUserId((int) chatId);
+        executor.cancel(ids);
+        commandStateService.deleteState(chatId, CommandNames.UNZIP_COMMAND_NAME);
+    }
+
     private void sendFile(int userId, File file) {
         messageService.sendDocument(new SendDocument((long) userId, file));
     }
@@ -144,12 +150,7 @@ public class UnzipService {
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SUPPORTED_ZIP_FORMATS, locale));
     }
 
-    private interface UnzipJobTask {
-
-        int getJobId();
-    }
-
-    public class ExtractFileTask implements Runnable, UnzipJobTask {
+    public class ExtractFileTask implements Runnable, SmartExecutorService.Job {
 
         private int jobId;
 
@@ -181,17 +182,19 @@ public class UnzipService {
                 messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
                 throw ex;
             } finally {
+                queueService.delete(jobId);
                 out.smartDelete();
+                executor.complete(jobId);
             }
         }
 
         @Override
-        public int getJobId() {
+        public int getId() {
             return jobId;
         }
     }
 
-    public class UnzipTask implements Runnable, UnzipJobTask {
+    public class UnzipTask implements Runnable, SmartExecutorService.Job {
 
         private final int jobId;
         private final int userId;
@@ -222,11 +225,18 @@ public class UnzipService {
                 messageService.sendMessage(new SendMessage((long) userId, message)
                         .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds())));
                 commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
-                queueService.delete(jobId);
             } catch (Exception e) {
                 in.smartDelete();
                 throw e;
+            } finally {
+                executor.complete(jobId);
+                queueService.delete(jobId);
             }
+        }
+
+        @Override
+        public int getId() {
+            return jobId;
         }
 
         private UnzipState createState(String zipFile, Format archiveType) {
@@ -240,11 +250,6 @@ public class UnzipService {
             }
 
             return unzipState;
-        }
-
-        @Override
-        public int getJobId() {
-            return jobId;
         }
     }
 }
