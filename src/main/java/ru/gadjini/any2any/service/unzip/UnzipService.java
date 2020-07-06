@@ -1,6 +1,5 @@
 package ru.gadjini.any2any.service.unzip;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +12,8 @@ import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
@@ -110,11 +109,10 @@ public class UnzipService {
         }
     }
 
-    public int extractFile(int userId, int extractFileId) {
+    public void extractFile(int userId, int extractFileId) {
         UnzipQueueItem item = queueService.createProcessingExtractFileItem(userId, extractFileId);
+        startExtracting(userId, item.getId());
         executor.execute(new ExtractFileTask(item.getId(), extractFileId, userId));
-
-        return item.getId();
     }
 
     public void unzip(int userId, String fileId, Format format, Locale locale) {
@@ -125,9 +123,10 @@ public class UnzipService {
         executor.execute(new UnzipTask(id, userId, fileId, format, locale, unzipDevice));
     }
 
-    public void cancel(int jobId) {
+    public void cancel(long chatId, int jobId) {
         queueService.delete(jobId);
         executor.cancel(jobId);
+        extractingCanceled(chatId);
     }
 
     public void leave(long chatId) {
@@ -140,9 +139,26 @@ public class UnzipService {
         }
     }
 
-    private int sendFile(int userId, File file, String caption, InlineKeyboardMarkup keyboardMarkup) {
-        return messageService.sendDocument(new SendDocument((long) userId, file).setCaption(caption)
-                .setReplyMarkup(keyboardMarkup)).getMessageId();
+    private void startExtracting(int userId, int jobId) {
+        UnzipState state = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true);
+        Locale locale = userService.getLocaleOrDefault(userId);
+        messageService.editMessage(
+                new EditMessageText(
+                        userId,
+                        state.getChooseFilesMessageId(),
+                        localisationService.getMessage(MessagesProperties.MESSAGE_UNZIP_PROCESSING, locale)
+                ).setReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale))
+        );
+    }
+
+    private void extractingCanceled(long chatId) {
+        UnzipState unzipState = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false);
+        String message = localisationService.getMessage(
+                MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
+                new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
+                userService.getLocaleOrDefault((int) chatId));
+        messageService.editMessage(new EditMessageText(chatId, unzipState.getChooseFilesMessageId(), message)
+                .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds())));
     }
 
     private UnzipDevice getCandidate(Format format) {
@@ -184,21 +200,15 @@ public class UnzipService {
             UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true);
             String fileHeader = unzipState.getFiles().get(id);
             SmartTempFile out = fileService.createTempDir();
+
             try {
                 UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
                 if (new File(unzipState.getArchivePath()).length() > 0) {
                     String outFilePath = unzipDevice.unzip(fileHeader, unzipState.getArchivePath(), out.getAbsolutePath());
                     SmartTempFile outFile = new SmartTempFile(new File(outFilePath), false);
                     try {
-                        messageService.deleteMessage(userId, unzipState.getChooseFilesMessageId());
-                        String message = localisationService.getMessage(
-                                MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
-                                new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
-                                userService.getLocaleOrDefault(userId)
-                        );
-                        int newMessageId = sendFile(userId, outFile.getFile(), message, inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds()));
-                        unzipState.setChooseFilesMessageId(newMessageId);
-                        commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
+                        messageService.sendDocument(new SendDocument((long) userId, outFile.getFile()));
+                        finishExtracting(userId, unzipState);
                     } finally {
                         outFile.smartDelete();
                     }
@@ -216,6 +226,16 @@ public class UnzipService {
         @Override
         public int getId() {
             return jobId;
+        }
+
+        private void finishExtracting(int userId, UnzipState unzipState) {
+            String message = localisationService.getMessage(
+                    MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
+                    new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
+                    userService.getLocaleOrDefault(userId)
+            );
+            messageService.editMessage(new EditMessageText(userId, unzipState.getChooseFilesMessageId(), message)
+                    .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds())));
         }
     }
 
@@ -252,7 +272,8 @@ public class UnzipService {
                 String message = localisationService.getMessage(
                         MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
                         new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
-                        locale);
+                        locale
+                );
                 Message sent = messageService.sendMessage(new SendMessage((long) userId, message)
                         .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds())));
                 unzipState.setChooseFilesMessageId(sent.getMessageId());
@@ -283,9 +304,5 @@ public class UnzipService {
 
             return unzipState;
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        System.out.println(new ObjectMapper().writeValueAsString(new SendDocument().setCaption("test")));
     }
 }

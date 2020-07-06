@@ -5,8 +5,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.bot.command.api.CallbackBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
-import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
@@ -16,7 +14,6 @@ import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.unzip.UnzipService;
-import ru.gadjini.any2any.service.unzip.UnzipState;
 
 @Component
 public class ExtractFileCommand implements CallbackBotCommand {
@@ -54,12 +51,7 @@ public class ExtractFileCommand implements CallbackBotCommand {
     public String processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int id = requestParams.getInt(Arg.EXTRACT_FILE_ID.getKey());
 
-        int jobId = unzipService.extractFile(callbackQuery.getFromUser().getId(), id);
-        UnzipState state = commandStateService.getState(callbackQuery.getMessage().getChatId(), CommandNames.UNZIP_COMMAND_NAME, true);
-        messageService.editMessage(new EditMessageText(callbackQuery.getMessage().getChatId(), state.getChooseFilesMessageId(),
-                localisationService.getMessage(MessagesProperties.MESSAGE_UNZIP_PROCESSING,
-                        userService.getLocaleOrDefault(callbackQuery.getFromUser().getId())))
-                .setReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, userService.getLocaleOrDefault(callbackQuery.getFromUser().getId()))));
+        unzipService.extractFile(callbackQuery.getFromUser().getId(), id);
 
         return null;
     }
