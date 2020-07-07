@@ -30,9 +30,17 @@ public class SchedulerConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerConfiguration.class);
 
-    private static final int LIGHT_QUEUE_SIZE = 50;
+    private static final int LIGHT_QUEUE_SIZE = 20;
 
-    private static final int HEAVY_QUEUE_SIZE = 1;
+    private static final int HEAVY_QUEUE_SIZE = 20;
+
+    private static final int THREADS_KEEP_ALIVE = 0;
+
+    private static final TimeUnit KEEP_ALIVE_TIME_UNIT = TimeUnit.SECONDS;
+
+    private static final int LIGHT_THREADS_COUNT = Runtime.getRuntime().availableProcessors();
+
+    private static final int HEAVY_THREADS_COUNT = Runtime.getRuntime().availableProcessors();
 
     private ConvertionService conversionService;
 
@@ -91,8 +99,8 @@ public class SchedulerConfiguration {
     @Qualifier("conversionTaskExecutor")
     public SmartExecutorService conversionTaskExecutor() {
         SmartExecutorService executorService = new SmartExecutorService();
-        ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
-                0L, TimeUnit.MILLISECONDS,
+        ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(LIGHT_THREADS_COUNT, LIGHT_THREADS_COUNT,
+                THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(LIGHT_QUEUE_SIZE),
                 (r, executor) -> conversionService.rejectTask((ConvertionService.ConversionTask) r)) {
             @Override
@@ -103,8 +111,8 @@ public class SchedulerConfiguration {
                 }
             }
         };
-        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(1, Math.max(1, Runtime.getRuntime().availableProcessors() - 2),
-                1, TimeUnit.MINUTES,
+        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(HEAVY_THREADS_COUNT, HEAVY_THREADS_COUNT,
+                THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(HEAVY_QUEUE_SIZE),
                 (r, executor) -> conversionService.rejectTask((ConvertionService.ConversionTask) r)) {
             @Override
@@ -125,7 +133,7 @@ public class SchedulerConfiguration {
     @Qualifier("commonTaskExecutor")
     public ThreadPoolTaskExecutor commonTaskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(Runtime.getRuntime().availableProcessors());
+        taskExecutor.setCorePoolSize(4);
         taskExecutor.setMaxPoolSize(Runtime.getRuntime().availableProcessors());
         taskExecutor.setThreadNamePrefix("CommonTaskExecutor");
         taskExecutor.initialize();
@@ -139,8 +147,8 @@ public class SchedulerConfiguration {
     @Qualifier("renameTaskExecutor")
     public SmartExecutorService renameTaskExecutor() {
         SmartExecutorService executorService = new SmartExecutorService();
-        ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
-                0L, TimeUnit.MILLISECONDS,
+        ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(LIGHT_THREADS_COUNT, LIGHT_THREADS_COUNT,
+                THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(LIGHT_QUEUE_SIZE),
                 (r, executor) -> renameService.rejectRenameTask((RenameService.RenameTask) r)) {
             @Override
@@ -151,8 +159,8 @@ public class SchedulerConfiguration {
                 }
             }
         };
-        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(1, Math.max(1, Runtime.getRuntime().availableProcessors() - 2),
-                1, TimeUnit.MINUTES,
+        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(HEAVY_THREADS_COUNT, HEAVY_THREADS_COUNT,
+                THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(HEAVY_QUEUE_SIZE),
                 (r, executor) -> renameService.rejectRenameTask((RenameService.RenameTask) r)) {
             @Override
@@ -173,8 +181,8 @@ public class SchedulerConfiguration {
     @Qualifier("archiveTaskExecutor")
     public SmartExecutorService archiveTaskExecutor() {
         SmartExecutorService executorService = new SmartExecutorService();
-        ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
-                0L, TimeUnit.MILLISECONDS,
+        ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(LIGHT_THREADS_COUNT, LIGHT_THREADS_COUNT,
+                THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(LIGHT_QUEUE_SIZE),
                 (r, executor) -> archiveService.rejectTask((ArchiveService.ArchiveTask) r)) {
             @Override
@@ -186,13 +194,13 @@ public class SchedulerConfiguration {
             }
         };
 
-        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(1, Math.max(1, Runtime.getRuntime().availableProcessors() - 2),
-                1, TimeUnit.MINUTES,
+        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(HEAVY_THREADS_COUNT, HEAVY_THREADS_COUNT,
+                THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(HEAVY_QUEUE_SIZE),
                 (r, executor) -> archiveService.rejectTask((ArchiveService.ArchiveTask) r)) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
-                Runnable poll = archiveService.getTask(LIGHT);
+                Runnable poll = archiveService.getTask(HEAVY);
                 if (poll != null) {
                     execute(poll);
                 }
@@ -208,8 +216,8 @@ public class SchedulerConfiguration {
     @Qualifier("unzipTaskExecutor")
     public SmartExecutorService unzipTaskExecutor() {
         SmartExecutorService executorService = new SmartExecutorService();
-        ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
-                0L, TimeUnit.MILLISECONDS,
+        ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(LIGHT_THREADS_COUNT, LIGHT_THREADS_COUNT,
+                THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(LIGHT_QUEUE_SIZE),
                 (r, executor) -> unzipService.rejectTask((SmartExecutorService.Job) r)) {
             @Override
@@ -220,8 +228,8 @@ public class SchedulerConfiguration {
                 }
             }
         };
-        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(1, Math.max(1, Runtime.getRuntime().availableProcessors() - 2),
-                1, TimeUnit.MINUTES,
+        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(HEAVY_THREADS_COUNT, HEAVY_THREADS_COUNT,
+                THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(HEAVY_QUEUE_SIZE),
                 (r, executor) -> unzipService.rejectTask((SmartExecutorService.Job) r)) {
             @Override
