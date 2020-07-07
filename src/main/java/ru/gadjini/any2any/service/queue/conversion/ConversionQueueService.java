@@ -1,6 +1,7 @@
 package ru.gadjini.any2any.service.queue.conversion;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +30,7 @@ public class ConversionQueueService {
     }
 
     @Transactional
-    public ConversionQueueItem add(User user, ConvertState convertState, Format targetFormat) {
+    public ConversionQueueItem createProcessingItem(User user, ConvertState convertState, Format targetFormat) {
         ConversionQueueItem fileQueueItem = new ConversionQueueItem();
 
         fileQueueItem.setFileId(convertState.getFileId());
@@ -49,6 +50,41 @@ public class ConversionQueueService {
         fileQueueItem.setPlaceInQueue(fileQueueDao.getPlaceInQueue(fileQueueItem.getId()));
 
         return fileQueueItem;
+    }
+
+    public ConversionQueueItem poll() {
+        List<ConversionQueueItem> items = fileQueueDao.poll(1);
+
+        return items.isEmpty() ? null : items.iterator().next();
+    }
+
+    public void setWaiting(int id) {
+        fileQueueDao.setWaiting(id);
+    }
+
+    public void resetProcessing() {
+        fileQueueDao.resetProcessing();
+    }
+
+    public void delete(int id) {
+        fileQueueDao.delete(id);
+    }
+
+    public void exception(int id, Exception ex) {
+        String exception = ExceptionUtils.getMessage(ex) + "\n" + ExceptionUtils.getStackTrace(ex);
+        fileQueueDao.updateException(id, ConversionQueueItem.Status.EXCEPTION.getCode(), exception);
+    }
+
+    public void completeWithException(int id, String msg) {
+        fileQueueDao.updateException(id, ConversionQueueItem.Status.COMPLETED.getCode(), msg);
+    }
+
+    public void converterNotFound(int id) {
+        fileQueueDao.updateException(id, ConversionQueueItem.Status.CANDIDATE_NOT_FOUND.getCode(), "Converter not found");
+    }
+
+    public void complete(int id) {
+        fileQueueDao.updateCompletedAt(id, ConversionQueueItem.Status.COMPLETED.getCode());
     }
 
     public List<ConversionQueueItem> getActiveItems(int userId) {

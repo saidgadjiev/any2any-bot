@@ -20,7 +20,6 @@ import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.RenameService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
-import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
 
@@ -49,12 +48,10 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
 
     private FileService fileService;
 
-    private InlineKeyboardService inlineKeyboardService;
-
     @Autowired
     public RenameCommand(LocalisationService localisationService, CommandStateService commandStateService,
                          @Qualifier("limits") MessageService messageService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
-                         UserService userService, RenameService renameService, FileService fileService, InlineKeyboardService inlineKeyboardService) {
+                         UserService userService, RenameService renameService, FileService fileService) {
         this.commandStateService = commandStateService;
         this.localisationService = localisationService;
         this.messageService = messageService;
@@ -62,7 +59,6 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
         this.userService = userService;
         this.renameService = renameService;
         this.fileService = fileService;
-        this.inlineKeyboardService = inlineKeyboardService;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.RENAME_COMMAND_NAME, locale));
         }

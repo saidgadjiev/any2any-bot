@@ -83,7 +83,7 @@ public class SchedulerConfiguration {
 
     @Bean
     @Qualifier("conversionTaskExecutor")
-    public ThreadPoolExecutor conversionTaskExecutor() {
+    public SmartExecutorService conversionTaskExecutor() {
         ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(QUEUE_SIZE),
@@ -99,7 +99,7 @@ public class SchedulerConfiguration {
 
         LOGGER.debug("Rename thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
 
-        return taskExecutor;
+        return new SmartExecutorService(taskExecutor);
     }
 
     @Bean

@@ -98,8 +98,8 @@ public class MessageServiceImpl implements MessageService {
             if (responseEntity.getStatusCode() != HttpStatus.OK) {
                 LOGGER.error("Code: {}", responseEntity.getStatusCode().value());
             }
-        } catch (Exception ignore) {
-
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
         }
     }
 

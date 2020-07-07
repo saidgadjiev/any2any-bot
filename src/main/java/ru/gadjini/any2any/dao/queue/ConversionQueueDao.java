@@ -80,7 +80,7 @@ public class ConversionQueueDao {
         );
     }
 
-    public List<ConversionQueueItem> takeItems(int limit) {
+    public List<ConversionQueueItem> poll(int limit) {
         return jdbcTemplate.query(
                 "WITH queue_items AS (\n" +
                         "    UPDATE " + TYPE + " SET status = 1, last_run_at = now(), " +

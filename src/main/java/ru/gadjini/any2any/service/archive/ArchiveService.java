@@ -129,7 +129,7 @@ public class ArchiveService {
 
     public void cancelCurrentTasks(long chatId) {
         List<Integer> ids = archiveQueueService.deleteByUserId((int) chatId);
-        executor.cancel(ids);
+        executor.cancelAndComplete(ids);
 
         ArchiveState state = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, false);
         if (state != null) {
@@ -139,7 +139,7 @@ public class ArchiveService {
 
     public void cancel(int userId, int jobId) {
         archiveQueueService.delete(jobId);
-        executor.cancel(jobId);
+        executor.cancelAndComplete(jobId);
         ArchiveState state = commandStateService.getState(userId, CommandNames.ARCHIVE_COMMAND_NAME, true);
         commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
 
@@ -244,6 +244,7 @@ public class ArchiveService {
             } finally {
                 archiveQueueService.delete(jobId);
                 commandStateService.deleteState(userId, CommandNames.ARCHIVE_COMMAND_NAME);
+                executor.complete(jobId);
                 files.forEach(SmartTempFile::smartDelete);
             }
         }

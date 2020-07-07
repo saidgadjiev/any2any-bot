@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service.concurrent;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,6 +26,10 @@ public class SmartExecutorService {
         processing.remove(jobId);
     }
 
+    public void complete(Collection<Integer> jobIds) {
+        jobIds.forEach(this::complete);
+    }
+
     public void cancel(int jobId) {
         Future<?> future = processing.get(jobId);
         if (future != null && (!future.isCancelled() || !future.isDone())) {
@@ -32,8 +37,28 @@ public class SmartExecutorService {
         }
     }
 
+    public void cancelAndComplete(int jobId) {
+        cancel(jobId);
+        complete(jobId);
+    }
+
+    public boolean isCanceled(int jobId) {
+        if (processing.containsKey(jobId)) {
+            return processing.get(jobId).isCancelled();
+        }
+
+        return false;
+    }
+
     public void cancel(List<Integer> ids) {
         ids.forEach(this::cancel);
+    }
+
+    public void cancelAndComplete(List<Integer> ids) {
+        ids.forEach(integer -> {
+            cancel(integer);
+            complete(integer);
+        });
     }
 
     public interface Job extends Runnable {

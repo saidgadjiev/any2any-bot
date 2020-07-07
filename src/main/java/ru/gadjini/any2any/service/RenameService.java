@@ -100,7 +100,7 @@ public class RenameService {
 
     public void cancelCurrentTasks(long chatId) {
         List<Integer> ids = renameQueueService.deleteByUserId((int) chatId);
-        executor.cancel(ids);
+        executor.cancelAndComplete(ids);
 
         RenameState state = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, false);
         if (state != null) {
@@ -110,7 +110,7 @@ public class RenameService {
 
     public void cancel(int userId, int jobId) {
         renameQueueService.delete(jobId);
-        executor.cancel(jobId);
+        executor.cancelAndComplete(jobId);
         RenameState state = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, true);
         commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
         messageService.removeInlineKeyboard(userId, state.getProcessingMessageId());
@@ -194,6 +194,7 @@ public class RenameService {
             } finally {
                 renameQueueService.delete(jobId);
                 commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+                executor.complete(jobId);
                 file.smartDelete();
             }
         }

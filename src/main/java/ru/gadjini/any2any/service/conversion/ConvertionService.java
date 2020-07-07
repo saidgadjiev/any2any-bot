@@ -6,12 +6,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.bot.command.convert.ConvertState;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
-import ru.gadjini.any2any.event.QueueItemCanceled;
 import ru.gadjini.any2any.exception.CorruptedFileException;
 import ru.gadjini.any2any.exception.TelegramRequestException;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
@@ -20,30 +18,24 @@ import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
 import ru.gadjini.any2any.model.bot.api.object.User;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.ConvertResult;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
-import ru.gadjini.any2any.service.queue.conversion.ConversionQueueBusinessService;
 import ru.gadjini.any2any.service.queue.conversion.ConversionQueueService;
 
 import javax.annotation.PostConstruct;
 import java.util.LinkedHashSet;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 
 @Service
 public class ConvertionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConvertionService.class);
-
-    private final Map<Integer, Future<?>> processing = new ConcurrentHashMap<>();
 
     private Set<Any2AnyConverter<ConvertResult>> any2AnyConverters = new LinkedHashSet<>();
 
@@ -51,24 +43,20 @@ public class ConvertionService {
 
     private MessageService messageService;
 
-    private ConversionQueueBusinessService queueBusinessService;
-
     private ConversionQueueService queueService;
 
     private LocalisationService localisationService;
 
     private UserService userService;
 
-    private ThreadPoolExecutor executor;
+    private SmartExecutorService executor;
 
     @Autowired
     public ConvertionService(@Qualifier("limits") MessageService messageService,
-                             ConversionQueueBusinessService conversionQueueService,
                              LocalisationService localisationService, UserService userService,
                              Set<Any2AnyConverter> any2AnyConvertersSet, InlineKeyboardService inlineKeyboardService,
                              ConversionQueueService queueService) {
         this.messageService = messageService;
-        this.queueBusinessService = conversionQueueService;
         this.localisationService = localisationService;
         this.userService = userService;
         this.inlineKeyboardService = inlineKeyboardService;
@@ -80,29 +68,21 @@ public class ConvertionService {
     public void init() {
         initFonts();
         applyAsposeLicenses();
-        queueBusinessService.resetProcessing();
-    }
-
-    @EventListener
-    public void queueItemCanceled(QueueItemCanceled queueItemCanceled) {
-        Future<?> future = processing.get(queueItemCanceled.getId());
-        if (future != null && (!future.isCancelled() || !future.isDone())) {
-            future.cancel(true);
-        }
+        queueService.resetProcessing();
     }
 
     @Autowired
-    public void setExecutor(@Qualifier("conversionTaskExecutor") ThreadPoolExecutor executor) {
+    public void setExecutor(@Qualifier("conversionTaskExecutor") SmartExecutorService executor) {
         this.executor = executor;
     }
 
     public void rejectTask(ConversionTask conversionTask) {
-        queueBusinessService.setWaiting(conversionTask.fileQueueItem.getId());
+        queueService.setWaiting(conversionTask.getId());
     }
 
     public ConversionTask getTask() {
         synchronized (this) {
-            ConversionQueueItem peek = queueBusinessService.takeItem();
+            ConversionQueueItem peek = queueService.poll();
 
             if (peek != null) {
                 return new ConversionTask(peek);
@@ -112,11 +92,16 @@ public class ConvertionService {
     }
 
     public ConversionQueueItem convert(User user, ConvertState convertState, Format targetFormat) {
-        ConversionQueueItem queueItem = queueService.add(user, convertState, targetFormat);
+        ConversionQueueItem queueItem = queueService.createProcessingItem(user, convertState, targetFormat);
 
         executor.execute(new ConversionTask(queueItem));
 
         return queueItem;
+    }
+
+    public void cancel(int jobId) {
+        queueService.delete(jobId);
+        executor.cancelAndComplete(jobId);
     }
 
     private void initFonts() {
@@ -144,7 +129,7 @@ public class ConvertionService {
         }
     }
 
-    public class ConversionTask implements Runnable {
+    public class ConversionTask implements SmartExecutorService.Job {
 
         private final ConversionQueueItem fileQueueItem;
 
@@ -155,53 +140,54 @@ public class ConvertionService {
         @Override
         public void run() {
             try {
-                convert(fileQueueItem);
+                Any2AnyConverter<ConvertResult> candidate = getCandidate(fileQueueItem);
+                if (candidate != null) {
+                    LOGGER.debug("Start conversion for user " + fileQueueItem.getUserId() + " from " + fileQueueItem.getFormat() + " to " + fileQueueItem.getTargetFormat() + " id " + fileQueueItem.getId());
+                    try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
+                        sendResult(fileQueueItem, convertResult);
+                        queueService.complete(fileQueueItem.getId());
+                        LOGGER.debug(
+                                "Convert from {} to {} has taken {}. File size {} id {}",
+                                fileQueueItem.getFormat(),
+                                fileQueueItem.getTargetFormat(),
+                                convertResult.time(),
+                                fileQueueItem.getSize(),
+                                fileQueueItem.getId()
+                        );
+                    } catch (CorruptedFileException ex) {
+                        queueService.completeWithException(fileQueueItem.getId(), ex.getMessage());
+                        LOGGER.error(ex.getMessage());
+                        Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+                        messageService.sendMessage(
+                                new HtmlMessage((long) fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_DAMAGED_FILE, locale))
+                                        .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
+                        );
+                    } catch (Exception ex) {
+                        boolean canceled = executor.isCanceled(fileQueueItem.getId());
+                        if (canceled) {
+                            LOGGER.debug("Conversion " + fileQueueItem.getId() + " canceled. From " + fileQueueItem.getFormat() + " to " + fileQueueItem.getTargetFormat() + " fileId " + fileQueueItem.getFileId());
+                        } else {
+                            queueService.exception(fileQueueItem.getId(), ex);
+                            LOGGER.error(ex.getMessage(), ex);
+                            Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
+                            messageService.sendMessage(
+                                    new HtmlMessage((long) fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_FAILED, locale))
+                                            .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
+                            );
+                        }
+                    }
+                } else {
+                    queueService.converterNotFound(fileQueueItem.getId());
+                    LOGGER.debug("Candidate not found for: " + fileQueueItem.getFormat());
+                }
             } finally {
-                processing.remove(fileQueueItem.getId());
+                executor.complete(fileQueueItem.getId());
             }
         }
 
-        private void convert(ConversionQueueItem fileQueueItem) {
-            Any2AnyConverter<ConvertResult> candidate = getCandidate(fileQueueItem);
-            if (candidate != null) {
-                LOGGER.debug("Start conversion for user " + fileQueueItem.getUserId() + " from " + fileQueueItem.getFormat() + " to " + fileQueueItem.getTargetFormat() + " id " + fileQueueItem.getId());
-                try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
-                    sendResult(fileQueueItem, convertResult);
-                    queueBusinessService.complete(fileQueueItem.getId());
-                    LOGGER.debug(
-                            "Convert from {} to {} has taken {}. File size {} id {}",
-                            fileQueueItem.getFormat(),
-                            fileQueueItem.getTargetFormat(),
-                            convertResult.time(),
-                            fileQueueItem.getSize(),
-                            fileQueueItem.getId()
-                    );
-                } catch (CorruptedFileException ex) {
-                    queueBusinessService.completeWithException(fileQueueItem.getId(), ex.getMessage());
-                    LOGGER.error(ex.getMessage());
-                    Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-                    messageService.sendMessage(
-                            new HtmlMessage((long) fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_DAMAGED_FILE, locale))
-                                    .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
-                    );
-                } catch (Exception ex) {
-                    Future<?> future = processing.get(fileQueueItem.getId());
-                    if (future != null && future.isCancelled()) {
-                        LOGGER.debug("Conversion " + fileQueueItem.getId() + " canceled. From " + fileQueueItem.getFormat() + " to " + fileQueueItem.getTargetFormat() + " fileId " + fileQueueItem.getFileId());
-                    } else {
-                        queueBusinessService.exception(fileQueueItem.getId(), ex);
-                        LOGGER.error(ex.getMessage(), ex);
-                        Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-                        messageService.sendMessage(
-                                new HtmlMessage((long) fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_FAILED, locale))
-                                        .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
-                        );
-                    }
-                }
-            } else {
-                queueBusinessService.converterNotFound(fileQueueItem.getId());
-                LOGGER.debug("Candidate not found for: " + fileQueueItem.getFormat());
-            }
+        @Override
+        public int getId() {
+            return fileQueueItem.getId();
         }
 
         private Any2AnyConverter<ConvertResult> getCandidate(ConversionQueueItem fileQueueItem) {

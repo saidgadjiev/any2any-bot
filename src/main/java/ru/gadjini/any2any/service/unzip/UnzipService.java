@@ -138,7 +138,7 @@ public class UnzipService {
 
     public void cancel(long chatId, int jobId) {
         queueService.delete(jobId);
-        executor.cancel(jobId);
+        executor.cancelAndComplete(jobId);
         extractingCanceled(chatId);
     }
 
@@ -153,7 +153,7 @@ public class UnzipService {
 
     private void cancelCurrentTasks(int userId) {
         List<Integer> ids = queueService.deleteByUserId(userId);
-        executor.cancel(ids);
+        executor.cancelAndComplete(ids);
     }
 
     private void startExtracting(int userId, int jobId) {
