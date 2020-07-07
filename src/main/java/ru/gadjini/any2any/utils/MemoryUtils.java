@@ -2,6 +2,8 @@ package ru.gadjini.any2any.utils;
 
 public class MemoryUtils {
 
+    public static final long MB_50 = 50 * 1024 * 1024;
+
     public static String humanReadableByteCount(long bytes) {
         int unit = 1024;
         long absBytes = bytes == Long.MIN_VALUE ? Long.MAX_VALUE : Math.abs(bytes);

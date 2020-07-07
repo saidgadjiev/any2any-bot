@@ -28,6 +28,7 @@ import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.archive.ArchiveQueueService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
+import ru.gadjini.any2any.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -90,12 +91,12 @@ public class ArchiveService {
         archiveQueueService.setWaiting(renameTask.jobId);
     }
 
-    public ArchiveTask getTask() {
+    public ArchiveTask getTask(SmartExecutorService.JobWeight weight) {
         synchronized (this) {
-            ArchiveQueueItem peek = archiveQueueService.peek();
+            ArchiveQueueItem peek = archiveQueueService.poll(weight);
 
             if (peek != null) {
-                return new ArchiveTask(peek.getId(), peek.getFiles(), peek.getUserId(), peek.getType());
+                return new ArchiveTask(peek.getId(), peek.getFiles(), peek.getTotalFileSize(), peek.getUserId(), peek.getType());
             }
 
             return null;
@@ -124,7 +125,7 @@ public class ArchiveService {
 
         ArchiveQueueItem item = archiveQueueService.createProcessingItem(userId, archiveState.getFiles(), format);
         startArchiveCreating(userId, item.getId());
-        executor.execute(new ArchiveTask(item.getId(), item.getFiles(), item.getUserId(), item.getType()));
+        executor.execute(new ArchiveTask(item.getId(), item.getFiles(), item.getTotalFileSize(), item.getUserId(), item.getType()));
     }
 
     public void cancelCurrentTasks(long chatId) {
@@ -214,9 +215,12 @@ public class ArchiveService {
 
         private Format type;
 
-        private ArchiveTask(int jobId, List<TgFile> archiveFiles, int userId, Format type) {
+        private long totalFileSize;
+
+        private ArchiveTask(int jobId, List<TgFile> archiveFiles, long totalFileSize, int userId, Format type) {
             this.jobId = jobId;
             this.archiveFiles = archiveFiles;
+            this.totalFileSize = totalFileSize;
             this.userId = userId;
             this.type = type;
         }
@@ -252,6 +256,11 @@ public class ArchiveService {
         @Override
         public int getId() {
             return jobId;
+        }
+
+        @Override
+        public SmartExecutorService.JobWeight getWeight() {
+            return totalFileSize > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
     }
 }

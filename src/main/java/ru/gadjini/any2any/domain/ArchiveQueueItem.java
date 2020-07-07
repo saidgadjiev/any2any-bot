@@ -16,11 +16,15 @@ public class ArchiveQueueItem {
 
     public static final String TYPE = "type";
 
+    public static final String TOTAL_FILE_SIZE = "total_file_size";
+
     public static final String STATUS = "status";
 
     private int id;
 
     private int userId;
+
+    private long totalFileSize;
 
     private List<TgFile> files;
 
@@ -66,6 +70,14 @@ public class ArchiveQueueItem {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public long getTotalFileSize() {
+        return totalFileSize;
+    }
+
+    public void setTotalFileSize(long totalFileSize) {
+        this.totalFileSize = totalFileSize;
     }
 
     public enum Status {

@@ -9,16 +9,18 @@ import java.util.concurrent.Future;
 
 public class SmartExecutorService {
 
-    private ExecutorService executorService;
+    private Map<JobWeight, ExecutorService> executors;
 
     private final Map<Integer, Future<?>> processing = new ConcurrentHashMap<>();
 
-    public SmartExecutorService(ExecutorService executorService) {
-        this.executorService = executorService;
+    public SmartExecutorService setExecutors(Map<JobWeight, ExecutorService> executors) {
+        this.executors = executors;
+
+        return this;
     }
 
     public void execute(Job job) {
-        Future<?> submit = executorService.submit(job);
+        Future<?> submit = executors.get(job.getWeight()).submit(job);
         processing.put(job.getId(), submit);
     }
 
@@ -63,5 +65,13 @@ public class SmartExecutorService {
 
     public interface Job extends Runnable {
         int getId();
+        JobWeight getWeight();
+    }
+
+    public enum JobWeight {
+
+        LIGHT,
+
+        HEAVY
     }
 }

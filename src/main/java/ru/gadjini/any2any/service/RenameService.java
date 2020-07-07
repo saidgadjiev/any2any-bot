@@ -21,6 +21,7 @@ import ru.gadjini.any2any.service.conversion.impl.FormatService;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.rename.RenameQueueService;
+import ru.gadjini.any2any.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -79,13 +80,13 @@ public class RenameService {
         renameQueueService.setWaiting(renameTask.jobId);
     }
 
-    public RenameTask getTask() {
+    public RenameTask getTask(SmartExecutorService.JobWeight weight) {
         synchronized (this) {
-            RenameQueueItem peek = renameQueueService.peek();
+            RenameQueueItem peek = renameQueueService.pool(weight);
 
             if (peek != null) {
                 return new RenameTask(peek.getId(), peek.getUserId(), peek.getFile().getFileName(), peek.getNewFileName(), peek.getFile().getMimeType(),
-                        peek.getFile().getFileId(), peek.getReplyToMessageId());
+                        peek.getFile().getFileId(), peek.getFile().getSize(), peek.getReplyToMessageId());
             }
             return null;
         }
@@ -95,7 +96,7 @@ public class RenameService {
         int jobId = renameQueueService.createProcessingItem(userId, renameState, newFileName);
         startRenaming(jobId, userId);
         executor.execute(new RenameTask(jobId, userId, renameState.getFile().getFileName(), newFileName,
-                renameState.getFile().getMimeType(), renameState.getFile().getFileId(), renameState.getReplyMessageId()));
+                renameState.getFile().getMimeType(), renameState.getFile().getFileId(), renameState.getFile().getFileSize(), renameState.getReplyMessageId()));
     }
 
     public void cancelCurrentTasks(long chatId) {
@@ -161,6 +162,7 @@ public class RenameService {
         private final String newFileName;
         private final String mimeType;
         private final String fileId;
+        private int fileSize;
         private final int replyToMessageId;
 
         private RenameTask(int jobId,
@@ -169,6 +171,7 @@ public class RenameService {
                            String newFileName,
                            String mimeType,
                            String fileId,
+                           int fileSize,
                            int replyToMessageId) {
             this.jobId = jobId;
             this.userId = userId;
@@ -176,6 +179,7 @@ public class RenameService {
             this.newFileName = newFileName;
             this.mimeType = mimeType;
             this.fileId = fileId;
+            this.fileSize = fileSize;
             this.replyToMessageId = replyToMessageId;
         }
 
@@ -202,6 +206,11 @@ public class RenameService {
         @Override
         public int getId() {
             return jobId;
+        }
+
+        @Override
+        public SmartExecutorService.JobWeight getWeight() {
+            return fileSize > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
     }
 }

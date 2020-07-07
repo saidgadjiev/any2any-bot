@@ -6,7 +6,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.domain.UnzipQueueItem;
+import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.utils.MemoryUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -69,13 +71,16 @@ public class UnzipQueueDao {
         jdbcTemplate.update("UPDATE unzip_queue SET status = 0 WHERE status = 1");
     }
 
-    public UnzipQueueItem poll() {
+    public UnzipQueueItem poll(SmartExecutorService.JobWeight weight) {
         return jdbcTemplate.query(
                 "WITH r AS (\n" +
-                        "    UPDATE unzip_queue SET status = 1 WHERE id = (SELECT id FROM unzip_queue WHERE status = 0 ORDER BY created_at LIMIT 1) RETURNING *\n" +
+                        "    UPDATE unzip_queue SET status = 1 WHERE id = (SELECT id FROM unzip_queue " +
+                        "WHERE status = 0 AND CASE WHEN item_type = 0 THEN " +
+                        "(file).size " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ? ELSE TRUE END ORDER BY created_at LIMIT 1) RETURNING *\n" +
                         ")\n" +
                         "SELECT *, (file).*\n" +
                         "FROM r",
+                ps -> ps.setLong(1, MemoryUtils.MB_50),
                 rs -> {
                     if (rs.next()) {
                         return map(rs);

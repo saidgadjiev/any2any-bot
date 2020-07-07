@@ -10,6 +10,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.UnzipQueueItem;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
+import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
@@ -26,6 +27,7 @@ import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.unzip.UnzipQueueService;
+import ru.gadjini.any2any.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -93,14 +95,14 @@ public class UnzipService {
         queueService.setWaiting(unzipTask.getId());
     }
 
-    public Runnable getTask() {
+    public Runnable getTask(SmartExecutorService.JobWeight weight) {
         synchronized (this) {
-            UnzipQueueItem peek = queueService.peek();
+            UnzipQueueItem peek = queueService.poll(weight);
 
             if (peek != null) {
                 if (peek.getItemType() == UnzipQueueItem.ItemType.UNZIP) {
                     UnzipDevice unzipDevice = getCandidate(peek.getType());
-                    return new UnzipTask(peek.getId(), peek.getUserId(), peek.getFile().getFileId(), peek.getType(),
+                    return new UnzipTask(peek.getId(), peek.getUserId(), peek.getFile().getFileId(), peek.getFile().getSize(), peek.getType(),
                             userService.getLocaleOrDefault(peek.getUserId()), unzipDevice);
                 } else {
                     return new ExtractFileTask(peek.getId(), peek.getExtractFileId(), peek.getUserId());
@@ -128,12 +130,12 @@ public class UnzipService {
         }
     }
 
-    public void unzip(int userId, String fileId, Format format, Locale locale) {
-        LOGGER.debug("Start unzip({}, {}, {})", format, fileId, userId);
-        UnzipDevice unzipDevice = checkCandidate(format, locale);
-        int id = queueService.createProcessingUnzipItem(userId, fileId, format);
+    public void unzip(int userId, Any2AnyFile file, Locale locale) {
+        LOGGER.debug("Start unzip({}, {}, {})", file.getFormat(), file.getFileId(), userId);
+        UnzipDevice unzipDevice = checkCandidate(file.getFormat(), locale);
+        int id = queueService.createProcessingUnzipItem(userId, file);
 
-        executor.execute(new UnzipTask(id, userId, fileId, format, locale, unzipDevice));
+        executor.execute(new UnzipTask(id, userId, file.getFileId(), file.getFileSize(), file.getFormat(), locale, unzipDevice));
     }
 
     public void cancel(long chatId, int jobId) {
@@ -247,6 +249,11 @@ public class UnzipService {
             return jobId;
         }
 
+        @Override
+        public SmartExecutorService.JobWeight getWeight() {
+            return SmartExecutorService.JobWeight.LIGHT;
+        }
+
         private void finishExtracting(int userId, UnzipState unzipState) {
             String message = localisationService.getMessage(
                     MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
@@ -263,14 +270,17 @@ public class UnzipService {
         private final int jobId;
         private final int userId;
         private final String fileId;
+        private final int fileSize;
         private final Format format;
         private final Locale locale;
         private UnzipDevice unzipDevice;
 
-        private UnzipTask(int jobId, int userId, String fileId, Format format, Locale locale, UnzipDevice unzipDevice) {
+        private UnzipTask(int jobId, int userId, String fileId, int fileSize, Format format,
+                          Locale locale, UnzipDevice unzipDevice) {
             this.jobId = jobId;
             this.userId = userId;
             this.fileId = fileId;
+            this.fileSize = fileSize;
             this.format = format;
             this.locale = locale;
             this.unzipDevice = unzipDevice;
@@ -310,6 +320,11 @@ public class UnzipService {
         @Override
         public int getId() {
             return jobId;
+        }
+
+        @Override
+        public SmartExecutorService.JobWeight getWeight() {
+            return fileSize > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
 
         private UnzipState createState(String zipFile, Format archiveType) {

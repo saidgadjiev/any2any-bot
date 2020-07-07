@@ -11,6 +11,7 @@ import ru.gadjini.any2any.dao.queue.ConversionQueueDao;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.model.bot.api.object.User;
 import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 
 import java.util.List;
@@ -52,10 +53,8 @@ public class ConversionQueueService {
         return fileQueueItem;
     }
 
-    public ConversionQueueItem poll() {
-        List<ConversionQueueItem> items = fileQueueDao.poll(1);
-
-        return items.isEmpty() ? null : items.iterator().next();
+    public ConversionQueueItem poll(SmartExecutorService.JobWeight weight) {
+        return fileQueueDao.poll(weight);
     }
 
     public void setWaiting(int id) {

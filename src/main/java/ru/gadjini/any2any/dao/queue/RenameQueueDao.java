@@ -6,6 +6,8 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.RenameQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
+import ru.gadjini.any2any.service.concurrent.SmartExecutorService.JobWeight;
+import ru.gadjini.any2any.utils.MemoryUtils;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -54,13 +56,15 @@ public class RenameQueueDao {
         jdbcTemplate.update("UPDATE rename_queue SET status = 0 WHERE status = 1");
     }
 
-    public RenameQueueItem poll() {
+    public RenameQueueItem pool(JobWeight weight) {
         return jdbcTemplate.query(
                 "WITH r AS (\n" +
-                        "    UPDATE rename_queue SET status = 1 WHERE id = (SELECT id FROM rename_queue WHERE status = 0 ORDER BY created_at LIMIT 1) RETURNING *\n" +
+                        "    UPDATE rename_queue SET status = 1 WHERE id = (SELECT id FROM rename_queue WHERE status = 0 " +
+                        "AND (file).size " + (weight.equals(JobWeight.LIGHT) ? "<=" : ">") + " ? ORDER BY created_at LIMIT 1) RETURNING *\n" +
                         ")\n" +
                         "SELECT *, (file).*\n" +
                         "FROM r",
+                ps -> ps.setLong(1, MemoryUtils.MB_50),
                 rs -> {
                     if (rs.next()) {
                         return map(rs);

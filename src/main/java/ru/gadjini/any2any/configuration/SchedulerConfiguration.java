@@ -17,16 +17,22 @@ import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.ConvertionService;
 import ru.gadjini.any2any.service.unzip.UnzipService;
 
+import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import static ru.gadjini.any2any.service.concurrent.SmartExecutorService.JobWeight.HEAVY;
+import static ru.gadjini.any2any.service.concurrent.SmartExecutorService.JobWeight.LIGHT;
 
 @Configuration
 public class SchedulerConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerConfiguration.class);
 
-    private static final int QUEUE_SIZE = 50;
+    private static final int LIGHT_QUEUE_SIZE = 50;
+
+    private static final int HEAVY_QUEUE_SIZE = 1;
 
     private ConvertionService conversionService;
 
@@ -84,9 +90,10 @@ public class SchedulerConfiguration {
     @Bean
     @Qualifier("conversionTaskExecutor")
     public SmartExecutorService conversionTaskExecutor() {
-        ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
+        SmartExecutorService executorService = new SmartExecutorService();
+        ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(QUEUE_SIZE),
+                new LinkedBlockingQueue<>(LIGHT_QUEUE_SIZE),
                 (r, executor) -> conversionService.rejectTask((ConvertionService.ConversionTask) r)) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
@@ -97,9 +104,9 @@ public class SchedulerConfiguration {
             }
         };
 
-        LOGGER.debug("Rename thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
+        LOGGER.debug("Rename thread pool executor initialized with pool size: {}", lightTaskExecutor.getCorePoolSize());
 
-        return new SmartExecutorService(taskExecutor);
+        return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor));
     }
 
     @Bean
@@ -119,63 +126,103 @@ public class SchedulerConfiguration {
     @Bean
     @Qualifier("renameTaskExecutor")
     public SmartExecutorService renameTaskExecutor() {
-        ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
+        SmartExecutorService executorService = new SmartExecutorService();
+        ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(QUEUE_SIZE),
+                new LinkedBlockingQueue<>(LIGHT_QUEUE_SIZE),
                 (r, executor) -> renameService.rejectRenameTask((RenameService.RenameTask) r)) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
-                Runnable poll = renameService.getTask();
+                SmartExecutorService.Job poll = renameService.getTask(LIGHT);
                 if (poll != null) {
-                    execute(poll);
+                    executorService.execute(poll);
+                }
+            }
+        };
+        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(1, Math.max(1, Runtime.getRuntime().availableProcessors() - 2),
+                1, TimeUnit.MINUTES,
+                new LinkedBlockingQueue<>(HEAVY_QUEUE_SIZE),
+                (r, executor) -> renameService.rejectRenameTask((RenameService.RenameTask) r)) {
+            @Override
+            protected void afterExecute(Runnable r, Throwable t) {
+                SmartExecutorService.Job poll = renameService.getTask(HEAVY);
+                if (poll != null) {
+                    executorService.execute(poll);
                 }
             }
         };
 
-        LOGGER.debug("Rename thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
+        LOGGER.debug("Rename light thread pool executor initialized with pool size: {}", lightTaskExecutor.getCorePoolSize());
 
-        return new SmartExecutorService(taskExecutor);
+        return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor, HEAVY, heavyTaskExecutor));
     }
 
     @Bean
     @Qualifier("archiveTaskExecutor")
     public SmartExecutorService archiveTaskExecutor() {
-        ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
+        SmartExecutorService executorService = new SmartExecutorService();
+        ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(QUEUE_SIZE),
+                new LinkedBlockingQueue<>(LIGHT_QUEUE_SIZE),
                 (r, executor) -> archiveService.rejectTask((ArchiveService.ArchiveTask) r)) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
-                Runnable poll = archiveService.getTask();
+                Runnable poll = archiveService.getTask(LIGHT);
                 if (poll != null) {
                     execute(poll);
                 }
             }
         };
 
-        LOGGER.debug("Archive thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
+        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(1, Math.max(1, Runtime.getRuntime().availableProcessors() - 2),
+                1, TimeUnit.MINUTES,
+                new LinkedBlockingQueue<>(HEAVY_QUEUE_SIZE),
+                (r, executor) -> archiveService.rejectTask((ArchiveService.ArchiveTask) r)) {
+            @Override
+            protected void afterExecute(Runnable r, Throwable t) {
+                Runnable poll = archiveService.getTask(LIGHT);
+                if (poll != null) {
+                    execute(poll);
+                }
+            }
+        };
 
-        return new SmartExecutorService(taskExecutor);
+        LOGGER.debug("Archive light thread pool executor initialized with pool size: {}", lightTaskExecutor.getCorePoolSize());
+
+        return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor, HEAVY, heavyTaskExecutor));
     }
 
     @Bean
     @Qualifier("unzipTaskExecutor")
     public SmartExecutorService unzipTaskExecutor() {
-        ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
+        SmartExecutorService executorService = new SmartExecutorService();
+        ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
                 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(QUEUE_SIZE),
+                new LinkedBlockingQueue<>(LIGHT_QUEUE_SIZE),
                 (r, executor) -> unzipService.rejectTask((SmartExecutorService.Job) r)) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
-                Runnable poll = unzipService.getTask();
+                Runnable poll = unzipService.getTask(LIGHT);
+                if (poll != null) {
+                    execute(poll);
+                }
+            }
+        };
+        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(1, Math.max(1, Runtime.getRuntime().availableProcessors() - 2),
+                1, TimeUnit.MINUTES,
+                new LinkedBlockingQueue<>(HEAVY_QUEUE_SIZE),
+                (r, executor) -> unzipService.rejectTask((SmartExecutorService.Job) r)) {
+            @Override
+            protected void afterExecute(Runnable r, Throwable t) {
+                Runnable poll = unzipService.getTask(HEAVY);
                 if (poll != null) {
                     execute(poll);
                 }
             }
         };
 
-        LOGGER.debug("Unzip thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
+        LOGGER.debug("Unzip light thread pool executor initialized with pool size: {}", lightTaskExecutor.getCorePoolSize());
 
-        return new SmartExecutorService(taskExecutor);
+        return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor, HEAVY, heavyTaskExecutor));
     }
 }

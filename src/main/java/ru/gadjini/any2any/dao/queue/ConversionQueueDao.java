@@ -6,8 +6,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.domain.TgUser;
+import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.utils.JdbcUtils;
+import ru.gadjini.any2any.utils.MemoryUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -80,21 +82,22 @@ public class ConversionQueueDao {
         );
     }
 
-    public List<ConversionQueueItem> poll(int limit) {
+    public ConversionQueueItem poll(SmartExecutorService.JobWeight weight) {
         return jdbcTemplate.query(
                 "WITH queue_items AS (\n" +
                         "    UPDATE " + TYPE + " SET status = 1, last_run_at = now(), " +
                         "started_at = COALESCE(started_at, now()) WHERE id IN (\n" +
                         "        SELECT id\n" +
-                        "        FROM " + TYPE + " WHERE status = 0\n" +
+                        "        FROM " + TYPE + " WHERE status = 0 AND size " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
                         "        ORDER BY created_at\n" +
-                        "        LIMIT " + limit + ")\n" +
+                        "        LIMIT 1)\n" +
                         "    RETURNING *\n" +
                         ")\n" +
                         "SELECT *\n" +
                         "FROM queue_items\n" +
-                        "ORDER BY created_at;",
-                (rs, rowNum) -> map(rs)
+                        "ORDER BY created_at",
+                ps -> ps.setLong(1, MemoryUtils.MB_50),
+                (rs) -> rs.next() ? map(rs) : null
         );
     }
 

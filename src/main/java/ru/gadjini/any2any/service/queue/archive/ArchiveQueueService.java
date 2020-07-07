@@ -6,6 +6,7 @@ import ru.gadjini.any2any.dao.queue.ArchiveQueueDao;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 
 import java.util.ArrayList;
@@ -33,8 +34,10 @@ public class ArchiveQueueService {
             tgFile.setFileId(any2AnyFile.getFileId());
             tgFile.setFileName(any2AnyFile.getFileName());
             tgFile.setMimeType(any2AnyFile.getMimeType());
+            tgFile.setSize(any2AnyFile.getFileSize());
             archiveQueueItem.getFiles().add(tgFile);
         }
+        archiveQueueItem.setTotalFileSize(archiveQueueItem.getFiles().stream().map(TgFile::getSize).count());
 
         int id = dao.create(archiveQueueItem);
         archiveQueueItem.setId(id);
@@ -50,8 +53,8 @@ public class ArchiveQueueService {
         dao.setWaiting(id);
     }
 
-    public ArchiveQueueItem peek() {
-        return dao.poll();
+    public ArchiveQueueItem poll(SmartExecutorService.JobWeight weight) {
+        return dao.poll(weight);
     }
 
     public void delete(int id) {

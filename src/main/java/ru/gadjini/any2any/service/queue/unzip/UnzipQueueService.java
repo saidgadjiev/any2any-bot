@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.dao.queue.UnzipQueueDao;
 import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.domain.UnzipQueueItem;
+import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 
 import java.util.List;
@@ -23,14 +25,15 @@ public class UnzipQueueService {
         unzipQueueDao.resetProcessing();
     }
 
-    public int createProcessingUnzipItem(int userId, String fileId, Format format) {
+    public int createProcessingUnzipItem(int userId, Any2AnyFile any2AnyFile) {
         UnzipQueueItem queueItem = new UnzipQueueItem();
         queueItem.setUserId(userId);
-        queueItem.setType(format);
+        queueItem.setType(any2AnyFile.getFormat());
         queueItem.setItemType(UnzipQueueItem.ItemType.UNZIP);
 
         TgFile file = new TgFile();
-        file.setFileId(fileId);
+        file.setFileId(any2AnyFile.getFileId());
+        file.setSize(any2AnyFile.getFileSize());
         queueItem.setFile(file);
 
         queueItem.setStatus(UnzipQueueItem.Status.PROCESSING);
@@ -55,8 +58,8 @@ public class UnzipQueueService {
         unzipQueueDao.setWaiting(id);
     }
 
-    public UnzipQueueItem peek() {
-        return unzipQueueDao.poll();
+    public UnzipQueueItem poll(SmartExecutorService.JobWeight weight) {
+        return unzipQueueDao.poll(weight);
     }
 
     public void delete(int id) {

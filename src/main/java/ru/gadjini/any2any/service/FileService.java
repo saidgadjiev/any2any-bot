@@ -58,6 +58,7 @@ public class FileService {
             any2AnyFile.setFileName(message.getDocument().getFileName());
             any2AnyFile.setFileId(message.getDocument().getFileId());
             any2AnyFile.setMimeType(message.getDocument().getMimeType());
+            any2AnyFile.setFileSize(message.getDocument().getFileSize());
 
             return any2AnyFile;
         } else if (message.hasPhoto()) {
@@ -65,6 +66,7 @@ public class FileService {
             PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
             any2AnyFile.setFileId(photoSize.getFileId());
             any2AnyFile.setMimeType("image/jpeg");
+            any2AnyFile.setFileSize(photoSize.getFileSize());
 
             return any2AnyFile;
         } else if (message.hasVideo()) {
@@ -77,6 +79,7 @@ public class FileService {
             }
             any2AnyFile.setFileName(fileName);
             any2AnyFile.setFileId(message.getVideo().getFileId());
+            any2AnyFile.setFileSize(message.getVideo().getFileSize());
 
             return any2AnyFile;
         } else if (message.hasAudio()) {
@@ -86,6 +89,7 @@ public class FileService {
             any2AnyFile.setFileName(fileName);
             any2AnyFile.setFileId(message.getAudio().getFileId());
             any2AnyFile.setMimeType(message.getAudio().getMimeType());
+            any2AnyFile.setFileSize(message.getAudio().getFileSize());
 
             return any2AnyFile;
         } else if (message.hasSticker()) {
@@ -95,6 +99,7 @@ public class FileService {
             fileName += sticker.getAnimated() ? "tgs" : "webp";
             any2AnyFile.setFileName(fileName);
             any2AnyFile.setMimeType(sticker.getAnimated() ? null : "image/webp");
+            any2AnyFile.setFileSize(message.getSticker().getFileSize());
 
             return any2AnyFile;
         }

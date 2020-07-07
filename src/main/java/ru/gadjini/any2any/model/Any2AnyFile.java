@@ -12,6 +12,8 @@ public class Any2AnyFile {
 
     private Format format;
 
+    private int fileSize;
+
     public String getFileId() {
         return fileId;
     }
@@ -52,5 +54,13 @@ public class Any2AnyFile {
                 ", mimeType='" + mimeType + '\'' +
                 ", format=" + format +
                 '}';
+    }
+
+    public int getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(int fileSize) {
+        this.fileSize = fileSize;
     }
 }

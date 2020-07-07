@@ -11,8 +11,10 @@ import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.conversion.api.Format;
@@ -45,16 +47,19 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
 
     private FormatService formatService;
 
+    private FileService fileService;
+
     @Autowired
     public UnzipCommand(LocalisationService localisationService, UnzipService unzipService,
                         @Qualifier("limits") MessageService messageService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
-                        UserService userService, FormatService formatService) {
+                        UserService userService, FormatService formatService, FileService fileService) {
         this.localisationService = localisationService;
         this.unzipService = unzipService;
         this.messageService = messageService;
         this.replyKeyboardService = replyKeyboardService;
         this.userService = userService;
         this.formatService = formatService;
+        this.fileService = fileService;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.UNZIP_COMMAND_NAME, locale));
         }
@@ -97,7 +102,9 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
     public void processNonCommandUpdate(Message message, String text) {
         Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
-        unzipService.unzip(message.getFromUser().getId(), message.getDocument().getFileId(), checkFormat(format, message.getDocument().getMimeType(), message.getDocument().getFileName(), message.getDocument().getFileId(), locale), locale);
+        Any2AnyFile file = fileService.getFile(message, locale);
+        file.setFormat(checkFormat(format, message.getDocument().getMimeType(), message.getDocument().getFileName(), message.getDocument().getFileId(), locale));
+        unzipService.unzip(message.getFromUser().getId(), file, locale);
         messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_PROCESSING, locale)));
     }
 

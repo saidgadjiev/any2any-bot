@@ -10,7 +10,9 @@ import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.domain.RenameQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
+import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.utils.MemoryUtils;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -35,17 +37,17 @@ public class ArchiveQueueDao {
 
         jdbcTemplate.update(
                 con -> {
-                    PreparedStatement ps = con.prepareStatement("INSERT INTO archive_queue(user_id, files, type, status) " +
-                            "VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+                    PreparedStatement ps = con.prepareStatement("INSERT INTO archive_queue(user_id, files, total_file_size, type, status) " +
+                            "VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 
                     ps.setInt(1, archiveQueueItem.getUserId());
 
                     Object[] files = archiveQueueItem.getFiles().stream().map(TgFile::sqlObject).toArray();
                     Array array = con.createArrayOf(TgFile.TYPE, files);
                     ps.setArray(2, array);
-
-                    ps.setObject(3, archiveQueueItem.getType().name());
-                    ps.setInt(4, archiveQueueItem.getStatus().getCode());
+                    ps.setLong(3, archiveQueueItem.getTotalFileSize());
+                    ps.setObject(4, archiveQueueItem.getType().name());
+                    ps.setInt(5, archiveQueueItem.getStatus().getCode());
 
                     return ps;
                 },
@@ -64,13 +66,15 @@ public class ArchiveQueueDao {
         jdbcTemplate.update("UPDATE archive_queue SET status = 0 WHERE status = 1");
     }
 
-    public ArchiveQueueItem poll() {
+    public ArchiveQueueItem poll(SmartExecutorService.JobWeight weight) {
         return jdbcTemplate.query(
                 "WITH r AS (\n" +
-                        "    UPDATE archive_queue SET status = 1 WHERE id = (SELECT id FROM archive_queue WHERE status = 0 ORDER BY created_at LIMIT 1) RETURNING *\n" +
+                        "    UPDATE archive_queue SET status = 1 WHERE id = (SELECT id FROM archive_queue WHERE status = 0 " +
+                        "AND total_file_size " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ? ORDER BY created_at LIMIT 1) RETURNING *\n" +
                         ")\n" +
                         "SELECT *\n" +
                         "FROM r",
+                ps -> ps.setLong(1, MemoryUtils.MB_50),
                 rs -> {
                     if (rs.next()) {
                         return map(rs);
@@ -92,7 +96,8 @@ public class ArchiveQueueDao {
 
     private ArchiveQueueItem map(ResultSet resultSet) throws SQLException {
         ArchiveQueueItem item = new ArchiveQueueItem();
-        item.setId(resultSet.getInt(RenameQueueItem.ID));
+        item.setId(resultSet.getInt(ArchiveQueueItem.ID));
+        item.setTotalFileSize(resultSet.getLong(ArchiveQueueItem.TOTAL_FILE_SIZE));
 
         item.setFiles(mapFiles(resultSet));
         item.setType(Format.valueOf(resultSet.getString(ArchiveQueueItem.TYPE)));

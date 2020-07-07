@@ -26,6 +26,7 @@ import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.conversion.ConversionQueueService;
+import ru.gadjini.any2any.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.LinkedHashSet;
@@ -80,9 +81,9 @@ public class ConvertionService {
         queueService.setWaiting(conversionTask.getId());
     }
 
-    public ConversionTask getTask() {
+    public ConversionTask getTask(SmartExecutorService.JobWeight weight) {
         synchronized (this) {
-            ConversionQueueItem peek = queueService.poll();
+            ConversionQueueItem peek = queueService.poll(weight);
 
             if (peek != null) {
                 return new ConversionTask(peek);
@@ -188,6 +189,11 @@ public class ConvertionService {
         @Override
         public int getId() {
             return fileQueueItem.getId();
+        }
+
+        @Override
+        public SmartExecutorService.JobWeight getWeight() {
+            return fileQueueItem.getSize() > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
 
         private Any2AnyConverter<ConvertResult> getCandidate(ConversionQueueItem fileQueueItem) {

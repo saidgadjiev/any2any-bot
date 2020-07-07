@@ -6,6 +6,7 @@ import ru.gadjini.any2any.bot.command.keyboard.rename.RenameState;
 import ru.gadjini.any2any.dao.queue.RenameQueueDao;
 import ru.gadjini.any2any.domain.RenameQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
+import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 
 import java.util.List;
 
@@ -33,6 +34,7 @@ public class RenameQueueService {
         file.setFileName(renameState.getFile().getFileName());
         file.setFileId(renameState.getFile().getFileId());
         file.setMimeType(renameState.getFile().getMimeType());
+        file.setSize(renameState.getFile().getFileSize());
         renameQueueItem.setFile(file);
 
         renameQueueItem.setStatus(RenameQueueItem.Status.PROCESSING);
@@ -44,8 +46,8 @@ public class RenameQueueService {
         renameQueueDao.setWaiting(id);
     }
 
-    public RenameQueueItem peek() {
-        return renameQueueDao.poll();
+    public RenameQueueItem pool(SmartExecutorService.JobWeight weight) {
+        return renameQueueDao.pool(weight);
     }
 
     public void delete(int id) {
