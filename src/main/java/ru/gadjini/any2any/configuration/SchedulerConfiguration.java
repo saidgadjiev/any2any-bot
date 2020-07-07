@@ -97,16 +97,28 @@ public class SchedulerConfiguration {
                 (r, executor) -> conversionService.rejectTask((ConvertionService.ConversionTask) r)) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
-                Runnable poll = conversionService.getTask();
+                Runnable poll = conversionService.getTask(LIGHT);
+                if (poll != null) {
+                    execute(poll);
+                }
+            }
+        };
+        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(1, Math.max(1, Runtime.getRuntime().availableProcessors() - 2),
+                1, TimeUnit.MINUTES,
+                new LinkedBlockingQueue<>(HEAVY_QUEUE_SIZE),
+                (r, executor) -> conversionService.rejectTask((ConvertionService.ConversionTask) r)) {
+            @Override
+            protected void afterExecute(Runnable r, Throwable t) {
+                Runnable poll = conversionService.getTask(HEAVY);
                 if (poll != null) {
                     execute(poll);
                 }
             }
         };
 
-        LOGGER.debug("Rename thread pool executor initialized with pool size: {}", lightTaskExecutor.getCorePoolSize());
+        LOGGER.debug("Conversion light thread pool executor initialized with pool size: {}", lightTaskExecutor.getCorePoolSize());
 
-        return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor));
+        return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor, HEAVY, heavyTaskExecutor));
     }
 
     @Bean
