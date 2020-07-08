@@ -162,13 +162,14 @@ public class SendMessage {
 
     @Override
     public String toString() {
-        return "HtmlMessage{" +
+        return "SendMessage{" +
                 "chatId='" + chatId + '\'' +
                 ", text='" + text + '\'' +
                 ", parseMode='" + parseMode + '\'' +
                 ", disableWebPagePreview=" + disableWebPagePreview +
-                ", setReplyToMessageId=" + replyToMessageId +
-                ", setReplyMarkup=" + replyMarkup +
+                ", disableNotification=" + disableNotification +
+                ", replyToMessageId=" + replyToMessageId +
+                ", replyMarkup=" + replyMarkup +
                 '}';
     }
 }

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.dao.UserDao;
 import ru.gadjini.any2any.domain.CreateOrUpdateResult;
 import ru.gadjini.any2any.domain.TgUser;
-import ru.gadjini.any2any.exception.TelegramRequestException;
+import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.bot.api.object.User;
 
@@ -70,10 +70,10 @@ public class UserService {
     }
 
     public boolean deadlock(Throwable ex) {
-        if (ex instanceof TelegramRequestException) {
-            TelegramRequestException exception = (TelegramRequestException) ex;
+        if (ex instanceof TelegramApiRequestException) {
+            TelegramApiRequestException exception = (TelegramApiRequestException) ex;
             if (exception.getErrorCode() == 403) {
-                blockUser((int) exception.getChatId());
+                blockUser((int) exception.getLongChatId());
 
                 return true;
             }

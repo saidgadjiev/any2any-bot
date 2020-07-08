@@ -9,7 +9,7 @@ import ru.gadjini.any2any.bot.command.convert.ConvertState;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.CorruptedFileException;
-import ru.gadjini.any2any.exception.TelegramRequestException;
+import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
@@ -210,7 +210,7 @@ public class ConvertionService {
                             .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                     try {
                         messageService.sendDocument(sendDocumentContext);
-                    } catch (TelegramRequestException ex) {
+                    } catch (TelegramApiRequestException ex) {
                         if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
                             LOGGER.debug("Reply message not found try send without reply");
                             sendDocumentContext.setReplyToMessageId(null);
@@ -227,7 +227,7 @@ public class ConvertionService {
                             .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                     try {
                         messageService.sendSticker(sendFileContext);
-                    } catch (TelegramRequestException ex) {
+                    } catch (TelegramApiRequestException ex) {
                         if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
                             LOGGER.debug("Reply message not found try send without reply");
                             sendFileContext.setReplyToMessageId(null);

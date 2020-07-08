@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.Distribution;
-import ru.gadjini.any2any.exception.TelegramRequestException;
+import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.service.DistributionService;
@@ -64,7 +64,7 @@ public class DistributionJob {
                 sendDistribution(distribution);
             } catch (Exception ex) {
                 if (userService.deadlock(ex)) {
-                    LOGGER.debug("Blocked user", ((TelegramRequestException) ex).getChatId());
+                    LOGGER.debug("Blocked user", ((TelegramApiRequestException) ex).getChatId());
                 } else {
                     LOGGER.error(ex.getMessage(), ex);
                 }

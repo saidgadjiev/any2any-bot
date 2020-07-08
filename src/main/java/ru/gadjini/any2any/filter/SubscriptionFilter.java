@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.CommonConstants;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.exception.TelegramRequestException;
+import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
@@ -47,11 +47,11 @@ public class SubscriptionFilter extends BaseBotFilter {
     private boolean isSubscribedToTopsBot(int userId) {
         try {
             messageService.getChatMember(CommonConstants.TOP_BOTS_CHANNEL, userId);
-        } catch (TelegramRequestException ex) {
+        } catch (TelegramApiRequestException ex) {
             if (ex.getErrorCode() == 400) {
-                if (ex.getResponse().contains("user not found")) {
+                if (ex.getApiResponse().contains("user not found")) {
                     return false;
-                } else if (ex.getResponse().contains("chat not found")) {
+                } else if (ex.getApiResponse().contains("chat not found")) {
                     LOGGER.error("Chat not found {}", CommonConstants.TOP_BOTS_CHANNEL);
 
                     return true;

@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import ru.gadjini.any2any.exception.TelegramRequestException;
+import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.service.RenameService;
 import ru.gadjini.any2any.service.UserService;
@@ -83,7 +83,7 @@ public class SchedulerConfiguration {
         threadPoolTaskScheduler.setThreadNamePrefix("JobsThreadPoolTaskScheduler");
         threadPoolTaskScheduler.setErrorHandler(ex -> {
             if (userService.deadlock(ex)) {
-                LOGGER.debug("Blocked user " + ((TelegramRequestException) ex).getChatId());
+                LOGGER.debug("Blocked user", ((TelegramApiRequestException) ex).getChatId());
             } else {
                 LOGGER.error(ex.getMessage(), ex);
             }

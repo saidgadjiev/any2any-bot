@@ -3,13 +3,10 @@ package ru.gadjini.any2any.service.message;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.exception.TelegramRequestException;
+import ru.gadjini.any2any.exception.botapi.TelegramApiException;
+import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.model.SendFileResult;
@@ -26,6 +23,7 @@ import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarku
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.TelegramService;
 
 import java.util.Locale;
 
@@ -35,27 +33,25 @@ public class MessageServiceImpl implements MessageService {
 
     private static final SmartLogger LOGGER = new SmartLogger(MessageServiceImpl.class);
 
-    private static final String API = "http://localhost:5000/";
-
     private LocalisationService localisationService;
 
     private FileService fileService;
 
-    private RestTemplate restTemplate;
+    private TelegramService telegramService;
 
     @Autowired
-    public MessageServiceImpl(LocalisationService localisationService, FileService fileService) {
+    public MessageServiceImpl(LocalisationService localisationService, FileService fileService, TelegramService telegramService) {
         this.localisationService = localisationService;
         this.fileService = fileService;
-        this.restTemplate = new RestTemplate();
+        this.telegramService = telegramService;
     }
 
     @Override
     public void sendAnswerCallbackQuery(AnswerCallbackQuery answerCallbackQuery) {
-        HttpEntity<AnswerCallbackQuery> request = new HttpEntity<>(answerCallbackQuery);
-        ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(AnswerCallbackQuery.METHOD), request, Void.class);
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
-            LOGGER.error(responseEntity.getStatusCode().name());
+        try {
+            telegramService.sendAnswerCallbackQuery(answerCallbackQuery);
+        } catch (TelegramApiException ex) {
+            LOGGER.error(ex.getMessage(), ex);
         }
     }
 
@@ -78,60 +74,57 @@ public class MessageServiceImpl implements MessageService {
 
     @Override
     public Message sendMessage(SendMessage sendMessage) {
-        HttpEntity<SendMessage> request = new HttpEntity<>(sendMessage);
-        ResponseEntity<Message> responseEntity = restTemplate.postForEntity(getUrl(HtmlMessage.METHOD), request, Message.class);
-
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
-            LOGGER.error("Code: {}", responseEntity.getStatusCode().value());
+        try {
+            return telegramService.sendMessage(sendMessage);
+        } catch (TelegramApiRequestException ex) {
+            LOGGER.error("Error send message", sendMessage);
+            throw ex;
         }
-
-        return responseEntity.getBody();
     }
 
     @Override
     public void removeInlineKeyboard(long chatId, int messageId) {
-        try {
-            HttpEntity<EditMessageReplyMarkup> request = new HttpEntity<>(new EditMessageReplyMarkup(chatId, messageId));
-            ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(EditMessageReplyMarkup.METHOD), request, Void.class);
+        EditMessageReplyMarkup edit = new EditMessageReplyMarkup();
+        edit.setChatId(chatId);
+        edit.setMessageId(messageId);
 
-            if (responseEntity.getStatusCode() != HttpStatus.OK) {
-                LOGGER.error("Code: {}", responseEntity.getStatusCode().value());
-            }
-        } catch (Exception ignore) {
-            LOGGER.error(ignore.getMessage(), ignore);
+        try {
+            telegramService.editReplyMarkup(edit);
+        } catch (TelegramApiException ex) {
+            LOGGER.error(ex.getMessage(), ex);
         }
     }
 
     @Override
     public void editMessage(EditMessageText editMessageText) {
         editMessageText.setParseMode(ParseMode.HTML);
-        HttpEntity<EditMessageText> request = new HttpEntity<>(editMessageText);
-        ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(EditMessageText.METHOD), request, Void.class);
 
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
-            LOGGER.error("Code: {}", responseEntity.getStatusCode().value());
+        try {
+            telegramService.editMessageText(editMessageText);
+        } catch (TelegramApiException ex) {
+            LOGGER.error(ex.getMessage(), ex);
         }
     }
 
     @Override
     public void editReplyKeyboard(long chatId, int messageId, InlineKeyboardMarkup replyKeyboard) {
-        HttpEntity<EditMessageReplyMarkup> request = new HttpEntity<>(new EditMessageReplyMarkup(chatId, messageId)
-                .setReplyMarkup(replyKeyboard));
-        ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(EditMessageText.METHOD), request, Void.class);
+        EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup(chatId, messageId);
 
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
-            LOGGER.error("Code: {}", responseEntity.getStatusCode().value());
+        try {
+            telegramService.editReplyMarkup(editMessageReplyMarkup);
+        } catch (TelegramApiException ex) {
+            LOGGER.error(ex.getMessage(), ex);
         }
     }
 
     @Override
     public void editMessageCaption(EditMessageCaption editMessageCaption) {
         editMessageCaption.setParseMode(ParseMode.HTML);
-        HttpEntity<EditMessageCaption> request = new HttpEntity<>(editMessageCaption);
-        ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(EditMessageCaption.METHOD), request, Void.class);
 
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
-            LOGGER.error("Code: {}", responseEntity.getStatusCode().value());
+        try {
+            telegramService.editMessageCaption(editMessageCaption);
+        } catch (TelegramApiException e) {
+            LOGGER.error(e.getMessage(), e);
         }
     }
 
@@ -140,43 +133,22 @@ public class MessageServiceImpl implements MessageService {
         if (StringUtils.isNotBlank(editMessageMedia.getMedia().getCaption())) {
             editMessageMedia.getMedia().setParseMode(ParseMode.HTML);
         }
-        HttpEntity<EditMessageMedia> request = new HttpEntity<>(editMessageMedia);
-        ResponseEntity<Message> responseEntity = restTemplate.postForEntity(getUrl(EditMessageMedia.METHOD), request, Message.class);
+        Message message = telegramService.editMessageMedia(editMessageMedia);
 
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
-            LOGGER.error("Code: {}", responseEntity.getStatusCode().value());
-            throw new TelegramRequestException(responseEntity.getStatusCode().value());
-        }
-
-        return new EditMediaResult(fileService.getFileId(responseEntity.getBody()));
-    }
-
-    @Override
-    public void sendBotRestartedMessage(long chatId, ReplyKeyboard replyKeyboard, Locale locale) {
-        sendMessage(
-                new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_BOT_RESTARTED, locale))
-                        .setReplyMarkup(replyKeyboard)
-        );
+        return new EditMediaResult(fileService.getFileId(message));
     }
 
     @Override
     public void sendSticker(SendSticker sendSticker) {
-        HttpEntity<SendSticker> request = new HttpEntity<>(sendSticker);
-        ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(SendSticker.METHOD), request, Void.class);
-
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
-            LOGGER.error("Code: {}", responseEntity.getStatusCode().value());
-            throw new TelegramRequestException(responseEntity.getStatusCode().value());
-        }
+        telegramService.sendSticker(sendSticker);
     }
 
     @Override
     public void deleteMessage(long chatId, int messageId) {
-        HttpEntity<DeleteMessage> request = new HttpEntity<>(new DeleteMessage(chatId, messageId));
-        ResponseEntity responseEntity = restTemplate.postForEntity(getUrl(DeleteMessage.METHOD), request, Void.class);
-
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
-            LOGGER.error("Code: {}", responseEntity.getStatusCode().value());
+        try {
+            telegramService.deleteMessage(new DeleteMessage(chatId, messageId));
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
         }
     }
 
@@ -186,15 +158,8 @@ public class MessageServiceImpl implements MessageService {
             sendDocument.setParseMode(ParseMode.HTML);
         }
 
-        HttpEntity<SendDocument> request = new HttpEntity<>(sendDocument);
-        ResponseEntity<Message> responseEntity = restTemplate.postForEntity(getUrl(SendDocument.METHOD), request, Message.class);
+        Message message = telegramService.sendDocument(sendDocument);
 
-        if (responseEntity.getStatusCode() != HttpStatus.OK) {
-            LOGGER.error("Code: {}", responseEntity.getStatusCodeValue());
-            throw new TelegramRequestException(responseEntity.getStatusCodeValue());
-        }
-
-        Message message = responseEntity.getBody();
         return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
     }
 
@@ -203,7 +168,11 @@ public class MessageServiceImpl implements MessageService {
         sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ERROR, locale)));
     }
 
-    private String getUrl(String method) {
-        return API + method;
+    @Override
+    public void sendBotRestartedMessage(long chatId, ReplyKeyboard replyKeyboard, Locale locale) {
+        sendMessage(
+                new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_BOT_RESTARTED, locale))
+                        .setReplyMarkup(replyKeyboard)
+        );
     }
 }
