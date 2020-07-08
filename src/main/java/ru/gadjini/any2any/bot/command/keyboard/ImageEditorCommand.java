@@ -1,8 +1,5 @@
 package ru.gadjini.any2any.bot.command.keyboard;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -13,11 +10,12 @@ import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.logging.SmartLogger;
+import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.PhotoSize;
-import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.LocalisationService;
@@ -39,7 +37,7 @@ import java.util.Set;
 @Component
 public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotCommand, CallbackBotCommand, BotCommand {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ImageEditorCommand.class);
+    private static final SmartLogger LOGGER = new SmartLogger(ImageEditorCommand.class);
 
     private Set<String> names = new HashSet<>();
 
@@ -183,7 +181,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
             any2AnyFile.setFileId(message.getDocument().getFileId());
             any2AnyFile.setFileName(message.getDocument().getFileName());
             Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-            any2AnyFile.setFormat(checkFormat(format, message.getDocument().getMimeType(), message.getDocument().getFileName(), message.getDocument().getFileId(), locale));
+            any2AnyFile.setFormat(checkFormat(message.getFromUser().getId(), format, message.getDocument().getMimeType(), message.getDocument().getFileName(), locale));
         } else if (message.hasPhoto()) {
             PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
             any2AnyFile.setFileId(photoSize.getFileId());
@@ -194,13 +192,9 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
         return any2AnyFile;
     }
 
-    private Format checkFormat(Format format, String mimeType, String fileName, String fileId, Locale locale) {
+    private Format checkFormat(int userId, Format format, String mimeType, String fileName, Locale locale) {
         if (format == null) {
-            if (StringUtils.isNotBlank(mimeType)) {
-                LOGGER.debug("Format not resolved for " + mimeType + " and fileName " + fileName);
-            } else {
-                LOGGER.debug("Format not resolved for image " + fileId);
-            }
+            LOGGER.debug("Format is null", userId, mimeType, fileName);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_IMAGE, locale));
         }
         if (format.getCategory() != FormatCategory.IMAGES) {

@@ -1,11 +1,10 @@
 package ru.gadjini.any2any.service;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
@@ -23,7 +22,7 @@ public class FileService {
 
     private FormatService formatService;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileService.class);
+    private static final SmartLogger LOGGER = new SmartLogger(FileService.class);
 
     @Autowired
     public FileService(LocalisationService localisationService, FormatService formatService) {
@@ -103,7 +102,7 @@ public class FileService {
 
             return any2AnyFile;
         }
-        LOGGER.debug("File can't be extracted from message " + TgMessage.from(message));
+        LOGGER.debug("No file", message.getFromUser().getId(), TgMessage.getMetaTypes(message));
 
         return null;
     }

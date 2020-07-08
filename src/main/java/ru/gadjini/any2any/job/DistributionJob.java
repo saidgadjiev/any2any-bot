@@ -1,13 +1,12 @@
 package ru.gadjini.any2any.job;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.Distribution;
 import ru.gadjini.any2any.exception.TelegramRequestException;
+import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.service.DistributionService;
 import ru.gadjini.any2any.service.UserService;
@@ -21,7 +20,7 @@ public class DistributionJob {
 
     private static final String DISABLE_JOB = "disableJob";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DistributionJob.class);
+    private static final SmartLogger LOGGER = new SmartLogger(DistributionJob.class);
 
     private MessageService messageService;
 
@@ -58,20 +57,20 @@ public class DistributionJob {
         if (isDisabled()) {
             return;
         }
-        LOGGER.debug("Start send distributions");
+        LOGGER.debug("Start distribute");
         List<Distribution> distributions = distributionService.popDistributions(15);
         for (Distribution distribution : distributions) {
             try {
                 sendDistribution(distribution);
             } catch (Exception ex) {
                 if (userService.deadlock(ex)) {
-                    LOGGER.debug("Blocked user " + ((TelegramRequestException) ex).getChatId());
+                    LOGGER.debug("Blocked user", ((TelegramRequestException) ex).getChatId());
                 } else {
                     LOGGER.error(ex.getMessage(), ex);
                 }
             }
         }
-        LOGGER.debug("Finish send distributions");
+        LOGGER.debug("Finish distribute");
         if (distributions.isEmpty()) {
             disableJob();
         }
@@ -85,12 +84,12 @@ public class DistributionJob {
 
     private void enableJob() {
         System.setProperty(DISABLE_JOB, "false");
-        LOGGER.debug("Enable distribution job");
+        LOGGER.debug("Enable");
     }
 
     private void disableJob() {
         System.setProperty(DISABLE_JOB, "true");
-        LOGGER.debug("Disable distribution job");
+        LOGGER.debug("Disable");
     }
 
     private void sendDistribution(Distribution distribution) {

@@ -1,8 +1,6 @@
 package ru.gadjini.any2any.service.message;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
@@ -12,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TelegramRequestException;
+import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
@@ -34,7 +33,7 @@ import java.util.Locale;
 @Qualifier("message")
 public class MessageServiceImpl implements MessageService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MessageServiceImpl.class);
+    private static final SmartLogger LOGGER = new SmartLogger(MessageServiceImpl.class);
 
     private static final String API = "http://localhost:5000/";
 
@@ -98,8 +97,8 @@ public class MessageServiceImpl implements MessageService {
             if (responseEntity.getStatusCode() != HttpStatus.OK) {
                 LOGGER.error("Code: {}", responseEntity.getStatusCode().value());
             }
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
+        } catch (Exception ignore) {
+            LOGGER.error(ignore.getMessage(), ignore);
         }
     }
 

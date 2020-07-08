@@ -5,13 +5,12 @@ import com.aspose.words.Font;
 import com.aspose.words.SaveFormat;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.StopWatch;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
+import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
@@ -29,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Text2AnyConverter.class);
+    private static final SmartLogger LOGGER = new SmartLogger(Text2AnyConverter.class);
 
     private TempFileService fileService;
 
@@ -56,7 +55,7 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             stopWatch.start();
             SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "txt"));
             TextInfo textInfo = textDetector.detect(fileQueueItem.getFileId());
-            LOGGER.debug("Text info " + textInfo);
+            LOGGER.debug("Text info", textInfo);
             String text = TextUtils.removeAllEmojis(fileQueueItem.getFileId(), textInfo.getDirection());
             FileUtils.writeStringToFile(result.getFile(), text, StandardCharsets.UTF_8);
 
@@ -78,7 +77,7 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 font.setColor(Color.BLACK);
 
                 TextInfo textInfo = textDetector.detect(fileQueueItem.getFileId());
-                LOGGER.debug("Text info " + textInfo);
+                LOGGER.debug("Text info", textInfo);
                 String text = TextUtils.removeAllEmojis(fileQueueItem.getFileId(), textInfo.getDirection());
                 if (textInfo.getDirection() == TextDirection.LR) {
                     font.setSize(textInfo.getFont().getPrimarySize());

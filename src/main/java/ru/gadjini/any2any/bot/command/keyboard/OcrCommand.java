@@ -1,8 +1,6 @@
 package ru.gadjini.any2any.bot.command.keyboard;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -12,6 +10,7 @@ import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
+import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
@@ -34,7 +33,7 @@ import java.util.Set;
 @Component
 public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(OcrCommand.class);
+    private static final SmartLogger LOGGER = new SmartLogger(OcrCommand.class);
 
     private Set<String> names = new HashSet<>();
 
@@ -164,13 +163,13 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
     private void checkFormat(int userId, Format format, String fileId, String fileName, String mimeType) {
         if (format == null) {
             Locale locale = userService.getLocaleOrDefault(userId);
-            LOGGER.debug("Ocr impossible for user " + userId + " file id " + fileId + " fileName " + fileName + " mimeType " + mimeType);
+            LOGGER.debug("Ocr impossible", userId, mimeType, fileName, fileId);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_IMPOSSIBLE, locale));
         }
 
         if (format.getCategory() != FormatCategory.IMAGES) {
             Locale locale = userService.getLocaleOrDefault(userId);
-            LOGGER.debug("Ocr impossible for category " + format.getCategory() + " for user " + userId + " file id " + fileId + " fileName " + fileName + " mimeType " + mimeType);
+            LOGGER.debug("Only images", userId, format.getCategory(), mimeType, fileName);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_IMPOSSIBLE, locale));
         }
     }

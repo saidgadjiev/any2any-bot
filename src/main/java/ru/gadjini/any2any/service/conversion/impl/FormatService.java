@@ -4,11 +4,10 @@ import com.aspose.imaging.FileFormat;
 import com.aspose.imaging.Image;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.io.SmartTempFile;
+import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.FormatCategory;
@@ -56,7 +55,7 @@ public class FormatService {
         FORMATS.put(FormatCategory.IMAGES, images);
     }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FormatService.class);
+    private static final SmartLogger LOGGER = new SmartLogger(FormatService.class);
 
     private TelegramService telegramService;
 
@@ -159,7 +158,7 @@ public class FormatService {
 
             return getImageFormat(format);
         } catch (Exception ex) {
-            LOGGER.error("Error format detect. FileId: " + photoFileId + ". " + ex.getMessage(), ex);
+            LOGGER.error("Error format detect " + photoFileId + "\n" + ex.getMessage(), ex);
             return null;
         }
     }

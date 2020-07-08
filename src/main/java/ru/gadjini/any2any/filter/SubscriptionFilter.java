@@ -1,15 +1,14 @@
 package ru.gadjini.any2any.filter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.CommonConstants;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TelegramRequestException;
-import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.TgMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Update;
 import ru.gadjini.any2any.model.bot.api.object.User;
 import ru.gadjini.any2any.service.LocalisationService;
@@ -21,7 +20,7 @@ import java.util.Locale;
 @Component
 public class SubscriptionFilter extends BaseBotFilter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SubscriptionFilter.class);
+    private static final SmartLogger LOGGER = new SmartLogger(SubscriptionFilter.class);
 
     private MessageService messageService;
 

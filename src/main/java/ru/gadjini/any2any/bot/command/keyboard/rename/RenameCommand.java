@@ -1,7 +1,5 @@
 package ru.gadjini.any2any.bot.command.keyboard.rename;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -11,6 +9,7 @@ import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
+import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
@@ -30,7 +29,7 @@ import java.util.Set;
 @Component
 public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RenameCommand.class);
+    private static final SmartLogger LOGGER = new SmartLogger(RenameCommand.class);
 
     private Set<String> names = new HashSet<>();
 
@@ -120,7 +119,6 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
         } else if (message.hasText()) {
             renameState = commandStateService.getState(message.getChatId(), getHistoryName(), true);
             renameService.rename(message.getFromUser().getId(), renameState, text);
-            LOGGER.debug("Rename request " + renameState.getFile().getFileId() + " with fileName " + renameState.getFile().getFileName() + " to " + text);
         }
     }
 
@@ -139,7 +137,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
         renameState.setFile(file);
 
         if (renameState.getFile() == null) {
-            LOGGER.debug("Not file message " + TgMessage.from(message));
+            LOGGER.debug("No file", message.getFromUser().getId(), TgMessage.getMetaTypes(message));
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FORBIDDEN, locale));
         }
 

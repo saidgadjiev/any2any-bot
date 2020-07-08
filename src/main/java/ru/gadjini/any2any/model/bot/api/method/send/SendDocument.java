@@ -20,7 +20,7 @@ public class SendDocument {
     @JsonProperty(CHATID_FIELD)
     private String chatId;
     @JsonIgnore
-    private int userId;
+    private long origChatId;
     @JsonProperty(DOCUMENT_FIELD)
     private InputFile document;
     @JsonProperty(CAPTION_FIELD)
@@ -38,12 +38,14 @@ public class SendDocument {
 
     public SendDocument(Long chatId, File file) {
         this.chatId = chatId.toString();
+        this.origChatId = chatId;
         this.document = new InputFile();
         this.document.setFilePath(file.getAbsolutePath());
     }
 
     public SendDocument(Long chatId, String fileId) {
         this.chatId = chatId.toString();
+        this.origChatId = chatId;
         this.document = new InputFile();
         this.document.setFileId(fileId);
     }
@@ -54,12 +56,14 @@ public class SendDocument {
 
     public SendDocument setChatId(String chatId) {
         this.chatId = chatId;
+        this.origChatId = -1;
         return this;
     }
 
     public SendDocument setChatId(Long chatId) {
         Objects.requireNonNull(chatId);
         this.chatId = chatId.toString();
+        this.origChatId = chatId;
         return this;
     }
 
@@ -103,8 +107,8 @@ public class SendDocument {
         return this;
     }
 
-    public int getUserId() {
-        return userId;
+    public long getOrigChatId() {
+        return origChatId;
     }
 
     @Override

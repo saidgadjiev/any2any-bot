@@ -7,7 +7,6 @@ import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.domain.UnzipQueueItem;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
-import ru.gadjini.any2any.service.conversion.api.Format;
 
 import java.util.List;
 

@@ -2,13 +2,13 @@ package ru.gadjini.any2any.filter;
 
 import com.google.common.base.Splitter;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
+import ru.gadjini.any2any.logging.SmartLogger;
+import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
@@ -20,6 +20,7 @@ import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.*;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
+import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.message.MessageService;
@@ -27,7 +28,7 @@ import ru.gadjini.any2any.utils.MemoryUtils;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -35,7 +36,7 @@ import java.util.Locale;
 @Qualifier("limits")
 public class TelegramLimitsFilter extends BaseBotFilter implements MessageService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramLimitsFilter.class);
+    private static final SmartLogger LOGGER = new SmartLogger(TelegramLimitsFilter.class);
 
     private static final int TEXT_LENGTH_LIMIT = 4090;
 
@@ -48,10 +49,13 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
 
     private LocalisationService localisationService;
 
+    private FileService fileService;
+
     @Autowired
-    public TelegramLimitsFilter(UserService userService, LocalisationService localisationService) {
+    public TelegramLimitsFilter(UserService userService, LocalisationService localisationService, FileService fileService) {
         this.userService = userService;
         this.localisationService = localisationService;
+        this.fileService = fileService;
     }
 
     @Autowired
@@ -162,28 +166,16 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
         return message.hasDocument() || message.hasPhoto();
     }
 
-    private boolean isLargeFile(long size) {
-        return size > LARGE_FILE_SIZE;
-    }
-
     private void checkInMediaSize(Message message) {
-        int size = 0;
-        String fileId = null;
-        if (message.hasDocument()) {
-            Document document = message.getDocument();
-            size = document.getFileSize();
-            fileId = message.getDocument().getFileId();
-        } else if (message.hasPhoto()) {
-            PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
-            size = photoSize.getFileSize();
-            fileId = photoSize.getFileId();
-        }
-        if (size > LARGE_FILE_SIZE) {
-            LOGGER.debug("Too large in file({}, {}, {})", fileId, size, message.getFromUser().getId());
+        Any2AnyFile file = fileService.getFile(message, Locale.getDefault());
+        if (file.getFileSize() > LARGE_FILE_SIZE) {
+            LOGGER.debug("Large in file", message.getFromUser().getId(), MemoryUtils.humanReadableByteCount(file.getFileSize()));
             throw new UserException(localisationService.getMessage(
                     MessagesProperties.MESSAGE_TOO_LARGE_IN_FILE,
                     new Object[]{MemoryUtils.humanReadableByteCount(message.getDocument().getFileSize())},
                     userService.getLocaleOrDefault(message.getFromUser().getId())));
+        } else if (file.getFileSize() > MemoryUtils.MB_50) {
+            LOGGER.debug("Heavy file", message.getFromUser().getId(), file.getFileSize(), file.getMimeType(), file.getFileName());
         }
     }
 
@@ -194,27 +186,26 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
         }
         File file = new File(document.getFilePath());
         if (file.length() == 0) {
-            LOGGER.debug("Empty file({}, {})", document.getFilePath(), sendDocument);
-            sendMessage(new SendMessage(sendDocument.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZERO_LENGTH_FILE, userService.getLocaleOrDefault(sendDocument.getUserId())))
+            LOGGER.error("Zero file\n{}", Arrays.toString(Thread.currentThread().getStackTrace()));
+            sendMessage(new SendMessage(sendDocument.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZERO_LENGTH_FILE, userService.getLocaleOrDefault((int) sendDocument.getOrigChatId())))
                     .setReplyMarkup(sendDocument.getReplyMarkup())
                     .setReplyToMessageId(sendDocument.getReplyToMessageId()));
 
             return false;
         }
-        boolean largeFile = isLargeFile(file.length());
-        if (!largeFile) {
-            return true;
-        } else {
-            LOGGER.debug("Too large out file({}, {})", file.length(), sendDocument.getUserId());
+        if (file.length() > LARGE_FILE_SIZE) {
+            LOGGER.debug("Large out file", sendDocument.getChatId(), MemoryUtils.humanReadableByteCount(file.length()));
             String text = localisationService.getMessage(MessagesProperties.MESSAGE_TOO_LARGE_OUT_FILE,
                     new Object[]{file.getName(), MemoryUtils.humanReadableByteCount(file.length())},
-                    userService.getLocaleOrDefault(sendDocument.getUserId()));
+                    userService.getLocaleOrDefault((int) sendDocument.getOrigChatId()));
 
             sendMessage(new SendMessage(sendDocument.getChatId(), text)
                     .setReplyMarkup(sendDocument.getReplyMarkup())
                     .setReplyToMessageId(sendDocument.getReplyToMessageId()));
 
             return false;
+        } else {
+            return true;
         }
     }
 }

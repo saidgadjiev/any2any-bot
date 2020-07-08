@@ -1,7 +1,5 @@
 package ru.gadjini.any2any.configuration;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +8,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import ru.gadjini.any2any.exception.TelegramRequestException;
+import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.service.RenameService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
@@ -28,7 +27,7 @@ import static ru.gadjini.any2any.service.concurrent.SmartExecutorService.JobWeig
 @Configuration
 public class SchedulerConfiguration {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerConfiguration.class);
+    private static final SmartLogger LOGGER = new SmartLogger(SchedulerConfiguration.class);
 
     private static final int LIGHT_QUEUE_SIZE = 20;
 
@@ -124,7 +123,8 @@ public class SchedulerConfiguration {
             }
         };
 
-        LOGGER.debug("Conversion light thread pool executor initialized with pool size: {}", lightTaskExecutor.getCorePoolSize());
+        LOGGER.debug("Conversion light thread pool", lightTaskExecutor.getCorePoolSize());
+        LOGGER.debug("Conversion heavy thread pool", heavyTaskExecutor.getCorePoolSize());
 
         return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor, HEAVY, heavyTaskExecutor));
     }
@@ -138,7 +138,7 @@ public class SchedulerConfiguration {
         taskExecutor.setThreadNamePrefix("CommonTaskExecutor");
         taskExecutor.initialize();
 
-        LOGGER.debug("Common thread pool executor initialized with pool size: {}", taskExecutor.getCorePoolSize());
+        LOGGER.debug("Common thread pool", taskExecutor.getCorePoolSize());
 
         return taskExecutor;
     }
@@ -172,7 +172,8 @@ public class SchedulerConfiguration {
             }
         };
 
-        LOGGER.debug("Rename light thread pool executor initialized with pool size: {}", lightTaskExecutor.getCorePoolSize());
+        LOGGER.debug("Rename light thread pool", lightTaskExecutor.getCorePoolSize());
+        LOGGER.debug("Rename heavy thread pool", heavyTaskExecutor.getCorePoolSize());
 
         return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor, HEAVY, heavyTaskExecutor));
     }
@@ -207,7 +208,8 @@ public class SchedulerConfiguration {
             }
         };
 
-        LOGGER.debug("Archive light thread pool executor initialized with pool size: {}", lightTaskExecutor.getCorePoolSize());
+        LOGGER.debug("Archive light thread pool", lightTaskExecutor.getCorePoolSize());
+        LOGGER.debug("Archive heavy thread pool", heavyTaskExecutor.getCorePoolSize());
 
         return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor, HEAVY, heavyTaskExecutor));
     }
@@ -241,7 +243,8 @@ public class SchedulerConfiguration {
             }
         };
 
-        LOGGER.debug("Unzip light thread pool executor initialized with pool size: {}", lightTaskExecutor.getCorePoolSize());
+        LOGGER.debug("Unzip light thread pool", lightTaskExecutor.getCorePoolSize());
+        LOGGER.debug("Unzip heavy thread pool", heavyTaskExecutor.getCorePoolSize());
 
         return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor, HEAVY, heavyTaskExecutor));
     }

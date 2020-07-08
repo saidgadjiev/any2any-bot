@@ -126,7 +126,7 @@ public class TgMessage {
         return update.getMessage().getFromUser();
     }
 
-    private static List<MetaType> getMetaTypes(Message message) {
+    public static List<MetaType> getMetaTypes(Message message) {
         List<MetaType> metaTypes = new ArrayList<>();
 
         if (message.hasDocument()) {

@@ -1,11 +1,10 @@
 package ru.gadjini.any2any;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.property.ConversionProperties;
 import ru.gadjini.any2any.property.DetectLanguageProperties;
 import ru.gadjini.any2any.service.LocalisationService;
@@ -22,7 +21,7 @@ import java.util.TimeZone;
 @SpringBootApplication
 public class Any2AnyApplication {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Any2AnyApplication.class);
+    private static final SmartLogger LOGGER = new SmartLogger(Any2AnyApplication.class);
 
     public static void main(String[] args) {
         setDefaultLocaleAndTZ();
