@@ -100,7 +100,7 @@ public class SchedulerConfiguration {
     @Qualifier("commonTaskExecutor")
     public ThreadPoolTaskExecutor commonTaskExecutor() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(4);
+        taskExecutor.setCorePoolSize(Runtime.getRuntime().availableProcessors());
         taskExecutor.setMaxPoolSize(Runtime.getRuntime().availableProcessors());
         taskExecutor.setThreadNamePrefix("CommonTaskExecutor");
         taskExecutor.initialize();
