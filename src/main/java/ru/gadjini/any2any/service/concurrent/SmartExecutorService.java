@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 public class SmartExecutorService {
 
@@ -16,6 +17,8 @@ public class SmartExecutorService {
     private Map<JobWeight, ThreadPoolExecutor> executors;
 
     private final Map<Integer, Future<?>> processing = new ConcurrentHashMap<>();
+
+    private final Map<Integer, Job> activeTasks = new ConcurrentHashMap<>();
 
     public SmartExecutorService setExecutors(Map<JobWeight, ThreadPoolExecutor> executors) {
         this.executors = executors;
@@ -29,26 +32,32 @@ public class SmartExecutorService {
 
     public void execute(Job job) {
         Future<?> submit = executors.get(job.getWeight()).submit(job);
+        job.setCancelChecker(submit::isCancelled);
         processing.put(job.getId(), submit);
+        activeTasks.put(job.getId(), job);
     }
 
     public void complete(int jobId) {
         processing.remove(jobId);
+        activeTasks.remove(jobId);
     }
 
     public void complete(Collection<Integer> jobIds) {
         jobIds.forEach(this::complete);
     }
 
-    public void cancel(int jobId) {
+    public void cancel(int jobId, boolean userOriginated) {
         Future<?> future = processing.get(jobId);
         if (future != null && (!future.isCancelled() || !future.isDone())) {
+            Job job = activeTasks.get(jobId);
+            job.setCanceledByUser(userOriginated);
             future.cancel(true);
+            job.cancel();
         }
     }
 
-    public void cancelAndComplete(int jobId) {
-        cancel(jobId);
+    public void cancelAndComplete(int jobId, boolean userOriginated) {
+        cancel(jobId, userOriginated);
         complete(jobId);
     }
 
@@ -60,13 +69,13 @@ public class SmartExecutorService {
         return false;
     }
 
-    public void cancel(List<Integer> ids) {
-        ids.forEach(this::cancel);
+    public void cancel(List<Integer> ids, boolean userOriginated) {
+        ids.forEach(jobId -> cancel(jobId, userOriginated));
     }
 
-    public void cancelAndComplete(List<Integer> ids) {
+    public void cancelAndComplete(List<Integer> ids, boolean userOriginated) {
         ids.forEach(integer -> {
-            cancel(integer);
+            cancel(integer, userOriginated);
             complete(integer);
         });
     }
@@ -78,7 +87,7 @@ public class SmartExecutorService {
             }
             Set<Integer> jobs = new HashSet<>(processing.keySet());
             for (Integer job : jobs) {
-                cancelAndComplete(job);
+                cancelAndComplete(job, false);
             }
             for (Map.Entry<JobWeight, ThreadPoolExecutor> entry : executors.entrySet()) {
                 if (!entry.getValue().awaitTermination(10, TimeUnit.SECONDS)) {
@@ -91,9 +100,22 @@ public class SmartExecutorService {
     }
 
     public interface Job extends Runnable {
+
         int getId();
 
         JobWeight getWeight();
+
+        default void cancel() {
+
+        }
+
+        default void setCancelChecker(Supplier<Boolean> checker) {
+
+        }
+
+        default void setCanceledByUser(boolean canceledByUser) {
+
+        }
     }
 
     public enum JobWeight {

@@ -10,6 +10,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import ru.gadjini.any2any.exception.DownloadCanceledException;
 import ru.gadjini.any2any.exception.botapi.TelegramApiException;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.any2any.io.SmartTempFile;
@@ -207,8 +208,12 @@ public class TelegramService {
             stopWatch.start();
             LOGGER.debug("Start downloadFileByFileId({})", fileId);
 
-            HttpEntity<GetFile> request = new HttpEntity<>(new GetFile(fileId, outputFile.getAbsolutePath()));
+            HttpEntity<GetFile> request = new HttpEntity<>(new GetFile(fileId, outputFile.getAbsolutePath(), outputFile.isDeleteParentDir()));
             restTemplate.postForObject(getUrl(GetFile.METHOD), request, Void.class);
+
+            if (!downloading.containsKey(fileId)) {
+                throw new DownloadCanceledException();
+            }
 
             stopWatch.stop();
             LOGGER.debug("Finish downloadFileByFileId({}, {}, {})", fileId, MemoryUtils.humanReadableByteCount(outputFile.length()), stopWatch.getTime(TimeUnit.SECONDS));
@@ -229,15 +234,22 @@ public class TelegramService {
         return smartTempFile;
     }
 
-    public void cancelDownloading() {
+    public void cancelDownloading(String fileId) {
+        try {
+            if (downloading.containsKey(fileId)) {
+                HttpEntity<CancelDownloading> request = new HttpEntity<>(new CancelDownloading(fileId));
+                restTemplate.postForObject(getUrl(CancelDownloading.METHOD), request, Void.class);
+            }
+        } finally {
+            downloading.remove(fileId);
+        }
+    }
+
+    public void cancelDownloads() {
         try {
             for (Map.Entry<String, SmartTempFile> entry : downloading.entrySet()) {
-                try {
-                    HttpEntity<CancelDownloading> request = new HttpEntity<>(new CancelDownloading(entry.getKey()));
-                    restTemplate.postForObject(getUrl(CancelDownloading.METHOD), request, Void.class);
-                } finally {
-                    entry.getValue().smartDelete();
-                }
+                HttpEntity<CancelDownloading> request = new HttpEntity<>(new CancelDownloading(entry.getKey()));
+                restTemplate.postForObject(getUrl(CancelDownloading.METHOD), request, Void.class);
             }
         } finally {
             downloading.clear();

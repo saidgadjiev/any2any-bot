@@ -27,6 +27,7 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Supplier;
 
 @Service
 public class RenameService {
@@ -51,11 +52,13 @@ public class RenameService {
 
     private CommandStateService commandStateService;
 
+    private UserService userService;
+
     @Autowired
     public RenameService(TelegramService telegramService, TempFileService fileService, FormatService formatService,
                          @Qualifier("limits") MessageService messageService, RenameQueueService renameQueueService,
                          LocalisationService localisationService, InlineKeyboardService inlineKeyboardService,
-                         CommandStateService commandStateService) {
+                         CommandStateService commandStateService, UserService userService) {
         this.telegramService = telegramService;
         this.fileService = fileService;
         this.formatService = formatService;
@@ -64,6 +67,7 @@ public class RenameService {
         this.localisationService = localisationService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.commandStateService = commandStateService;
+        this.userService = userService;
     }
 
     @PostConstruct
@@ -101,7 +105,7 @@ public class RenameService {
 
     public void cancelCurrentTasks(long chatId) {
         List<Integer> ids = renameQueueService.deleteByUserId((int) chatId);
-        executor.cancelAndComplete(ids);
+        executor.cancelAndComplete(ids, false);
 
         RenameState state = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, false);
         if (state != null) {
@@ -111,7 +115,7 @@ public class RenameService {
 
     public void cancel(int userId, int jobId) {
         renameQueueService.delete(jobId);
-        executor.cancelAndComplete(jobId);
+        executor.cancelAndComplete(jobId, true);
         RenameState state = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, true);
         commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
         messageService.removeInlineKeyboard(userId, state.getProcessingMessageId());
@@ -175,6 +179,9 @@ public class RenameService {
         private final String fileId;
         private int fileSize;
         private final int replyToMessageId;
+        private volatile Supplier<Boolean> checker;
+        private volatile boolean autoCancel;
+        private volatile SmartTempFile file;
 
         private RenameTask(RenameQueueItem queueItem) {
             this.jobId = queueItem.getId();
@@ -192,22 +199,22 @@ public class RenameService {
             String size = MemoryUtils.humanReadableByteCount(fileSize);
             LOGGER.debug("Start({}, {}, {})", userId, size, fileId);
 
-            String ext = formatService.getExt(fileName, mimeType);
-            SmartTempFile file = createNewFile(newFileName, ext);
-            telegramService.downloadFileByFileId(fileId, file);
-            RenameState renameState = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, true);
             try {
+                String ext = formatService.getExt(fileName, mimeType);
+                file = createNewFile(newFileName, ext);
+                telegramService.downloadFileByFileId(fileId, file);
                 sendMessage(userId, replyToMessageId, file.getFile());
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, newFileName);
             } catch (Exception ex) {
-                messageService.sendErrorMessage(userId, new Locale(renameState.getLanguage()));
-                throw ex;
+                if (checker.get()) {
+                    LOGGER.debug("Canceled({}, {})", userId, size);
+                } else {
+                    LOGGER.error(ex.getMessage(), ex);
+                    messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
+                }
             } finally {
-                renameQueueService.delete(jobId);
-                commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
-                executor.complete(jobId);
-                file.smartDelete();
+                cleanup();
             }
         }
 
@@ -217,8 +224,35 @@ public class RenameService {
         }
 
         @Override
+        public void cancel() {
+            telegramService.cancelDownloading(fileId);
+            cleanup();
+        }
+
+        @Override
+        public void setCancelChecker(Supplier<Boolean> checker) {
+            this.checker = checker;
+        }
+
+        @Override
+        public void setCanceledByUser(boolean canceledByUser) {
+            this.autoCancel = !canceledByUser;
+        }
+
+        @Override
         public SmartExecutorService.JobWeight getWeight() {
             return fileSize > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+        }
+
+        private void cleanup() {
+            if (!autoCancel) {
+                renameQueueService.delete(jobId);
+                commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+            }
+            executor.complete(jobId);
+            if (file != null) {
+                file.smartDelete();
+            }
         }
     }
 }

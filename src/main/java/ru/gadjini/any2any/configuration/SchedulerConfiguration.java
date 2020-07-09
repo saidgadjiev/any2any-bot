@@ -31,9 +31,9 @@ public class SchedulerConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerConfiguration.class);
 
-    private static final int LIGHT_QUEUE_SIZE = 20;
+    private static final int LIGHT_QUEUE_SIZE = 10;
 
-    private static final int HEAVY_QUEUE_SIZE = 20;
+    private static final int HEAVY_QUEUE_SIZE = 10;
 
     private static final int THREADS_KEEP_ALIVE = 0;
 

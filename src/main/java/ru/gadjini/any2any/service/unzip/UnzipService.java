@@ -36,6 +36,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Service
@@ -146,13 +147,13 @@ public class UnzipService {
 
     public void cancelUnzip(long chatId, int messageId, int jobId) {
         queueService.delete(jobId);
-        executor.cancelAndComplete(jobId);
+        executor.cancelAndComplete(jobId, true);
         unzipCancelled(chatId, messageId);
     }
 
     public void cancelExtractFile(long chatId, int jobId) {
         queueService.delete(jobId);
-        executor.cancelAndComplete(jobId);
+        executor.cancelAndComplete(jobId, true);
         extractingCanceled(chatId);
     }
 
@@ -183,7 +184,7 @@ public class UnzipService {
 
     private void cancelCurrentTasks(int userId) {
         List<Integer> ids = queueService.deleteByUserId(userId);
-        executor.cancelAndComplete(ids);
+        executor.cancelAndComplete(ids, false);
     }
 
     private void startExtracting(int userId, int jobId) {
@@ -246,6 +247,12 @@ public class UnzipService {
 
         private int userId;
 
+        private volatile Supplier<Boolean> checker;
+
+        private volatile boolean autoCancel;
+
+        private volatile SmartTempFile out;
+
         private ExtractFileTask(UnzipQueueItem item) {
             this.jobId = item.getId();
             this.id = item.getExtractFileId();
@@ -254,33 +261,34 @@ public class UnzipService {
 
         @Override
         public void run() {
-            UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true);
-            ZipFileHeader fileHeader = unzipState.getFiles().get(id);
-            LOGGER.debug("Start({}, {})", userId, MemoryUtils.humanReadableByteCount(fileHeader.getSize()));
-            SmartTempFile out = fileService.createTempDir();
+            String size = null;
 
             try {
+                UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true);
+                ZipFileHeader fileHeader = unzipState.getFiles().get(id);
+                size = MemoryUtils.humanReadableByteCount(fileHeader.getSize());
+                LOGGER.debug("Start({}, {})", userId, size);
+                out = fileService.createTempDir();
+
                 UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
-                if (new File(unzipState.getArchivePath()).length() > 0) {
-                    String outFilePath = unzipDevice.unzip(fileHeader.getPath(), unzipState.getArchivePath(), out.getAbsolutePath());
-                    SmartTempFile outFile = new SmartTempFile(new File(outFilePath), false);
-                    try {
-                        SendFileResult result = messageService.sendDocument(new SendDocument((long) userId, outFile.getFile()));
-                        unzipState.getFilesCache().put(id, result.getFileId());
-                        commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
-                        finishExtracting(userId, unzipState);
-                    } finally {
-                        outFile.smartDelete();
-                    }
-                }
-                LOGGER.debug("Finish({})", userId);
+                String outFilePath = unzipDevice.unzip(fileHeader.getPath(), unzipState.getArchivePath(), out.getAbsolutePath());
+                SmartTempFile outFile = new SmartTempFile(new File(outFilePath), false);
+
+                SendFileResult result = messageService.sendDocument(new SendDocument((long) userId, outFile.getFile()));
+                unzipState.getFilesCache().put(id, result.getFileId());
+                commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
+                finishExtracting(userId, unzipState);
+
+                LOGGER.debug("Finish({}, {})", userId, size);
             } catch (Exception ex) {
-                messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
-                throw ex;
+                if (checker.get()) {
+                    LOGGER.debug("Canceled({}, {})", userId, size);
+                } else {
+                    LOGGER.error(ex.getMessage(), ex);
+                    messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
+                }
             } finally {
-                queueService.delete(jobId);
-                out.smartDelete();
-                executor.complete(jobId);
+                cleanup();
             }
         }
 
@@ -290,11 +298,31 @@ public class UnzipService {
         }
 
         @Override
+        public void setCancelChecker(Supplier<Boolean> checker) {
+            this.checker = checker;
+        }
+
+        @Override
+        public void setCanceledByUser(boolean canceledByUser) {
+            autoCancel = !canceledByUser;
+        }
+
+        @Override
         public SmartExecutorService.JobWeight getWeight() {
             UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true);
             ZipFileHeader fileHeader = unzipState.getFiles().get(id);
 
             return fileHeader.getSize() > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+        }
+
+        private void cleanup() {
+            if (!autoCancel) {
+                queueService.delete(jobId);
+            }
+            executor.complete(jobId);
+            if (out != null) {
+                out.smartDelete();
+            }
         }
 
         private void finishExtracting(int userId, UnzipState unzipState) {
@@ -319,6 +347,8 @@ public class UnzipService {
         private final Format format;
         private Integer messageId;
         private UnzipDevice unzipDevice;
+        private volatile Supplier<Boolean> checker;
+        private volatile boolean autoCancel;
 
         private UnzipTask(UnzipQueueItem item) {
             this.jobId = item.getId();
@@ -335,9 +365,9 @@ public class UnzipService {
             String size = MemoryUtils.humanReadableByteCount(fileSize);
             LOGGER.debug("Start({}, {}, {}, {})", userId, size, format, fileId);
 
-            SmartTempFile in = telegramService.downloadFileByFileId(fileId, format.getExt());
-
+            SmartTempFile in = null;
             try {
+                in = telegramService.downloadFileByFileId(fileId, format.getExt());
                 UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, false);
 
                 if (unzipState != null) {
@@ -359,11 +389,17 @@ public class UnzipService {
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, format);
             } catch (Exception e) {
-                in.smartDelete();
-                throw e;
+                if (checker.get()) {
+                    LOGGER.debug("Canceled({}, {})", userId, size);
+                } else {
+                    LOGGER.error(e.getMessage(), e);
+                    if (in != null) {
+                        in.smartDelete();
+                    }
+                    messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
+                }
             } finally {
-                executor.complete(jobId);
-                queueService.delete(jobId);
+                cleanup();
             }
         }
 
@@ -373,8 +409,30 @@ public class UnzipService {
         }
 
         @Override
+        public void setCancelChecker(Supplier<Boolean> checker) {
+            this.checker = checker;
+        }
+
+        @Override
+        public void cancel() {
+            telegramService.cancelDownloading(fileId);
+        }
+
+        @Override
+        public void setCanceledByUser(boolean canceledByUser) {
+            this.autoCancel = !canceledByUser;
+        }
+
+        @Override
         public SmartExecutorService.JobWeight getWeight() {
             return fileSize > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+        }
+
+        private void cleanup() {
+            executor.complete(jobId);
+            if (!autoCancel) {
+                queueService.delete(jobId);
+            }
         }
 
         private UnzipState createState(String zipFile, Format archiveType) {

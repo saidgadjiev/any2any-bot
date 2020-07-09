@@ -22,6 +22,10 @@ public class SmartTempFile {
         this.deleteParentDir = deleteParentDir;
     }
 
+    public boolean isDeleteParentDir() {
+        return deleteParentDir;
+    }
+
     public String getName() {
         return file.getName();
     }

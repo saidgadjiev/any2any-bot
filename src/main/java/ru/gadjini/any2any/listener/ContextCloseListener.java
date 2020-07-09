@@ -44,11 +44,6 @@ public class ContextCloseListener implements ApplicationListener<ContextClosedEv
     @Override
     public void onApplicationEvent(ContextClosedEvent event) {
         try {
-            telegramService.cancelDownloading();
-        } catch (Throwable e) {
-            LOGGER.error("Error cancel downloading telegramService. " + e.getMessage(), e);
-        }
-        try {
             conversionService.shutdown();
         } catch (Throwable e) {
             LOGGER.error("Error shutdown conversionService. " + e.getMessage(), e);
@@ -72,6 +67,11 @@ public class ContextCloseListener implements ApplicationListener<ContextClosedEv
             commonThreadPool.shutdown();
         } catch (Throwable e) {
             LOGGER.error("Error shutdown commonThreadPool. " + e.getMessage(), e);
+        }
+        try {
+            telegramService.cancelDownloads();
+        } catch (Throwable e) {
+            LOGGER.error("Error cancel downloading telegramService. " + e.getMessage(), e);
         }
         LOGGER.debug("Shutdown success");
     }

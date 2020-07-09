@@ -17,6 +17,7 @@ import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
 import ru.gadjini.any2any.model.bot.api.object.User;
 import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Any2AnyConverter;
@@ -33,6 +34,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.function.Supplier;
 
 @Service
 public class ConvertionService {
@@ -53,16 +55,19 @@ public class ConvertionService {
 
     private SmartExecutorService executor;
 
+    private TelegramService telegramService;
+
     @Autowired
     public ConvertionService(@Qualifier("limits") MessageService messageService,
                              LocalisationService localisationService, UserService userService,
                              Set<Any2AnyConverter> any2AnyConvertersSet, InlineKeyboardService inlineKeyboardService,
-                             ConversionQueueService queueService) {
+                             ConversionQueueService queueService, TelegramService telegramService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.queueService = queueService;
+        this.telegramService = telegramService;
         any2AnyConvertersSet.forEach(any2AnyConverters::add);
     }
 
@@ -105,7 +110,7 @@ public class ConvertionService {
 
     public void cancel(int jobId) {
         queueService.delete(jobId);
-        executor.cancelAndComplete(jobId);
+        executor.cancelAndComplete(jobId, true);
     }
 
     public void shutdown() {
@@ -148,6 +153,8 @@ public class ConvertionService {
 
         private final ConversionQueueItem fileQueueItem;
 
+        private volatile Supplier<Boolean> checker;
+
         private ConversionTask(ConversionQueueItem fileQueueItem) {
             this.fileQueueItem = fileQueueItem;
         }
@@ -173,8 +180,7 @@ public class ConvertionService {
                                         .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                         );
                     } catch (Exception ex) {
-                        boolean canceled = executor.isCanceled(fileQueueItem.getId());
-                        if (canceled) {
+                        if (checker.get()) {
                             LOGGER.debug("Canceled({}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getFormat(),
                                     fileQueueItem.getTargetFormat(), size, fileQueueItem.getSize(), fileQueueItem.getFileId());
                         } else {
@@ -192,7 +198,7 @@ public class ConvertionService {
                     LOGGER.debug("Candidate not found({}, {})", fileQueueItem.getUserId(), fileQueueItem.getFormat());
                 }
             } finally {
-                executor.complete(fileQueueItem.getId());
+                cleanup();
             }
         }
 
@@ -202,8 +208,23 @@ public class ConvertionService {
         }
 
         @Override
+        public void cancel() {
+            telegramService.cancelDownloading(fileQueueItem.getFileId());
+            cleanup();
+        }
+
+        @Override
+        public void setCancelChecker(Supplier<Boolean> checker) {
+            this.checker = checker;
+        }
+
+        @Override
         public SmartExecutorService.JobWeight getWeight() {
             return fileQueueItem.getSize() > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+        }
+
+        private void cleanup() {
+            executor.complete(fileQueueItem.getId());
         }
 
         private Any2AnyConverter<ConvertResult> getCandidate(ConversionQueueItem fileQueueItem) {
