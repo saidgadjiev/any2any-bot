@@ -3,6 +3,8 @@ package ru.gadjini.any2any.bot.command.keyboard;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -40,7 +42,7 @@ import java.util.function.Supplier;
 @Component
 public class ConvertMaker {
 
-    private static final SmartLogger LOGGER = new SmartLogger(ConvertMaker.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConvertMaker.class);
 
     private CommandStateService commandStateService;
 

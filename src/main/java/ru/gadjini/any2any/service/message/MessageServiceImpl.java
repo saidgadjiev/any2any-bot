@@ -1,13 +1,14 @@
 package ru.gadjini.any2any.service.message;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.botapi.TelegramApiException;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
@@ -31,7 +32,7 @@ import java.util.Locale;
 @Qualifier("message")
 public class MessageServiceImpl implements MessageService {
 
-    private static final SmartLogger LOGGER = new SmartLogger(MessageServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageServiceImpl.class);
 
     private LocalisationService localisationService;
 
@@ -77,7 +78,7 @@ public class MessageServiceImpl implements MessageService {
         try {
             return telegramService.sendMessage(sendMessage);
         } catch (TelegramApiRequestException ex) {
-            LOGGER.error("Error send message", sendMessage);
+            LOGGER.error("Error send message({})", sendMessage);
             throw ex;
         }
     }

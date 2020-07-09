@@ -2,6 +2,8 @@ package ru.gadjini.any2any.service.conversion;
 
 import com.aspose.pdf.Document;
 import com.aspose.words.License;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -10,7 +12,6 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.CorruptedFileException;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
@@ -35,7 +36,7 @@ import java.util.Set;
 @Service
 public class ConvertionService {
 
-    private static final SmartLogger LOGGER = new SmartLogger(ConvertionService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConvertionService.class);
 
     private Set<Any2AnyConverter<ConvertResult>> any2AnyConverters = new LinkedHashSet<>();
 
@@ -142,12 +143,13 @@ public class ConvertionService {
             try {
                 Any2AnyConverter<ConvertResult> candidate = getCandidate(fileQueueItem);
                 if (candidate != null) {
-                    LOGGER.debug("Start", fileQueueItem.getUserId(), getWeight(), fileQueueItem.getId());
+                    String size = MemoryUtils.humanReadableByteCount(fileQueueItem.getSize());
+                    LOGGER.debug("Start({}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId());
 
                     try (ConvertResult convertResult = candidate.convert(fileQueueItem)) {
                         sendResult(fileQueueItem, convertResult);
                         queueService.complete(fileQueueItem.getId());
-                        LOGGER.debug("Finish", fileQueueItem.getUserId(), getWeight(), fileQueueItem.getId(), convertResult.time());
+                        LOGGER.debug("Finish({}, {}, {}, {})", fileQueueItem.getUserId(), size, fileQueueItem.getId(), convertResult.time());
                     } catch (CorruptedFileException ex) {
                         queueService.completeWithException(fileQueueItem.getId(), ex.getMessage());
                         LOGGER.error(ex.getMessage());
@@ -159,8 +161,8 @@ public class ConvertionService {
                     } catch (Exception ex) {
                         boolean canceled = executor.isCanceled(fileQueueItem.getId());
                         if (canceled) {
-                            LOGGER.debug("Canceled", fileQueueItem.getUserId(), fileQueueItem.getFormat(),
-                                    fileQueueItem.getTargetFormat(), getWeight(), fileQueueItem.getSize(), fileQueueItem.getFileId());
+                            LOGGER.debug("Canceled({}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getFormat(),
+                                    fileQueueItem.getTargetFormat(), size, fileQueueItem.getSize(), fileQueueItem.getFileId());
                         } else {
                             queueService.exception(fileQueueItem.getId(), ex);
                             LOGGER.error(ex.getMessage(), ex);
@@ -173,7 +175,7 @@ public class ConvertionService {
                     }
                 } else {
                     queueService.converterNotFound(fileQueueItem.getId());
-                    LOGGER.debug("Candidate not found", fileQueueItem.getUserId(), fileQueueItem.getFormat());
+                    LOGGER.debug("Candidate not found({}, {})", fileQueueItem.getUserId(), fileQueueItem.getFormat());
                 }
             } finally {
                 executor.complete(fileQueueItem.getId());

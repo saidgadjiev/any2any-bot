@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.service.unzip;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -8,7 +10,6 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.UnzipQueueItem;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
@@ -198,7 +199,7 @@ public class UnzipService {
 
     public class ExtractFileTask implements Runnable, SmartExecutorService.Job {
 
-        private final SmartLogger LOGGER = new SmartLogger(UnzipTask.class);
+        private final Logger LOGGER = LoggerFactory.getLogger(UnzipTask.class);
 
         private int jobId;
 
@@ -214,7 +215,7 @@ public class UnzipService {
 
         @Override
         public void run() {
-            LOGGER.debug("Start", userId);
+            LOGGER.debug("Start({})", userId);
             UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true);
             String fileHeader = unzipState.getFiles().get(id);
             SmartTempFile out = fileService.createTempDir();
@@ -233,7 +234,7 @@ public class UnzipService {
                         outFile.smartDelete();
                     }
                 }
-                LOGGER.debug("Finish", userId);
+                LOGGER.debug("Finish({})", userId);
             } catch (Exception ex) {
                 messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
                 throw ex;
@@ -267,7 +268,7 @@ public class UnzipService {
 
     public class UnzipTask implements Runnable, SmartExecutorService.Job {
 
-        private final SmartLogger LOGGER = new SmartLogger(UnzipTask.class);
+        private final Logger LOGGER = LoggerFactory.getLogger(UnzipTask.class);
 
         private final int jobId;
         private final int userId;
@@ -290,7 +291,8 @@ public class UnzipService {
 
         @Override
         public void run() {
-            LOGGER.debug("Start", userId, getWeight(), format, fileId);
+            String size = MemoryUtils.humanReadableByteCount(fileSize);
+            LOGGER.debug("Start({}, {}, {}, {})", userId, size, format, fileId);
 
             SmartTempFile in = telegramService.downloadFileByFileId(fileId, format.getExt());
 
@@ -313,7 +315,7 @@ public class UnzipService {
                 unzipState.setChooseFilesMessageId(sent.getMessageId());
                 commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
 
-                LOGGER.debug("Finish", userId, getWeight(), format);
+                LOGGER.debug("Finish({}, {}, {})", userId, size, format);
             } catch (Exception e) {
                 in.smartDelete();
                 throw e;

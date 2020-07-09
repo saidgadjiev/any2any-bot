@@ -1,12 +1,13 @@
 package ru.gadjini.any2any.job;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.Distribution;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.service.DistributionService;
 import ru.gadjini.any2any.service.UserService;
@@ -20,7 +21,7 @@ public class DistributionJob {
 
     private static final String DISABLE_JOB = "disableJob";
 
-    private static final SmartLogger LOGGER = new SmartLogger(DistributionJob.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DistributionJob.class);
 
     private MessageService messageService;
 
@@ -64,7 +65,7 @@ public class DistributionJob {
                 sendDistribution(distribution);
             } catch (Exception ex) {
                 if (userService.deadlock(ex)) {
-                    LOGGER.debug("Blocked user", ((TelegramApiRequestException) ex).getChatId());
+                    LOGGER.debug("Blocked user({})", ((TelegramApiRequestException) ex).getChatId());
                 } else {
                     LOGGER.error(ex.getMessage(), ex);
                 }

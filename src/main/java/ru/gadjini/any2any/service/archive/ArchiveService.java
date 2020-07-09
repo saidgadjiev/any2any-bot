@@ -2,6 +2,8 @@ package ru.gadjini.any2any.service.archive;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -11,7 +13,6 @@ import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
 @Service
 public class ArchiveService {
 
-    private static final SmartLogger LOGGER = new SmartLogger(ArchiveService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ArchiveService.class);
 
     private Set<ArchiveDevice> archiveDevices;
 
@@ -225,7 +226,8 @@ public class ArchiveService {
 
         @Override
         public void run() {
-            LOGGER.debug("Start", userId, getWeight(), type);
+            String size = MemoryUtils.humanReadableByteCount(totalFileSize);
+            LOGGER.debug("Start({}, {}, {})", userId, size, type);
             List<SmartTempFile> files = downloadFiles(archiveFiles);
             ArchiveState state = commandStateService.getState(userId, CommandNames.ARCHIVE_COMMAND_NAME, true);
             Locale locale = new Locale(state.getLanguage());
@@ -237,7 +239,7 @@ public class ArchiveService {
                     ArchiveDevice archiveDevice = getCandidate(type, locale);
                     archiveDevice.zip(files.stream().map(SmartTempFile::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
                     messageService.sendDocument(new SendDocument((long) userId, archive.getFile()));
-                    LOGGER.debug("Finish", userId, getWeight(), type);
+                    LOGGER.debug("Finish({}, {}, {})", userId, size, type);
                 } catch (Exception ex) {
                     messageService.sendErrorMessage(userId, locale);
                     throw ex;

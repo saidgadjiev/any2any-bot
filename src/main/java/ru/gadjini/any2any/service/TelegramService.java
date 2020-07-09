@@ -3,6 +3,8 @@ package ru.gadjini.any2any.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.time.StopWatch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
@@ -10,7 +12,6 @@ import org.springframework.web.client.RestTemplate;
 import ru.gadjini.any2any.exception.botapi.TelegramApiException;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.ApiResponse;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
@@ -20,6 +21,7 @@ import ru.gadjini.any2any.model.bot.api.method.updatemessages.*;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.GetFile;
 import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.utils.MemoryUtils;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class TelegramService {
 
-    private static final SmartLogger LOGGER = new SmartLogger(TelegramService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramService.class);
 
     private static final String API = "http://localhost:5000/";
 
@@ -192,13 +194,13 @@ public class TelegramService {
     public void downloadFileByFileId(String fileId, File outputFile) {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        LOGGER.debug("Start downloadFileByFileId", fileId);
+        LOGGER.debug("Start downloadFileByFileId({})", fileId);
 
         HttpEntity<GetFile> request = new HttpEntity<>(new GetFile(fileId, outputFile.getAbsolutePath()));
         restTemplate.postForObject(API + "downloadfile", request, Void.class);
 
         stopWatch.stop();
-        LOGGER.debug("Finish downloadFileByFileId", fileId, stopWatch.getTime(TimeUnit.SECONDS));
+        LOGGER.debug("Finish downloadFileByFileId({}, {}, {})", fileId, MemoryUtils.humanReadableByteCount(outputFile.length()), stopWatch.getTime(TimeUnit.SECONDS));
     }
 
     public SmartTempFile downloadFileByFileId(String fileId, String ext) {
@@ -216,7 +218,7 @@ public class TelegramService {
     public void restoreFileIfNeed(String filePath, String fileId) {
         if (!new File(filePath).exists()) {
             downloadFileByFileId(fileId, new File(filePath));
-            LOGGER.debug("File restored", fileId, filePath);
+            LOGGER.debug("File restored({}, {})", fileId, filePath);
         }
     }
 

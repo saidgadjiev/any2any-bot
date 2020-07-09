@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.bot.command.keyboard;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -10,7 +12,6 @@ import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
@@ -37,7 +38,7 @@ import java.util.Set;
 @Component
 public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotCommand, CallbackBotCommand, BotCommand {
 
-    private static final SmartLogger LOGGER = new SmartLogger(ImageEditorCommand.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ImageEditorCommand.class);
 
     private Set<String> names = new HashSet<>();
 
@@ -194,7 +195,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     private Format checkFormat(int userId, Format format, String mimeType, String fileName, Locale locale) {
         if (format == null) {
-            LOGGER.debug("Format is null", userId, mimeType, fileName);
+            LOGGER.debug("Format is null({}, {}, {})", userId, mimeType, fileName);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_IMAGE, locale));
         }
         if (format.getCategory() != FormatCategory.IMAGES) {

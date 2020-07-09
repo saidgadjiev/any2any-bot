@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.bot.command.keyboard;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -9,7 +11,6 @@ import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
@@ -30,7 +31,7 @@ import java.util.Set;
 @Component
 public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand {
 
-    private static final SmartLogger LOGGER = new SmartLogger(UnzipCommand.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UnzipCommand.class);
 
     private Set<String> names = new HashSet<>();
 
@@ -124,7 +125,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
 
     private Format checkFormat(int userId, Format format, String mimeType, String fileName, Locale locale) {
         if (format == null) {
-            LOGGER.debug("Format is null", userId, mimeType, fileName);
+            LOGGER.debug("Format is null({}, {}, {})", userId, mimeType, fileName);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SUPPORTED_ZIP_FORMATS, locale));
         }
         if (format.getCategory() != FormatCategory.ARCHIVE) {

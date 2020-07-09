@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.configuration;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
@@ -8,7 +10,6 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.filter.BotFilter;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Update;
@@ -19,7 +20,7 @@ import ru.gadjini.any2any.service.message.MessageService;
 @RequestMapping("/bot")
 public class BotController {
 
-    private static final SmartLogger LOGGER = new SmartLogger(BotController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BotController.class);
 
     private BotFilter botFilter;
 

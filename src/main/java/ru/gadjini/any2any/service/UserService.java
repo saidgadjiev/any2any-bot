@@ -1,13 +1,14 @@
 package ru.gadjini.any2any.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.dao.UserDao;
 import ru.gadjini.any2any.domain.CreateOrUpdateResult;
 import ru.gadjini.any2any.domain.TgUser;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.bot.api.object.User;
 
 import java.util.Locale;
@@ -15,7 +16,7 @@ import java.util.Locale;
 @Service
 public class UserService {
 
-    private static final SmartLogger LOGGER = new SmartLogger(UserService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
 
     private UserDao userDao;
 
@@ -61,7 +62,7 @@ public class UserService {
 
         if (updated == 0) {
             createOrUpdate(user);
-            LOGGER.debug("User created", user.getId());
+            LOGGER.debug("User created({})", user.getId());
         }
     }
 

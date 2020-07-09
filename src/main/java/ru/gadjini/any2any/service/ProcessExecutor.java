@@ -2,8 +2,9 @@ package ru.gadjini.any2any.service;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.gadjini.any2any.exception.ProcessException;
-import ru.gadjini.any2any.logging.SmartLogger;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -11,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ProcessExecutor {
 
-    private static final SmartLogger LOGGER = new SmartLogger(ProcessExecutor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProcessExecutor.class);
 
     public String execute(String[] command, int timeout) {
         try {
@@ -26,7 +27,7 @@ public class ProcessExecutor {
                     if (StringUtils.isBlank(error)) {
                         error = IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8);
                     }
-                    LOGGER.error("Error", process.exitValue(), Arrays.toString(command), error);
+                    LOGGER.error("Error({}, {}, {})", process.exitValue(), Arrays.toString(command), error);
                 }
 
                 return IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8);

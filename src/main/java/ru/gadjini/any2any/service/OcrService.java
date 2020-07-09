@@ -3,6 +3,8 @@ package ru.gadjini.any2any.service;
 import net.sourceforge.tess4j.ITesseract;
 import net.sourceforge.tess4j.Tesseract;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -27,7 +29,7 @@ public class OcrService {
             new Locale("en")
     );
 
-    private static final SmartLogger LOGGER = new SmartLogger(OcrService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OcrService.class);
 
     private static final String TESSDATA_PATH = "tessdata";
 
@@ -54,7 +56,7 @@ public class OcrService {
 
     public void extractText(int userId, Any2AnyFile any2AnyFile, Locale ocrLocale) {
         executor.execute(() -> {
-            LOGGER.debug("Start", userId, any2AnyFile.getFileId());
+            LOGGER.debug("Start({}, {})", userId, any2AnyFile.getFileId());
             SmartTempFile file = telegramService.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFormat().getExt());
             ITesseract tesseract = new Tesseract();
             tesseract.setLanguage(ocrLocale.getISO3Language());
@@ -68,7 +70,7 @@ public class OcrService {
                     messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
                 }
                 messageService.sendMessage(new SendMessage((long) userId, result));
-                LOGGER.debug("Finish", userId, StringUtils.substring(result, 20));
+                LOGGER.debug("Finish({}, {})", userId, StringUtils.substring(result, 20));
             } catch (Exception ex) {
                 messageService.sendErrorMessage(userId, locale);
                 throw new TextExtractionFailedException(ex);

@@ -1,9 +1,10 @@
 package ru.gadjini.any2any.service.command;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.bot.command.api.*;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.service.command.navigator.CallbackCommandNavigator;
@@ -17,7 +18,7 @@ import java.util.Set;
 @Service
 public class CommandExecutor {
 
-    private static final SmartLogger LOGGER = new SmartLogger(CommandExecutor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandExecutor.class);
 
     private Map<String, BotCommand> botCommands = new HashMap<>();
 
@@ -100,7 +101,7 @@ public class CommandExecutor {
         BotCommand botCommand = botCommands.get(commandParseResult.getCommandName());
 
         if (botCommand != null) {
-            LOGGER.debug("Bot", message.getFromUser().getId(), botCommand.getClass().getSimpleName());
+            LOGGER.debug("Bot({}, {})", message.getFromUser().getId(), botCommand.getClass().getSimpleName());
             botCommand.processMessage(message);
 
             if (botCommand instanceof NavigableBotCommand) {
@@ -119,7 +120,7 @@ public class CommandExecutor {
                 .findFirst()
                 .orElseThrow();
 
-        LOGGER.debug("Keyboard", message.getFromUser().getId(), botCommand.getClass().getSimpleName());
+        LOGGER.debug("Keyboard({}, {})", message.getFromUser().getId(), botCommand.getClass().getSimpleName());
         boolean pushToHistory = botCommand.processMessage(message, message.getText());
 
         if (pushToHistory) {
@@ -131,7 +132,7 @@ public class CommandExecutor {
         CommandParser.CommandParseResult parseResult = commandParser.parseCallbackCommand(callbackQuery);
         CallbackBotCommand botCommand = callbackBotCommands.get(parseResult.getCommandName());
 
-        LOGGER.debug("Callback", callbackQuery.getFromUser().getId(), botCommand.getClass().getSimpleName());
+        LOGGER.debug("Callback({}, {})", callbackQuery.getFromUser().getId(), botCommand.getClass().getSimpleName());
         try {
             if (botCommand instanceof NavigableCallbackBotCommand) {
                 callbackCommandNavigator.push(callbackQuery.getMessage().getChatId(), (NavigableCallbackBotCommand) botCommand);

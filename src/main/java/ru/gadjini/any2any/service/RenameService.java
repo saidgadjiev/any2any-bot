@@ -3,6 +3,8 @@ package ru.gadjini.any2any.service;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -11,7 +13,6 @@ import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.RenameQueueItem;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.service.command.CommandStateService;
@@ -30,7 +31,7 @@ import java.util.Locale;
 @Service
 public class RenameService {
 
-    private static final SmartLogger LOGGER = new SmartLogger(RenameService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RenameService.class);
 
     private TelegramService telegramService;
 
@@ -184,7 +185,8 @@ public class RenameService {
 
         @Override
         public void run() {
-            LOGGER.debug("Start", userId, getWeight(), fileId);
+            String size = MemoryUtils.humanReadableByteCount(fileSize);
+            LOGGER.debug("Start({}, {}, {})", userId, size, fileId);
 
             String ext = formatService.getExt(fileName, mimeType);
             SmartTempFile file = createNewFile(newFileName, ext);
@@ -193,7 +195,7 @@ public class RenameService {
             try {
                 sendMessage(userId, replyToMessageId, file.getFile());
 
-                LOGGER.debug("Finish", userId, getWeight(), newFileName);
+                LOGGER.debug("Finish({}, {}, {})", userId, size, newFileName);
             } catch (Exception ex) {
                 messageService.sendErrorMessage(userId, new Locale(renameState.getLanguage()));
                 throw ex;

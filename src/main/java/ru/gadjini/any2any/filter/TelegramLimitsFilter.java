@@ -2,12 +2,13 @@ package ru.gadjini.any2any.filter;
 
 import com.google.common.base.Splitter;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.model.SendFileResult;
@@ -36,7 +37,7 @@ import java.util.Locale;
 @Qualifier("limits")
 public class TelegramLimitsFilter extends BaseBotFilter implements MessageService {
 
-    private static final SmartLogger LOGGER = new SmartLogger(TelegramLimitsFilter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramLimitsFilter.class);
 
     private static final int TEXT_LENGTH_LIMIT = 4090;
 
@@ -169,13 +170,13 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     private void checkInMediaSize(Message message) {
         Any2AnyFile file = fileService.getFile(message, Locale.getDefault());
         if (file.getFileSize() > LARGE_FILE_SIZE) {
-            LOGGER.debug("Large in file", message.getFromUser().getId(), MemoryUtils.humanReadableByteCount(file.getFileSize()));
+            LOGGER.debug("Large in file({}, {})", message.getFromUser().getId(), MemoryUtils.humanReadableByteCount(file.getFileSize()));
             throw new UserException(localisationService.getMessage(
                     MessagesProperties.MESSAGE_TOO_LARGE_IN_FILE,
                     new Object[]{MemoryUtils.humanReadableByteCount(message.getDocument().getFileSize())},
                     userService.getLocaleOrDefault(message.getFromUser().getId())));
         } else if (file.getFileSize() > MemoryUtils.MB_50) {
-            LOGGER.debug("Heavy file", message.getFromUser().getId(), file.getFileSize(), file.getMimeType(), file.getFileName());
+            LOGGER.debug("Heavy file({}, {}, {}, {})", message.getFromUser().getId(), file.getFileSize(), file.getMimeType(), file.getFileName());
         }
     }
 
@@ -194,7 +195,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
             return false;
         }
         if (file.length() > LARGE_FILE_SIZE) {
-            LOGGER.debug("Large out file", sendDocument.getChatId(), MemoryUtils.humanReadableByteCount(file.length()));
+            LOGGER.debug("Large out file({}, {})", sendDocument.getChatId(), MemoryUtils.humanReadableByteCount(file.length()));
             String text = localisationService.getMessage(MessagesProperties.MESSAGE_TOO_LARGE_OUT_FILE,
                     new Object[]{file.getName(), MemoryUtils.humanReadableByteCount(file.length())},
                     userService.getLocaleOrDefault((int) sendDocument.getOrigChatId()));
