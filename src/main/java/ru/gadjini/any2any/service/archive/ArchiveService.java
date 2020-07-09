@@ -235,6 +235,8 @@ public class ArchiveService {
 
         private Queue<SmartTempFile> files = new LinkedBlockingQueue<>();
 
+        private volatile SmartTempFile archive;
+
         private volatile boolean autoCancel;
 
         private ArchiveTask(ArchiveQueueItem item) {
@@ -255,17 +257,14 @@ public class ArchiveService {
                 ArchiveState state = commandStateService.getState(userId, CommandNames.ARCHIVE_COMMAND_NAME, true);
                 Locale locale = new Locale(state.getLanguage());
 
-                SmartTempFile archive = fileService.getTempFile(
+                archive = fileService.getTempFile(
                         Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), type.getExt())
                 );
-                try {
-                    ArchiveDevice archiveDevice = getCandidate(type, locale);
-                    archiveDevice.zip(files.stream().map(SmartTempFile::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
-                    messageService.sendDocument(new SendDocument((long) userId, archive.getFile()));
-                    LOGGER.debug("Finish({}, {}, {})", userId, size, type);
-                } finally {
-                    archive.smartDelete();
-                }
+                ArchiveDevice archiveDevice = getCandidate(type, locale);
+                archiveDevice.zip(files.stream().map(SmartTempFile::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
+                messageService.sendDocument(new SendDocument((long) userId, archive.getFile()));
+
+                LOGGER.debug("Finish({}, {}, {})", userId, size, type);
             } catch (Exception ex) {
                 if (checker.get()) {
                     LOGGER.debug("Canceled({}, {})", userId, size);
@@ -312,6 +311,9 @@ public class ArchiveService {
             executor.complete(jobId);
             files.forEach(SmartTempFile::smartDelete);
             files.clear();
+            if (archive != null) {
+                archive.smartDelete();
+            }
         }
     }
 }
