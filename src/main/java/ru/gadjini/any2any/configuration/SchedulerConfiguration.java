@@ -22,6 +22,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static ru.gadjini.any2any.service.concurrent.SmartExecutorService.Job;
 import static ru.gadjini.any2any.service.concurrent.SmartExecutorService.JobWeight.HEAVY;
 import static ru.gadjini.any2any.service.concurrent.SmartExecutorService.JobWeight.LIGHT;
 
@@ -96,13 +97,31 @@ public class SchedulerConfiguration {
     }
 
     @Bean
+    @Qualifier("commonTaskExecutor")
+    public ThreadPoolTaskExecutor commonTaskExecutor() {
+        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+        taskExecutor.setCorePoolSize(4);
+        taskExecutor.setMaxPoolSize(Runtime.getRuntime().availableProcessors());
+        taskExecutor.setThreadNamePrefix("CommonTaskExecutor");
+        taskExecutor.initialize();
+        taskExecutor.setWaitForTasksToCompleteOnShutdown(true);
+
+        LOGGER.debug("Common thread pool({})", taskExecutor.getCorePoolSize());
+
+        return taskExecutor;
+    }
+
+    @Bean
     @Qualifier("conversionTaskExecutor")
     public SmartExecutorService conversionTaskExecutor() {
         SmartExecutorService executorService = new SmartExecutorService();
         ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(LIGHT_THREADS_COUNT, LIGHT_THREADS_COUNT,
                 THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(LIGHT_QUEUE_SIZE),
-                (r, executor) -> conversionService.rejectTask((ConvertionService.ConversionTask) r)) {
+                (r, executor) -> {
+                    executorService.complete(((Job) r).getId());
+                    conversionService.rejectTask((Job) r);
+                }) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
                 Runnable poll = conversionService.getTask(LIGHT);
@@ -114,7 +133,10 @@ public class SchedulerConfiguration {
         ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(HEAVY_THREADS_COUNT, HEAVY_THREADS_COUNT,
                 THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(HEAVY_QUEUE_SIZE),
-                (r, executor) -> conversionService.rejectTask((ConvertionService.ConversionTask) r)) {
+                (r, executor) -> {
+                    executorService.complete(((Job) r).getId());
+                    conversionService.rejectTask((Job) r);
+                }) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
                 Runnable poll = conversionService.getTask(HEAVY);
@@ -131,30 +153,19 @@ public class SchedulerConfiguration {
     }
 
     @Bean
-    @Qualifier("commonTaskExecutor")
-    public ThreadPoolTaskExecutor commonTaskExecutor() {
-        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(4);
-        taskExecutor.setMaxPoolSize(Runtime.getRuntime().availableProcessors());
-        taskExecutor.setThreadNamePrefix("CommonTaskExecutor");
-        taskExecutor.initialize();
-
-        LOGGER.debug("Common thread pool({})", taskExecutor.getCorePoolSize());
-
-        return taskExecutor;
-    }
-
-    @Bean
     @Qualifier("renameTaskExecutor")
     public SmartExecutorService renameTaskExecutor() {
         SmartExecutorService executorService = new SmartExecutorService();
         ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(LIGHT_THREADS_COUNT, LIGHT_THREADS_COUNT,
                 THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(LIGHT_QUEUE_SIZE),
-                (r, executor) -> renameService.rejectRenameTask((RenameService.RenameTask) r)) {
+                (r, executor) -> {
+                    executorService.complete(((Job) r).getId());
+                    renameService.rejectRenameTask((Job) r);
+                }) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
-                SmartExecutorService.Job poll = renameService.getTask(LIGHT);
+                Job poll = renameService.getTask(LIGHT);
                 if (poll != null) {
                     executorService.execute(poll);
                 }
@@ -163,10 +174,13 @@ public class SchedulerConfiguration {
         ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(HEAVY_THREADS_COUNT, HEAVY_THREADS_COUNT,
                 THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(HEAVY_QUEUE_SIZE),
-                (r, executor) -> renameService.rejectRenameTask((RenameService.RenameTask) r)) {
+                (r, executor) -> {
+                    executorService.complete(((Job) r).getId());
+                    renameService.rejectRenameTask((Job) r);
+                }) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
-                SmartExecutorService.Job poll = renameService.getTask(HEAVY);
+                Job poll = renameService.getTask(HEAVY);
                 if (poll != null) {
                     executorService.execute(poll);
                 }
@@ -186,7 +200,10 @@ public class SchedulerConfiguration {
         ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(LIGHT_THREADS_COUNT, LIGHT_THREADS_COUNT,
                 THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(LIGHT_QUEUE_SIZE),
-                (r, executor) -> archiveService.rejectTask((ArchiveService.ArchiveTask) r)) {
+                (r, executor) -> {
+                    executorService.complete(((Job) r).getId());
+                    archiveService.rejectTask((Job) r);
+                }) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
                 Runnable poll = archiveService.getTask(LIGHT);
@@ -199,7 +216,10 @@ public class SchedulerConfiguration {
         ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(HEAVY_THREADS_COUNT, HEAVY_THREADS_COUNT,
                 THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(HEAVY_QUEUE_SIZE),
-                (r, executor) -> archiveService.rejectTask((ArchiveService.ArchiveTask) r)) {
+                (r, executor) -> {
+                    executorService.complete(((Job) r).getId());
+                    archiveService.rejectTask((Job) r);
+                }) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
                 Runnable poll = archiveService.getTask(HEAVY);
@@ -222,7 +242,10 @@ public class SchedulerConfiguration {
         ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(LIGHT_THREADS_COUNT, LIGHT_THREADS_COUNT,
                 THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(LIGHT_QUEUE_SIZE),
-                (r, executor) -> unzipService.rejectTask((SmartExecutorService.Job) r)) {
+                (r, executor) -> {
+                    executorService.complete(((Job) r).getId());
+                    unzipService.rejectTask((Job) r);
+                }) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
                 Runnable poll = unzipService.getTask(LIGHT);
@@ -234,7 +257,10 @@ public class SchedulerConfiguration {
         ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(HEAVY_THREADS_COUNT, HEAVY_THREADS_COUNT,
                 THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
                 new LinkedBlockingQueue<>(HEAVY_QUEUE_SIZE),
-                (r, executor) -> unzipService.rejectTask((SmartExecutorService.Job) r)) {
+                (r, executor) -> {
+                    executorService.complete(((Job) r).getId());
+                    unzipService.rejectTask((Job) r);
+                }) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
                 Runnable poll = unzipService.getTask(HEAVY);

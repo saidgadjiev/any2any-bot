@@ -1,13 +1,17 @@
 package ru.gadjini.any2any.service.concurrent;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class SmartExecutorService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SmartExecutorService.class);
 
     private Map<JobWeight, ThreadPoolExecutor> executors;
 
@@ -67,8 +71,28 @@ public class SmartExecutorService {
         });
     }
 
+    public void shutdown() {
+        try {
+            for (Map.Entry<JobWeight, ThreadPoolExecutor> entry : executors.entrySet()) {
+                entry.getValue().shutdown();
+            }
+            Set<Integer> jobs = new HashSet<>(processing.keySet());
+            for (Integer job : jobs) {
+                cancelAndComplete(job);
+            }
+            for (Map.Entry<JobWeight, ThreadPoolExecutor> entry : executors.entrySet()) {
+                if (!entry.getValue().awaitTermination(10, TimeUnit.SECONDS)) {
+                    entry.getValue().shutdownNow();
+                }
+            }
+        } catch (Throwable ex) {
+            LOGGER.error(ex.getMessage(), ex);
+        }
+    }
+
     public interface Job extends Runnable {
         int getId();
+
         JobWeight getWeight();
     }
 

@@ -89,8 +89,8 @@ public class ArchiveService {
         this.executor = executor;
     }
 
-    public void rejectTask(ArchiveTask renameTask) {
-        archiveQueueService.setWaiting(renameTask.jobId);
+    public void rejectTask(SmartExecutorService.Job job) {
+        archiveQueueService.setWaiting(job.getId());
     }
 
     public ArchiveTask getTask(SmartExecutorService.JobWeight weight) {
@@ -211,6 +211,10 @@ public class ArchiveService {
         }
 
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_TYPE_UNSUPPORTED, new Object[]{format}, locale));
+    }
+
+    public void shutdown() {
+        executor.shutdown();
     }
 
     public class ArchiveTask implements SmartExecutorService.Job {

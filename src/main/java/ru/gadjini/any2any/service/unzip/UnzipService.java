@@ -232,6 +232,10 @@ public class UnzipService {
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SUPPORTED_ZIP_FORMATS, locale));
     }
 
+    public void shutdown() {
+        executor.shutdown();
+    }
+
     public class ExtractFileTask implements Runnable, SmartExecutorService.Job {
 
         private final Logger LOGGER = LoggerFactory.getLogger(UnzipTask.class);

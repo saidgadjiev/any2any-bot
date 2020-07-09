@@ -78,8 +78,8 @@ public class RenameService {
         this.executor = executor;
     }
 
-    public void rejectRenameTask(RenameTask renameTask) {
-        renameQueueService.setWaiting(renameTask.jobId);
+    public void rejectRenameTask(SmartExecutorService.Job job) {
+        renameQueueService.setWaiting(job.getId());
     }
 
     public RenameTask getTask(SmartExecutorService.JobWeight weight) {
@@ -115,6 +115,10 @@ public class RenameService {
         RenameState state = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, true);
         commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
         messageService.removeInlineKeyboard(userId, state.getProcessingMessageId());
+    }
+
+    public void shutdown() {
+        executor.shutdown();
     }
 
     public void leave(long chatId) {

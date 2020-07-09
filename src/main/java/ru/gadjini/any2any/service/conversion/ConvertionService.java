@@ -80,8 +80,8 @@ public class ConvertionService {
         this.executor = executor;
     }
 
-    public void rejectTask(ConversionTask conversionTask) {
-        queueService.setWaiting(conversionTask.getId());
+    public void rejectTask(SmartExecutorService.Job job) {
+        queueService.setWaiting(job.getId());
     }
 
     public ConversionTask getTask(SmartExecutorService.JobWeight weight) {
@@ -106,6 +106,10 @@ public class ConvertionService {
     public void cancel(int jobId) {
         queueService.delete(jobId);
         executor.cancelAndComplete(jobId);
+    }
+
+    public void shutdown() {
+        executor.shutdown();
     }
 
     private void pushTasks(SmartExecutorService.JobWeight jobWeight) {
