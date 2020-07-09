@@ -248,11 +248,12 @@ public class RenameService {
             if (!autoCancel) {
                 renameQueueService.delete(jobId);
                 commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+
+                if (file != null) {
+                    file.smartDelete();
+                }
             }
             executor.complete(jobId);
-            if (file != null) {
-                file.smartDelete();
-            }
         }
     }
 }

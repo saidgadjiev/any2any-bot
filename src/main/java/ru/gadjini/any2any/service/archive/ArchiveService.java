@@ -159,18 +159,6 @@ public class ArchiveService {
         commandStateService.setState(userId, CommandNames.ARCHIVE_COMMAND_NAME, state);
     }
 
-    private List<SmartTempFile> downloadFiles(List<TgFile> tgFiles) {
-        List<SmartTempFile> files = new ArrayList<>();
-
-        for (TgFile tgFile : tgFiles) {
-            SmartTempFile file = fileService.createTempFile(tgFile.getFileName());
-            telegramService.downloadFileByFileId(tgFile.getFileId(), file);
-            files.add(file);
-        }
-
-        return files;
-    }
-
     private void normalizeFileNames(List<Any2AnyFile> any2AnyFiles) {
         Set<String> uniqueFileNames = new HashSet<>();
 
@@ -253,7 +241,7 @@ public class ArchiveService {
             try {
                 size = MemoryUtils.humanReadableByteCount(totalFileSize);
                 LOGGER.debug("Start({}, {}, {})", userId, size, type);
-                files.addAll(downloadFiles(archiveFiles));
+                downloadFiles(archiveFiles);
                 ArchiveState state = commandStateService.getState(userId, CommandNames.ARCHIVE_COMMAND_NAME, true);
                 Locale locale = new Locale(state.getLanguage());
 
@@ -311,8 +299,17 @@ public class ArchiveService {
             executor.complete(jobId);
             files.forEach(SmartTempFile::smartDelete);
             files.clear();
+
             if (archive != null) {
                 archive.smartDelete();
+            }
+        }
+
+        private void downloadFiles(List<TgFile> tgFiles) {
+            for (TgFile tgFile : tgFiles) {
+                SmartTempFile file = fileService.createTempFile(tgFile.getFileName());
+                telegramService.downloadFileByFileId(tgFile.getFileId(), file);
+                files.add(file);
             }
         }
     }
