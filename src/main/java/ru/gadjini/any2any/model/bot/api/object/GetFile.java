@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class GetFile {
 
+    public static final String METHOD = "downloadfile";
+
     private static final String FILE_ID = "file_id";
 
     @JsonProperty(FILE_ID)

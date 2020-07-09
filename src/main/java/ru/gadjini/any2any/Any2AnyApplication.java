@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.scheduling.annotation.EnableScheduling;
 import ru.gadjini.any2any.property.ConversionProperties;
 import ru.gadjini.any2any.property.DetectLanguageProperties;
+import ru.gadjini.any2any.property.TelegramProperties;
 import ru.gadjini.any2any.service.LocalisationService;
 
 import java.time.ZoneOffset;
@@ -16,7 +17,8 @@ import java.util.TimeZone;
 
 @EnableConfigurationProperties(value = {
         ConversionProperties.class,
-        DetectLanguageProperties.class
+        DetectLanguageProperties.class,
+        TelegramProperties.class
 })
 @EnableScheduling
 @SpringBootApplication

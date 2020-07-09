@@ -22,6 +22,7 @@ import ru.gadjini.any2any.model.bot.api.method.updatemessages.*;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.GetFile;
 import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.property.TelegramProperties;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
 import java.io.File;
@@ -33,7 +34,7 @@ public class TelegramService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramService.class);
 
-    private static final String API = "http://localhost:5000/";
+    private final TelegramProperties telegramProperties;
 
     private TempFileService fileService;
 
@@ -42,7 +43,8 @@ public class TelegramService {
     private ObjectMapper objectMapper;
 
     @Autowired
-    public TelegramService(TempFileService fileService, ObjectMapper objectMapper) {
+    public TelegramService(TelegramProperties telegramProperties, TempFileService fileService, ObjectMapper objectMapper) {
+        this.telegramProperties = telegramProperties;
         this.fileService = fileService;
         this.objectMapper = objectMapper;
         this.restTemplate = new RestTemplate();
@@ -199,7 +201,7 @@ public class TelegramService {
         LOGGER.debug("Start downloadFileByFileId({})", fileId);
 
         HttpEntity<GetFile> request = new HttpEntity<>(new GetFile(fileId, outputFile.getAbsolutePath()));
-        restTemplate.postForObject(API + "downloadfile", request, Void.class);
+        restTemplate.postForObject(getUrl(GetFile.METHOD), request, Void.class);
 
         stopWatch.stop();
         LOGGER.debug("Finish downloadFileByFileId({}, {}, {})", fileId, MemoryUtils.humanReadableByteCount(outputFile.length()), stopWatch.getTime(TimeUnit.SECONDS));
@@ -225,6 +227,6 @@ public class TelegramService {
     }
 
     private String getUrl(String method) {
-        return API + method;
+        return telegramProperties.getApi() + method;
     }
 }
