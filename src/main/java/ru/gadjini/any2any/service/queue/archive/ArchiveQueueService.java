@@ -54,7 +54,13 @@ public class ArchiveQueueService {
     }
 
     public ArchiveQueueItem poll(SmartExecutorService.JobWeight weight) {
-        return dao.poll(weight);
+        List<ArchiveQueueItem> poll = dao.poll(weight, 1);
+
+        return poll.isEmpty() ? null : poll.iterator().next();
+    }
+
+    public List<ArchiveQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
+        return dao.poll(weight, limit);
     }
 
     public void delete(int id) {

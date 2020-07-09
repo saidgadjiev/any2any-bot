@@ -71,23 +71,20 @@ public class UnzipQueueDao {
         jdbcTemplate.update("UPDATE unzip_queue SET status = 0 WHERE status = 1");
     }
 
-    public UnzipQueueItem poll(SmartExecutorService.JobWeight weight) {
+    public List<UnzipQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
         return jdbcTemplate.query(
                 "WITH r AS (\n" +
                         "    UPDATE unzip_queue SET status = 1 WHERE id = (SELECT id FROM unzip_queue " +
                         "WHERE status = 0 AND CASE WHEN item_type = 0 THEN " +
-                        "(file).size " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ? ELSE TRUE END ORDER BY created_at LIMIT 1) RETURNING *\n" +
+                        "(file).size " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ? ELSE TRUE END ORDER BY created_at LIMIT ?) RETURNING *\n" +
                         ")\n" +
                         "SELECT *, (file).*\n" +
                         "FROM r",
-                ps -> ps.setLong(1, MemoryUtils.MB_50),
-                rs -> {
-                    if (rs.next()) {
-                        return map(rs);
-                    }
-
-                    return null;
-                }
+                ps -> {
+                    ps.setLong(1, MemoryUtils.MB_50);
+                    ps.setInt(2, limit);
+                },
+                (rs, rowNum) -> map(rs)
         );
     }
 

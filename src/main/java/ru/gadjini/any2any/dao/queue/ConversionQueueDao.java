@@ -82,7 +82,7 @@ public class ConversionQueueDao {
         );
     }
 
-    public ConversionQueueItem poll(SmartExecutorService.JobWeight weight) {
+    public List<ConversionQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
         return jdbcTemplate.query(
                 "WITH queue_items AS (\n" +
                         "    UPDATE " + TYPE + " SET status = 1, last_run_at = now(), " +
@@ -90,14 +90,17 @@ public class ConversionQueueDao {
                         "        SELECT id\n" +
                         "        FROM " + TYPE + " WHERE status = 0 AND size " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ?\n" +
                         "        ORDER BY created_at\n" +
-                        "        LIMIT 1)\n" +
+                        "        LIMIT ?)\n" +
                         "    RETURNING *\n" +
                         ")\n" +
                         "SELECT *\n" +
                         "FROM queue_items\n" +
                         "ORDER BY created_at",
-                ps -> ps.setLong(1, MemoryUtils.MB_50),
-                (rs) -> rs.next() ? map(rs) : null
+                ps -> {
+                    ps.setLong(1, MemoryUtils.MB_50);
+                    ps.setInt(2, limit);
+                },
+                (rs, rowNum) -> map(rs)
         );
     }
 

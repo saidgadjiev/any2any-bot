@@ -80,6 +80,8 @@ public class ArchiveService {
     @PostConstruct
     public void init() {
         archiveQueueService.resetProcessing();
+        pushTasks(SmartExecutorService.JobWeight.LIGHT);
+        pushTasks(SmartExecutorService.JobWeight.HEAVY);
     }
 
     @Autowired
@@ -96,7 +98,7 @@ public class ArchiveService {
             ArchiveQueueItem peek = archiveQueueService.poll(weight);
 
             if (peek != null) {
-                return new ArchiveTask(peek.getId(), peek.getFiles(), peek.getTotalFileSize(), peek.getUserId(), peek.getType());
+                return new ArchiveTask(peek);
             }
 
             return null;
@@ -124,17 +126,7 @@ public class ArchiveService {
 
         ArchiveQueueItem item = archiveQueueService.createProcessingItem(userId, archiveState.getFiles(), format);
         startArchiveCreating(userId, item.getId());
-        executor.execute(new ArchiveTask(item.getId(), item.getFiles(), item.getTotalFileSize(), item.getUserId(), item.getType()));
-    }
-
-    public void cancelCurrentTasks(long chatId) {
-        List<Integer> ids = archiveQueueService.deleteByUserId((int) chatId);
-        executor.cancelAndComplete(ids);
-
-        ArchiveState state = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, false);
-        if (state != null) {
-            messageService.removeInlineKeyboard(chatId, state.getArchiveCreatingMessageId());
-        }
+        executor.execute(new ArchiveTask(item));
     }
 
     public void cancel(int userId, int jobId) {
@@ -144,6 +136,16 @@ public class ArchiveService {
         commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
 
         messageService.removeInlineKeyboard(userId, state.getArchiveCreatingMessageId());
+    }
+
+    private void cancelCurrentTasks(long chatId) {
+        List<Integer> ids = archiveQueueService.deleteByUserId((int) chatId);
+        executor.cancelAndComplete(ids);
+
+        ArchiveState state = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, false);
+        if (state != null) {
+            messageService.removeInlineKeyboard(chatId, state.getArchiveCreatingMessageId());
+        }
     }
 
     private void startArchiveCreating(int userId, int jobId) {
@@ -184,6 +186,13 @@ public class ArchiveService {
         }
     }
 
+    private void pushTasks(SmartExecutorService.JobWeight jobWeight) {
+        List<ArchiveQueueItem> tasks = archiveQueueService.poll(jobWeight, executor.getCorePoolSize(jobWeight));
+        for (ArchiveQueueItem item : tasks) {
+            executor.execute(new ArchiveTask(item));
+        }
+    }
+
     private String normalizeFileName(String fileName, int index) {
         String ext = FilenameUtils.getExtension(fileName);
         if (StringUtils.isBlank(ext)) {
@@ -216,12 +225,12 @@ public class ArchiveService {
 
         private long totalFileSize;
 
-        private ArchiveTask(int jobId, List<TgFile> archiveFiles, long totalFileSize, int userId, Format type) {
-            this.jobId = jobId;
-            this.archiveFiles = archiveFiles;
-            this.totalFileSize = totalFileSize;
-            this.userId = userId;
-            this.type = type;
+        private ArchiveTask(ArchiveQueueItem item) {
+            this.jobId = item.getId();
+            this.archiveFiles = item.getFiles();
+            this.totalFileSize = item.getTotalFileSize();
+            this.userId = item.getUserId();
+            this.type = item.getType();
         }
 
         @Override

@@ -24,7 +24,7 @@ public class UnzipQueueService {
         unzipQueueDao.resetProcessing();
     }
 
-    public int createProcessingUnzipItem(int userId, Any2AnyFile any2AnyFile) {
+    public UnzipQueueItem createProcessingUnzipItem(int userId, Any2AnyFile any2AnyFile) {
         UnzipQueueItem queueItem = new UnzipQueueItem();
         queueItem.setUserId(userId);
         queueItem.setType(any2AnyFile.getFormat());
@@ -37,7 +37,10 @@ public class UnzipQueueService {
 
         queueItem.setStatus(UnzipQueueItem.Status.PROCESSING);
 
-        return unzipQueueDao.create(queueItem);
+        int id = unzipQueueDao.create(queueItem);
+        queueItem.setId(id);
+
+        return queueItem;
     }
 
     public UnzipQueueItem createProcessingExtractFileItem(int userId, int extractFileId) {
@@ -58,7 +61,13 @@ public class UnzipQueueService {
     }
 
     public UnzipQueueItem poll(SmartExecutorService.JobWeight weight) {
-        return unzipQueueDao.poll(weight);
+        List<UnzipQueueItem> poll = unzipQueueDao.poll(weight, 1);
+
+        return poll.isEmpty() ? null : poll.iterator().next();
+    }
+
+    public List<UnzipQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
+        return unzipQueueDao.poll(weight, limit);
     }
 
     public void delete(int id) {

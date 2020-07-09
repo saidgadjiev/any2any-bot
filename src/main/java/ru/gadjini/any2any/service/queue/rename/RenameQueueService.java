@@ -24,7 +24,7 @@ public class RenameQueueService {
         renameQueueDao.resetProcessing();
     }
 
-    public int createProcessingItem(int userId, RenameState renameState, String newFileName) {
+    public RenameQueueItem createProcessingItem(int userId, RenameState renameState, String newFileName) {
         RenameQueueItem renameQueueItem = new RenameQueueItem();
         renameQueueItem.setUserId(userId);
         renameQueueItem.setNewFileName(newFileName);
@@ -39,15 +39,25 @@ public class RenameQueueService {
 
         renameQueueItem.setStatus(RenameQueueItem.Status.PROCESSING);
 
-        return renameQueueDao.create(renameQueueItem);
+        int id = renameQueueDao.create(renameQueueItem);
+
+        renameQueueItem.setId(id);
+
+        return renameQueueItem;
     }
 
     public void setWaiting(int id) {
         renameQueueDao.setWaiting(id);
     }
 
-    public RenameQueueItem pool(SmartExecutorService.JobWeight weight) {
-        return renameQueueDao.pool(weight);
+    public RenameQueueItem poll(SmartExecutorService.JobWeight weight) {
+        List<RenameQueueItem> poll = renameQueueDao.poll(weight, 1);
+
+        return poll.isEmpty() ? null : poll.iterator().next();
+    }
+
+    public List<RenameQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
+        return renameQueueDao.poll(weight, limit);
     }
 
     public void delete(int id) {

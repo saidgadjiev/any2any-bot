@@ -54,7 +54,13 @@ public class ConversionQueueService {
     }
 
     public ConversionQueueItem poll(SmartExecutorService.JobWeight weight) {
-        return fileQueueDao.poll(weight);
+        List<ConversionQueueItem> poll = fileQueueDao.poll(weight, 1);
+
+        return poll.isEmpty() ? null : poll.iterator().next();
+    }
+
+    public List<ConversionQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
+        return fileQueueDao.poll(weight, limit);
     }
 
     public void setWaiting(int id) {

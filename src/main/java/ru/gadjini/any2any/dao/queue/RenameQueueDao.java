@@ -56,22 +56,19 @@ public class RenameQueueDao {
         jdbcTemplate.update("UPDATE rename_queue SET status = 0 WHERE status = 1");
     }
 
-    public RenameQueueItem pool(JobWeight weight) {
+    public List<RenameQueueItem> poll(JobWeight weight, int limit) {
         return jdbcTemplate.query(
                 "WITH r AS (\n" +
                         "    UPDATE rename_queue SET status = 1 WHERE id = (SELECT id FROM rename_queue WHERE status = 0 " +
-                        "AND (file).size " + (weight.equals(JobWeight.LIGHT) ? "<=" : ">") + " ? ORDER BY created_at LIMIT 1) RETURNING *\n" +
+                        "AND (file).size " + (weight.equals(JobWeight.LIGHT) ? "<=" : ">") + " ? ORDER BY created_at LIMIT ?) RETURNING *\n" +
                         ")\n" +
                         "SELECT *, (file).*\n" +
                         "FROM r",
-                ps -> ps.setLong(1, MemoryUtils.MB_50),
-                rs -> {
-                    if (rs.next()) {
-                        return map(rs);
-                    }
-
-                    return null;
-                }
+                ps -> {
+                    ps.setLong(1, MemoryUtils.MB_50);
+                    ps.setInt(2, limit);
+                },
+                (rs, rowNum) -> map(rs)
         );
     }
 

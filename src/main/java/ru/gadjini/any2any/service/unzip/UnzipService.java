@@ -82,6 +82,8 @@ public class UnzipService {
     @PostConstruct
     public void init() {
         queueService.resetProcessing();
+        pushTasks(SmartExecutorService.JobWeight.LIGHT);
+        pushTasks(SmartExecutorService.JobWeight.HEAVY);
     }
 
     @Autowired
@@ -99,11 +101,9 @@ public class UnzipService {
 
             if (peek != null) {
                 if (peek.getItemType() == UnzipQueueItem.ItemType.UNZIP) {
-                    UnzipDevice unzipDevice = getCandidate(peek.getType());
-                    return new UnzipTask(peek.getId(), peek.getUserId(), peek.getFile().getFileId(), peek.getFile().getSize(), peek.getType(),
-                            userService.getLocaleOrDefault(peek.getUserId()), unzipDevice);
+                    return new UnzipTask(peek);
                 } else {
-                    return new ExtractFileTask(peek.getId(), peek.getExtractFileId(), peek.getUserId());
+                    return new ExtractFileTask(peek);
                 }
             }
 
@@ -124,15 +124,15 @@ public class UnzipService {
         } else {
             UnzipQueueItem item = queueService.createProcessingExtractFileItem(userId, extractFileId);
             startExtracting(userId, item.getId());
-            executor.execute(new ExtractFileTask(item.getId(), extractFileId, userId));
+            executor.execute(new ExtractFileTask(item));
         }
     }
 
     public void unzip(int userId, Any2AnyFile file, Locale locale) {
-        UnzipDevice unzipDevice = checkCandidate(file.getFormat(), locale);
-        int id = queueService.createProcessingUnzipItem(userId, file);
+        checkCandidate(file.getFormat(), locale);
+        UnzipQueueItem queueItem = queueService.createProcessingUnzipItem(userId, file);
 
-        executor.execute(new UnzipTask(id, userId, file.getFileId(), file.getFileSize(), file.getFormat(), locale, unzipDevice));
+        executor.execute(new UnzipTask(queueItem));
     }
 
     public void cancel(long chatId, int jobId) {
@@ -147,6 +147,17 @@ public class UnzipService {
         if (state != null) {
             messageService.removeInlineKeyboard(chatId, state.getChooseFilesMessageId());
             commandStateService.deleteState(chatId, CommandNames.UNZIP_COMMAND_NAME);
+        }
+    }
+
+    private void pushTasks(SmartExecutorService.JobWeight jobWeight) {
+        List<UnzipQueueItem> tasks = queueService.poll(jobWeight, executor.getCorePoolSize(jobWeight));
+        for (UnzipQueueItem item : tasks) {
+            if (item.getItemType() == UnzipQueueItem.ItemType.UNZIP) {
+                executor.execute(new UnzipTask(item));
+            } else {
+                executor.execute(new ExtractFileTask(item));
+            }
         }
     }
 
@@ -187,10 +198,10 @@ public class UnzipService {
         throw new IllegalArgumentException("Candidate not found for " + format + ". Wtf?");
     }
 
-    private UnzipDevice checkCandidate(Format format, Locale locale) {
+    private void checkCandidate(Format format, Locale locale) {
         for (UnzipDevice unzipDevice : unzipDevices) {
             if (unzipDevice.accept(format)) {
-                return unzipDevice;
+                return;
             }
         }
 
@@ -207,10 +218,10 @@ public class UnzipService {
 
         private int userId;
 
-        private ExtractFileTask(int jobId, int extractFileId, int userId) {
-            this.jobId = jobId;
-            this.id = extractFileId;
-            this.userId = userId;
+        private ExtractFileTask(UnzipQueueItem item) {
+            this.jobId = item.getId();
+            this.id = item.getExtractFileId();
+            this.userId = item.getUserId();
         }
 
         @Override
@@ -275,18 +286,15 @@ public class UnzipService {
         private final String fileId;
         private final int fileSize;
         private final Format format;
-        private final Locale locale;
         private UnzipDevice unzipDevice;
 
-        private UnzipTask(int jobId, int userId, String fileId, int fileSize, Format format,
-                          Locale locale, UnzipDevice unzipDevice) {
-            this.jobId = jobId;
-            this.userId = userId;
-            this.fileId = fileId;
-            this.fileSize = fileSize;
-            this.format = format;
-            this.locale = locale;
-            this.unzipDevice = unzipDevice;
+        private UnzipTask(UnzipQueueItem item) {
+            this.jobId = item.getId();
+            this.userId = item.getUserId();
+            this.fileId = item.getFile().getFileId();
+            this.fileSize = item.getFile().getSize();
+            this.format = item.getType();
+            this.unzipDevice = getCandidate(item.getType());
         }
 
         @Override
@@ -308,7 +316,7 @@ public class UnzipService {
                 String message = localisationService.getMessage(
                         MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
                         new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
-                        locale
+                        userService.getLocaleOrDefault(userId)
                 );
                 Message sent = messageService.sendMessage(new SendMessage((long) userId, message)
                         .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds())));

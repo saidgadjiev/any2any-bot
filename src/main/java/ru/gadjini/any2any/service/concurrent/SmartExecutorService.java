@@ -4,19 +4,23 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class SmartExecutorService {
 
-    private Map<JobWeight, ExecutorService> executors;
+    private Map<JobWeight, ThreadPoolExecutor> executors;
 
     private final Map<Integer, Future<?>> processing = new ConcurrentHashMap<>();
 
-    public SmartExecutorService setExecutors(Map<JobWeight, ExecutorService> executors) {
+    public SmartExecutorService setExecutors(Map<JobWeight, ThreadPoolExecutor> executors) {
         this.executors = executors;
 
         return this;
+    }
+
+    public int getCorePoolSize(JobWeight weight) {
+        return executors.get(weight).getCorePoolSize();
     }
 
     public void execute(Job job) {

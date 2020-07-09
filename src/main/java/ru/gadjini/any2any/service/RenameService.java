@@ -69,6 +69,8 @@ public class RenameService {
     @PostConstruct
     public void init() {
         renameQueueService.resetProcessing();
+        pushTasks(SmartExecutorService.JobWeight.LIGHT);
+        pushTasks(SmartExecutorService.JobWeight.HEAVY);
     }
 
     @Autowired
@@ -82,21 +84,19 @@ public class RenameService {
 
     public RenameTask getTask(SmartExecutorService.JobWeight weight) {
         synchronized (this) {
-            RenameQueueItem peek = renameQueueService.pool(weight);
+            RenameQueueItem peek = renameQueueService.poll(weight);
 
             if (peek != null) {
-                return new RenameTask(peek.getId(), peek.getUserId(), peek.getFile().getFileName(), peek.getNewFileName(), peek.getFile().getMimeType(),
-                        peek.getFile().getFileId(), peek.getFile().getSize(), peek.getReplyToMessageId());
+                return new RenameTask(peek);
             }
             return null;
         }
     }
 
     public void rename(int userId, RenameState renameState, String newFileName) {
-        int jobId = renameQueueService.createProcessingItem(userId, renameState, newFileName);
-        startRenaming(jobId, userId);
-        executor.execute(new RenameTask(jobId, userId, renameState.getFile().getFileName(), newFileName,
-                renameState.getFile().getMimeType(), renameState.getFile().getFileId(), renameState.getFile().getFileSize(), renameState.getReplyMessageId()));
+        RenameQueueItem item = renameQueueService.createProcessingItem(userId, renameState, newFileName);
+        startRenaming(item.getId(), userId);
+        executor.execute(new RenameTask(item));
     }
 
     public void cancelCurrentTasks(long chatId) {
@@ -120,6 +120,13 @@ public class RenameService {
     public void leave(long chatId) {
         cancelCurrentTasks(chatId);
         commandStateService.deleteState(chatId, CommandNames.RENAME_COMMAND_NAME);
+    }
+
+    private void pushTasks(SmartExecutorService.JobWeight jobWeight) {
+        List<RenameQueueItem> tasks = renameQueueService.poll(jobWeight, executor.getCorePoolSize(jobWeight));
+        for (RenameQueueItem item : tasks) {
+            executor.execute(new RenameTask(item));
+        }
     }
 
     private void startRenaming(int jobId, int userId) {
@@ -165,22 +172,15 @@ public class RenameService {
         private int fileSize;
         private final int replyToMessageId;
 
-        private RenameTask(int jobId,
-                           int userId,
-                           String fileName,
-                           String newFileName,
-                           String mimeType,
-                           String fileId,
-                           int fileSize,
-                           int replyToMessageId) {
-            this.jobId = jobId;
-            this.userId = userId;
-            this.fileName = fileName;
-            this.newFileName = newFileName;
-            this.mimeType = mimeType;
-            this.fileId = fileId;
-            this.fileSize = fileSize;
-            this.replyToMessageId = replyToMessageId;
+        private RenameTask(RenameQueueItem queueItem) {
+            this.jobId = queueItem.getId();
+            this.userId = queueItem.getUserId();
+            this.fileName = queueItem.getFile().getFileName();
+            this.newFileName = queueItem.getNewFileName();
+            this.mimeType = queueItem.getFile().getMimeType();
+            this.fileId = queueItem.getFile().getFileId();
+            this.fileSize = queueItem.getFile().getSize();
+            this.replyToMessageId = queueItem.getReplyToMessageId();
         }
 
         @Override

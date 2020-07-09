@@ -30,6 +30,7 @@ import ru.gadjini.any2any.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -70,6 +71,8 @@ public class ConvertionService {
         initFonts();
         applyAsposeLicenses();
         queueService.resetProcessing();
+        pushTasks(SmartExecutorService.JobWeight.LIGHT);
+        pushTasks(SmartExecutorService.JobWeight.HEAVY);
     }
 
     @Autowired
@@ -103,6 +106,13 @@ public class ConvertionService {
     public void cancel(int jobId) {
         queueService.delete(jobId);
         executor.cancelAndComplete(jobId);
+    }
+
+    private void pushTasks(SmartExecutorService.JobWeight jobWeight) {
+        List<ConversionQueueItem> tasks = queueService.poll(jobWeight, executor.getCorePoolSize(jobWeight));
+        for (ConversionQueueItem item : tasks) {
+            executor.execute(new ConversionTask(item));
+        }
     }
 
     private void initFonts() {
