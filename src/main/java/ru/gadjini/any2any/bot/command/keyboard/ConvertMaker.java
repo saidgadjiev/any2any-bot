@@ -13,7 +13,6 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
@@ -161,18 +160,18 @@ public class ConvertMaker {
                 || message.hasSticker()) {
             return;
         }
-        LOGGER.debug("Unsupported format", message.getChatId(), TgMessage.getMetaTypes(message));
+        LOGGER.debug("Unsupported format({}, {})", message.getChatId(), TgMessage.getMetaTypes(message));
 
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
 
     private Format checkFormat(int userId, Format format, String mimeType, String fileName, Locale locale) {
         if (format == null) {
-            LOGGER.debug("Format is null", userId, mimeType, fileName);
+            LOGGER.debug("Format is null({}, {}, {})", userId, mimeType, fileName);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
         if (format.getCategory() == FormatCategory.ARCHIVE) {
-            LOGGER.debug("Archive unsupported", userId);
+            LOGGER.debug("Archive unsupported({})", userId);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
 
@@ -181,11 +180,11 @@ public class ConvertMaker {
 
     private Format checkTargetFormat(int userId, Format format, Format target, String text, Locale locale) {
         if (target == null) {
-            LOGGER.debug("Target format is null", userId, text);
+            LOGGER.debug("Target format is null({}, {})", userId, text);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
         if (Objects.equals(format, target)) {
-            LOGGER.debug("Same formats", userId, format);
+            LOGGER.debug("Same formats({}, {})", userId, format);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_ANOTHER_FORMAT, locale));
         }
         boolean result = formatService.isConvertAvailable(format, target);
@@ -193,7 +192,7 @@ public class ConvertMaker {
             return target;
         }
 
-        LOGGER.debug("Conversion unavailable", userId, format, target);
+        LOGGER.debug("Conversion unavailable({}, {}, {})", userId, format, target);
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
 

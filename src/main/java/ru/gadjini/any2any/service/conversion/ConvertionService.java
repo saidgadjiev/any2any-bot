@@ -106,7 +106,7 @@ public class ConvertionService {
     }
 
     private void initFonts() {
-        LOGGER.debug("Pdf fonts paths " + Document.getLocalFontPaths());
+        LOGGER.debug("Pdf fonts paths {}", Document.getLocalFontPaths());
     }
 
     private void applyAsposeLicenses() {

@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TextExtractionFailedException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;

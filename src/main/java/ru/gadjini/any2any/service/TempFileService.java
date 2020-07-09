@@ -30,6 +30,8 @@ public class TempFileService {
     public SmartTempFile getTempFile(String fileName) {
         File tmpdir = new File(tempDir, "tmpdir" + generateUniquePart());
 
+        tmpdir.mkdirs();
+
         return new SmartTempFile(new File(tmpdir, fileName), true);
     }
 

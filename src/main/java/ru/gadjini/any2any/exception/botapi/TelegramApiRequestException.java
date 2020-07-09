@@ -49,8 +49,8 @@ public class TelegramApiRequestException extends TelegramApiException {
 
     private static String buildMessage(String chatId, String message, ApiResponse response) {
         StringBuilder msg = new StringBuilder();
-        msg.append("(").append(chatId).append(") ").append(message).append("\n").append(response.getErrorDescription())
-                .append(" ").append(response.getErrorCode());
+        msg.append("(").append(chatId).append(") ").append(message).append("\n").append(response.getErrorCode()).append(" ")
+                .append(response.getErrorDescription());
 
         return msg.toString();
     }

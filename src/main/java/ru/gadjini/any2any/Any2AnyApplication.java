@@ -6,7 +6,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import ru.gadjini.any2any.logging.SmartLogger;
 import ru.gadjini.any2any.property.ConversionProperties;
 import ru.gadjini.any2any.property.DetectLanguageProperties;
 import ru.gadjini.any2any.service.LocalisationService;

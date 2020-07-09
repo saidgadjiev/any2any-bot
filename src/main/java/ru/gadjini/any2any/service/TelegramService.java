@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import ru.gadjini.any2any.exception.botapi.TelegramApiException;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
@@ -24,6 +25,7 @@ import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -58,7 +60,7 @@ public class TelegramService {
             } else {
                 throw new TelegramApiRequestException(null, "Error answering callback query", result);
             }
-        } catch (Exception e) {
+        } catch (IOException | RestClientException e) {
             throw new TelegramApiException("Unable to deserialize response", e);
         }
     }
@@ -74,7 +76,7 @@ public class TelegramService {
             } else {
                 throw new TelegramApiRequestException(sendMessage.getChatId(), "Error sending message", result);
             }
-        } catch (Exception e) {
+        } catch (IOException | RestClientException e) {
             throw new TelegramApiRequestException(sendMessage.getChatId(), "Unable to deserialize response", e);
         }
     }
@@ -90,7 +92,7 @@ public class TelegramService {
             } else {
                 throw new TelegramApiRequestException(editMessageReplyMarkup.getChatId(), "Error editing message reply markup", result);
             }
-        } catch (Exception e) {
+        } catch (IOException | RestClientException e) {
             throw new TelegramApiRequestException(editMessageReplyMarkup.getChatId(), "Unable to deserialize response", e);
         }
     }
@@ -106,7 +108,7 @@ public class TelegramService {
             } else {
                 throw new TelegramApiRequestException(editMessageText.getChatId(), "Error editing message text", result);
             }
-        } catch (Exception e) {
+        } catch (IOException | RestClientException e) {
             throw new TelegramApiRequestException(editMessageText.getChatId(), "Unable to deserialize response", e);
         }
     }
@@ -122,7 +124,7 @@ public class TelegramService {
             } else {
                 throw new TelegramApiRequestException(editMessageCaption.getChatId(), "Error editing message caption", result);
             }
-        } catch (Exception e) {
+        } catch (IOException | RestClientException e) {
             throw new TelegramApiRequestException(editMessageCaption.getChatId(), "Unable to deserialize response", e);
         }
     }
@@ -138,7 +140,7 @@ public class TelegramService {
             } else {
                 throw new TelegramApiRequestException(editMessageMedia.getChatId(), "Error editing message media", result);
             }
-        } catch (Exception e) {
+        } catch (IOException | RestClientException e) {
             throw new TelegramApiRequestException(editMessageMedia.getChatId(), "Unable to deserialize response", e);
         }
     }
@@ -154,7 +156,7 @@ public class TelegramService {
             } else {
                 throw new TelegramApiRequestException(sendSticker.getChatId(), "Error sending sticker", result);
             }
-        } catch (Exception e) {
+        } catch (IOException | RestClientException e) {
             throw new TelegramApiRequestException(sendSticker.getChatId(), "Unable to deserialize response", e);
         }
     }
@@ -170,7 +172,7 @@ public class TelegramService {
             } else {
                 throw new TelegramApiRequestException(deleteMessage.getChatId(), "Error deleting message", result);
             }
-        } catch (Exception e) {
+        } catch (IOException | RestClientException e) {
             throw new TelegramApiRequestException(deleteMessage.getChatId(), "Unable to deserialize response", e);
         }
     }
@@ -186,7 +188,7 @@ public class TelegramService {
             } else {
                 throw new TelegramApiRequestException(sendDocument.getChatId(), "Error sending document", result);
             }
-        } catch (Exception e) {
+        } catch (IOException | RestClientException e) {
             throw new TelegramApiRequestException(sendDocument.getChatId(), "Unable to deserialize response", e);
         }
     }

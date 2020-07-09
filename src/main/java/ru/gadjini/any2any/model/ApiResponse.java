@@ -9,13 +9,13 @@ public class ApiResponse<T> {
     private static final String RESULT_FIELD = "result";
 
     @JsonProperty(OK_FIELD)
-    private Boolean ok;
+    public Boolean ok;
     @JsonProperty(ERROR_CODE_FIELD)
-    private Integer errorCode;
+    public Integer errorCode;
     @JsonProperty(DESCRIPTION_CODE_FIELD)
-    private String errorDescription;
+    public String errorDescription;
     @JsonProperty(RESULT_FIELD)
-    private T result;
+    public T result;
 
     public Boolean getOk() {
         return ok;
