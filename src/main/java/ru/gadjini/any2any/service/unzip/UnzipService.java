@@ -12,6 +12,7 @@ import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendFileResult;
+import ru.gadjini.any2any.model.ZipFileHeader;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
@@ -34,6 +35,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UnzipService {
@@ -182,7 +184,7 @@ public class UnzipService {
         UnzipState unzipState = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false);
         String message = localisationService.getMessage(
                 MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
-                new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
+                new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values().stream().map(ZipFileHeader::getPath).collect(Collectors.toList()))},
                 userService.getLocaleOrDefault((int) chatId));
         messageService.editMessage(new EditMessageText(chatId, unzipState.getChooseFilesMessageId(), message)
                 .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds())));
@@ -226,15 +228,15 @@ public class UnzipService {
 
         @Override
         public void run() {
-            LOGGER.debug("Start({})", userId);
             UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true);
-            String fileHeader = unzipState.getFiles().get(id);
+            ZipFileHeader fileHeader = unzipState.getFiles().get(id);
+            LOGGER.debug("Start({}, {})", userId, MemoryUtils.humanReadableByteCount(fileHeader.getSize()));
             SmartTempFile out = fileService.createTempDir();
 
             try {
                 UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
                 if (new File(unzipState.getArchivePath()).length() > 0) {
-                    String outFilePath = unzipDevice.unzip(fileHeader, unzipState.getArchivePath(), out.getAbsolutePath());
+                    String outFilePath = unzipDevice.unzip(fileHeader.getPath(), unzipState.getArchivePath(), out.getAbsolutePath());
                     SmartTempFile outFile = new SmartTempFile(new File(outFilePath), false);
                     try {
                         SendFileResult result = messageService.sendDocument(new SendDocument((long) userId, outFile.getFile()));
@@ -263,13 +265,16 @@ public class UnzipService {
 
         @Override
         public SmartExecutorService.JobWeight getWeight() {
-            return SmartExecutorService.JobWeight.LIGHT;
+            UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true);
+            ZipFileHeader fileHeader = unzipState.getFiles().get(id);
+
+            return fileHeader.getSize() > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
 
         private void finishExtracting(int userId, UnzipState unzipState) {
             String message = localisationService.getMessage(
                     MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
-                    new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
+                    new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values().stream().map(ZipFileHeader::getPath).collect(Collectors.toList()))},
                     userService.getLocaleOrDefault(userId)
             );
             messageService.editMessage(new EditMessageText(userId, unzipState.getChooseFilesMessageId(), message)
@@ -315,7 +320,7 @@ public class UnzipService {
                 unzipState = createState(in.getAbsolutePath(), format);
                 String message = localisationService.getMessage(
                         MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
-                        new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
+                        new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values().stream().map(ZipFileHeader::getPath).collect(Collectors.toList()))},
                         userService.getLocaleOrDefault(userId)
                 );
                 Message sent = messageService.sendMessage(new SendMessage((long) userId, message)
@@ -347,9 +352,9 @@ public class UnzipService {
             UnzipState unzipState = new UnzipState();
             unzipState.setArchivePath(zipFile);
             unzipState.setArchiveType(archiveType);
-            List<String> zipFiles = unzipDevice.getZipFiles(zipFile);
+            List<ZipFileHeader> zipFiles = unzipDevice.getZipFiles(zipFile);
             int i = 1;
-            for (String file : zipFiles) {
+            for (ZipFileHeader file : zipFiles) {
                 unzipState.getFiles().put(i++, file);
             }
 

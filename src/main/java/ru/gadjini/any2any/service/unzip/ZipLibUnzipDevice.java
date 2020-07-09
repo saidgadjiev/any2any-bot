@@ -11,6 +11,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.condition.WindowsCondition;
 import ru.gadjini.any2any.exception.UnzipException;
 import ru.gadjini.any2any.exception.UserException;
+import ru.gadjini.any2any.model.ZipFileHeader;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.conversion.api.Format;
@@ -48,12 +49,12 @@ public class ZipLibUnzipDevice extends BaseUnzipDevice {
     }
 
     @Override
-    public List<String> getZipFiles(String zipFile) {
+    public List<ZipFileHeader> getZipFiles(String zipFile) {
         ZipFile zip = new ZipFile(zipFile);
         try {
             List<FileHeader> fileHeaders = zip.getFileHeaders().stream().filter(fileHeader -> !fileHeader.isDirectory()).collect(Collectors.toList());
 
-            return fileHeaders.stream().map(FileHeader::getFileName).collect(Collectors.toList());
+            return fileHeaders.stream().map(fileHeader -> new ZipFileHeader(fileHeader.getFileName(), fileHeader.getUncompressedSize())).collect(Collectors.toList());
         } catch (ZipException e) {
             throw new UnzipException(e);
         }

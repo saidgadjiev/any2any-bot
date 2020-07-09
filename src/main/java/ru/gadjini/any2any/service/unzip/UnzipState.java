@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service.unzip;
 
+import ru.gadjini.any2any.model.ZipFileHeader;
 import ru.gadjini.any2any.service.conversion.api.Format;
 
 import java.util.HashMap;
@@ -12,7 +13,7 @@ public class UnzipState {
 
     private Format archiveType;
 
-    private Map<Integer, String> files = new HashMap<>();
+    private Map<Integer, ZipFileHeader> files = new HashMap<>();
 
     private Map<Integer, String> filesCache = new HashMap<>();
 
@@ -38,7 +39,7 @@ public class UnzipState {
         this.archiveType = archiveType;
     }
 
-    public Map<Integer, String> getFiles() {
+    public Map<Integer, ZipFileHeader> getFiles() {
         return files;
     }
 
