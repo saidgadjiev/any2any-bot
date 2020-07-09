@@ -190,7 +190,7 @@ public class RenameService {
 
             String ext = formatService.getExt(fileName, mimeType);
             SmartTempFile file = createNewFile(newFileName, ext);
-            telegramService.downloadFileByFileId(fileId, file.getFile());
+            telegramService.downloadFileByFileId(fileId, file);
             RenameState renameState = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, true);
             try {
                 sendMessage(userId, replyToMessageId, file.getFile());

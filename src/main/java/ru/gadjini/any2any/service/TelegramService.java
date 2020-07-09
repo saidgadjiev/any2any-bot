@@ -14,6 +14,7 @@ import ru.gadjini.any2any.exception.botapi.TelegramApiException;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.ApiResponse;
+import ru.gadjini.any2any.model.bot.api.method.CancelDownloading;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
@@ -27,12 +28,16 @@ import ru.gadjini.any2any.utils.MemoryUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Service
 public class TelegramService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramService.class);
+
+    private final Map<String, SmartTempFile> downloading = new ConcurrentHashMap<>();
 
     private final TelegramProperties telegramProperties;
 
@@ -195,22 +200,27 @@ public class TelegramService {
         }
     }
 
-    public void downloadFileByFileId(String fileId, File outputFile) {
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-        LOGGER.debug("Start downloadFileByFileId({})", fileId);
+    public void downloadFileByFileId(String fileId, SmartTempFile outputFile) {
+        downloading.put(fileId, outputFile);
+        try {
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+            LOGGER.debug("Start downloadFileByFileId({})", fileId);
 
-        HttpEntity<GetFile> request = new HttpEntity<>(new GetFile(fileId, outputFile.getAbsolutePath()));
-        restTemplate.postForObject(getUrl(GetFile.METHOD), request, Void.class);
+            HttpEntity<GetFile> request = new HttpEntity<>(new GetFile(fileId, outputFile.getAbsolutePath()));
+            restTemplate.postForObject(getUrl(GetFile.METHOD), request, Void.class);
 
-        stopWatch.stop();
-        LOGGER.debug("Finish downloadFileByFileId({}, {}, {})", fileId, MemoryUtils.humanReadableByteCount(outputFile.length()), stopWatch.getTime(TimeUnit.SECONDS));
+            stopWatch.stop();
+            LOGGER.debug("Finish downloadFileByFileId({}, {}, {})", fileId, MemoryUtils.humanReadableByteCount(outputFile.length()), stopWatch.getTime(TimeUnit.SECONDS));
+        } finally {
+            downloading.remove(fileId);
+        }
     }
 
     public SmartTempFile downloadFileByFileId(String fileId, String ext) {
         SmartTempFile smartTempFile = fileService.createTempFile0(fileId, ext);
         try {
-            downloadFileByFileId(fileId, smartTempFile.getFile());
+            downloadFileByFileId(fileId, smartTempFile);
         } catch (Exception ex) {
             smartTempFile.smartDelete();
             throw ex;
@@ -219,9 +229,24 @@ public class TelegramService {
         return smartTempFile;
     }
 
+    public void cancelDownloading() {
+        try {
+            for (Map.Entry<String, SmartTempFile> entry : downloading.entrySet()) {
+                try {
+                    HttpEntity<CancelDownloading> request = new HttpEntity<>(new CancelDownloading(entry.getKey()));
+                    restTemplate.postForObject(getUrl(CancelDownloading.METHOD), request, Void.class);
+                } finally {
+                    entry.getValue().smartDelete();
+                }
+            }
+        } finally {
+            downloading.clear();
+        }
+    }
+
     public void restoreFileIfNeed(String filePath, String fileId) {
         if (!new File(filePath).exists()) {
-            downloadFileByFileId(fileId, new File(filePath));
+            downloadFileByFileId(fileId, new SmartTempFile(new File(filePath), false));
             LOGGER.debug("File restored({}, {})", fileId, filePath);
         }
     }

@@ -162,7 +162,7 @@ public class ArchiveService {
 
         for (TgFile tgFile : tgFiles) {
             SmartTempFile file = fileService.createTempFile(tgFile.getFileName());
-            telegramService.downloadFileByFileId(tgFile.getFileId(), file.getFile());
+            telegramService.downloadFileByFileId(tgFile.getFileId(), file);
             files.add(file);
         }
 

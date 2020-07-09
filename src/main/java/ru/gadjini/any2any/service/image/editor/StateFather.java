@@ -163,7 +163,7 @@ public class StateFather implements State {
             deleteCurrentState(chatId, command.getHistoryName());
 
             SmartTempFile file = tempFileService.createTempFile(Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), any2AnyFile.getFormat().getExt()));
-            telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file.getFile());
+            telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file);
             try {
                 SmartTempFile result = tempFileService.createTempFile(Any2AnyFileNameUtils.getFileName(file.getName(), Format.PNG.getExt()));
                 imageDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
