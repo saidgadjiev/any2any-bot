@@ -20,6 +20,8 @@ public class UnzipQueueItem {
 
     public static final String EXTRACT_FILE_ID = "extract_file_id";
 
+    public static final String MESSAGE_ID = "message_id";
+
     private int id;
 
     private int userId;
@@ -31,6 +33,8 @@ public class UnzipQueueItem {
     private Status status;
 
     private ItemType itemType;
+
+    private Integer messageId;
 
     private int extractFileId;
 
@@ -88,6 +92,14 @@ public class UnzipQueueItem {
 
     public void setExtractFileId(int extractFileId) {
         this.extractFileId = extractFileId;
+    }
+
+    public Integer getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(Integer messageId) {
+        this.messageId = messageId;
     }
 
     public enum Status {

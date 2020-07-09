@@ -56,6 +56,10 @@ public class UnzipQueueService {
         return item;
     }
 
+    public void setWaiting(int id, int messageId) {
+        unzipQueueDao.setWaiting(id, messageId);
+    }
+
     public void setWaiting(int id) {
         unzipQueueDao.setWaiting(id);
     }

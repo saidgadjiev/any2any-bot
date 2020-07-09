@@ -10,23 +10,23 @@ import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.unzip.UnzipService;
 
 @Component
-public class CancelExtractFileQueryCommand implements CallbackBotCommand {
+public class CancelUnzipQueryCommand implements CallbackBotCommand {
 
     private UnzipService unzipService;
 
     @Autowired
-    public CancelExtractFileQueryCommand(UnzipService unzipService) {
+    public CancelUnzipQueryCommand(UnzipService unzipService) {
         this.unzipService = unzipService;
     }
 
     @Override
     public String getName() {
-        return CommandNames.CANCEL_EXTRACT_FILE;
+        return CommandNames.CANCEL_UNZIP_QUERY;
     }
 
     @Override
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int jobId = requestParams.getInt(Arg.JOB_ID.getKey());
-        unzipService.cancelExtractFile(callbackQuery.getMessage().getChatId(), jobId);
+        unzipService.cancelUnzip(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), jobId);
     }
 }

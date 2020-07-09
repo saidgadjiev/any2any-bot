@@ -105,7 +105,6 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
         Any2AnyFile file = fileService.getFile(message, locale);
         file.setFormat(checkFormat(message.getFromUser().getId(), format, message.getDocument().getMimeType(), message.getDocument().getFileName(), locale));
         unzipService.unzip(message.getFromUser().getId(), file, locale);
-        messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_PROCESSING, locale)));
     }
 
     @Override

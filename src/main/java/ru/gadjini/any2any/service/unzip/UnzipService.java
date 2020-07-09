@@ -13,6 +13,7 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.ZipFileHeader;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
@@ -94,7 +95,11 @@ public class UnzipService {
     }
 
     public void rejectTask(SmartExecutorService.Job unzipTask) {
-        queueService.setWaiting(unzipTask.getId());
+        if (unzipTask instanceof UnzipTask) {
+            queueService.setWaiting(unzipTask.getId(), ((UnzipTask) unzipTask).messageId);
+        } else {
+            queueService.setWaiting(unzipTask.getId());
+        }
     }
 
     public Runnable getTask(SmartExecutorService.JobWeight weight) {
@@ -133,11 +138,19 @@ public class UnzipService {
     public void unzip(int userId, Any2AnyFile file, Locale locale) {
         checkCandidate(file.getFormat(), locale);
         UnzipQueueItem queueItem = queueService.createProcessingUnzipItem(userId, file);
+        int messageId = startUnzipping(userId, queueItem.getId(), locale);
+        queueItem.setMessageId(messageId);
 
         executor.execute(new UnzipTask(queueItem));
     }
 
-    public void cancel(long chatId, int jobId) {
+    public void cancelUnzip(long chatId, int messageId, int jobId) {
+        queueService.delete(jobId);
+        executor.cancelAndComplete(jobId);
+        unzipCancelled(chatId, messageId);
+    }
+
+    public void cancelExtractFile(long chatId, int jobId) {
         queueService.delete(jobId);
         executor.cancelAndComplete(jobId);
         extractingCanceled(chatId);
@@ -150,6 +163,11 @@ public class UnzipService {
             messageService.removeInlineKeyboard(chatId, state.getChooseFilesMessageId());
             commandStateService.deleteState(chatId, CommandNames.UNZIP_COMMAND_NAME);
         }
+    }
+
+    private int startUnzipping(int userId, int jobId, Locale locale) {
+        return messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_PROCESSING, locale))
+                .setReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale))).getMessageId();
     }
 
     private void pushTasks(SmartExecutorService.JobWeight jobWeight) {
@@ -176,8 +194,12 @@ public class UnzipService {
                         userId,
                         state.getChooseFilesMessageId(),
                         localisationService.getMessage(MessagesProperties.MESSAGE_UNZIP_PROCESSING, locale)
-                ).setReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale))
+                ).setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale))
         );
+    }
+
+    private void unzipCancelled(long chatId, int messageId) {
+        messageService.removeInlineKeyboard(chatId, messageId);
     }
 
     private void extractingCanceled(long chatId) {
@@ -291,6 +313,7 @@ public class UnzipService {
         private final String fileId;
         private final int fileSize;
         private final Format format;
+        private Integer messageId;
         private UnzipDevice unzipDevice;
 
         private UnzipTask(UnzipQueueItem item) {
@@ -300,6 +323,7 @@ public class UnzipService {
             this.fileSize = item.getFile().getSize();
             this.format = item.getType();
             this.unzipDevice = getCandidate(item.getType());
+            this.messageId = item.getMessageId();
         }
 
         @Override
@@ -323,6 +347,7 @@ public class UnzipService {
                         new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values().stream().map(ZipFileHeader::getPath).collect(Collectors.toList()))},
                         userService.getLocaleOrDefault(userId)
                 );
+                messageService.removeInlineKeyboard(userId, messageId);
                 Message sent = messageService.sendMessage(new SendMessage((long) userId, message)
                         .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds())));
                 unzipState.setChooseFilesMessageId(sent.getMessageId());

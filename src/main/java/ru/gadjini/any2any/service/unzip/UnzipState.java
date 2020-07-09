@@ -19,6 +19,8 @@ public class UnzipState {
 
     private int chooseFilesMessageId;
 
+    private int unzipMessageId;
+
     public String getArchivePath() {
         return archivePath;
     }
@@ -58,5 +60,13 @@ public class UnzipState {
 
     public void setFilesCache(Map<Integer, String> filesCache) {
         this.filesCache = filesCache;
+    }
+
+    public int getUnzipMessageId() {
+        return unzipMessageId;
+    }
+
+    public void setUnzipMessageId(int unzipMessageId) {
+        this.unzipMessageId = unzipMessageId;
     }
 }

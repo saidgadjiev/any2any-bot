@@ -6,5 +6,6 @@ CREATE TABLE IF NOT EXISTS unzip_queue (
     type VARCHAR(32),
     item_type INT NOT NULL,
     extract_file_id INT,
+    message_id INT,
     status INT DEFAULT 0 NOT NULL
 );

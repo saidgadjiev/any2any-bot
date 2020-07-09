@@ -62,9 +62,19 @@ public class UnzipQueueDao {
         return ((Number) keyHolder.getKeys().get(UnzipQueueItem.ID)).intValue();
     }
 
+    public void setWaiting(int id, int messageId) {
+        jdbcTemplate.update("UPDATE unzip_queue SET status = 0, message_id = ? WHERE id = ?",
+                ps -> {
+                    ps.setInt(1, messageId);
+                    ps.setInt(2, id);
+                });
+    }
+
     public void setWaiting(int id) {
         jdbcTemplate.update("UPDATE unzip_queue SET status = 0 WHERE id = ?",
-                ps -> ps.setInt(1, id));
+                ps -> {
+                    ps.setInt(1, id);
+                });
     }
 
     public void resetProcessing() {

@@ -55,17 +55,17 @@ public class ButtonFactory {
         return button;
     }
 
-    public InlineKeyboardButton cancelExtractFileQuery(int jobId, Locale locale) {
+    public InlineKeyboardButton cancelUnzipQuery(int jobId, Locale locale) {
         InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale));
-        button.setCallbackData(CommandNames.CANCEL_EXTRACT_FILE + CommandParser.COMMAND_NAME_SEPARATOR +
+        button.setCallbackData(CommandNames.CANCEL_UNZIP_QUERY + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams().add(Arg.JOB_ID.getKey(), jobId).serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return button;
     }
 
-    public InlineKeyboardButton updateExtractFileStatus(int jobId, Locale locale) {
-        InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.UPDATE_COMMAND_DESCRIPTION, locale));
-        button.setCallbackData(CommandNames.UPDATE_EXTRACT_FILE_STATUS + CommandParser.COMMAND_NAME_SEPARATOR +
+    public InlineKeyboardButton cancelExtractFileQuery(int jobId, Locale locale) {
+        InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale));
+        button.setCallbackData(CommandNames.CANCEL_EXTRACT_FILE + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams().add(Arg.JOB_ID.getKey(), jobId).serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return button;
