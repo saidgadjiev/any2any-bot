@@ -10,8 +10,6 @@ public class RenameState {
 
     private int replyMessageId;
 
-    private int processingMessageId;
-
     public void setFile(Any2AnyFile file) {
         this.file = file;
     }
@@ -36,11 +34,4 @@ public class RenameState {
         this.replyMessageId = replyMessageId;
     }
 
-    public int getProcessingMessageId() {
-        return processingMessageId;
-    }
-
-    public void setProcessingMessageId(int processingMessageId) {
-        this.processingMessageId = processingMessageId;
-    }
 }

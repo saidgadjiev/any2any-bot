@@ -27,7 +27,8 @@ public class ExtractFileCommand implements CallbackBotCommand {
     @Override
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int id = requestParams.getInt(Arg.EXTRACT_FILE_ID.getKey());
+        int unzipJobId = requestParams.getInt(Arg.JOB_ID.getKey());
 
-        unzipService.extractFile(callbackQuery.getFromUser().getId(), id, callbackQuery.getId());
+        unzipService.extractFile(callbackQuery.getFromUser().getId(), callbackQuery.getMessage().getMessageId(), unzipJobId, id, callbackQuery.getId());
     }
 }

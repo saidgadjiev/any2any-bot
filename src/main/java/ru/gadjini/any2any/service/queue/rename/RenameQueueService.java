@@ -71,4 +71,8 @@ public class RenameQueueService {
     public List<Integer> deleteByUserId(int userId) {
         return renameQueueDao.deleteByUserId(userId);
     }
+
+    public boolean exists(int jobId) {
+        return renameQueueDao.exists(jobId);
+    }
 }

@@ -9,8 +9,6 @@ public class ArchiveState {
 
     private String language;
 
-    private int archiveCreatingMessageId;
-
     private List<Any2AnyFile> files = new ArrayList<>();
 
     public List<Any2AnyFile> getFiles() {
@@ -23,13 +21,5 @@ public class ArchiveState {
 
     public void setLanguage(String language) {
         this.language = language;
-    }
-
-    public int getArchiveCreatingMessageId() {
-        return archiveCreatingMessageId;
-    }
-
-    public void setArchiveCreatingMessageId(int archiveCreatingMessageId) {
-        this.archiveCreatingMessageId = archiveCreatingMessageId;
     }
 }

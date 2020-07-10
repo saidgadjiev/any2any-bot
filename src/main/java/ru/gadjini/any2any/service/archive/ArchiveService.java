@@ -17,7 +17,7 @@ import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
-import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
@@ -120,8 +120,12 @@ public class ArchiveService {
     }
 
     public void leave(long chatId) {
-        cancelCurrentTasks(chatId);
-        commandStateService.deleteState(chatId, CommandNames.RENAME_COMMAND_NAME);
+        List<Integer> ids = archiveQueueService.deleteByUserId((int) chatId);
+        if (!ids.isEmpty()) {
+            LOGGER.debug("Leave({}, {})", chatId, ids.size());
+        }
+        executor.cancelAndComplete(ids, false);
+        commandStateService.deleteState(chatId, CommandNames.ARCHIVE_COMMAND_NAME);
     }
 
     public void createArchive(int userId, ArchiveState archiveState, Format format) {
@@ -132,34 +136,28 @@ public class ArchiveService {
         executor.execute(new ArchiveTask(item));
     }
 
-    public void cancel(int jobId) {
-        executor.cancelAndComplete(jobId, true);
-    }
-
-    private void cancelCurrentTasks(long chatId) {
-        List<Integer> ids = archiveQueueService.deleteByUserId((int) chatId);
-        if (!ids.isEmpty()) {
-            LOGGER.debug("Leave({}, {})", chatId, ids.size());
+    public void cancel(long chatId, int messageId, String queryId, int jobId) {
+        if (!archiveQueueService.exists(jobId)) {
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(
+                    queryId,
+                    localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, userService.getLocaleOrDefault((int) chatId)),
+                    true
+            ));
+        } else {
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(
+                    queryId,
+                    localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))
+            ));
+            executor.cancelAndComplete(jobId, true);
         }
-        executor.cancelAndComplete(ids, false);
-
-        ArchiveState state = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, false);
-        if (state != null) {
-            commandStateService.deleteState(chatId, CommandNames.ARCHIVE_COMMAND_NAME);
-
-            Locale locale = new Locale(state.getLanguage());
-            messageService.editMessage(new EditMessageText(chatId, state.getArchiveCreatingMessageId(),
-                    localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
-        }
+        messageService.editMessage(new EditMessageText(
+                chatId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))));
     }
 
     private void startArchiveCreating(int userId, int jobId) {
-        ArchiveState state = commandStateService.getState(userId, CommandNames.ARCHIVE_COMMAND_NAME, true);
-        Locale locale = new Locale(state.getLanguage());
-        Message message = messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale))
+        Locale locale = userService.getLocaleOrDefault(userId);
+        messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale))
                 .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale)));
-        state.setArchiveCreatingMessageId(message.getMessageId());
-        commandStateService.setState(userId, CommandNames.ARCHIVE_COMMAND_NAME, state);
     }
 
     private void normalizeFileNames(List<Any2AnyFile> any2AnyFiles) {
@@ -228,7 +226,7 @@ public class ArchiveService {
 
         private volatile SmartTempFile archive;
 
-        private volatile boolean autoCancel;
+        private volatile boolean canceledByUser;
 
         private ArchiveTask(ArchiveQueueItem item) {
             this.jobId = item.getId();
@@ -258,7 +256,7 @@ public class ArchiveService {
                 LOGGER.debug("Finish({}, {}, {})", userId, size, type);
             } catch (Exception ex) {
                 if (checker.get()) {
-                    if (!autoCancel) {
+                    if (canceledByUser) {
                         LOGGER.debug("Canceled by user ({}, {})", userId, size);
                     } else {
                         LOGGER.debug("Canceled({}, {})", userId, size);
@@ -268,7 +266,15 @@ public class ArchiveService {
                     messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
                 }
             } finally {
-                cleanup();
+                executor.complete(jobId);
+                archiveQueueService.delete(jobId);
+                commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+                files.forEach(SmartTempFile::smartDelete);
+                files.clear();
+
+                if (archive != null) {
+                    archive.smartDelete();
+                }
             }
         }
 
@@ -280,7 +286,19 @@ public class ArchiveService {
         @Override
         public void cancel() {
             archiveFiles.forEach(tgFile -> telegramService.cancelDownloading(tgFile.getFileId()));
-            cleanup();
+            if (canceledByUser) {
+                ArchiveQueueItem item = archiveQueueService.deleteWithReturning(jobId);
+                if (item != null) {
+                    LOGGER.debug("Canceled by user({}, {})", item.getUserId(), MemoryUtils.humanReadableByteCount(item.getTotalFileSize()));
+                }
+            }
+            commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+            files.forEach(SmartTempFile::smartDelete);
+            files.clear();
+
+            if (archive != null) {
+                archive.smartDelete();
+            }
         }
 
         @Override
@@ -290,36 +308,12 @@ public class ArchiveService {
 
         @Override
         public void setCanceledByUser(boolean canceledByUser) {
-            this.autoCancel = !canceledByUser;
+            this.canceledByUser = !canceledByUser;
         }
 
         @Override
         public SmartExecutorService.JobWeight getWeight() {
             return totalFileSize > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
-        }
-
-        private void cleanup() {
-            if (!autoCancel) {
-                ArchiveQueueItem item = archiveQueueService.deleteWithReturning(jobId);
-                if (item != null) {
-                    LOGGER.debug("Canceled by user({}, {})", item.getUserId(), MemoryUtils.humanReadableByteCount(item.getTotalFileSize()));
-                }
-                ArchiveState state = commandStateService.getState(userId, CommandNames.ARCHIVE_COMMAND_NAME, true);
-                if (state != null) {
-                    commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
-
-                    Locale locale = new Locale(state.getLanguage());
-                    messageService.editMessage(new EditMessageText(userId, state.getArchiveCreatingMessageId(),
-                            localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
-                }
-            }
-            executor.complete(jobId);
-            files.forEach(SmartTempFile::smartDelete);
-            files.clear();
-
-            if (archive != null) {
-                archive.smartDelete();
-            }
         }
 
         private void downloadFiles(List<TgFile> tgFiles) {

@@ -99,6 +99,10 @@ public class ArchiveQueueDao {
                 (rs, rowNum) -> rs.getInt("id"));
     }
 
+    public Boolean exists(int jobId) {
+        return jdbcTemplate.query("SELECT TRUE FROM archive_queue WHERE id = ?", ps -> ps.setInt(1, jobId), ResultSet::next);
+    }
+
     private ArchiveQueueItem map(ResultSet resultSet) throws SQLException {
         ArchiveQueueItem item = new ArchiveQueueItem();
         item.setId(resultSet.getInt(ArchiveQueueItem.ID));

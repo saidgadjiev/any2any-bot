@@ -46,13 +46,14 @@ public class UnzipQueueDao {
         } else {
             jdbcTemplate.update(
                     con -> {
-                        PreparedStatement ps = con.prepareStatement("INSERT INTO unzip_queue(user_id, extract_file_id, status, item_type, extract_file_size) " +
+                        PreparedStatement ps = con.prepareStatement("INSERT INTO unzip_queue(user_id, extract_file_id, message_id, status, item_type, extract_file_size) " +
                                 "VALUES (?, ?, ?, 1, ?)", Statement.RETURN_GENERATED_KEYS);
 
                         ps.setInt(1, unzipQueueItem.getUserId());
                         ps.setObject(2, unzipQueueItem.getExtractFileId());
-                        ps.setInt(3, unzipQueueItem.getStatus().getCode());
-                        ps.setLong(4, unzipQueueItem.getExtractFileSize());
+                        ps.setInt(3, unzipQueueItem.getMessageId());
+                        ps.setInt(4, unzipQueueItem.getStatus().getCode());
+                        ps.setLong(5, unzipQueueItem.getExtractFileSize());
 
                         return ps;
                     },
@@ -61,14 +62,6 @@ public class UnzipQueueDao {
         }
 
         return ((Number) keyHolder.getKeys().get(UnzipQueueItem.ID)).intValue();
-    }
-
-    public void setWaiting(int id, int messageId) {
-        jdbcTemplate.update("UPDATE unzip_queue SET status = 0, message_id = ? WHERE id = ?",
-                ps -> {
-                    ps.setInt(1, messageId);
-                    ps.setInt(2, id);
-                });
     }
 
     public void setWaiting(int id) {

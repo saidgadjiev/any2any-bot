@@ -74,4 +74,8 @@ public class ArchiveQueueService {
     public List<Integer> deleteByUserId(int userId) {
         return dao.deleteByUserId(userId);
     }
+
+    public boolean exists(int jobId) {
+        return dao.exists(jobId);
+    }
 }

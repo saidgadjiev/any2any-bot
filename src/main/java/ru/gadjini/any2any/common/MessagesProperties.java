@@ -98,6 +98,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_ZIP_FILE = "message.zip.file";
 
+    public static final String MESSAGE_EXTRACT_FILE_IMPOSSIBLE = "message.extract.file.impossible";
+
     public static final String MESSAGE_ZIP_ENCRYPTED = "message.zip.encrypted";
 
     public static final String MESSAGE_ZIP_INVALID = "message.zip.invalid";

@@ -16,6 +16,7 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
+import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
@@ -100,11 +101,11 @@ public class RenameService {
 
     public void rename(int userId, RenameState renameState, String newFileName) {
         RenameQueueItem item = renameQueueService.createProcessingItem(userId, renameState, newFileName);
-        startRenaming(item.getId(), userId);
+        sendStartRenamingMessage(item.getId(), userId);
         executor.execute(new RenameTask(item));
     }
 
-    public void cancelCurrentTasks(long chatId) {
+    public void removeAndCancelCurrentTasks(long chatId) {
         List<Integer> ids = renameQueueService.deleteByUserId((int) chatId);
         if (!ids.isEmpty()) {
             LOGGER.debug("Leave({}, {})", chatId, ids.size());
@@ -112,8 +113,22 @@ public class RenameService {
         executor.cancelAndComplete(ids, false);
     }
 
-    public void cancel(int jobId) {
-        executor.cancelAndComplete(jobId, true);
+    public void cancel(long chatId, int messageId, String queryId, int jobId) {
+        if (!renameQueueService.exists(jobId)) {
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(
+                    queryId,
+                    localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, userService.getLocaleOrDefault((int) chatId)),
+                    true
+            ));
+        } else {
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(
+                    queryId,
+                    localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))
+            ));
+            executor.cancelAndComplete(jobId, true);
+        }
+        messageService.editMessage(new EditMessageText(
+                chatId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))));
     }
 
     public void shutdown() {
@@ -121,7 +136,7 @@ public class RenameService {
     }
 
     public void leave(long chatId) {
-        cancelCurrentTasks(chatId);
+        removeAndCancelCurrentTasks(chatId);
         commandStateService.deleteState(chatId, CommandNames.RENAME_COMMAND_NAME);
     }
 
@@ -132,14 +147,11 @@ public class RenameService {
         }
     }
 
-    private void startRenaming(int jobId, int userId) {
-        RenameState state = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, true);
-        Locale locale = new Locale(state.getLanguage());
-        int messageId = messageService.sendMessage(
+    private void sendStartRenamingMessage(int jobId, int userId) {
+        Locale locale = userService.getLocaleOrDefault(userId);
+        messageService.sendMessage(
                 new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_RENAMING, locale))
-                        .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale))).getMessageId();
-        state.setProcessingMessageId(messageId);
-        commandStateService.setState(userId, CommandNames.RENAME_COMMAND_NAME, state);
+                        .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale)));
     }
 
     private SmartTempFile createNewFile(String fileName, String ext) {
@@ -175,7 +187,7 @@ public class RenameService {
         private int fileSize;
         private final int replyToMessageId;
         private volatile Supplier<Boolean> checker;
-        private volatile boolean autoCancel;
+        private volatile boolean canceledByUser;
         private volatile SmartTempFile file;
 
         private RenameTask(RenameQueueItem queueItem) {
@@ -203,7 +215,7 @@ public class RenameService {
                 LOGGER.debug("Finish({}, {}, {})", userId, size, newFileName);
             } catch (Exception ex) {
                 if (checker.get()) {
-                    if (!autoCancel) {
+                    if (canceledByUser) {
                         LOGGER.debug("Canceled by user ({}, {})", userId, size);
                     } else {
                         LOGGER.debug("Canceled({}, {})", userId, size);
@@ -213,7 +225,12 @@ public class RenameService {
                     messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
                 }
             } finally {
-                cleanup();
+                executor.complete(jobId);
+                renameQueueService.delete(jobId);
+                commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+                if (file != null) {
+                    file.smartDelete();
+                }
             }
         }
 
@@ -225,7 +242,17 @@ public class RenameService {
         @Override
         public void cancel() {
             telegramService.cancelDownloading(fileId);
-            cleanup();
+            if (canceledByUser) {
+                RenameQueueItem item = renameQueueService.deleteWithReturning(jobId);
+                if (item != null) {
+                    LOGGER.debug("Canceled by user({}, {})", item.getUserId(), MemoryUtils.humanReadableByteCount(item.getFile().getSize()));
+                }
+            }
+
+            commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+            if (file != null) {
+                file.smartDelete();
+            }
         }
 
         @Override
@@ -235,37 +262,12 @@ public class RenameService {
 
         @Override
         public void setCanceledByUser(boolean canceledByUser) {
-            this.autoCancel = !canceledByUser;
+            this.canceledByUser = canceledByUser;
         }
 
         @Override
         public SmartExecutorService.JobWeight getWeight() {
             return fileSize > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
-        }
-
-        private void cleanup() {
-            if (!autoCancel) {
-                RenameQueueItem item = renameQueueService.deleteWithReturning(jobId);
-                RenameState state = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, false);
-                if (checker.get()) {
-                    if (item != null) {
-                        LOGGER.debug("Canceled by user({}, {})", item.getUserId(), MemoryUtils.humanReadableByteCount(item.getFile().getSize()));
-                    }
-                    if (state != null) {
-                        Locale locale = new Locale(state.getLanguage());
-                        messageService.editMessage(new EditMessageText(userId, state.getProcessingMessageId(),
-                                localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
-                    }
-                }
-                if (state != null) {
-                    commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
-                }
-
-                if (file != null) {
-                    file.smartDelete();
-                }
-            }
-            executor.complete(jobId);
         }
     }
 }

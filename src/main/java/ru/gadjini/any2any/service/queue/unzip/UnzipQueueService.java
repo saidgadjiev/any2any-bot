@@ -43,10 +43,11 @@ public class UnzipQueueService {
         return queueItem;
     }
 
-    public UnzipQueueItem createProcessingExtractFileItem(int userId, int extractFileId, long extractFileSize) {
+    public UnzipQueueItem createProcessingExtractFileItem(int userId, int messageId, int extractFileId, long extractFileSize) {
         UnzipQueueItem item = new UnzipQueueItem();
         item.setUserId(userId);
         item.setExtractFileId(extractFileId);
+        item.setMessageId(messageId);
         item.setItemType(UnzipQueueItem.ItemType.EXTRACT_FILE);
         item.setStatus(UnzipQueueItem.Status.PROCESSING);
         item.setExtractFileSize(extractFileSize);
@@ -55,10 +56,6 @@ public class UnzipQueueService {
         item.setId(jobId);
 
         return item;
-    }
-
-    public void setWaiting(int id, int messageId) {
-        unzipQueueDao.setWaiting(id, messageId);
     }
 
     public void setWaiting(int id) {

@@ -126,11 +126,12 @@ public class ButtonFactory {
         return delegateButton(localisationService.getMessage(nameCode, locale), delegate, requestParams);
     }
 
-    public InlineKeyboardButton extractFileButton(String name, int id) {
+    public InlineKeyboardButton extractFileButton(String name, int id, int unzipJobId) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(name);
         inlineKeyboardButton.setCallbackData(CommandNames.EXTRACT_FILE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams()
                         .add(Arg.EXTRACT_FILE_ID.getKey(), id)
+                        .add(Arg.JOB_ID.getKey(), unzipJobId)
                         .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
 
         return inlineKeyboardButton;

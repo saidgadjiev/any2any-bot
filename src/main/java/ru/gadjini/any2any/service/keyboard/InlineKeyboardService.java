@@ -42,7 +42,7 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getFilesListKeyboard(Set<Integer> filesIds) {
+    public InlineKeyboardMarkup getFilesListKeyboard(Set<Integer> filesIds, int unzipJobId) {
         InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
 
         int i = 1;
@@ -51,7 +51,7 @@ public class InlineKeyboardService {
             List<InlineKeyboardButton> row = new ArrayList<>();
 
             for (int id : list) {
-                row.add(buttonFactory.extractFileButton(String.valueOf(i++), id));
+                row.add(buttonFactory.extractFileButton(String.valueOf(i++), id, unzipJobId));
             }
 
             inlineKeyboardMarkup.getKeyboard().add(row);

@@ -243,6 +243,7 @@ public class TelegramService {
         } finally {
             downloading.remove(fileId);
         }
+        LOGGER.debug("Downloading canceled({})", fileId);
     }
 
     public void cancelDownloads() {
@@ -254,6 +255,7 @@ public class TelegramService {
         } finally {
             downloading.clear();
         }
+        LOGGER.debug("Downloads canceled");
     }
 
     public void restoreFileIfNeed(String filePath, String fileId) {

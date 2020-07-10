@@ -10,17 +10,28 @@ public class AnswerCallbackQuery {
 
     private static final String TEXT_FIELD = "text";
 
+    private static final String SHOW_ALERT = "show_alert";
+
     @JsonProperty(CALLBACKQUERYID_FIELD)
     private String callbackQueryId;
 
     @JsonProperty(TEXT_FIELD)
     private String text;
 
+    @JsonProperty(SHOW_ALERT)
+    private Boolean showAlert;
+
     public AnswerCallbackQuery() {}
 
     public AnswerCallbackQuery(String callbackQueryId, String text) {
         this.callbackQueryId = callbackQueryId;
         this.text = text;
+    }
+
+    public AnswerCallbackQuery(String callbackQueryId, String text, boolean showAlert) {
+        this.callbackQueryId = callbackQueryId;
+        this.text = text;
+        this.showAlert = showAlert;
     }
 
     public String getCallbackQueryId() {
@@ -37,6 +48,14 @@ public class AnswerCallbackQuery {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public Boolean getShowAlert() {
+        return showAlert;
+    }
+
+    public void setShowAlert(Boolean showAlert) {
+        this.showAlert = showAlert;
     }
 
     @Override

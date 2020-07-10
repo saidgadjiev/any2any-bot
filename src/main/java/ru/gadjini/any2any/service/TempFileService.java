@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.io.SmartTempFile;
@@ -11,6 +13,8 @@ import java.security.SecureRandom;
 @Service
 public class TempFileService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(TempFileService.class);
+
     private static final SecureRandom RANDOM = new SecureRandom();
 
     @Value("${temp.dir:#{systemProperties['java.io.tmpdir']}}")
@@ -21,6 +25,7 @@ public class TempFileService {
             File file = new File(tempDir, generateName(prefix, ext));
             file.createNewFile();
 
+            LOGGER.debug("Temp file({})", file.getAbsolutePath());
             return new SmartTempFile(file, false);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -32,6 +37,7 @@ public class TempFileService {
 
         tmpdir.mkdirs();
 
+        LOGGER.debug("Temp dir({})", tmpdir.getAbsolutePath());
         return new SmartTempFile(new File(tmpdir, fileName), true);
     }
 
@@ -42,6 +48,7 @@ public class TempFileService {
             File file = new File(tmpDir, fileName);
             file.createNewFile();
 
+            LOGGER.debug("Temp file({})", file.getAbsolutePath());
             return new SmartTempFile(file, true);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -60,6 +67,7 @@ public class TempFileService {
         File tmpDir = new File(tempDir, "tmpdir" + generateUniquePart());
         tmpDir.mkdirs();
 
+        LOGGER.debug("Temp dir({})", tmpDir.getAbsolutePath());
         return new SmartTempFile(tmpDir, false);
     }
 

@@ -27,6 +27,6 @@ public class CancelArchiveQueryCommand implements CallbackBotCommand {
     @Override
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int jobId = requestParams.getInt(Arg.JOB_ID.getKey());
-        archiveService.cancel(jobId);
+        archiveService.cancel(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), callbackQuery.getId(), jobId);
     }
 }

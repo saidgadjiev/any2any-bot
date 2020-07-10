@@ -13,13 +13,11 @@ public class UnzipState {
 
     private Format archiveType;
 
+    private int unzipJobId;
+
     private Map<Integer, ZipFileHeader> files = new HashMap<>();
 
     private Map<Integer, String> filesCache = new HashMap<>();
-
-    private int chooseFilesMessageId;
-
-    private int unzipMessageId;
 
     public String getArchivePath() {
         return archivePath;
@@ -45,28 +43,15 @@ public class UnzipState {
         return files;
     }
 
-
-    public int getChooseFilesMessageId() {
-        return chooseFilesMessageId;
-    }
-
-    public void setChooseFilesMessageId(int chooseFilesMessageId) {
-        this.chooseFilesMessageId = chooseFilesMessageId;
-    }
-
     public Map<Integer, String> getFilesCache() {
         return filesCache;
     }
 
-    public void setFilesCache(Map<Integer, String> filesCache) {
-        this.filesCache = filesCache;
+    public int getUnzipJobId() {
+        return unzipJobId;
     }
 
-    public int getUnzipMessageId() {
-        return unzipMessageId;
-    }
-
-    public void setUnzipMessageId(int unzipMessageId) {
-        this.unzipMessageId = unzipMessageId;
+    public void setUnzipJobId(int unzipJobId) {
+        this.unzipJobId = unzipJobId;
     }
 }

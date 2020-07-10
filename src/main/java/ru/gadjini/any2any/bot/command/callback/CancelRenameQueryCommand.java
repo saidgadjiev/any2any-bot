@@ -27,6 +27,6 @@ public class CancelRenameQueryCommand implements CallbackBotCommand {
     @Override
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int jobId = requestParams.getInt(Arg.JOB_ID.getKey());
-        renameService.cancel(jobId);
+        renameService.cancel(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), callbackQuery.getId(), jobId);
     }
 }
