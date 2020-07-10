@@ -110,29 +110,10 @@ public class RenameService {
             LOGGER.debug("Leave({}, {})", chatId, ids.size());
         }
         executor.cancelAndComplete(ids, false);
-
-        RenameState state = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, false);
-        if (state != null) {
-            commandStateService.deleteState(chatId, CommandNames.RENAME_COMMAND_NAME);
-            Locale locale = new Locale(state.getLanguage());
-            messageService.editMessage(new EditMessageText(chatId, state.getProcessingMessageId(),
-                    localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
-        }
     }
 
-    public void cancel(int userId, int jobId) {
-        RenameQueueItem item = renameQueueService.deleteWithReturning(jobId);
-        if (item != null) {
-            LOGGER.debug("Canceled by user({}, {})", item.getUserId(), MemoryUtils.humanReadableByteCount(item.getFile().getSize()));
-        }
+    public void cancel(int jobId) {
         executor.cancelAndComplete(jobId, true);
-        RenameState state = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, true);
-        if (state != null) {
-            commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
-            Locale locale = new Locale(state.getLanguage());
-            messageService.editMessage(new EditMessageText(userId, state.getProcessingMessageId(),
-                    localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
-        }
     }
 
     public void shutdown() {
@@ -264,8 +245,21 @@ public class RenameService {
 
         private void cleanup() {
             if (!autoCancel) {
-                renameQueueService.delete(jobId);
-                commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+                RenameQueueItem item = renameQueueService.deleteWithReturning(jobId);
+                RenameState state = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, false);
+                if (checker.get()) {
+                    if (item != null) {
+                        LOGGER.debug("Canceled by user({}, {})", item.getUserId(), MemoryUtils.humanReadableByteCount(item.getFile().getSize()));
+                    }
+                    if (state != null) {
+                        Locale locale = new Locale(state.getLanguage());
+                        messageService.editMessage(new EditMessageText(userId, state.getProcessingMessageId(),
+                                localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
+                    }
+                }
+                if (state != null) {
+                    commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+                }
 
                 if (file != null) {
                     file.smartDelete();

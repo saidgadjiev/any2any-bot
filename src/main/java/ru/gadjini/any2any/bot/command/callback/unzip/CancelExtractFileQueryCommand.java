@@ -27,6 +27,6 @@ public class CancelExtractFileQueryCommand implements CallbackBotCommand {
     @Override
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int jobId = requestParams.getInt(Arg.JOB_ID.getKey());
-        unzipService.cancelExtractFile(callbackQuery.getMessage().getChatId(), jobId);
+        unzipService.cancelExtractFile(jobId);
     }
 }

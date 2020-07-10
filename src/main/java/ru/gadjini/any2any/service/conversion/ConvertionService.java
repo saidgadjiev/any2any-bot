@@ -108,11 +108,7 @@ public class ConvertionService {
         return queueItem;
     }
 
-    public void cancel(int userId, int jobId) {
-        ConversionQueueItem item = queueService.delete(jobId);
-        if (item != null) {
-            LOGGER.debug("Canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(item.getSize()));
-        }
+    public void cancel(int jobId) {
         executor.cancelAndComplete(jobId, true);
     }
 
@@ -157,6 +153,8 @@ public class ConvertionService {
         private final ConversionQueueItem fileQueueItem;
 
         private volatile Supplier<Boolean> checker;
+
+        private volatile boolean autoCancel;
 
         private ConversionTask(ConversionQueueItem fileQueueItem) {
             this.fileQueueItem = fileQueueItem;
@@ -222,11 +220,22 @@ public class ConvertionService {
         }
 
         @Override
+        public void setCanceledByUser(boolean canceledByUser) {
+            this.autoCancel = !canceledByUser;
+        }
+
+        @Override
         public SmartExecutorService.JobWeight getWeight() {
             return fileQueueItem.getSize() > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
 
         private void cleanup() {
+            if (!autoCancel) {
+                ConversionQueueItem item = queueService.delete(fileQueueItem.getId());
+                if (item != null) {
+                    LOGGER.debug("Canceled by user({}, {})", fileQueueItem.getUserId(), MemoryUtils.humanReadableByteCount(item.getSize()));
+                }
+            }
             executor.complete(fileQueueItem.getId());
         }
 

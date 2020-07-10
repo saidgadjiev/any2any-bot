@@ -132,20 +132,8 @@ public class ArchiveService {
         executor.execute(new ArchiveTask(item));
     }
 
-    public void cancel(int userId, int jobId) {
-        ArchiveQueueItem item = archiveQueueService.deleteWithReturning(jobId);
-        if (item != null) {
-            LOGGER.debug("Canceled by user({}, {})", item.getUserId(), MemoryUtils.humanReadableByteCount(item.getTotalFileSize()));
-        }
+    public void cancel(int jobId) {
         executor.cancelAndComplete(jobId, true);
-        ArchiveState state = commandStateService.getState(userId, CommandNames.ARCHIVE_COMMAND_NAME, true);
-        if (state != null) {
-            commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
-
-            Locale locale = new Locale(state.getLanguage());
-            messageService.editMessage(new EditMessageText(userId, state.getArchiveCreatingMessageId(),
-                    localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
-        }
     }
 
     private void cancelCurrentTasks(long chatId) {
@@ -312,8 +300,18 @@ public class ArchiveService {
 
         private void cleanup() {
             if (!autoCancel) {
-                archiveQueueService.delete(jobId);
-                commandStateService.deleteState(userId, CommandNames.ARCHIVE_COMMAND_NAME);
+                ArchiveQueueItem item = archiveQueueService.deleteWithReturning(jobId);
+                if (item != null) {
+                    LOGGER.debug("Canceled by user({}, {})", item.getUserId(), MemoryUtils.humanReadableByteCount(item.getTotalFileSize()));
+                }
+                ArchiveState state = commandStateService.getState(userId, CommandNames.ARCHIVE_COMMAND_NAME, true);
+                if (state != null) {
+                    commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+
+                    Locale locale = new Locale(state.getLanguage());
+                    messageService.editMessage(new EditMessageText(userId, state.getArchiveCreatingMessageId(),
+                            localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
+                }
             }
             executor.complete(jobId);
             files.forEach(SmartTempFile::smartDelete);

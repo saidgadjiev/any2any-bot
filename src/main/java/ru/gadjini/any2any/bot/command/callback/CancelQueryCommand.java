@@ -46,7 +46,7 @@ public class CancelQueryCommand implements CallbackBotCommand {
     @Override
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int queryItemId = requestParams.getInt(Arg.QUEUE_ITEM_ID.getKey());
-        convertionService.cancel(callbackQuery.getFromUser().getId(), queryItemId);
+        convertionService.cancel(queryItemId);
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFromUser().getId());
 
         String actionFrom = requestParams.getString(Arg.ACTION_FROM.getKey());
