@@ -71,8 +71,8 @@ public class ConversionQueueService {
         fileQueueDao.resetProcessing();
     }
 
-    public void delete(int id) {
-        fileQueueDao.delete(id);
+    public ConversionQueueItem delete(int id) {
+        return fileQueueDao.delete(id);
     }
 
     public void exception(int id, Exception ex) {

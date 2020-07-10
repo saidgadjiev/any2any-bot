@@ -15,6 +15,7 @@ import ru.gadjini.any2any.domain.RenameQueueItem;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
@@ -105,20 +106,33 @@ public class RenameService {
 
     public void cancelCurrentTasks(long chatId) {
         List<Integer> ids = renameQueueService.deleteByUserId((int) chatId);
+        if (!ids.isEmpty()) {
+            LOGGER.debug("Leave({}, {})", chatId, ids.size());
+        }
         executor.cancelAndComplete(ids, false);
 
         RenameState state = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, false);
         if (state != null) {
-            messageService.removeInlineKeyboard(chatId, state.getProcessingMessageId());
+            commandStateService.deleteState(chatId, CommandNames.RENAME_COMMAND_NAME);
+            Locale locale = new Locale(state.getLanguage());
+            messageService.editMessage(new EditMessageText(chatId, state.getProcessingMessageId(),
+                    localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
         }
     }
 
     public void cancel(int userId, int jobId) {
-        renameQueueService.delete(jobId);
+        RenameQueueItem item = renameQueueService.deleteWithReturning(jobId);
+        if (item != null) {
+            LOGGER.debug("Canceled by user({}, {})", item.getUserId(), MemoryUtils.humanReadableByteCount(item.getFile().getSize()));
+        }
         executor.cancelAndComplete(jobId, true);
         RenameState state = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, true);
-        commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
-        messageService.removeInlineKeyboard(userId, state.getProcessingMessageId());
+        if (state != null) {
+            commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+            Locale locale = new Locale(state.getLanguage());
+            messageService.editMessage(new EditMessageText(userId, state.getProcessingMessageId(),
+                    localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
+        }
     }
 
     public void shutdown() {

@@ -82,6 +82,14 @@ public class ArchiveQueueDao {
         );
     }
 
+    public ArchiveQueueItem deleteWithReturning(int id) {
+        return jdbcTemplate.query(
+                "WITH del AS (DELETE FROM archive_queue WHERE id = ? RETURNING *) SELECT * FROM del",
+                ps -> ps.setInt(1, id),
+                rs -> rs.next() ? map(rs) : null
+        );
+    }
+
     public void delete(int id) {
         jdbcTemplate.update("DELETE FROM archive_queue WHERE id = ?", ps -> ps.setInt(1, id));
     }

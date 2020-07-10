@@ -60,6 +60,10 @@ public class RenameQueueService {
         return renameQueueDao.poll(weight, limit);
     }
 
+    public RenameQueueItem deleteWithReturning(int id) {
+        return renameQueueDao.deleteWithReturning(id);
+    }
+
     public void delete(int id) {
         renameQueueDao.delete(id);
     }

@@ -131,10 +131,11 @@ public class ConversionQueueDao {
         );
     }
 
-    public void delete(int id) {
-        jdbcTemplate.update(
-                "DELETE FROM " + TYPE + " WHERE id = ?",
-                ps -> ps.setInt(1, id)
+    public ConversionQueueItem delete(int id) {
+        return jdbcTemplate.query(
+                "WITH del AS(DELETE FROM " + TYPE + " WHERE id = ? RETURNING *) SELECT * FROM del",
+                ps -> ps.setInt(1, id),
+                rs -> rs.next() ? map(rs) : null
         );
     }
 

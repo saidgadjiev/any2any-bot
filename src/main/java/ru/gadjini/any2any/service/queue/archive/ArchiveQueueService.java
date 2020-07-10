@@ -63,6 +63,10 @@ public class ArchiveQueueService {
         return dao.poll(weight, limit);
     }
 
+    public ArchiveQueueItem deleteWithReturning(int id) {
+        return dao.deleteWithReturning(id);
+    }
+
     public void delete(int id) {
         dao.delete(id);
     }

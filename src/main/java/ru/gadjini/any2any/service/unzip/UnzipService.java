@@ -42,6 +42,8 @@ import java.util.stream.Collectors;
 @Service
 public class UnzipService {
 
+    private final Logger LOGGER = LoggerFactory.getLogger(UnzipService.class);
+
     private Set<UnzipDevice> unzipDevices;
 
     private LocalisationService localisationService;
@@ -146,19 +148,29 @@ public class UnzipService {
     }
 
     public void cancelUnzip(long chatId, int messageId, int jobId) {
-        queueService.delete(jobId);
+        UnzipQueueItem item = queueService.deleteWithReturning(jobId);
         executor.cancelAndComplete(jobId, true);
+        if (item != null) {
+            LOGGER.debug("Unzip canceled by user({}, {})", chatId, item.getFile().getSize());
+            commandStateService.deleteState(chatId, CommandNames.UNZIP_COMMAND_NAME);
+        }
         unzipCancelled(chatId, messageId);
     }
 
     public void cancelExtractFile(long chatId, int jobId) {
-        queueService.delete(jobId);
+        UnzipQueueItem item = queueService.deleteWithReturning(jobId);
+        if (item != null) {
+            LOGGER.debug("Extracting canceled by user({}, {})", chatId, MemoryUtils.humanReadableByteCount(item.getExtractFileSize()));
+        }
         executor.cancelAndComplete(jobId, true);
         extractingCanceled(chatId);
     }
 
     public void leave(long chatId) {
-        cancelCurrentTasks((int) chatId);
+        int count = cancelCurrentTasks((int) chatId);
+        if (count > 0) {
+            LOGGER.debug("Leave({}, {})", chatId, count);
+        }
         UnzipState state = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false);
         if (state != null) {
             messageService.removeInlineKeyboard(chatId, state.getChooseFilesMessageId());
@@ -182,9 +194,11 @@ public class UnzipService {
         }
     }
 
-    private void cancelCurrentTasks(int userId) {
+    private int cancelCurrentTasks(int userId) {
         List<Integer> ids = queueService.deleteByUserId(userId);
         executor.cancelAndComplete(ids, false);
+
+        return ids.size();
     }
 
     private void startExtracting(int userId, int jobId) {
@@ -200,17 +214,20 @@ public class UnzipService {
     }
 
     private void unzipCancelled(long chatId, int messageId) {
-        messageService.removeInlineKeyboard(chatId, messageId);
+        messageService.editMessage(new EditMessageText(
+                chatId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))));
     }
 
     private void extractingCanceled(long chatId) {
         UnzipState unzipState = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false);
-        String message = localisationService.getMessage(
-                MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
-                new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values().stream().map(ZipFileHeader::getPath).collect(Collectors.toList()))},
-                userService.getLocaleOrDefault((int) chatId));
-        messageService.editMessage(new EditMessageText(chatId, unzipState.getChooseFilesMessageId(), message)
-                .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds())));
+        if (unzipState != null) {
+            String message = localisationService.getMessage(
+                    MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
+                    new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values().stream().map(ZipFileHeader::getPath).collect(Collectors.toList()))},
+                    userService.getLocaleOrDefault((int) chatId));
+            messageService.editMessage(new EditMessageText(chatId, unzipState.getChooseFilesMessageId(), message)
+                    .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds())));
+        }
     }
 
     private UnzipDevice getCandidate(Format format) {
@@ -239,7 +256,7 @@ public class UnzipService {
 
     public class ExtractFileTask implements Runnable, SmartExecutorService.Job {
 
-        private final Logger LOGGER = LoggerFactory.getLogger(UnzipTask.class);
+        private final Logger LOGGER = LoggerFactory.getLogger(ExtractFileTask.class);
 
         private int jobId;
 

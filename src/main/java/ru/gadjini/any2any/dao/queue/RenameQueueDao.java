@@ -72,6 +72,14 @@ public class RenameQueueDao {
         );
     }
 
+    public RenameQueueItem deleteWithReturning(int id) {
+        return jdbcTemplate.query(
+                "WITH del AS (DELETE FROM rename_queue WHERE id = ? RETURNING *) SELECT * FROM del",
+                ps -> ps.setInt(1, id),
+                rs -> rs.next() ? map(rs) : null
+        );
+    }
+
     public void delete(int id) {
         jdbcTemplate.update("DELETE FROM rename_queue WHERE id = ?", ps -> ps.setInt(1, id));
     }

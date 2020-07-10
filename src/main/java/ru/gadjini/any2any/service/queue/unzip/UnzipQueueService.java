@@ -79,6 +79,10 @@ public class UnzipQueueService {
         unzipQueueDao.delete(id);
     }
 
+    public UnzipQueueItem deleteWithReturning(int id) {
+        return unzipQueueDao.deleteWithReturning(id);
+    }
+
     public List<Integer> deleteByUserId(int userId) {
         return unzipQueueDao.deleteByUserId(userId);
     }

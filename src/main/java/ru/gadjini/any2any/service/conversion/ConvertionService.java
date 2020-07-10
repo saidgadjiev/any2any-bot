@@ -108,8 +108,11 @@ public class ConvertionService {
         return queueItem;
     }
 
-    public void cancel(int jobId) {
-        queueService.delete(jobId);
+    public void cancel(int userId, int jobId) {
+        ConversionQueueItem item = queueService.delete(jobId);
+        if (item != null) {
+            LOGGER.debug("Canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(item.getSize()));
+        }
         executor.cancelAndComplete(jobId, true);
     }
 

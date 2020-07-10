@@ -16,6 +16,7 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
@@ -132,21 +133,35 @@ public class ArchiveService {
     }
 
     public void cancel(int userId, int jobId) {
-        archiveQueueService.delete(jobId);
+        ArchiveQueueItem item = archiveQueueService.deleteWithReturning(jobId);
+        if (item != null) {
+            LOGGER.debug("Canceled by user({}, {})", item.getUserId(), MemoryUtils.humanReadableByteCount(item.getTotalFileSize()));
+        }
         executor.cancelAndComplete(jobId, true);
         ArchiveState state = commandStateService.getState(userId, CommandNames.ARCHIVE_COMMAND_NAME, true);
-        commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+        if (state != null) {
+            commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
 
-        messageService.removeInlineKeyboard(userId, state.getArchiveCreatingMessageId());
+            Locale locale = new Locale(state.getLanguage());
+            messageService.editMessage(new EditMessageText(userId, state.getArchiveCreatingMessageId(),
+                    localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
+        }
     }
 
     private void cancelCurrentTasks(long chatId) {
         List<Integer> ids = archiveQueueService.deleteByUserId((int) chatId);
+        if (!ids.isEmpty()) {
+            LOGGER.debug("Leave({}, {})", chatId, ids.size());
+        }
         executor.cancelAndComplete(ids, false);
 
         ArchiveState state = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, false);
         if (state != null) {
-            messageService.removeInlineKeyboard(chatId, state.getArchiveCreatingMessageId());
+            commandStateService.deleteState(chatId, CommandNames.ARCHIVE_COMMAND_NAME);
+
+            Locale locale = new Locale(state.getLanguage());
+            messageService.editMessage(new EditMessageText(chatId, state.getArchiveCreatingMessageId(),
+                    localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
         }
     }
 
