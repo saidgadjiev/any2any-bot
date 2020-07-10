@@ -20,6 +20,8 @@ public class UnzipQueueItem {
 
     public static final String EXTRACT_FILE_ID = "extract_file_id";
 
+    public static final String EXTRACT_FILE_SIZE = "extract_file_size";
+
     public static final String MESSAGE_ID = "message_id";
 
     private int id;
@@ -37,6 +39,8 @@ public class UnzipQueueItem {
     private Integer messageId;
 
     private int extractFileId;
+
+    private long extractFileSize;
 
     public int getId() {
         return id;
@@ -100,6 +104,14 @@ public class UnzipQueueItem {
 
     public void setMessageId(Integer messageId) {
         this.messageId = messageId;
+    }
+
+    public long getExtractFileSize() {
+        return extractFileSize;
+    }
+
+    public void setExtractFileSize(long extractFileSize) {
+        this.extractFileSize = extractFileSize;
     }
 
     public enum Status {

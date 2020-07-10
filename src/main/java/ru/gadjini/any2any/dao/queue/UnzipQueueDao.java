@@ -46,12 +46,13 @@ public class UnzipQueueDao {
         } else {
             jdbcTemplate.update(
                     con -> {
-                        PreparedStatement ps = con.prepareStatement("INSERT INTO unzip_queue(user_id, extract_file_id, status, item_type) " +
-                                "VALUES (?, ?, ?, 1)", Statement.RETURN_GENERATED_KEYS);
+                        PreparedStatement ps = con.prepareStatement("INSERT INTO unzip_queue(user_id, extract_file_id, status, item_type, extract_file_size) " +
+                                "VALUES (?, ?, ?, 1, ?)", Statement.RETURN_GENERATED_KEYS);
 
                         ps.setInt(1, unzipQueueItem.getUserId());
                         ps.setObject(2, unzipQueueItem.getExtractFileId());
                         ps.setInt(3, unzipQueueItem.getStatus().getCode());
+                        ps.setLong(4, unzipQueueItem.getExtractFileSize());
 
                         return ps;
                     },
@@ -82,17 +83,20 @@ public class UnzipQueueDao {
     }
 
     public List<UnzipQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
+        String sign = weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">";
+
         return jdbcTemplate.query(
                 "WITH r AS (\n" +
                         "    UPDATE unzip_queue SET status = 1 WHERE id = (SELECT id FROM unzip_queue " +
                         "WHERE status = 0 AND CASE WHEN item_type = 0 THEN " +
-                        "(file).size " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ? ELSE TRUE END ORDER BY created_at LIMIT ?) RETURNING *\n" +
+                        "(file).size " + sign + " ? ELSE " +
+                        "extract_file_size " + sign + " ? END ORDER BY created_at LIMIT " + limit + ") RETURNING *\n" +
                         ")\n" +
                         "SELECT *, (file).*\n" +
                         "FROM r",
                 ps -> {
                     ps.setLong(1, MemoryUtils.MB_50);
-                    ps.setInt(2, limit);
+                    ps.setLong(2, MemoryUtils.MB_50);
                 },
                 (rs, rowNum) -> map(rs)
         );
@@ -126,6 +130,7 @@ public class UnzipQueueDao {
             item.setType(Format.valueOf(resultSet.getString(UnzipQueueItem.TYPE)));
         } else {
             item.setExtractFileId(resultSet.getInt(UnzipQueueItem.EXTRACT_FILE_ID));
+            item.setExtractFileSize(resultSet.getInt(UnzipQueueItem.EXTRACT_FILE_SIZE));
         }
 
         return item;

@@ -208,7 +208,11 @@ public class RenameService {
                 LOGGER.debug("Finish({}, {}, {})", userId, size, newFileName);
             } catch (Exception ex) {
                 if (checker.get()) {
-                    LOGGER.debug("Canceled({}, {})", userId, size);
+                    if (!autoCancel) {
+                        LOGGER.debug("Canceled by user ({}, {})", userId, size);
+                    } else {
+                        LOGGER.debug("Canceled({}, {})", userId, size);
+                    }
                 } else {
                     LOGGER.error(ex.getMessage(), ex);
                     messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));

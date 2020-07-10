@@ -130,7 +130,7 @@ public class UnzipService {
             );
             messageService.sendDocument(new SendDocument((long) userId, unzipState.getFilesCache().get(extractFileId)));
         } else {
-            UnzipQueueItem item = queueService.createProcessingExtractFileItem(userId, extractFileId);
+            UnzipQueueItem item = queueService.createProcessingExtractFileItem(userId, extractFileId, unzipState.getFiles().get(extractFileId).getSize());
             startExtracting(userId, item.getId());
             executor.execute(new ExtractFileTask(item));
         }
@@ -247,6 +247,8 @@ public class UnzipService {
 
         private int userId;
 
+        private long fileSize;
+
         private volatile Supplier<Boolean> checker;
 
         private volatile boolean autoCancel;
@@ -257,6 +259,7 @@ public class UnzipService {
             this.jobId = item.getId();
             this.id = item.getExtractFileId();
             this.userId = item.getUserId();
+            this.fileSize = item.getExtractFileSize();
         }
 
         @Override
@@ -282,7 +285,11 @@ public class UnzipService {
                 LOGGER.debug("Finish({}, {})", userId, size);
             } catch (Exception ex) {
                 if (checker.get()) {
-                    LOGGER.debug("Canceled({}, {})", userId, size);
+                    if (!autoCancel) {
+                        LOGGER.debug("Canceled by user ({}, {})", userId, size);
+                    } else {
+                        LOGGER.debug("Canceled({}, {})", userId, size);
+                    }
                 } else {
                     LOGGER.error(ex.getMessage(), ex);
                     messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
@@ -309,10 +316,7 @@ public class UnzipService {
 
         @Override
         public SmartExecutorService.JobWeight getWeight() {
-            UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true);
-            ZipFileHeader fileHeader = unzipState.getFiles().get(id);
-
-            return fileHeader.getSize() > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+            return fileSize > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
 
         private void cleanup() {
@@ -390,7 +394,11 @@ public class UnzipService {
                 LOGGER.debug("Finish({}, {}, {})", userId, size, format);
             } catch (Exception e) {
                 if (checker.get()) {
-                    LOGGER.debug("Canceled({}, {})", userId, size);
+                    if (!autoCancel) {
+                        LOGGER.debug("Canceled by user ({}, {})", userId, size);
+                    } else {
+                        LOGGER.debug("Canceled({}, {})", userId, size);
+                    }
                 } else {
                     LOGGER.error(e.getMessage(), e);
                     if (in != null) {
