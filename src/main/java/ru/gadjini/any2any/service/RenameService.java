@@ -106,11 +106,12 @@ public class RenameService {
     }
 
     public void removeAndCancelCurrentTasks(long chatId) {
-        List<Integer> ids = renameQueueService.deleteByUserId((int) chatId);
-        if (!ids.isEmpty()) {
-            LOGGER.debug("Leave({}, {})", chatId, ids.size());
+        RenameState renameState = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, false);
+        if (renameState != null) {
+            List<Integer> ids = renameQueueService.deleteByUserId((int) chatId);
+            executor.cancelAndComplete(ids, false);
+            commandStateService.deleteState(chatId, CommandNames.RENAME_COMMAND_NAME);
         }
-        executor.cancelAndComplete(ids, false);
     }
 
     public void cancel(long chatId, int messageId, String queryId, int jobId) {
@@ -125,7 +126,10 @@ public class RenameService {
                     queryId,
                     localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))
             ));
-            executor.cancelAndComplete(jobId, true);
+            if (!executor.cancelAndComplete(jobId, true)) {
+                renameQueueService.delete(jobId);
+                commandStateService.deleteState(chatId, CommandNames.RENAME_COMMAND_NAME);
+            }
         }
         messageService.editMessage(new EditMessageText(
                 chatId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))));
@@ -136,7 +140,11 @@ public class RenameService {
     }
 
     public void leave(long chatId) {
-        removeAndCancelCurrentTasks(chatId);
+        List<Integer> ids = renameQueueService.deleteByUserId((int) chatId);
+        if (ids.size() > 0) {
+            LOGGER.debug("Leave({}, {})", chatId, ids.size());
+        }
+        executor.cancelAndComplete(ids, false);
         commandStateService.deleteState(chatId, CommandNames.RENAME_COMMAND_NAME);
     }
 
@@ -214,13 +222,7 @@ public class RenameService {
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, newFileName);
             } catch (Exception ex) {
-                if (checker.get()) {
-                    if (canceledByUser) {
-                        LOGGER.debug("Canceled by user ({}, {})", userId, size);
-                    } else {
-                        LOGGER.debug("Canceled({}, {})", userId, size);
-                    }
-                } else {
+                if (!checker.get()) {
                     LOGGER.error(ex.getMessage(), ex);
                     messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
                 }
@@ -243,10 +245,8 @@ public class RenameService {
         public void cancel() {
             telegramService.cancelDownloading(fileId);
             if (canceledByUser) {
-                RenameQueueItem item = renameQueueService.deleteWithReturning(jobId);
-                if (item != null) {
-                    LOGGER.debug("Canceled by user({}, {})", item.getUserId(), MemoryUtils.humanReadableByteCount(item.getFile().getSize()));
-                }
+                renameQueueService.deleteWithReturning(jobId);
+                LOGGER.debug("Canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(fileSize));
             }
 
             commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);

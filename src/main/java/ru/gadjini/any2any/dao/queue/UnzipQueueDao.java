@@ -47,7 +47,7 @@ public class UnzipQueueDao {
             jdbcTemplate.update(
                     con -> {
                         PreparedStatement ps = con.prepareStatement("INSERT INTO unzip_queue(user_id, extract_file_id, message_id, status, item_type, extract_file_size) " +
-                                "VALUES (?, ?, ?, 1, ?)", Statement.RETURN_GENERATED_KEYS);
+                                "VALUES (?, ?, ?, 1, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 
                         ps.setInt(1, unzipQueueItem.getUserId());
                         ps.setObject(2, unzipQueueItem.getExtractFileId());
@@ -100,7 +100,7 @@ public class UnzipQueueDao {
     }
 
     public UnzipQueueItem deleteWithReturning(int id) {
-        return jdbcTemplate.query("WITH del AS(DELETE FROM unzip_queue WHERE id = ? RETURNING *) SELECT * FROM del",
+        return jdbcTemplate.query("WITH del AS(DELETE FROM unzip_queue WHERE id = ? RETURNING *) SELECT *, (file).* FROM del",
                 ps -> ps.setInt(1, id),
                 rs -> rs.next() ? map(rs) : null
         );

@@ -119,6 +119,11 @@ public class ArchiveService {
         return archive;
     }
 
+    public void removeAndCancelCurrentTasks(long chatId) {
+        List<Integer> ids = archiveQueueService.deleteByUserId((int) chatId);
+        executor.cancelAndComplete(ids, false);
+    }
+
     public void leave(long chatId) {
         List<Integer> ids = archiveQueueService.deleteByUserId((int) chatId);
         if (!ids.isEmpty()) {
@@ -148,7 +153,9 @@ public class ArchiveService {
                     queryId,
                     localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))
             ));
-            executor.cancelAndComplete(jobId, true);
+            if (!executor.cancelAndComplete(jobId, true)) {
+                archiveQueueService.delete(jobId);
+            }
         }
         messageService.editMessage(new EditMessageText(
                 chatId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))));
@@ -238,13 +245,12 @@ public class ArchiveService {
 
         @Override
         public void run() {
-            String size = null;
+            String size;
             try {
                 size = MemoryUtils.humanReadableByteCount(totalFileSize);
                 LOGGER.debug("Start({}, {}, {})", userId, size, type);
                 downloadFiles(archiveFiles);
-                ArchiveState state = commandStateService.getState(userId, CommandNames.ARCHIVE_COMMAND_NAME, true);
-                Locale locale = new Locale(state.getLanguage());
+                Locale locale = userService.getLocaleOrDefault(userId);
 
                 archive = fileService.getTempFile(
                         Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), type.getExt())
@@ -255,20 +261,13 @@ public class ArchiveService {
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, type);
             } catch (Exception ex) {
-                if (checker.get()) {
-                    if (canceledByUser) {
-                        LOGGER.debug("Canceled by user ({}, {})", userId, size);
-                    } else {
-                        LOGGER.debug("Canceled({}, {})", userId, size);
-                    }
-                } else {
+                if (!checker.get()) {
                     LOGGER.error(ex.getMessage(), ex);
                     messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
                 }
             } finally {
                 executor.complete(jobId);
                 archiveQueueService.delete(jobId);
-                commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
                 files.forEach(SmartTempFile::smartDelete);
                 files.clear();
 
@@ -287,12 +286,8 @@ public class ArchiveService {
         public void cancel() {
             archiveFiles.forEach(tgFile -> telegramService.cancelDownloading(tgFile.getFileId()));
             if (canceledByUser) {
-                ArchiveQueueItem item = archiveQueueService.deleteWithReturning(jobId);
-                if (item != null) {
-                    LOGGER.debug("Canceled by user({}, {})", item.getUserId(), MemoryUtils.humanReadableByteCount(item.getTotalFileSize()));
-                }
+                LOGGER.debug("Canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(totalFileSize));
             }
-            commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
             files.forEach(SmartTempFile::smartDelete);
             files.clear();
 

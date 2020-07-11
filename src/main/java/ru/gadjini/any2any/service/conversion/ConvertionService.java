@@ -154,7 +154,7 @@ public class ConvertionService {
 
         private volatile Supplier<Boolean> checker;
 
-        private volatile boolean autoCancel;
+        private volatile boolean canceledByUser;
 
         private ConversionTask(ConversionQueueItem fileQueueItem) {
             this.fileQueueItem = fileQueueItem;
@@ -181,10 +181,7 @@ public class ConvertionService {
                                         .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                         );
                     } catch (Exception ex) {
-                        if (checker.get()) {
-                            LOGGER.debug("Canceled({}, {}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getFormat(),
-                                    fileQueueItem.getTargetFormat(), size, fileQueueItem.getSize(), fileQueueItem.getFileId());
-                        } else {
+                        if (!checker.get()) {
                             queueService.exception(fileQueueItem.getId(), ex);
                             LOGGER.error(ex.getMessage(), ex);
                             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
@@ -199,7 +196,8 @@ public class ConvertionService {
                     LOGGER.debug("Candidate not found({}, {})", fileQueueItem.getUserId(), fileQueueItem.getFormat());
                 }
             } finally {
-                cleanup();
+                queueService.delete(fileQueueItem.getId());
+                executor.complete(fileQueueItem.getId());
             }
         }
 
@@ -211,7 +209,12 @@ public class ConvertionService {
         @Override
         public void cancel() {
             telegramService.cancelDownloading(fileQueueItem.getFileId());
-            cleanup();
+            if (canceledByUser) {
+                queueService.delete(fileQueueItem.getId());
+                LOGGER.debug("Canceled({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getFormat(),
+                        fileQueueItem.getTargetFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), fileQueueItem.getFileId());
+            }
+            executor.complete(fileQueueItem.getId());
         }
 
         @Override
@@ -221,22 +224,12 @@ public class ConvertionService {
 
         @Override
         public void setCanceledByUser(boolean canceledByUser) {
-            this.autoCancel = !canceledByUser;
+            this.canceledByUser = canceledByUser;
         }
 
         @Override
         public SmartExecutorService.JobWeight getWeight() {
             return fileQueueItem.getSize() > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
-        }
-
-        private void cleanup() {
-            if (!autoCancel) {
-                ConversionQueueItem item = queueService.delete(fileQueueItem.getId());
-                if (item != null) {
-                    LOGGER.debug("Canceled by user({}, {})", fileQueueItem.getUserId(), MemoryUtils.humanReadableByteCount(item.getSize()));
-                }
-            }
-            executor.complete(fileQueueItem.getId());
         }
 
         private Any2AnyConverter<ConvertResult> getCandidate(ConversionQueueItem fileQueueItem) {

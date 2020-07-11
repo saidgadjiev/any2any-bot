@@ -46,19 +46,25 @@ public class SmartExecutorService {
         jobIds.forEach(this::complete);
     }
 
-    public void cancel(int jobId, boolean userOriginated) {
+    public boolean cancel(int jobId, boolean userOriginated) {
         Future<?> future = processing.get(jobId);
         if (future != null && (!future.isCancelled() || !future.isDone())) {
             Job job = activeTasks.get(jobId);
             job.setCanceledByUser(userOriginated);
             future.cancel(true);
             job.cancel();
+
+            return true;
         }
+
+        return false;
     }
 
-    public void cancelAndComplete(int jobId, boolean userOriginated) {
-        cancel(jobId, userOriginated);
+    public boolean cancelAndComplete(int jobId, boolean userOriginated) {
+        boolean result = cancel(jobId, userOriginated);
         complete(jobId);
+
+        return result;
     }
 
     public boolean isCanceled(int jobId) {

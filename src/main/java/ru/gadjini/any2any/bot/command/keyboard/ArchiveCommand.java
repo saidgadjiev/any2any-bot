@@ -111,7 +111,9 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
                         localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale)));
             } else {
                 Format associatedFormat = checkFormat(formatService.getAssociatedFormat(message.getText()), locale);
+                archiveService.removeAndCancelCurrentTasks(message.getChatId());
                 archiveService.createArchive(message.getFromUser().getId(), archiveState, associatedFormat);
+                commandStateService.deleteState(message.getChatId(), CommandNames.ARCHIVE_COMMAND_NAME);
             }
         } else {
             ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false);
