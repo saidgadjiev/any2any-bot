@@ -29,4 +29,12 @@ public class ZipFileHeader {
     public long getSize() {
         return size;
     }
+
+    @Override
+    public String toString() {
+        return "ZipFileHeader{" +
+                "path='" + path + '\'' +
+                ", size=" + size +
+                '}';
+    }
 }
