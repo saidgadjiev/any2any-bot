@@ -16,11 +16,10 @@ import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 
-import java.io.File;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
 @Component
@@ -66,7 +65,7 @@ public class ZipLibUnzipDevice extends BaseUnzipDevice {
         try {
             zipFile.extractFile(fileHeader, dir);
 
-            return dir + File.separator + fileHeader.replaceAll("[/\\\\]", Matcher.quoteReplacement(File.separator));
+            return Paths.get(dir, fileHeader).toString();
         } catch (ZipException e) {
             throw new UnzipException(e);
         }

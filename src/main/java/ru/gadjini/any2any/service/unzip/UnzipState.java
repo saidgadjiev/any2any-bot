@@ -15,9 +15,9 @@ public class UnzipState {
 
     private int unzipJobId;
 
-    private Map<Integer, ZipFileHeader> files = new HashMap<>();
+    private final Map<Integer, ZipFileHeader> files = new HashMap<>();
 
-    private Map<Integer, String> filesCache = new HashMap<>();
+    private final Map<Integer, String> filesCache = new HashMap<>();
 
     public String getArchivePath() {
         return archivePath;

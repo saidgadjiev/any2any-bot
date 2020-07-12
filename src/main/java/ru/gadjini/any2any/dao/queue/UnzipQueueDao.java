@@ -99,6 +99,13 @@ public class UnzipQueueDao {
         jdbcTemplate.update("DELETE FROM unzip_queue WHERE id = ?", ps -> ps.setInt(1, id));
     }
 
+    public void setMessageId(int id, int messageId) {
+        jdbcTemplate.update("UPDATE unzip_queue SET message_id = ? WHERE id = ?", ps -> {
+            ps.setInt(1, messageId);
+            ps.setInt(2, id);
+        });
+    }
+
     public UnzipQueueItem deleteWithReturning(int id) {
         return jdbcTemplate.query("WITH del AS(DELETE FROM unzip_queue WHERE id = ? RETURNING *) SELECT *, (file).* FROM del",
                 ps -> ps.setInt(1, id),
@@ -119,6 +126,7 @@ public class UnzipQueueDao {
         UnzipQueueItem item = new UnzipQueueItem();
         item.setId(resultSet.getInt(UnzipQueueItem.ID));
         item.setUserId(resultSet.getInt(UnzipQueueItem.USER_ID));
+        item.setMessageId(resultSet.getInt(UnzipQueueItem.MESSAGE_ID));
         UnzipQueueItem.ItemType itemType = UnzipQueueItem.ItemType.fromCode(resultSet.getInt(UnzipQueueItem.ITEM_TYPE));
         item.setItemType(itemType);
 

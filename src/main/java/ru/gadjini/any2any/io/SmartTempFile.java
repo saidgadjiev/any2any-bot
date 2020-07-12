@@ -224,13 +224,13 @@ public class SmartTempFile {
     }
 
     public void smartDelete() {
-        LOGGER.debug("Delete file({})", file.getAbsolutePath());
         if (file.exists()) {
             if (deleteParentDir) {
                 FileUtils.deleteQuietly(file.getParentFile());
             } else {
                 FileUtils.deleteQuietly(file);
             }
+            LOGGER.debug("Delete file({})", file.getAbsolutePath());
         }
     }
 }

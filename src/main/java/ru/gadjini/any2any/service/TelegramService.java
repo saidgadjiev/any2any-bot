@@ -209,14 +209,18 @@ public class TelegramService {
             LOGGER.debug("Start downloadFileByFileId({})", fileId);
 
             HttpEntity<GetFile> request = new HttpEntity<>(new GetFile(fileId, outputFile.getAbsolutePath(), outputFile.isDeleteParentDir()));
-            restTemplate.postForObject(getUrl(GetFile.METHOD), request, Void.class);
+            String result = restTemplate.postForObject(getUrl(GetFile.METHOD), request, String.class);
+            ApiResponse<String> apiResponse = objectMapper.readValue(result, new TypeReference<>() {
+            });
 
-            if (!downloading.containsKey(fileId)) {
+            if (!apiResponse.getOk()) {
                 throw new DownloadCanceledException();
             }
 
             stopWatch.stop();
             LOGGER.debug("Finish downloadFileByFileId({}, {}, {})", fileId, MemoryUtils.humanReadableByteCount(outputFile.length()), stopWatch.getTime(TimeUnit.SECONDS));
+        } catch (IOException e) {
+            LOGGER.debug(e.getMessage(), e);
         } finally {
             downloading.remove(fileId);
         }
@@ -234,23 +238,43 @@ public class TelegramService {
         return smartTempFile;
     }
 
-    public void cancelDownloading(String fileId) {
+    public boolean cancelDownloading(String fileId) {
         try {
-            if (downloading.containsKey(fileId)) {
-                HttpEntity<CancelDownloading> request = new HttpEntity<>(new CancelDownloading(fileId));
-                restTemplate.postForObject(getUrl(CancelDownloading.METHOD), request, Void.class);
+            SmartTempFile tempFile = downloading.get(fileId);
+            if (tempFile != null) {
+                try {
+                    HttpEntity<CancelDownloading> request = new HttpEntity<>(new CancelDownloading(fileId));
+                    restTemplate.postForObject(getUrl(CancelDownloading.METHOD), request, Void.class);
+                } finally {
+                    try {
+                        tempFile.smartDelete();
+                    } catch (Exception e) {
+                        LOGGER.error(e.getMessage(), e);
+                    }
+                }
+
+                return true;
             }
+
+            return false;
         } finally {
             downloading.remove(fileId);
         }
-        LOGGER.debug("Downloading canceled({})", fileId);
     }
 
     public void cancelDownloads() {
         try {
             for (Map.Entry<String, SmartTempFile> entry : downloading.entrySet()) {
-                HttpEntity<CancelDownloading> request = new HttpEntity<>(new CancelDownloading(entry.getKey()));
-                restTemplate.postForObject(getUrl(CancelDownloading.METHOD), request, Void.class);
+                try {
+                    HttpEntity<CancelDownloading> request = new HttpEntity<>(new CancelDownloading(entry.getKey()));
+                    restTemplate.postForObject(getUrl(CancelDownloading.METHOD), request, Void.class);
+                } finally {
+                    try {
+                        entry.getValue().smartDelete();
+                    } catch (Exception e) {
+                        LOGGER.error(e.getMessage(), e);
+                    }
+                }
             }
         } finally {
             downloading.clear();

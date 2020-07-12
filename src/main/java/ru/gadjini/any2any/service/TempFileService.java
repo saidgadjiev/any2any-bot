@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.io.SmartTempFile;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.security.SecureRandom;
@@ -19,6 +20,11 @@ public class TempFileService {
 
     @Value("${temp.dir:#{systemProperties['java.io.tmpdir']}}")
     private String tempDir;
+
+    @PostConstruct
+    public void init() {
+        LOGGER.debug("Temp dir({})", tempDir);
+    }
 
     public SmartTempFile createTempFile0(String prefix, String ext) {
         try {

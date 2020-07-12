@@ -243,16 +243,15 @@ public class RenameService {
 
         @Override
         public void cancel() {
-            telegramService.cancelDownloading(fileId);
+            if (!telegramService.cancelDownloading(fileId) && file != null) {
+                file.smartDelete();
+            }
             if (canceledByUser) {
                 renameQueueService.deleteWithReturning(jobId);
                 LOGGER.debug("Canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(fileSize));
             }
 
             commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
-            if (file != null) {
-                file.smartDelete();
-            }
         }
 
         @Override
