@@ -11,6 +11,11 @@ services:
       - 5005:5005
     env_file:
       - .env
+    depends_on:
+      - db
+      - redis
+      - url2api
+      - rest
   db:
     container_name: db
     image: postgres:alpine
@@ -36,3 +41,16 @@ services:
     container_name: url2api
     restart: always
     build: ../../../../url-to-pdf-api/
+  rest:
+    container_name: rest
+    restart: always
+    build: ../../../../fileutils-rest/
+  bot:
+    container_name: bot
+    restart: always
+    build: ../../../../fileutils-bot/
+    env_file:
+      - ../../../../fileutils-bot/.env
+    depends_on:
+      - app
+

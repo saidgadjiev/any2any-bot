@@ -76,5 +76,7 @@ USER bot
 COPY ./license/license-19.lic ./license/
 COPY ./target/app.jar .
 
+
+EXPOSE 8080
 ENTRYPOINT ["java"]
 CMD ["-jar", "app.jar"]
