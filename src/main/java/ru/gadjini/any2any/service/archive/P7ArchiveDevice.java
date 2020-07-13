@@ -12,9 +12,9 @@ import java.util.Set;
 
 @Component
 @Conditional(LinuxMacCondition.class)
-public class ZipArchiveDevice extends BaseArchiveDevice {
+public class P7ArchiveDevice extends BaseArchiveDevice {
 
-    protected ZipArchiveDevice() {
+    protected P7ArchiveDevice() {
         super(Set.of(Format.ZIP));
     }
 
@@ -25,8 +25,8 @@ public class ZipArchiveDevice extends BaseArchiveDevice {
 
     private String[] buildCommand(List<String> files, String out) {
         List<String> command = new ArrayList<>();
-        command.add("zip");
-        command.add("-j");
+        command.add("7z");
+        command.add("a");
         command.add(out);
         command.addAll(files);
 

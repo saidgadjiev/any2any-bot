@@ -1,7 +1,7 @@
 CREATE TYPE tg_file AS (
-    file_id VARCHAR(128),
-    mime_type VARCHAR(64),
-    file_name VARCHAR(256),
+    file_id VARCHAR(512),
+    mime_type VARCHAR(512),
+    file_name text,
     size INT
     );
 

@@ -324,8 +324,8 @@ public class UnzipService {
         public void run() {
             String size;
 
+            UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true);
             try {
-                UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true);
                 ZipFileHeader fileHeader = unzipState.getFiles().get(id);
                 size = MemoryUtils.humanReadableByteCount(fileHeader.getSize());
                 LOGGER.debug("Start({}, {})", userId, size);
@@ -340,8 +340,6 @@ public class UnzipService {
                     unzipState.getFilesCache().put(id, result.getFileId());
                     commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
                 }
-                finishExtracting(userId, unzipState);
-
                 LOGGER.debug("Finish({}, {})", userId, size);
             } catch (Exception ex) {
                 if (!checker.get()) {
@@ -349,6 +347,7 @@ public class UnzipService {
                     messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
                 }
             } finally {
+                finishExtracting(userId, unzipState);
                 executor.complete(jobId);
                 queueService.delete(jobId);
                 if (out != null) {

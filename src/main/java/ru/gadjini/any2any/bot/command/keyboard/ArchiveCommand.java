@@ -11,6 +11,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
@@ -123,7 +124,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
             archiveState.getFiles().add(createFile(message, locale));
             commandStateService.setState(message.getChatId(), getHistoryName(), archiveState);
             messageService.sendMessage(
-                    new HtmlMessage(
+                    new SendMessage(
                             message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CURRENT_FILES,
                             new Object[]{toString(archiveState.getFiles())}, locale)
                     )
