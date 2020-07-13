@@ -256,7 +256,7 @@ public class RenameService {
 
         @Override
         public SmartExecutorService.JobWeight getWeight() {
-            return fileSize > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+            return fileSize > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
     }
 }

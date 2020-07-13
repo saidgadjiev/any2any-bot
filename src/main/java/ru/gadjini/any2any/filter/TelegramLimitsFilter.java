@@ -175,7 +175,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
                     MessagesProperties.MESSAGE_TOO_LARGE_IN_FILE,
                     new Object[]{MemoryUtils.humanReadableByteCount(message.getDocument().getFileSize())},
                     userService.getLocaleOrDefault(message.getFromUser().getId())));
-        } else if (file.getFileSize() > MemoryUtils.MB_50) {
+        } else if (file.getFileSize() > MemoryUtils.MB_100) {
             LOGGER.debug("Heavy file({}, {}, {}, {})", message.getFromUser().getId(), file.getFileSize(), file.getMimeType(), file.getFileName());
         }
     }

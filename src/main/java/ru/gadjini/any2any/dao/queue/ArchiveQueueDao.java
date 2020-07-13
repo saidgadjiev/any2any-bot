@@ -75,7 +75,7 @@ public class ArchiveQueueDao {
                         "SELECT *\n" +
                         "FROM r",
                 ps -> {
-                    ps.setLong(1, MemoryUtils.MB_50);
+                    ps.setLong(1, MemoryUtils.MB_100);
                     ps.setInt(2, limit);
                 },
                 (rs, rowNum) -> map(rs)

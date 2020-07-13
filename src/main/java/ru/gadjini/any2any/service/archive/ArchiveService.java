@@ -308,7 +308,7 @@ public class ArchiveService {
 
         @Override
         public SmartExecutorService.JobWeight getWeight() {
-            return totalFileSize > MemoryUtils.MB_50 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+            return totalFileSize > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
 
         private void downloadFiles(List<TgFile> tgFiles) {
