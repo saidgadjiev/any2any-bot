@@ -1,6 +1,5 @@
 package ru.gadjini.any2any.service;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -26,7 +25,6 @@ import ru.gadjini.any2any.service.queue.rename.RenameQueueService;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
@@ -176,14 +174,6 @@ public class RenameService {
         return fileService.createTempFile(fileName);
     }
 
-    private void sendMessage(long chatId, int replyMessageId, File renamed) {
-        try {
-            messageService.sendDocument(new SendDocument(chatId, renamed).setReplyToMessageId(replyMessageId));
-        } finally {
-            FileUtils.deleteQuietly(renamed);
-        }
-    }
-
     public final class RenameTask implements SmartExecutorService.Job {
 
         private int jobId;
@@ -218,7 +208,7 @@ public class RenameService {
                 String ext = formatService.getExt(fileName, mimeType);
                 file = createNewFile(newFileName, ext);
                 telegramService.downloadFileByFileId(fileId, file);
-                sendMessage(userId, replyToMessageId, file.getFile());
+                messageService.sendDocument(new SendDocument((long) userId, file.getFile()).setReplyToMessageId(replyToMessageId));
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, newFileName);
             } catch (Exception ex) {
