@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
@@ -51,6 +52,13 @@ public class ButtonFactory {
         InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale));
         button.setCallbackData(CommandNames.CANCEL_RENAME_QUERY + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams().add(Arg.JOB_ID.getKey(), jobId).serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return button;
+    }
+
+    public InlineKeyboardButton cancelArchiveFiles(Locale locale) {
+        InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale));
+        button.setCallbackData(CommandNames.CANCEL_ARCHIVE_FILES + CommandParser.COMMAND_NAME_SEPARATOR);
 
         return button;
     }

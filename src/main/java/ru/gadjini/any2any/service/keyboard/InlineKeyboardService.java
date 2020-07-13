@@ -60,6 +60,14 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
+    public InlineKeyboardMarkup getArchiveFilesKeyboard(Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelArchiveFiles(locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
     public InlineKeyboardMarkup getUnzipProcessingKeyboard(int jobId, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
 

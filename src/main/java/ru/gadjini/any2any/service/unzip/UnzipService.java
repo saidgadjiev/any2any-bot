@@ -238,7 +238,11 @@ public class UnzipService {
         if (ids.size() > 0) {
             LOGGER.debug("Leave({}, {})", chatId, ids.size());
         }
-        commandStateService.deleteState(chatId, CommandNames.UNZIP_COMMAND_NAME);
+        UnzipState state = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false);
+        if (state != null) {
+            new SmartTempFile(new File(state.getArchivePath()), false).smartDelete();
+            commandStateService.deleteState(chatId, CommandNames.UNZIP_COMMAND_NAME);
+        }
     }
 
     private int sendStartUnzippingMessage(int userId, int jobId, Locale locale) {

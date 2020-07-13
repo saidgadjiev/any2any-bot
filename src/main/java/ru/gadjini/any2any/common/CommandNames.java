@@ -53,4 +53,6 @@ public class CommandNames {
     public static final String CANCEL_ARCHIVE_QUERY = "u";
 
     public static final String CANCEL_UNZIP_QUERY = "v";
+
+    public static final String CANCEL_ARCHIVE_FILES = "w";
 }

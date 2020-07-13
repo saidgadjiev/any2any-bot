@@ -22,10 +22,14 @@ import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.FormatCategory;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
+import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 @Component
 public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand {
@@ -48,10 +52,12 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     private FileService fileService;
 
+    private InlineKeyboardService inlineKeyboardService;
+
     @Autowired
     public ArchiveCommand(ArchiveService archiveService, LocalisationService localisationService, @Qualifier("limits") MessageService messageService,
                           CommandStateService commandStateService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
-                          UserService userService, FormatService formatService, FileService fileService) {
+                          UserService userService, FormatService formatService, FileService fileService, InlineKeyboardService inlineKeyboardService) {
         this.archiveService = archiveService;
         this.localisationService = localisationService;
         this.messageService = messageService;
@@ -60,6 +66,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
         this.userService = userService;
         this.formatService = formatService;
         this.fileService = fileService;
+        this.inlineKeyboardService = inlineKeyboardService;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.ARCHIVE_COMMAND_NAME, locale));
         }
@@ -107,7 +114,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
         if (message.hasText()) {
             ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false);
-            if (archiveState.getFiles().isEmpty()) {
+            if (archiveState == null || archiveState.getFiles().isEmpty()) {
                 messageService.sendMessage(new HtmlMessage(message.getChatId(),
                         localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale)));
             } else {
@@ -128,6 +135,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
                             message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CURRENT_FILES,
                             new Object[]{toString(archiveState.getFiles())}, locale)
                     )
+                            .setReplyMarkup(inlineKeyboardService.getArchiveFilesKeyboard(locale))
             );
         }
     }
