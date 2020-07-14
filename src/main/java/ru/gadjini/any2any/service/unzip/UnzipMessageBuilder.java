@@ -15,7 +15,7 @@ public class UnzipMessageBuilder {
         int i = 1;
         for (Iterator<ZipFileHeader> iterator = files.iterator(); iterator.hasNext();) {
             ZipFileHeader zipFileHeader = iterator.next();
-            message.append(i++).append(") ").append(iterator.next());
+            message.append(i++).append(") ").append(zipFileHeader.getSize());
             if (zipFileHeader.getSize() != 0) {
                 message.append(" (").append(MemoryUtils.humanReadableByteCount(zipFileHeader.getSize())).append(")");
             }
