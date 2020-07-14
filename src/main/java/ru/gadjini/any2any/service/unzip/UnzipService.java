@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 @Service
 public class UnzipService {
@@ -99,6 +98,7 @@ public class UnzipService {
 
     public void rejectTask(SmartExecutorService.Job unzipTask) {
         queueService.setWaiting(unzipTask.getId());
+        LOGGER.debug("Rejected({})", unzipTask.getWeight());
     }
 
     public Runnable getTask(SmartExecutorService.JobWeight weight) {
@@ -219,7 +219,7 @@ public class UnzipService {
             if (unzipState != null) {
                 String message = localisationService.getMessage(
                         MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
-                        new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values().stream().map(ZipFileHeader::getPath).collect(Collectors.toList()))},
+                        new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
                         userService.getLocaleOrDefault((int) chatId));
                 messageService.editMessage(new EditMessageText(chatId, messageId, message)
                         .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), unzipState.getUnzipJobId())));
@@ -394,7 +394,7 @@ public class UnzipService {
         private void finishExtracting(int userId, UnzipState unzipState) {
             String message = localisationService.getMessage(
                     MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
-                    new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values().stream().map(ZipFileHeader::getPath).collect(Collectors.toList()))},
+                    new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
                     userService.getLocaleOrDefault(userId)
             );
             messageService.editMessage(new EditMessageText(userId, messageId, message)
@@ -440,7 +440,7 @@ public class UnzipService {
                 }
                 String message = localisationService.getMessage(
                         MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
-                        new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values().stream().map(ZipFileHeader::getPath).collect(Collectors.toList()))},
+                        new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
                         userService.getLocaleOrDefault(userId)
                 );
                 try {

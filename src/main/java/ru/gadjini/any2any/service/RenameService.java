@@ -84,6 +84,7 @@ public class RenameService {
 
     public void rejectRenameTask(SmartExecutorService.Job job) {
         renameQueueService.setWaiting(job.getId());
+        LOGGER.debug("Rejected({})", job.getWeight());
     }
 
     public RenameTask getTask(SmartExecutorService.JobWeight weight) {

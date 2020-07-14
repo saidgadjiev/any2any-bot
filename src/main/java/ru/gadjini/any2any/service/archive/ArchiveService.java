@@ -94,6 +94,7 @@ public class ArchiveService {
 
     public void rejectTask(SmartExecutorService.Job job) {
         archiveQueueService.setWaiting(job.getId());
+        LOGGER.debug("Rejected({})", job.getWeight());
     }
 
     public ArchiveTask getTask(SmartExecutorService.JobWeight weight) {
