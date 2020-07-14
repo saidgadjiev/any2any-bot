@@ -45,12 +45,19 @@ services:
     container_name: rest
     restart: always
     build: ../../../../fileutils-rest/
+    env_file:
+      - ../../../../fileutils-rest/.env
+    volumes:
+      - ../../../data/gram:/home/bot/app/gram
+      - ../../../data/shr:/tmp/shr
   bot:
     container_name: bot
     restart: always
     build: ../../../../fileutils-bot/
     env_file:
       - ../../../../fileutils-bot/.env
+    volumes:
+      - ../../../data/gram:/home/bot/app/gram
     depends_on:
       - app
 
