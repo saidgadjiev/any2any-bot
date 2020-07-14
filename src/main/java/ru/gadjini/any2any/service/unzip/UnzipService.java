@@ -240,7 +240,9 @@ public class UnzipService {
         }
         UnzipState state = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false);
         if (state != null) {
-            new SmartTempFile(new File(state.getArchivePath()), false).smartDelete();
+            if (StringUtils.isNotBlank(state.getArchivePath())) {
+                new SmartTempFile(new File(state.getArchivePath()), false).smartDelete();
+            }
             commandStateService.deleteState(chatId, CommandNames.UNZIP_COMMAND_NAME);
         }
     }
