@@ -9,6 +9,7 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.security.SecureRandom;
 
 @Service
@@ -39,20 +40,24 @@ public class TempFileService {
     }
 
     public SmartTempFile getTempFile(String fileName) {
-        File tmpdir = new File(tempDir, "tmpdir" + generateUniquePart());
+        try {
+            File tmpdir = new File(tempDir, "tmpdir" + generateUniquePart());
 
-        tmpdir.mkdirs();
+            Files.createDirectory(tmpdir.toPath());
 
-        LOGGER.debug("Temp dir({})", tmpdir.getAbsolutePath());
-        return new SmartTempFile(new File(tmpdir, fileName), true);
+            LOGGER.debug("Temp dir({})", tmpdir.getAbsolutePath());
+            return new SmartTempFile(new File(tmpdir, fileName), true);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public SmartTempFile createTempFile(String fileName) {
         try {
             File tmpDir = new File(tempDir, "tmpdir" + generateUniquePart());
-            tmpDir.mkdirs();
+            Files.createDirectory(tmpDir.toPath());
             File file = new File(tmpDir, fileName);
-            file.createNewFile();
+            Files.createFile(file.toPath());
 
             LOGGER.debug("Temp file({})", file.getAbsolutePath());
             return new SmartTempFile(file, true);
@@ -62,19 +67,27 @@ public class TempFileService {
     }
 
     public SmartTempFile createTempDir(String name) {
-        File tmpDir = new File(tempDir, "tmpdir" + generateUniquePart());
-        File file = new File(tmpDir, name);
-        file.mkdirs();
+        try {
+            File tmpDir = new File(tempDir, "tmpdir" + generateUniquePart());
+            File file = new File(tmpDir, name);
+            Files.createDirectories(file.toPath());
 
-        return new SmartTempFile(file, true);
+            return new SmartTempFile(file, true);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public SmartTempFile createTempDir() {
-        File tmpDir = new File(tempDir, "tmpdir" + generateUniquePart());
-        tmpDir.mkdirs();
+        try {
+            File tmpDir = new File(tempDir, "tmpdir" + generateUniquePart());
+            Files.createDirectory(tmpDir.toPath());
 
-        LOGGER.debug("Temp dir({})", tmpDir.getAbsolutePath());
-        return new SmartTempFile(tmpDir, false);
+            LOGGER.debug("Temp dir({})", tmpDir.getAbsolutePath());
+            return new SmartTempFile(tmpDir, false);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private String generateName(String prefix, String ext) {
