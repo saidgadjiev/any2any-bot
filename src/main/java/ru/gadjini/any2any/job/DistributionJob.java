@@ -53,7 +53,7 @@ public class DistributionJob {
         LOGGER.debug("Finish checkDistributions");
     }
 
-    @Scheduled(cron = "* * * * * *")
+    @Scheduled(cron = "0 */5 * * * *")
     public void distribute() {
         if (isDisabled()) {
             return;
