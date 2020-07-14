@@ -88,8 +88,8 @@ public class UnzipQueueDao {
                         "SELECT *, (file).*\n" +
                         "FROM r",
                 ps -> {
-                    ps.setLong(1, MemoryUtils.MB_100);
-                    ps.setLong(2, MemoryUtils.MB_100);
+                    ps.setLong(1, MemoryUtils.MB_320);
+                    ps.setLong(2, MemoryUtils.MB_320);
                 },
                 (rs, rowNum) -> map(rs)
         );
