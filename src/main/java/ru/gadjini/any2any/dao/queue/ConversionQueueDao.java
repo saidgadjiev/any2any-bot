@@ -69,7 +69,7 @@ public class ConversionQueueDao {
         return jdbcTemplate.query(
                 "SELECT place_in_queue\n" +
                         "FROM (SELECT id, row_number() over (ORDER BY created_at) AS place_in_queue FROM "
-                        + TYPE + " WHERE status = 0) as file_q\n" +
+                        + TYPE + " WHERE status IN(0, 1)) as file_q\n" +
                         "WHERE id = ?",
                 ps -> ps.setInt(1, id),
                 rs -> {
@@ -164,7 +164,7 @@ public class ConversionQueueDao {
                         "FROM " + TYPE + " f\n" +
                         "         LEFT JOIN (SELECT id, row_number() over (ORDER BY created_at) as place_in_queue\n" +
                         "                     FROM " + TYPE + "\n" +
-                        "                     WHERE status = 0) queue_place ON f.id = queue_place.id\n" +
+                        "                     WHERE status IN(0, 1)) queue_place ON f.id = queue_place.id\n" +
                         "WHERE user_id = ?\n" +
                         "  AND status IN (0, 1, 2)",
                 ps -> ps.setInt(1, userId),
