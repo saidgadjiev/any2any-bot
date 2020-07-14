@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.MessagesProperties;
 
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 
 @Component
@@ -38,13 +37,5 @@ public class Time2TextService {
         }
 
         return time.toString().trim();
-    }
-
-    public static void main(String[] args) {
-        Duration duration = Duration.of(30, ChronoUnit.SECONDS);
-
-        System.out.println(duration.toHoursPart());
-        System.out.println(duration.toMinutesPart());
-
     }
 }

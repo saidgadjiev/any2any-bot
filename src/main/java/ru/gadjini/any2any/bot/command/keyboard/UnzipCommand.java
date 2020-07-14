@@ -5,38 +5,39 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.bots.AbsSender;
+import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.service.converter.api.Format;
-import ru.gadjini.any2any.service.converter.api.FormatCategory;
-import ru.gadjini.any2any.service.converter.impl.FormatService;
+import ru.gadjini.any2any.service.command.CommandStateService;
+import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.service.conversion.api.FormatCategory;
+import ru.gadjini.any2any.service.conversion.impl.FormatService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
-import ru.gadjini.any2any.service.unzip.UnzipperService;
+import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.any2any.service.unzip.UnzipService;
+import ru.gadjini.any2any.service.unzip.UnzipState;
 
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class UnzipCommand extends BotCommand implements KeyboardBotCommand, NavigableBotCommand {
+public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UnzipCommand.class);
 
     private Set<String> names = new HashSet<>();
 
-    private UnzipperService unzipperService;
+    private UnzipService unzipService;
 
     private LocalisationService localisationService;
 
@@ -48,17 +49,22 @@ public class UnzipCommand extends BotCommand implements KeyboardBotCommand, Navi
 
     private FormatService formatService;
 
+    private FileService fileService;
+
+    private CommandStateService commandStateService;
+
     @Autowired
-    public UnzipCommand(LocalisationService localisationService, UnzipperService unzipperService,
+    public UnzipCommand(LocalisationService localisationService, UnzipService unzipService,
                         @Qualifier("limits") MessageService messageService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
-                        UserService userService, FormatService formatService) {
-        super(CommandNames.UNZIP_COMMAND_NAME, "");
+                        UserService userService, FormatService formatService, FileService fileService, CommandStateService commandStateService) {
         this.localisationService = localisationService;
-        this.unzipperService = unzipperService;
+        this.unzipService = unzipService;
         this.messageService = messageService;
         this.replyKeyboardService = replyKeyboardService;
         this.userService = userService;
         this.formatService = formatService;
+        this.fileService = fileService;
+        this.commandStateService = commandStateService;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.UNZIP_COMMAND_NAME, locale));
         }
@@ -75,29 +81,39 @@ public class UnzipCommand extends BotCommand implements KeyboardBotCommand, Navi
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        processMessage0(chat.getId(), user.getId());
+    public void processMessage(Message message) {
+        processMessage(message, null);
+    }
+
+    @Override
+    public String getCommandIdentifier() {
+        return CommandNames.UNZIP_COMMAND_NAME;
     }
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFrom().getId());
+        processMessage0(message.getChatId(), message.getFromUser().getId());
 
         return true;
     }
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(new SendMessageContext(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_FILE, locale))
-                .replyKeyboard(replyKeyboardService.goBack(chatId, locale)));
+        messageService.sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_FILE, locale))
+                .setReplyMarkup(replyKeyboardService.goBack(chatId, locale)));
     }
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-        unzipperService.unzip(message.getFrom().getId(), message.getDocument().getFileId(), checkFormat(format, message.getDocument().getMimeType(), message.getDocument().getFileName(), message.getDocument().getFileId(), locale), locale);
-        messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_UNZIP_PROCESSING, locale)));
+        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+        Any2AnyFile file = fileService.getFile(message, locale);
+        file.setFormat(checkFormat(message.getFromUser().getId(), format, message.getDocument().getMimeType(), message.getDocument().getFileName(), locale));
+
+        unzipService.removeAndCancelCurrentTasks(message.getChatId());
+        UnzipState unzipState = createState(file.getFormat());
+        commandStateService.setState(message.getChatId(), CommandNames.UNZIP_COMMAND_NAME, unzipState);
+        unzipService.unzip(message.getFromUser().getId(), file, locale);
     }
 
     @Override
@@ -110,9 +126,14 @@ public class UnzipCommand extends BotCommand implements KeyboardBotCommand, Navi
         return CommandNames.UNZIP_COMMAND_NAME;
     }
 
-    private Format checkFormat(Format format, String mimeType, String fileName, String fileId, Locale locale) {
+    @Override
+    public void leave(long chatId) {
+        unzipService.leave(chatId);
+    }
+
+    private Format checkFormat(int userId, Format format, String mimeType, String fileName, Locale locale) {
         if (format == null) {
-            LOGGER.debug("Archive format with mimeType " + mimeType + " fileName " + fileName + " fileId " + fileId + " unsupported");
+            LOGGER.debug("Format is null({}, {}, {})", userId, mimeType, fileName);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SUPPORTED_ZIP_FORMATS, locale));
         }
         if (format.getCategory() != FormatCategory.ARCHIVE) {
@@ -120,5 +141,12 @@ public class UnzipCommand extends BotCommand implements KeyboardBotCommand, Navi
         }
 
         return format;
+    }
+
+    private UnzipState createState(Format archiveType) {
+        UnzipState unzipState = new UnzipState();
+        unzipState.setArchiveType(archiveType);
+
+        return unzipState;
     }
 }

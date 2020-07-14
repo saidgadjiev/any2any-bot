@@ -7,13 +7,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.TextExtractionFailedException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.List;
@@ -33,7 +34,7 @@ public class OcrService {
 
     private TelegramService telegramService;
 
-    private CommonJobExecutor commonJobExecutor;
+    private ThreadPoolTaskExecutor executor;
 
     private MessageService messageService;
 
@@ -42,18 +43,19 @@ public class OcrService {
     private LocalisationService localisationService;
 
     @Autowired
-    public OcrService(TelegramService telegramService, CommonJobExecutor commonJobExecutor, @Qualifier("limits") MessageService messageService,
+    public OcrService(TelegramService telegramService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
+                      @Qualifier("limits") MessageService messageService,
                       UserService userService, LocalisationService localisationService) {
         this.telegramService = telegramService;
-        this.commonJobExecutor = commonJobExecutor;
+        this.executor = executor;
         this.messageService = messageService;
         this.userService = userService;
         this.localisationService = localisationService;
     }
 
     public void extractText(int userId, Any2AnyFile any2AnyFile, Locale ocrLocale) {
-        commonJobExecutor.addJob(() -> {
-            LOGGER.debug("Start ocr. File id " + any2AnyFile + " for user " + userId);
+        executor.execute(() -> {
+            LOGGER.debug("Start({}, {})", userId, any2AnyFile.getFileId());
             SmartTempFile file = telegramService.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFormat().getExt());
             ITesseract tesseract = new Tesseract();
             tesseract.setLanguage(ocrLocale.getISO3Language());
@@ -64,10 +66,10 @@ public class OcrService {
                 String result = tesseract.doOCR(file.getFile());
                 result = result.replace("\n\n", "\n");
                 if (StringUtils.isBlank(result)) {
-                    messageService.sendMessage(new SendMessageContext(userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
+                    messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
                 }
-                messageService.sendMessage(new SendMessageContext(userId, result).html(false));
-                LOGGER.debug("Finish ocr for user " + userId + " file id " + any2AnyFile);
+                messageService.sendMessage(new SendMessage((long) userId, result));
+                LOGGER.debug("Finish({}, {})", userId, StringUtils.substring(result, 20));
             } catch (Exception ex) {
                 messageService.sendErrorMessage(userId, locale);
                 throw new TextExtractionFailedException(ex);

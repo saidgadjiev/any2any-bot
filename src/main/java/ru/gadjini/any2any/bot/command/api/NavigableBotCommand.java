@@ -1,7 +1,7 @@
 package ru.gadjini.any2any.bot.command.api;
 
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import ru.gadjini.any2any.model.TgMessage;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
 
 public interface NavigableBotCommand extends MyBotCommand {
 

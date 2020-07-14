@@ -3,14 +3,19 @@ package ru.gadjini.any2any.service.image.editor.transparency;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.job.CommonJobExecutor;
-import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.model.EditMediaResult;
+import ru.gadjini.any2any.model.SendFileResult;
+import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
+import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
+import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
@@ -38,7 +43,7 @@ public class ColorState implements State {
 
     private InlineKeyboardService inlineKeyboardService;
 
-    private CommonJobExecutor commonJobExecutor;
+    private ThreadPoolTaskExecutor executor;
 
     private TempFileService fileService;
 
@@ -50,13 +55,13 @@ public class ColorState implements State {
 
     @Autowired
     public ColorState(CommandStateService commandStateService, @Qualifier("limits") MessageService messageService,
-                      InlineKeyboardService inlineKeyboardService, CommonJobExecutor commonJobExecutor,
+                      InlineKeyboardService inlineKeyboardService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
                       TempFileService fileService, ImageConvertDevice imageDevice, EditMessageBuilder messageBuilder,
                       LocalisationService localisationService) {
         this.commandStateService = commandStateService;
         this.messageService = messageService;
         this.inlineKeyboardService = inlineKeyboardService;
-        this.commonJobExecutor = commonJobExecutor;
+        this.executor = executor;
         this.fileService = fileService;
         this.imageDevice = imageDevice;
         this.messageBuilder = messageBuilder;
@@ -78,16 +83,16 @@ public class ColorState implements State {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
         messageService.deleteMessage(chatId, state.getMessageId());
         Locale locale = new Locale(state.getLanguage());
-        SendFileResult sendFileResult = messageService.sendDocument(new SendFileContext(chatId, new File(state.getCurrentFilePath()))
-                .caption(messageBuilder.getSettingsStr(state) + "\n\n"
+        SendFileResult sendFileResult = messageService.sendDocument(new SendDocument(chatId, new File(state.getCurrentFilePath()))
+                .setCaption(messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, locale))
-                .replyKeyboard(inlineKeyboardService.getColorsKeyboard(locale, state.canCancel())));
+                .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(locale, state.canCancel())));
         state.setCurrentFileId(sendFileResult.getFileId());
         state.setMessageId(sendFileResult.getMessageId());
         commandStateService.setState(chatId, command.getHistoryName(), state);
 
         if (StringUtils.isNotBlank(queryId)) {
-            messageService.sendAnswerCallbackQuery(new AnswerCallbackContext(queryId, localisationService.getMessage(MessagesProperties.UPDATE_CALLBACK_ANSWER, locale)));
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.UPDATE_CALLBACK_ANSWER, locale)));
         }
     }
 
@@ -102,10 +107,10 @@ public class ColorState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
-        messageService.editMessageCaption(new EditMessageCaptionContext(chatId, state.getMessageId(),
+        messageService.editMessageCaption(new EditMessageCaption(chatId, state.getMessageId(),
                 messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, new Locale(state.getLanguage())))
-                .replyKeyboard(inlineKeyboardService.getColorsKeyboard(new Locale(state.getLanguage()), state.canCancel())));
+                .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(new Locale(state.getLanguage()), state.canCancel())));
     }
 
     @Override
@@ -113,7 +118,7 @@ public class ColorState implements State {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         validateColor(colorText, new Locale(editorState.getLanguage()));
 
-        commonJobExecutor.addJob(() -> {
+        executor.execute(() -> {
             SmartTempFile tempFile = fileService.getTempFile(editorState.getFileName());
 
             if (editorState.getMode() == ModeState.Mode.NEGATIVE) {
@@ -130,16 +135,15 @@ public class ColorState implements State {
             editorState.setPrevFileId(editorState.getCurrentFileId());
             editorState.setCurrentFilePath(tempFile.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
-            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), tempFile.getFile())
-                    .caption(messageBuilder.getSettingsStr(editorState) + "\n\n"
+            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), tempFile.getFile(), messageBuilder.getSettingsStr(editorState) + "\n\n"
                             + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, locale))
-                    .replyKeyboard(inlineKeyboardService.getColorsKeyboard(locale, editorState.canCancel())));
+                    .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(locale, editorState.canCancel())));
             editorState.setCurrentFileId(editMediaResult.getFileId());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
             if (StringUtils.isNotBlank(queryId)) {
                 messageService.sendAnswerCallbackQuery(
-                        new AnswerCallbackContext(queryId, localisationService.getMessage(MessagesProperties.TRANSPARENT_COLOR_EDITED_CALLBACK_ANSWER, locale))
+                        new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.TRANSPARENT_COLOR_EDITED_CALLBACK_ANSWER, locale))
                 );
             }
         });
@@ -155,14 +159,13 @@ public class ColorState implements State {
             editorState.setPrevFilePath(null);
             editorState.setPrevFileId(null);
 
-            messageService.editMessageMedia(new EditMediaContext(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
-                    .caption(messageBuilder.getSettingsStr(editorState))
-                    .replyKeyboard(inlineKeyboardService.getColorsKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
+            messageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), editorState.getCurrentFileId(), messageBuilder.getSettingsStr(editorState))
+                    .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
             new SmartTempFile(new File(editFilePath), true).smartDelete();
         } else {
-            messageService.sendAnswerCallbackQuery(new AnswerCallbackContext(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_CANT_CANCEL_ANSWER, new Locale(editorState.getLanguage()))));
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_CANT_CANCEL_ANSWER, new Locale(editorState.getLanguage()))));
         }
     }
 

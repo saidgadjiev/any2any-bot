@@ -1,7 +1,7 @@
 package ru.gadjini.any2any.service;
 
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gadjini.any2any.service.command.CommandParser;
 
 import java.util.Arrays;

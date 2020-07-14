@@ -33,4 +33,5 @@ public class RenameState {
     public void setReplyMessageId(int replyMessageId) {
         this.replyMessageId = replyMessageId;
     }
+
 }

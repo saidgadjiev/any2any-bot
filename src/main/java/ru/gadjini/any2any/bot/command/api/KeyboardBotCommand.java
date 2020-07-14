@@ -1,6 +1,6 @@
 package ru.gadjini.any2any.bot.command.api;
 
-import org.telegram.telegrambots.meta.api.objects.Message;
+import ru.gadjini.any2any.model.bot.api.object.Message;
 
 public interface KeyboardBotCommand extends MyBotCommand {
 

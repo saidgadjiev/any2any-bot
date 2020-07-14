@@ -3,27 +3,24 @@ package ru.gadjini.any2any.bot.command.callback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
-import org.telegram.telegrambots.meta.bots.AbsSender;
+import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableCallbackBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.domain.FileQueueItem;
-import ru.gadjini.any2any.model.EditMessageContext;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
+import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.TgMessage;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.service.filequeue.FileQueueMessageBuilder;
-import ru.gadjini.any2any.service.filequeue.FileQueueService;
+import ru.gadjini.any2any.service.queue.conversion.ConversionQueueMessageBuilder;
+import ru.gadjini.any2any.service.queue.conversion.ConversionQueueService;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.HashSet;
 import java.util.List;
@@ -32,11 +29,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
-public class QueriesCommand extends BotCommand implements KeyboardBotCommand, NavigableCallbackBotCommand {
+public class QueriesCommand implements KeyboardBotCommand, NavigableCallbackBotCommand, BotCommand {
 
     private Set<String> names = new HashSet<>();
 
-    private FileQueueService fileQueueService;
+    private ConversionQueueService fileQueueService;
 
     private MessageService messageService;
 
@@ -44,13 +41,12 @@ public class QueriesCommand extends BotCommand implements KeyboardBotCommand, Na
 
     private InlineKeyboardService inlineKeyboardService;
 
-    private FileQueueMessageBuilder messageBuilder;
+    private ConversionQueueMessageBuilder messageBuilder;
 
     @Autowired
-    public QueriesCommand(FileQueueService fileQueueService, LocalisationService localisationService,
+    public QueriesCommand(ConversionQueueService fileQueueService, LocalisationService localisationService,
                           @Qualifier("limits") MessageService messageService, UserService userService, InlineKeyboardService inlineKeyboardService,
-                          FileQueueMessageBuilder messageBuilder) {
-        super(CommandNames.QUERIES_COMMAND, "");
+                          ConversionQueueMessageBuilder messageBuilder) {
         this.fileQueueService = fileQueueService;
         this.userService = userService;
         this.messageBuilder = messageBuilder;
@@ -72,20 +68,25 @@ public class QueriesCommand extends BotCommand implements KeyboardBotCommand, Na
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        List<FileQueueItem> queries = fileQueueService.getActiveItems(user.getId());
+    public void processMessage(Message message) {
+        List<ConversionQueueItem> queries = fileQueueService.getActiveItems(message.getFromUser().getId());
         messageService.sendMessage(
-                new SendMessageContext(chat.getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(user.getId())))
-                        .replyKeyboard(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(FileQueueItem::getId).collect(Collectors.toList())))
+                new HtmlMessage(message.getChat().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFromUser().getId())))
+                        .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(ConversionQueueItem::getId).collect(Collectors.toList())))
         );
     }
 
     @Override
+    public String getCommandIdentifier() {
+        return CommandNames.QUERIES_COMMAND;
+    }
+
+    @Override
     public boolean processMessage(Message message, String text) {
-        List<FileQueueItem> queries = fileQueueService.getActiveItems(message.getFrom().getId());
+        List<ConversionQueueItem> queries = fileQueueService.getActiveItems(message.getFromUser().getId());
         messageService.sendMessage(
-                new SendMessageContext(message.getFrom().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFrom().getId())))
-                        .replyKeyboard(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(FileQueueItem::getId).collect(Collectors.toList())))
+                new HtmlMessage((long) message.getFromUser().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFromUser().getId())))
+                        .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(ConversionQueueItem::getId).collect(Collectors.toList())))
         );
 
         return false;
@@ -93,10 +94,10 @@ public class QueriesCommand extends BotCommand implements KeyboardBotCommand, Na
 
     @Override
     public void restore(TgMessage tgMessage, ReplyKeyboard replyKeyboard, RequestParams requestParams) {
-        List<FileQueueItem> queries = fileQueueService.getActiveItems(tgMessage.getUser().getId());
+        List<ConversionQueueItem> queries = fileQueueService.getActiveItems(tgMessage.getUser().getId());
         messageService.editMessage(
-                new EditMessageContext(tgMessage.getUser().getId(), tgMessage.getMessageId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(tgMessage.getUser().getId())))
-                        .replyKeyboard(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(FileQueueItem::getId).collect(Collectors.toList())))
+                new EditMessageText(tgMessage.getUser().getId(), tgMessage.getMessageId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(tgMessage.getUser().getId())))
+                        .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(ConversionQueueItem::getId).collect(Collectors.toList())))
         );
     }
 }

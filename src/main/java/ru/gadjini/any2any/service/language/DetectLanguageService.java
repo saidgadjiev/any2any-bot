@@ -25,7 +25,7 @@ public class DetectLanguageService implements LanguageDetector {
             String language = DetectLanguage.simpleDetect(text);
 
             if (StringUtils.isBlank(language)) {
-                LOGGER.debug("Language not detected by text " + text);
+                LOGGER.debug("Language not detected({})", StringUtils.substring(text, 50));
             }
 
             return language;

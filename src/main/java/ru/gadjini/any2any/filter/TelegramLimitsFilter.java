@@ -7,18 +7,30 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.*;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.model.*;
+import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.model.EditMediaResult;
+import ru.gadjini.any2any.model.SendFileResult;
+import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
+import ru.gadjini.any2any.model.bot.api.object.*;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
+import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
-import java.util.Comparator;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 @Component
@@ -29,16 +41,22 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
 
     private static final int TEXT_LENGTH_LIMIT = 4090;
 
+    //1.5 GB
+    private static final long LARGE_FILE_SIZE = 1610612736;
+
     private UserService userService;
 
     private MessageService messageService;
 
     private LocalisationService localisationService;
 
+    private FileService fileService;
+
     @Autowired
-    public TelegramLimitsFilter(UserService userService, LocalisationService localisationService) {
+    public TelegramLimitsFilter(UserService userService, LocalisationService localisationService, FileService fileService) {
         this.userService = userService;
         this.localisationService = localisationService;
+        this.fileService = fileService;
     }
 
     @Autowired
@@ -56,8 +74,8 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public void sendAnswerCallbackQuery(AnswerCallbackContext callbackContext) {
-        messageService.sendAnswerCallbackQuery(callbackContext);
+    public void sendAnswerCallbackQuery(AnswerCallbackQuery answerCallbackQuery) {
+        messageService.sendAnswerCallbackQuery(answerCallbackQuery);
     }
 
     @Override
@@ -66,19 +84,28 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public void sendMessage(SendMessageContext messageContext) {
-        if (messageContext.text().length() < TEXT_LENGTH_LIMIT) {
-            messageService.sendMessage(messageContext);
+    public Message sendMessage(SendMessage sendMessage) {
+        if (sendMessage.getText().length() < TEXT_LENGTH_LIMIT) {
+            return messageService.sendMessage(sendMessage);
         } else {
-            Iterable<String> split = Splitter.fixedLength(TEXT_LENGTH_LIMIT)
-                    .split(messageContext.text());
-            for (String text : split) {
-                messageService.sendMessage(new SendMessageContext(messageContext.chatId(), text)
-                        .replyKeyboard(messageContext.replyKeyboard())
-                        .webPagePreview(messageContext.webPagePreview())
-                        .html(messageContext.html())
-                        .replyMessageId(messageContext.replyMessageId()));
+            List<String> parts = new ArrayList<>();
+            Splitter.fixedLength(TEXT_LENGTH_LIMIT)
+                    .split(sendMessage.getText())
+                    .forEach(parts::add);
+            for (int i = 0; i < parts.size() - 1; ++i) {
+                SendMessage msg = new SendMessage(sendMessage.getChatId(), parts.get(i))
+                        .setReplyToMessageId(sendMessage.getReplyToMessageId())
+                        .setDisableWebPagePreview(sendMessage.getDisableWebPagePreview())
+                        .setParseMode(sendMessage.getParseMode());
+                messageService.sendMessage(msg);
             }
+
+            SendMessage msg = new SendMessage(sendMessage.getChatId(), parts.get(parts.size() - 1))
+                    .setReplyToMessageId(sendMessage.getReplyToMessageId())
+                    .setDisableWebPagePreview(sendMessage.getDisableWebPagePreview())
+                    .setParseMode(sendMessage.getParseMode())
+                    .setReplyMarkup(sendMessage.getReplyMarkup());
+            return messageService.sendMessage(msg);
         }
     }
 
@@ -88,7 +115,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public void editMessage(EditMessageContext messageContext) {
+    public void editMessage(EditMessageText messageContext) {
         messageService.editMessage(messageContext);
     }
 
@@ -98,12 +125,12 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public void editMessageCaption(EditMessageCaptionContext context) {
+    public void editMessageCaption(EditMessageCaption context) {
         messageService.editMessageCaption(context);
     }
 
     @Override
-    public EditMediaResult editMessageMedia(EditMediaContext editMediaContext) {
+    public EditMediaResult editMessageMedia(EditMessageMedia editMediaContext) {
         return messageService.editMessageMedia(editMediaContext);
     }
 
@@ -113,8 +140,8 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public void sendSticker(SendFileContext sendFileContext) {
-        messageService.sendSticker(sendFileContext);
+    public void sendSticker(SendSticker sendSticker) {
+        messageService.sendSticker(sendSticker);
     }
 
     @Override
@@ -123,17 +150,12 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public SendFileResult sendDocument(SendFileContext sendDocumentContext) {
-        if (validate(sendDocumentContext)) {
-            return messageService.sendDocument(sendDocumentContext);
+    public SendFileResult sendDocument(SendDocument sendDocument) {
+        if (validate(sendDocument)) {
+            return messageService.sendDocument(sendDocument);
         }
 
         return null;
-    }
-
-    @Override
-    public int sendPhoto(SendFileContext sendDocumentContext) {
-        return messageService.sendPhoto(sendDocumentContext);
     }
 
     @Override
@@ -145,57 +167,46 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
         return message.hasDocument() || message.hasPhoto();
     }
 
-    private boolean isLargeFile(long size) {
-        return size > 50 * 1024 * 1024;
-    }
-
     private void checkInMediaSize(Message message) {
-        int size = 0;
-        String fileId = null;
-        if (message.hasDocument()) {
-            Document document = message.getDocument();
-            size = document.getFileSize();
-            fileId = message.getDocument().getFileId();
-        } else if (message.hasPhoto()) {
-            PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
-            size = photoSize.getFileSize();
-            fileId = photoSize.getFileId();
-        }
-        if (size > 20 * 1024 * 1024) {
-            LOGGER.debug("Too large in file({}, {}, {})", fileId, size, message.getFrom().getId());
+        Any2AnyFile file = fileService.getFile(message, Locale.getDefault());
+        if (file.getFileSize() > LARGE_FILE_SIZE) {
+            LOGGER.debug("Large in file({}, {})", message.getFromUser().getId(), MemoryUtils.humanReadableByteCount(file.getFileSize()));
             throw new UserException(localisationService.getMessage(
                     MessagesProperties.MESSAGE_TOO_LARGE_IN_FILE,
                     new Object[]{MemoryUtils.humanReadableByteCount(message.getDocument().getFileSize())},
-                    userService.getLocaleOrDefault(message.getFrom().getId())));
+                    userService.getLocaleOrDefault(message.getFromUser().getId())));
+        } else if (file.getFileSize() > MemoryUtils.MB_100) {
+            LOGGER.debug("Heavy file({}, {}, {}, {})", message.getFromUser().getId(), file.getFileSize(), file.getMimeType(), file.getFileName());
         }
     }
 
-    private boolean validate(SendFileContext sendFileContext) {
-        if (StringUtils.isNotBlank(sendFileContext.fileId())) {
+    private boolean validate(SendDocument sendDocument) {
+        InputFile document = sendDocument.getDocument();
+        if (StringUtils.isNotBlank(document.getFileId())) {
             return true;
         }
-        if (sendFileContext.file().length() == 0) {
-            LOGGER.debug("Empty file({}, {})", sendFileContext.file().getAbsolutePath(), sendFileContext.chatId());
-            sendMessage(new SendMessageContext(sendFileContext.chatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZERO_LENGTH_FILE, userService.getLocaleOrDefault((int) sendFileContext.chatId())))
-                    .replyKeyboard(sendFileContext.replyKeyboard())
-                    .replyMessageId(sendFileContext.replyMessageId()));
+        File file = new File(document.getFilePath());
+        if (file.length() == 0) {
+            LOGGER.error("Zero file\n{}", Arrays.toString(Thread.currentThread().getStackTrace()));
+            sendMessage(new SendMessage(sendDocument.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZERO_LENGTH_FILE, userService.getLocaleOrDefault((int) sendDocument.getOrigChatId())))
+                    .setReplyMarkup(sendDocument.getReplyMarkup())
+                    .setReplyToMessageId(sendDocument.getReplyToMessageId()));
 
             return false;
         }
-        boolean largeFile = isLargeFile(sendFileContext.file().length());
-        if (!largeFile) {
-            return true;
-        } else {
-            LOGGER.debug("Too large out file({}, {})", sendFileContext.file().length(), sendFileContext.chatId());
+        if (file.length() > LARGE_FILE_SIZE) {
+            LOGGER.debug("Large out file({}, {})", sendDocument.getChatId(), MemoryUtils.humanReadableByteCount(file.length()));
             String text = localisationService.getMessage(MessagesProperties.MESSAGE_TOO_LARGE_OUT_FILE,
-                    new Object[]{sendFileContext.file().getName(), MemoryUtils.humanReadableByteCount(sendFileContext.file().length())},
-                    userService.getLocaleOrDefault((int) sendFileContext.chatId()));
+                    new Object[]{file.getName(), MemoryUtils.humanReadableByteCount(file.length())},
+                    userService.getLocaleOrDefault((int) sendDocument.getOrigChatId()));
 
-            sendMessage(new SendMessageContext(sendFileContext.chatId(), text)
-                    .replyKeyboard(sendFileContext.replyKeyboard())
-                    .replyMessageId(sendFileContext.replyMessageId()));
+            sendMessage(new SendMessage(sendDocument.getChatId(), text)
+                    .setReplyMarkup(sendDocument.getReplyMarkup())
+                    .setReplyToMessageId(sendDocument.getReplyToMessageId()));
 
             return false;
+        } else {
+            return true;
         }
     }
 }

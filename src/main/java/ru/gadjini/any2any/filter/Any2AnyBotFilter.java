@@ -2,7 +2,7 @@ package ru.gadjini.any2any.filter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.gadjini.any2any.model.bot.api.object.Update;
 import ru.gadjini.any2any.service.Any2AnyBotService;
 
 @Component

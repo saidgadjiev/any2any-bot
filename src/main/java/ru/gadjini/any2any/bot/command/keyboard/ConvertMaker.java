@@ -1,6 +1,5 @@
 package ru.gadjini.any2any.bot.command.keyboard;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -9,29 +8,29 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
-import org.telegram.telegrambots.meta.api.objects.stickers.Sticker;
 import ru.gadjini.any2any.bot.command.convert.ConvertState;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.domain.FileQueueItem;
+import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.TgMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.object.PhotoSize;
+import ru.gadjini.any2any.model.bot.api.object.Sticker;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
-import ru.gadjini.any2any.service.converter.api.Format;
-import ru.gadjini.any2any.service.converter.api.FormatCategory;
-import ru.gadjini.any2any.service.converter.impl.FormatService;
-import ru.gadjini.any2any.service.filequeue.FileQueueMessageBuilder;
-import ru.gadjini.any2any.service.filequeue.FileQueueService;
+import ru.gadjini.any2any.service.conversion.ConvertionService;
+import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.service.conversion.api.FormatCategory;
+import ru.gadjini.any2any.service.conversion.impl.FormatService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.any2any.service.queue.conversion.ConversionQueueMessageBuilder;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
@@ -48,9 +47,9 @@ public class ConvertMaker {
 
     private UserService userService;
 
-    private FileQueueService fileQueueService;
+    private ConvertionService conversionService;
 
-    private FileQueueMessageBuilder queueMessageBuilder;
+    private ConversionQueueMessageBuilder queueMessageBuilder;
 
     private MessageService messageService;
 
@@ -63,13 +62,13 @@ public class ConvertMaker {
     private TelegramService telegramService;
 
     @Autowired
-    public ConvertMaker(CommandStateService commandStateService, UserService userService, FileQueueService fileQueueService,
-                        FileQueueMessageBuilder queueMessageBuilder, @Qualifier("limits") MessageService messageService,
+    public ConvertMaker(CommandStateService commandStateService, UserService userService,
+                        ConvertionService conversionService, ConversionQueueMessageBuilder queueMessageBuilder, @Qualifier("limits") MessageService messageService,
                         LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                         FormatService formatService, TelegramService telegramService) {
         this.commandStateService = commandStateService;
         this.userService = userService;
-        this.fileQueueService = fileQueueService;
+        this.conversionService = conversionService;
         this.queueMessageBuilder = queueMessageBuilder;
         this.messageService = messageService;
         this.localisationService = localisationService;
@@ -79,14 +78,14 @@ public class ConvertMaker {
     }
 
     public void processNonCommandUpdate(String controllerName, Message message, String text, Supplier<ReplyKeyboard> replyKeyboard) {
-        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
 
         if (!commandStateService.hasState(message.getChatId(), controllerName)) {
             check(message, locale);
             ConvertState convertState = createState(message, locale);
             messageService.sendMessage(
-                    new SendMessageContext(message.getChatId(), queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
-                            .replyKeyboard(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFormat(), locale))
+                    new HtmlMessage(message.getChatId(), queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
+                            .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFormat(), locale))
             );
             convertState.deleteWarns();
             commandStateService.setState(message.getChatId(), controllerName, convertState);
@@ -96,13 +95,13 @@ public class ConvertMaker {
             commandStateService.setState(message.getChatId(), controllerName, convertState);
         } else if (message.hasText()) {
             ConvertState convertState = commandStateService.getState(message.getChatId(), controllerName, true);
-            Format targetFormat = checkTargetFormat(message.getFrom().getId(), convertState.getFormat(), formatService.getAssociatedFormat(text), text, locale);
+            Format targetFormat = checkTargetFormat(message.getFromUser().getId(), convertState.getFormat(), formatService.getAssociatedFormat(text), text, locale);
             if (targetFormat == Format.GIF) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_GIF_WARN, locale));
             }
-            FileQueueItem queueItem = fileQueueService.add(message.getFrom(), convertState, targetFormat);
+            ConversionQueueItem queueItem = conversionService.convert(message.getFromUser(), convertState, targetFormat);
             String queuedMessage = queueMessageBuilder.getQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
-            messageService.sendMessage(new SendMessageContext(message.getChatId(), queuedMessage).replyKeyboard(replyKeyboard.get()));
+            messageService.sendMessage(new HtmlMessage(message.getChatId(), queuedMessage).setReplyMarkup(replyKeyboard.get()));
             commandStateService.deleteState(message.getChatId(), controllerName);
         }
     }
@@ -118,7 +117,7 @@ public class ConvertMaker {
             convertState.setFileName(message.getDocument().getFileName());
             convertState.setMimeType(message.getDocument().getMimeType());
             Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-            convertState.setFormat(checkFormat(message.getFrom().getId(), format, message.getDocument().getMimeType(), message.getDocument().getFileName(), message.getDocument().getFileId(), locale));
+            convertState.setFormat(checkFormat(message.getFromUser().getId(), format, message.getDocument().getMimeType(), message.getDocument().getFileName(), locale));
             if (convertState.getFormat() == Format.HTML && isBaseUrlMissed(message.getDocument().getFileId())) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_NO_BASE_URL_IN_HTML, locale));
             }
@@ -142,14 +141,17 @@ public class ConvertMaker {
     }
 
     private boolean isBaseUrlMissed(String fileId) {
-        File file = telegramService.downloadFileByFileId(fileId);
+        SmartTempFile file = telegramService.downloadFileByFileId(fileId, Format.HTML.getExt());
+
         try {
-            Document parse = Jsoup.parse(file, StandardCharsets.UTF_8.name());
+            Document parse = Jsoup.parse(file.getFile(), StandardCharsets.UTF_8.name());
             Elements base = parse.head().getElementsByTag("base");
 
             return base == null || base.isEmpty();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        } finally {
+            file.smartDelete();
         }
     }
 
@@ -158,22 +160,18 @@ public class ConvertMaker {
                 || message.hasSticker()) {
             return;
         }
-        LOGGER.debug("Unsupported format of message " + TgMessage.from(message));
+        LOGGER.debug("Unsupported format({}, {})", message.getChatId(), TgMessage.getMetaTypes(message));
 
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
 
-    private Format checkFormat(int userId, Format format, String mimeType, String fileName, String fileId, Locale locale) {
+    private Format checkFormat(int userId, Format format, String mimeType, String fileName, Locale locale) {
         if (format == null) {
-            if (StringUtils.isNotBlank(mimeType)) {
-                LOGGER.debug("Format not resolved for " + mimeType + " and fileName " + fileName + " for user " + userId);
-            } else {
-                LOGGER.debug("Format not resolved for image " + fileId + " for user " + userId);
-            }
+            LOGGER.debug("Format is null({}, {}, {})", userId, mimeType, fileName);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
         if (format.getCategory() == FormatCategory.ARCHIVE) {
-            LOGGER.debug("Archive unsupported for conversion for user " + userId);
+            LOGGER.debug("Archive unsupported({})", userId);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
 
@@ -182,11 +180,11 @@ public class ConvertMaker {
 
     private Format checkTargetFormat(int userId, Format format, Format target, String text, Locale locale) {
         if (target == null) {
-            LOGGER.debug("Conversion unsupported format " + format + " target " + text + " for user " + userId);
+            LOGGER.debug("Target format is null({}, {})", userId, text);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
         }
         if (Objects.equals(format, target)) {
-            LOGGER.debug("Conversion unsupported for the same formats: " + format + " for user " + userId);
+            LOGGER.debug("Same formats({}, {})", userId, format);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_ANOTHER_FORMAT, locale));
         }
         boolean result = formatService.isConvertAvailable(format, target);
@@ -194,7 +192,7 @@ public class ConvertMaker {
             return target;
         }
 
-        LOGGER.debug("Convert is not available for " + format + " to " + target + " for user " + userId);
+        LOGGER.debug("Conversion unavailable({}, {}, {})", userId, format, target);
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_UNSUPPORTED_FORMAT, locale));
     }
 

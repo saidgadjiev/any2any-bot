@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.condition.WindowsCondition;
 import ru.gadjini.any2any.exception.UnzipException;
-import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.conversion.api.Format;
 
 import java.io.File;
 import java.util.Set;

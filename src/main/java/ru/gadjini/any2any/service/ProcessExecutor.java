@@ -20,14 +20,14 @@ public class ProcessExecutor {
             try {
                 boolean result = process.waitFor(timeout, TimeUnit.SECONDS);
                 if (!result) {
-                    throw new RuntimeException("Timed out. Command " + Arrays.toString(command));
+                    throw new RuntimeException("Timed out: " + Arrays.toString(command));
                 }
                 if (process.exitValue() != 0) {
                     String error = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
                     if (StringUtils.isBlank(error)) {
                         error = IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8);
                     }
-                    LOGGER.error("Exit code " + process.exitValue() + " out: " + error + ". Command: " + Arrays.toString(command));
+                    LOGGER.error("Error({}, {}, {})", process.exitValue(), Arrays.toString(command), error);
                 }
 
                 return IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8);

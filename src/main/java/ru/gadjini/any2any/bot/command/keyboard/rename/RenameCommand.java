@@ -5,18 +5,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.bots.AbsSender;
+import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.TgMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.RenameService;
@@ -30,7 +28,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class RenameCommand extends BotCommand implements KeyboardBotCommand, NavigableBotCommand {
+public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RenameCommand.class);
 
@@ -54,7 +52,6 @@ public class RenameCommand extends BotCommand implements KeyboardBotCommand, Nav
     public RenameCommand(LocalisationService localisationService, CommandStateService commandStateService,
                          @Qualifier("limits") MessageService messageService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                          UserService userService, RenameService renameService, FileService fileService) {
-        super(CommandNames.RENAME_COMMAND_NAME, "");
         this.commandStateService = commandStateService;
         this.localisationService = localisationService;
         this.messageService = messageService;
@@ -78,21 +75,26 @@ public class RenameCommand extends BotCommand implements KeyboardBotCommand, Nav
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        processMessage0(chat.getId(), user.getId());
+    public void processMessage(Message message) {
+        processMessage(message, null);
+    }
+
+    @Override
+    public String getCommandIdentifier() {
+        return CommandNames.RENAME_COMMAND_NAME;
     }
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFrom().getId());
+        processMessage0(message.getChatId(), message.getFromUser().getId());
 
         return true;
     }
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(new SendMessageContext(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FILE, locale))
-                .replyKeyboard(replyKeyboardService.goBack(chatId, locale)));
+        messageService.sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FILE, locale))
+                .setReplyMarkup(replyKeyboardService.goBack(chatId, locale)));
     }
 
     @Override
@@ -107,34 +109,36 @@ public class RenameCommand extends BotCommand implements KeyboardBotCommand, Nav
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+        RenameState renameState = createState(message, locale);
 
-        if (!commandStateService.hasState(message.getChatId(), getHistoryName())) {
-            RenameState renameState = createState(message, locale);
+        if (renameState != null) {
             renameState.setLanguage(locale.getLanguage());
-            messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_NEW_FILE_NAME, locale)));
+            messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_NEW_FILE_NAME, locale)));
+            renameService.removeAndCancelCurrentTasks(message.getChatId());
             commandStateService.setState(message.getChatId(), getHistoryName(), renameState);
         } else if (message.hasText()) {
-            RenameState renameState = commandStateService.getState(message.getChatId(), getHistoryName(), true);
-            renameService.rename(message.getChatId(), renameState, text, locale);
-            commandStateService.deleteState(message.getChatId(), getHistoryName());
-            messageService.sendMessage(new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_RENAMING, locale)));
-            LOGGER.debug("Rename request " + renameState.getFile().getFileId() + " with fileName " + renameState.getFile().getFileName() + " to " + text);
+            renameState = commandStateService.getState(message.getChatId(), getHistoryName(), true);
+            renameService.rename(message.getFromUser().getId(), renameState, text);
         }
     }
 
     @Override
     public void leave(long chatId) {
-        commandStateService.deleteState(chatId, getHistoryName());
+        renameService.leave(chatId);
     }
 
     private RenameState createState(Message message, Locale locale) {
+        Any2AnyFile file = fileService.getFile(message, locale);
+        if (file == null) {
+            return null;
+        }
         RenameState renameState = new RenameState();
         renameState.setReplyMessageId(message.getMessageId());
-        renameState.setFile(fileService.getFile(message, locale));
+        renameState.setFile(file);
 
         if (renameState.getFile() == null) {
-            LOGGER.debug("Not file message " + TgMessage.from(message));
+            LOGGER.debug("No file({}, {})", message.getFromUser().getId(), TgMessage.getMetaTypes(message));
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FORBIDDEN, locale));
         }
 

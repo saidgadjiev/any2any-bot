@@ -2,9 +2,9 @@ package ru.gadjini.any2any.bot.command.callback;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.api.CallbackBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
+import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.command.CommandExecutor;
 
@@ -24,8 +24,7 @@ public class CancelCommand implements CallbackBotCommand {
     }
 
     @Override
-    public String processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
+    public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         commandExecutor.cancelCommand(callbackQuery.getMessage().getChatId(), callbackQuery.getId());
-        return null;
     }
 }

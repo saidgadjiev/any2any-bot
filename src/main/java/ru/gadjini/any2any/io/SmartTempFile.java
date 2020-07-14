@@ -1,6 +1,8 @@
 package ru.gadjini.any2any.io;
 
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -13,6 +15,8 @@ import java.nio.file.Path;
 
 public class SmartTempFile {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SmartTempFile.class);
+
     private File file;
 
     private boolean deleteParentDir;
@@ -20,6 +24,10 @@ public class SmartTempFile {
     public SmartTempFile(File file, boolean deleteParentDir) {
         this.file = file;
         this.deleteParentDir = deleteParentDir;
+    }
+
+    public boolean isDeleteParentDir() {
+        return deleteParentDir;
     }
 
     public String getName() {
@@ -222,6 +230,7 @@ public class SmartTempFile {
             } else {
                 FileUtils.deleteQuietly(file);
             }
+            LOGGER.debug("Delete file({})", file.getAbsolutePath());
         }
     }
 }

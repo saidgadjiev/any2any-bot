@@ -2,9 +2,9 @@ package ru.gadjini.any2any.service.keyboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.LocalisationService;
@@ -39,8 +39,47 @@ public class ButtonFactory {
                 new RequestParams().add(Arg.IMAGE_FILTER.getKey(), State.Filter.SKETCH.name()), locale);
     }
 
+    public InlineKeyboardButton cancelArchiveCreatingQuery(int jobId, Locale locale) {
+        InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale));
+        button.setCallbackData(CommandNames.CANCEL_ARCHIVE_QUERY + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams().add(Arg.JOB_ID.getKey(), jobId).serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return button;
+    }
+
+    public InlineKeyboardButton cancelRenameQuery(int jobId, Locale locale) {
+        InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale));
+        button.setCallbackData(CommandNames.CANCEL_RENAME_QUERY + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams().add(Arg.JOB_ID.getKey(), jobId).serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return button;
+    }
+
+    public InlineKeyboardButton cancelArchiveFiles(Locale locale) {
+        InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale));
+        button.setCallbackData(CommandNames.CANCEL_ARCHIVE_FILES + CommandParser.COMMAND_NAME_SEPARATOR);
+
+        return button;
+    }
+
+    public InlineKeyboardButton cancelUnzipQuery(int jobId, Locale locale) {
+        InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale));
+        button.setCallbackData(CommandNames.CANCEL_UNZIP_QUERY + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams().add(Arg.JOB_ID.getKey(), jobId).serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return button;
+    }
+
+    public InlineKeyboardButton cancelExtractFileQuery(int jobId, Locale locale) {
+        InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale));
+        button.setCallbackData(CommandNames.CANCEL_EXTRACT_FILE + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams().add(Arg.JOB_ID.getKey(), jobId).serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return button;
+    }
+
     public InlineKeyboardButton updateButton(Locale locale) {
-        return delegateButton(MessagesProperties.UPDATE_EDITED_IMAGE_COMMAND_DESCRIPTION, CommandNames.IMAGE_EDITOR_COMMAND_NAME,
+        return delegateButton(MessagesProperties.UPDATE_COMMAND_DESCRIPTION, CommandNames.IMAGE_EDITOR_COMMAND_NAME,
                 new RequestParams().add(Arg.UPDATE_EDITED_IMAGE.getKey(), "u"), locale);
     }
 
@@ -92,6 +131,17 @@ public class ButtonFactory {
 
     public InlineKeyboardButton delegateButton(String nameCode, String delegate, RequestParams requestParams, Locale locale) {
         return delegateButton(localisationService.getMessage(nameCode, locale), delegate, requestParams);
+    }
+
+    public InlineKeyboardButton extractFileButton(String name, int id, int unzipJobId) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(name);
+        inlineKeyboardButton.setCallbackData(CommandNames.EXTRACT_FILE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(Arg.EXTRACT_FILE_ID.getKey(), id)
+                        .add(Arg.JOB_ID.getKey(), unzipJobId)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
     }
 
     public InlineKeyboardButton queryItemDetails(String name, int queryItemId) {

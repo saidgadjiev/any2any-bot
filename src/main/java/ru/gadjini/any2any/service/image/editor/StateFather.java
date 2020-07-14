@@ -5,21 +5,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.EditMediaContext;
-import ru.gadjini.any2any.model.SendFileContext;
 import ru.gadjini.any2any.model.SendFileResult;
+import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
+import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
-import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
@@ -39,7 +39,7 @@ public class StateFather implements State {
 
     private CommandStateService commandStateService;
 
-    private CommonJobExecutor commonJobExecutor;
+    private ThreadPoolTaskExecutor executor;
 
     private MessageService messageService;
 
@@ -54,12 +54,12 @@ public class StateFather implements State {
     private LocalisationService localisationService;
 
     @Autowired
-    public StateFather(CommandStateService commandStateService, CommonJobExecutor commonJobExecutor,
+    public StateFather(CommandStateService commandStateService,  @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
                        @Qualifier("limits") MessageService messageService, TempFileService tempFileService,
                        InlineKeyboardService inlineKeyboardService,
                        TelegramService telegramService, ImageConvertDevice imageDevice, LocalisationService localisationService) {
         this.commandStateService = commandStateService;
-        this.commonJobExecutor = commonJobExecutor;
+        this.executor = executor;
         this.messageService = messageService;
         this.tempFileService = tempFileService;
         this.inlineKeyboardService = inlineKeyboardService;
@@ -81,7 +81,7 @@ public class StateFather implements State {
     @Override
     public void applyFilter(ImageEditorCommand command, long chatId, String queryId, Filter filter) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#applyFilter(" + filter + ") user id(" + chatId + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#applyFilter({}, {})", chatId, filter);
 
         state.applyFilter(command, chatId, queryId, filter);
     }
@@ -89,7 +89,7 @@ public class StateFather implements State {
     @Override
     public void size(ImageEditorCommand command, long chatId, String queryId, String size) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#size(" + size + ") user id(" + chatId + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#size({}, {})", chatId, size);
 
         state.size(command, chatId, queryId, size);
     }
@@ -97,7 +97,7 @@ public class StateFather implements State {
     @Override
     public void update(ImageEditorCommand command, long chatId, String queryId) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#update(" + chatId + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#update({})", chatId);
 
         state.update(command, chatId, queryId);
     }
@@ -105,7 +105,7 @@ public class StateFather implements State {
     @Override
     public void go(ImageEditorCommand command, long chatId, String queryId, Name name) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#go(" + name + ") user id(" + chatId + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#go({}, {})", chatId, name);
 
         state.go(command, chatId, queryId, name);
     }
@@ -113,7 +113,7 @@ public class StateFather implements State {
     @Override
     public void goBack(ImageEditorCommand command, CallbackQuery callbackQuery) {
         State state = getState(callbackQuery.getMessage().getChatId(), command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#goBack() user id(" + callbackQuery.getMessage().getChatId() + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#goBack({})", callbackQuery.getMessage().getChatId());
 
         state.goBack(command, callbackQuery);
     }
@@ -121,7 +121,7 @@ public class StateFather implements State {
     @Override
     public void transparentMode(ImageEditorCommand command, long chatId, String queryId, ModeState.Mode mode) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#transparentMode(" + mode + ") user id(" + chatId + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#transparentMode({}, {})", chatId, mode);
 
         state.transparentMode(command, chatId, queryId, mode);
     }
@@ -129,7 +129,7 @@ public class StateFather implements State {
     @Override
     public void transparentColor(ImageEditorCommand command, long chatId, String queryId, String text) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#transparentColor(" + text + ") user id(" + chatId + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#transparentColor({}, {})", chatId, text);
 
         state.transparentColor(command, chatId, queryId, text);
     }
@@ -137,7 +137,7 @@ public class StateFather implements State {
     @Override
     public void inaccuracy(ImageEditorCommand command, long chatId, String queryId, String inaccuracy) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#inaccuracy(" + inaccuracy + ") user id(" + chatId + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#inaccuracy({}, {})",chatId, inaccuracy);
 
         state.inaccuracy(command, chatId, queryId, inaccuracy);
     }
@@ -145,7 +145,7 @@ public class StateFather implements State {
     @Override
     public void cancel(ImageEditorCommand command, long chatId, String queryId) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#cancel() user id(" + chatId + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#cancel({})", chatId);
 
         state.cancel(command, chatId, queryId);
     }
@@ -153,29 +153,29 @@ public class StateFather implements State {
     @Override
     public void userText(ImageEditorCommand command, long chatId, String text) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#userText(" + text + ") user id(" + chatId + ")");
+        LOGGER.debug(state.getClass().getSimpleName() + "#userText({}, {})", chatId, text);
 
         state.userText(command, chatId, text);
     }
 
     public void initializeState(ImageEditorCommand command, long chatId, Any2AnyFile any2AnyFile, Locale locale) {
-        commonJobExecutor.addJob(() -> {
+        executor.execute(() -> {
             deleteCurrentState(chatId, command.getHistoryName());
 
             SmartTempFile file = tempFileService.createTempFile(Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), any2AnyFile.getFormat().getExt()));
-            telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file.getFile());
+            telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file);
             try {
                 SmartTempFile result = tempFileService.createTempFile(Any2AnyFileNameUtils.getFileName(file.getName(), Format.PNG.getExt()));
                 imageDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
                 EditorState state = createState(result.getAbsolutePath(), result.getName());
                 state.setLanguage(locale.getLanguage());
-                SendFileResult fileResult = messageService.sendDocument(new SendFileContext(chatId, result.getFile())
-                        .caption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
-                        .replyKeyboard(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())));
+                SendFileResult fileResult = messageService.sendDocument(new SendDocument(chatId, result.getFile())
+                        .setCaption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
+                        .setReplyMarkup(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())));
                 state.setMessageId(fileResult.getMessageId());
                 state.setCurrentFileId(fileResult.getFileId());
                 commandStateService.setState(chatId, command.getHistoryName(), state);
-                LOGGER.debug("Image editor state initialized for user " + chatId + " file id " + any2AnyFile.getFileId() + " format " + any2AnyFile.getFormat());
+                LOGGER.debug("New state({}, {}, {})", chatId, any2AnyFile.getFormat(), any2AnyFile.getFileId());
             } finally {
                 file.smartDelete();
             }
@@ -185,19 +185,19 @@ public class StateFather implements State {
     public void leave(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), false);
         if (state == null) {
-            LOGGER.debug("Image editor state is empty user id(" + chatId + ")");
+            LOGGER.debug("Empty state({})", chatId);
             return;
         }
         try {
             File file = new File(state.getCurrentFilePath());
             if (file.length() > 0) {
-                messageService.sendDocument(new SendFileContext(chatId, new File(state.getCurrentFilePath())));
+                messageService.sendDocument(new SendDocument(chatId, new File(state.getCurrentFilePath())));
                 messageService.deleteMessage(chatId, state.getMessageId());
             } else {
-                messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getCurrentFileId()));
+                messageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId()));
             }
             commandStateService.deleteState(chatId, command.getHistoryName());
-            LOGGER.debug("Image editor state deleted for user " + chatId);
+            LOGGER.debug("State deleted({})", chatId);
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
         } finally {
@@ -234,10 +234,10 @@ public class StateFather implements State {
             try {
                 File file = new File(state.getCurrentFilePath());
                 if (file.length() > 0) {
-                    messageService.sendDocument(new SendFileContext(chatId, new File(state.getCurrentFilePath())));
+                    messageService.sendDocument(new SendDocument(chatId, new File(state.getCurrentFilePath())));
                     messageService.deleteMessage(chatId, state.getMessageId());
                 } else {
-                    messageService.editMessageMedia(new EditMediaContext(chatId, state.getMessageId(), state.getCurrentFileId()));
+                    messageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId()));
                 }
             } catch (Exception ex) {
                 LOGGER.error(ex.getMessage(), ex);

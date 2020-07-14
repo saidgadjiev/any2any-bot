@@ -4,15 +4,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.object.Update;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.buttons.KeyboardRow;
 import ru.gadjini.any2any.service.command.CommandExecutor;
 import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
 import ru.gadjini.any2any.service.keyboard.CurrReplyKeyboard;
@@ -67,9 +67,9 @@ public class Any2AnyBotService {
                     return;
                 } else {
                     messageService.sendMessage(
-                            new SendMessageContext(
+                            new HtmlMessage(
                                     update.getMessage().getChatId(),
-                                    localisationService.getMessage(MessagesProperties.MESSAGE_UNKNOWN_COMMAND, userService.getLocaleOrDefault(update.getMessage().getFrom().getId()))));
+                                    localisationService.getMessage(MessagesProperties.MESSAGE_UNKNOWN_COMMAND, userService.getLocaleOrDefault(update.getMessage().getFromUser().getId()))));
                     return;
                 }
             }

@@ -2,8 +2,8 @@ package ru.gadjini.any2any.service.command;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
+import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
+import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.request.RequestParamsParser;
 

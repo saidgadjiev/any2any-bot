@@ -40,7 +40,7 @@ public class Url2PdfApiDevice implements HtmlDevice {
     }
 
     private String[] buildCommandByHtml(String html, String out) {
-        return new String[]{"curl", "-XPOST", "-d@" + html, "-H", "content-type: text/html", getBaseApi(), "-o", out};
+        return new String[]{"curl", "-XPOST", "-d@" + html, "-H", "content-type: text/enableHtml", getBaseApi(), "-o", out};
     }
 
     private String getConversionUrlByUrl(String url) {

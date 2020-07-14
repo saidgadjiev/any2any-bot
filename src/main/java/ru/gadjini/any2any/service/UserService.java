@@ -5,11 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.User;
 import ru.gadjini.any2any.dao.UserDao;
 import ru.gadjini.any2any.domain.CreateOrUpdateResult;
 import ru.gadjini.any2any.domain.TgUser;
-import ru.gadjini.any2any.exception.TelegramRequestException;
+import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
+import ru.gadjini.any2any.model.bot.api.object.User;
 
 import java.util.Locale;
 
@@ -55,14 +55,14 @@ public class UserService {
 
     public void activity(User user) {
         if (user == null) {
-            LOGGER.error("Wtf!!! User is null and activity can't be created");
+            LOGGER.error("User is null");
             return;
         }
         int updated = userDao.updateActivity(user.getId());
 
         if (updated == 0) {
             createOrUpdate(user);
-            LOGGER.debug("User not found and created with user id " + user.getId());
+            LOGGER.debug("User created({})", user.getId());
         }
     }
 
@@ -71,10 +71,10 @@ public class UserService {
     }
 
     public boolean deadlock(Throwable ex) {
-        if (ex instanceof TelegramRequestException) {
-            TelegramRequestException exception = (TelegramRequestException) ex;
+        if (ex instanceof TelegramApiRequestException) {
+            TelegramApiRequestException exception = (TelegramApiRequestException) ex;
             if (exception.getErrorCode() == 403) {
-                blockUser((int) exception.getChatId());
+                blockUser((int) exception.getLongChatId());
 
                 return true;
             }

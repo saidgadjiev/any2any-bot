@@ -2,7 +2,7 @@ package ru.gadjini.any2any.dao.command.keyboard;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

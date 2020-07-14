@@ -41,4 +41,18 @@ public class CommandNames {
     public static final String CALLBACK_DELEGATE_COMMAND_NAME = "n";
 
     public static final String CANCEL_COMMAND_NAME = "o";
+
+    public static final String EXTRACT_FILE_COMMAND_NAME = "p";
+
+    public static final String UPDATE_EXTRACT_FILE_STATUS = "r";
+
+    public static final String CANCEL_EXTRACT_FILE = "s";
+
+    public static final String CANCEL_RENAME_QUERY = "t";
+
+    public static final String CANCEL_ARCHIVE_QUERY = "u";
+
+    public static final String CANCEL_UNZIP_QUERY = "v";
+
+    public static final String CANCEL_ARCHIVE_FILES = "w";
 }

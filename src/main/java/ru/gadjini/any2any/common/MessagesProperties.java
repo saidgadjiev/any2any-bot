@@ -98,6 +98,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_ZIP_FILE = "message.zip.file";
 
+    public static final String MESSAGE_EXTRACT_FILE_IMPOSSIBLE = "message.extract.file.impossible";
+
     public static final String MESSAGE_ZIP_ENCRYPTED = "message.zip.encrypted";
 
     public static final String MESSAGE_ZIP_INVALID = "message.zip.invalid";
@@ -111,8 +113,6 @@ public class MessagesProperties {
     public static final String MESSAGE_RENAMING = "message.renaming";
 
     public static final String MESSAGE_CONVERT_FILE = "message.convert.file";
-
-    public static final String MESSAGE_ARCHIVE_NO_FILES = "message.archive.no.files";
 
     public static final String MESSAGE_ZERO_LENGTH_FILE = "message.zero.length.file";
 
@@ -141,8 +141,6 @@ public class MessagesProperties {
     public static final String MESSAGE_ARCHIVE_TYPE_UNSUPPORTED = "message.archive.type.unsupported";
 
     public static final String ARCHIVE_FILE_NAME = "archive.file.name";
-
-    public static final String MESSAGE_ARCHIVE_PROCESSING = "message.archive.processing";
 
     public static final String MESSAGE_CHOOSE_ARCHIVE_TYPE = "message.choose.archive.type";
 
@@ -256,7 +254,16 @@ public class MessagesProperties {
 
     public static final String FORMATS_COMMAND_DESCRIPTION = "formats.command.description";
 
-    public static final String UPDATE_EDITED_IMAGE_COMMAND_DESCRIPTION = "update.edited.image.command.description";
+    public static final String UPDATE_COMMAND_DESCRIPTION = "update.command.description";
 
     public static final String UPDATE_CALLBACK_ANSWER = "update.callback.answer";
+
+    public static final String MESSAGE_ARCHIVE_FILES_LIST = "message.archive.files.list";
+
+    public static final String MESSAGE_ARCHIVE_PROCESSING = "message.archive.processing";
+
+    public static final String MESSAGE_UNZIP_PROCESSING_ANSWER = "message.unzip.processing.answer";
+
+    public static final String MESSAGE_ARCHIVE_FILES_DELETED = "message.archive.files.deleted";
+
 }

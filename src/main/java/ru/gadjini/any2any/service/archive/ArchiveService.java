@@ -7,19 +7,35 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.domain.ArchiveQueueItem;
+import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.job.CommonJobExecutor;
 import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.SendFileContext;
-import ru.gadjini.any2any.service.*;
-import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
+import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
+import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.TempFileService;
+import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.command.CommandStateService;
+import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
+import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.any2any.service.queue.archive.ArchiveQueueService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
+import ru.gadjini.any2any.utils.MemoryUtils;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,7 +47,7 @@ public class ArchiveService {
 
     private TempFileService fileService;
 
-    private CommonJobExecutor commonJobExecutor;
+    private SmartExecutorService executor;
 
     private TelegramService telegramService;
 
@@ -41,17 +57,55 @@ public class ArchiveService {
 
     private UserService userService;
 
+    private ArchiveQueueService archiveQueueService;
+
+    private CommandStateService commandStateService;
+
+    private InlineKeyboardService inlineKeyboardService;
+
     @Autowired
-    public ArchiveService(Set<ArchiveDevice> archiveDevices, TempFileService fileService, CommonJobExecutor commonJobExecutor,
+    public ArchiveService(Set<ArchiveDevice> archiveDevices, TempFileService fileService,
                           TelegramService telegramService, LocalisationService localisationService,
-                          @Qualifier("limits") MessageService messageService, UserService userService) {
+                          @Qualifier("limits") MessageService messageService, UserService userService,
+                          ArchiveQueueService archiveQueueService, CommandStateService commandStateService,
+                          InlineKeyboardService inlineKeyboardService) {
         this.archiveDevices = archiveDevices;
         this.fileService = fileService;
-        this.commonJobExecutor = commonJobExecutor;
         this.telegramService = telegramService;
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.userService = userService;
+        this.archiveQueueService = archiveQueueService;
+        this.commandStateService = commandStateService;
+        this.inlineKeyboardService = inlineKeyboardService;
+    }
+
+    @PostConstruct
+    public void init() {
+        archiveQueueService.resetProcessing();
+        pushTasks(SmartExecutorService.JobWeight.LIGHT);
+        pushTasks(SmartExecutorService.JobWeight.HEAVY);
+    }
+
+    @Autowired
+    public void setExecutor(@Qualifier("archiveTaskExecutor") SmartExecutorService executor) {
+        this.executor = executor;
+    }
+
+    public void rejectTask(SmartExecutorService.Job job) {
+        archiveQueueService.setWaiting(job.getId());
+    }
+
+    public ArchiveTask getTask(SmartExecutorService.JobWeight weight) {
+        synchronized (this) {
+            ArchiveQueueItem peek = archiveQueueService.poll(weight);
+
+            if (peek != null) {
+                return new ArchiveTask(peek);
+            }
+
+            return null;
+        }
     }
 
     public SmartTempFile createArchive(int userId, List<File> files, Format archiveFormat) {
@@ -65,53 +119,58 @@ public class ArchiveService {
         return archive;
     }
 
-    public void createArchive(int userId, List<Any2AnyFile> any2AnyFiles, Format format, Locale locale) {
-        LOGGER.debug("Start createArchive({}, {})", userId, format);
-        normalizeFileNames(any2AnyFiles);
-
-        commonJobExecutor.addJob(() -> {
-            List<SmartTempFile> files = downloadFiles(any2AnyFiles);
-            try {
-                SmartTempFile archive = fileService.getTempFile(
-                        Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), format.getExt())
-                );
-                try {
-                    ArchiveDevice archiveDevice = getCandidate(format, locale);
-                    archiveDevice.zip(files.stream().map(SmartTempFile::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
-                    sendResult(userId, archive.getFile());
-                    LOGGER.debug("Finish createArchive({}, {})", userId, format);
-                } catch (Exception ex) {
-                    messageService.sendErrorMessage(userId, locale);
-                    throw ex;
-                } finally {
-                    archive.smartDelete();
-                }
-            } finally {
-                files.forEach(SmartTempFile::smartDelete);
-            }
-        });
+    public void removeAndCancelCurrentTasks(long chatId) {
+        List<Integer> ids = archiveQueueService.deleteByUserId((int) chatId);
+        executor.cancelAndComplete(ids, false);
     }
 
-    private void sendResult(int userId, File archive) {
-        messageService.sendDocument(new SendFileContext(userId, archive));
-    }
-
-    private List<SmartTempFile> downloadFiles(List<Any2AnyFile> any2AnyFiles) {
-        List<SmartTempFile> files = new ArrayList<>();
-
-        for (Any2AnyFile any2AnyFile : any2AnyFiles) {
-            SmartTempFile file = fileService.createTempFile(any2AnyFile.getFileName());
-            telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file.getFile());
-            files.add(file);
+    public void leave(long chatId) {
+        List<Integer> ids = archiveQueueService.deleteByUserId((int) chatId);
+        if (!ids.isEmpty()) {
+            LOGGER.debug("Leave({}, {})", chatId, ids.size());
         }
+        executor.cancelAndComplete(ids, false);
+        commandStateService.deleteState(chatId, CommandNames.ARCHIVE_COMMAND_NAME);
+    }
 
-        return files;
+    public void createArchive(int userId, ArchiveState archiveState, Format format) {
+        normalizeFileNames(archiveState.getFiles());
+
+        ArchiveQueueItem item = archiveQueueService.createProcessingItem(userId, archiveState.getFiles(), format);
+        startArchiveCreating(userId, item.getId());
+        executor.execute(new ArchiveTask(item));
+    }
+
+    public void cancel(long chatId, int messageId, String queryId, int jobId) {
+        if (!archiveQueueService.exists(jobId)) {
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(
+                    queryId,
+                    localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_ITEM_NOT_FOUND, userService.getLocaleOrDefault((int) chatId)),
+                    true
+            ));
+        } else {
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(
+                    queryId,
+                    localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))
+            ));
+            if (!executor.cancelAndComplete(jobId, true)) {
+                archiveQueueService.delete(jobId);
+            }
+        }
+        messageService.editMessage(new EditMessageText(
+                chatId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))));
+    }
+
+    private void startArchiveCreating(int userId, int jobId) {
+        Locale locale = userService.getLocaleOrDefault(userId);
+        messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale))
+                .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale)));
     }
 
     private void normalizeFileNames(List<Any2AnyFile> any2AnyFiles) {
         Set<String> uniqueFileNames = new HashSet<>();
 
-        for (Any2AnyFile any2AnyFile: any2AnyFiles) {
+        for (Any2AnyFile any2AnyFile : any2AnyFiles) {
             if (!uniqueFileNames.add(any2AnyFile.getFileName())) {
                 int index = 1;
                 while (true) {
@@ -122,6 +181,13 @@ public class ArchiveService {
                     }
                 }
             }
+        }
+    }
+
+    private void pushTasks(SmartExecutorService.JobWeight jobWeight) {
+        List<ArchiveQueueItem> tasks = archiveQueueService.poll(jobWeight, executor.getCorePoolSize(jobWeight));
+        for (ArchiveQueueItem item : tasks) {
+            executor.execute(new ArchiveTask(item));
         }
     }
 
@@ -143,5 +209,114 @@ public class ArchiveService {
         }
 
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_TYPE_UNSUPPORTED, new Object[]{format}, locale));
+    }
+
+    public void shutdown() {
+        executor.shutdown();
+    }
+
+    public class ArchiveTask implements SmartExecutorService.Job {
+
+        private int jobId;
+
+        private List<TgFile> archiveFiles;
+
+        private int userId;
+
+        private Format type;
+
+        private long totalFileSize;
+
+        private volatile Supplier<Boolean> checker;
+
+        private Queue<SmartTempFile> files = new LinkedBlockingQueue<>();
+
+        private volatile SmartTempFile archive;
+
+        private volatile boolean canceledByUser;
+
+        private ArchiveTask(ArchiveQueueItem item) {
+            this.jobId = item.getId();
+            this.archiveFiles = item.getFiles();
+            this.totalFileSize = item.getTotalFileSize();
+            this.userId = item.getUserId();
+            this.type = item.getType();
+        }
+
+        @Override
+        public void run() {
+            String size;
+            try {
+                size = MemoryUtils.humanReadableByteCount(totalFileSize);
+                LOGGER.debug("Start({}, {}, {})", userId, size, type);
+                downloadFiles(archiveFiles);
+                Locale locale = userService.getLocaleOrDefault(userId);
+
+                archive = fileService.getTempFile(
+                        Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), type.getExt())
+                );
+                ArchiveDevice archiveDevice = getCandidate(type, locale);
+                archiveDevice.zip(files.stream().map(SmartTempFile::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
+                messageService.sendDocument(new SendDocument((long) userId, archive.getFile()));
+
+                LOGGER.debug("Finish({}, {}, {})", userId, size, type);
+            } catch (Exception ex) {
+                if (!checker.get()) {
+                    LOGGER.error(ex.getMessage(), ex);
+                    messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
+                }
+            } finally {
+                executor.complete(jobId);
+                archiveQueueService.delete(jobId);
+                files.forEach(SmartTempFile::smartDelete);
+                files.clear();
+
+                if (archive != null) {
+                    archive.smartDelete();
+                }
+            }
+        }
+
+        @Override
+        public int getId() {
+            return jobId;
+        }
+
+        @Override
+        public void cancel() {
+            archiveFiles.forEach(tgFile -> telegramService.cancelDownloading(tgFile.getFileId()));
+            if (canceledByUser) {
+                LOGGER.debug("Canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(totalFileSize));
+            }
+            files.forEach(SmartTempFile::smartDelete);
+            files.clear();
+
+            if (archive != null) {
+                archive.smartDelete();
+            }
+        }
+
+        @Override
+        public void setCancelChecker(Supplier<Boolean> checker) {
+            this.checker = checker;
+        }
+
+        @Override
+        public void setCanceledByUser(boolean canceledByUser) {
+            this.canceledByUser = !canceledByUser;
+        }
+
+        @Override
+        public SmartExecutorService.JobWeight getWeight() {
+            return totalFileSize > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+        }
+
+        private void downloadFiles(List<TgFile> tgFiles) {
+            for (TgFile tgFile : tgFiles) {
+                SmartTempFile file = fileService.createTempFile(tgFile.getFileName());
+                telegramService.downloadFileByFileId(tgFile.getFileId(), file);
+                files.add(file);
+            }
+        }
     }
 }

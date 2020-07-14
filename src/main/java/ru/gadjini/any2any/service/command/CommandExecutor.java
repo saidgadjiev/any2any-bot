@@ -4,13 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import ru.gadjini.any2any.bot.command.api.CallbackBotCommand;
-import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
-import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
-import ru.gadjini.any2any.bot.command.api.NavigableCallbackBotCommand;
+import ru.gadjini.any2any.bot.command.api.*;
+import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
+import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.service.command.navigator.CallbackCommandNavigator;
 import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
 
@@ -105,8 +101,8 @@ public class CommandExecutor {
         BotCommand botCommand = botCommands.get(commandParseResult.getCommandName());
 
         if (botCommand != null) {
-            LOGGER.debug("Bot command " + botCommand.getClass().getSimpleName() + "(" + message.getFrom().getId() + ")");
-            botCommand.processMessage(null, message, commandParseResult.getParameters());
+            LOGGER.debug("Bot({}, {})", message.getFromUser().getId(), botCommand.getClass().getSimpleName());
+            botCommand.processMessage(message);
 
             if (botCommand instanceof NavigableBotCommand) {
                 commandNavigator.push(message.getChatId(), (NavigableBotCommand) botCommand);
@@ -124,7 +120,7 @@ public class CommandExecutor {
                 .findFirst()
                 .orElseThrow();
 
-        LOGGER.debug("Keyboard command " + botCommand.getClass().getSimpleName() + "(" + message.getFrom().getId() + ")");
+        LOGGER.debug("Keyboard({}, {})", message.getFromUser().getId(), botCommand.getClass().getSimpleName());
         boolean pushToHistory = botCommand.processMessage(message, message.getText());
 
         if (pushToHistory) {
@@ -136,7 +132,7 @@ public class CommandExecutor {
         CommandParser.CommandParseResult parseResult = commandParser.parseCallbackCommand(callbackQuery);
         CallbackBotCommand botCommand = callbackBotCommands.get(parseResult.getCommandName());
 
-        LOGGER.debug("Callback command " + botCommand.getClass().getSimpleName() + "(" + callbackQuery.getFrom().getId() + ")");
+        LOGGER.debug("Callback({}, {})", callbackQuery.getFromUser().getId(), botCommand.getClass().getSimpleName());
         try {
             if (botCommand instanceof NavigableCallbackBotCommand) {
                 callbackCommandNavigator.push(callbackQuery.getMessage().getChatId(), (NavigableCallbackBotCommand) botCommand);

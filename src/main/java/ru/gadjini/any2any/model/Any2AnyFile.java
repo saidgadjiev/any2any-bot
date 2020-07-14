@@ -1,6 +1,6 @@
 package ru.gadjini.any2any.model;
 
-import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.conversion.api.Format;
 
 public class Any2AnyFile {
 
@@ -11,6 +11,8 @@ public class Any2AnyFile {
     private String mimeType;
 
     private Format format;
+
+    private int fileSize;
 
     public String getFileId() {
         return fileId;
@@ -52,5 +54,13 @@ public class Any2AnyFile {
                 ", mimeType='" + mimeType + '\'' +
                 ", format=" + format +
                 '}';
+    }
+
+    public int getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(int fileSize) {
+        this.fileSize = fileSize;
     }
 }

@@ -2,6 +2,7 @@ package ru.gadjini.any2any.service.unzip;
 
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.FileHeader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
@@ -10,12 +11,16 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.condition.WindowsCondition;
 import ru.gadjini.any2any.exception.UnzipException;
 import ru.gadjini.any2any.exception.UserException;
+import ru.gadjini.any2any.model.ZipFileHeader;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.conversion.api.Format;
 
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @Conditional(WindowsCondition.class)
@@ -37,6 +42,30 @@ public class ZipLibUnzipDevice extends BaseUnzipDevice {
         try {
             ZipFile zipFile = checkZip(new ZipFile(in), userService.getLocaleOrDefault(userId));
             zipFile.extractAll(out);
+        } catch (ZipException e) {
+            throw new UnzipException(e);
+        }
+    }
+
+    @Override
+    public List<ZipFileHeader> getZipFiles(String zipFile) {
+        ZipFile zip = new ZipFile(zipFile);
+        try {
+            List<FileHeader> fileHeaders = zip.getFileHeaders().stream().filter(fileHeader -> !fileHeader.isDirectory()).collect(Collectors.toList());
+
+            return fileHeaders.stream().map(fileHeader -> new ZipFileHeader(fileHeader.getFileName(), fileHeader.getUncompressedSize())).collect(Collectors.toList());
+        } catch (ZipException e) {
+            throw new UnzipException(e);
+        }
+    }
+
+    @Override
+    public String unzip(String fileHeader, String archivePath, String dir) {
+        ZipFile zipFile = new ZipFile(archivePath);
+        try {
+            zipFile.extractFile(fileHeader, dir);
+
+            return Paths.get(dir, fileHeader).toString();
         } catch (ZipException e) {
             throw new UnzipException(e);
         }

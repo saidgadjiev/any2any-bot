@@ -3,16 +3,13 @@ package ru.gadjini.any2any.bot.command.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.extensions.bots.commandbot.commands.BotCommand;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.bots.AbsSender;
+import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.model.SendMessageContext;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
@@ -24,7 +21,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class LanguageCommand extends BotCommand implements KeyboardBotCommand, NavigableBotCommand {
+public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand {
 
     private Set<String> names = new HashSet<>();
 
@@ -41,7 +38,6 @@ public class LanguageCommand extends BotCommand implements KeyboardBotCommand, N
     @Autowired
     public LanguageCommand(LocalisationService localisationService, @Qualifier("limits") MessageService messageService,
                            UserService userService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService) {
-        super(CommandNames.LANGUAGE_COMMAND_NAME, "");
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.userService = userService;
@@ -62,21 +58,26 @@ public class LanguageCommand extends BotCommand implements KeyboardBotCommand, N
     }
 
     @Override
-    public void execute(AbsSender absSender, User user, Chat chat, String[] arguments) {
-        processMessage0(chat.getId(), user.getId());
+    public void processMessage(Message message) {
+        processMessage(message, null);
+    }
+
+    @Override
+    public String getCommandIdentifier() {
+        return CommandNames.LANGUAGE_COMMAND_NAME;
     }
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFrom().getId());
+        processMessage0(message.getChatId(), message.getFromUser().getId());
 
         return true;
     }
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(new SendMessageContext(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_LANGUAGE, locale))
-                .replyKeyboard(replyKeyboardService.languageKeyboard(chatId, locale)));
+        messageService.sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_LANGUAGE, locale))
+                .setReplyMarkup(replyKeyboardService.languageKeyboard(chatId, locale)));
     }
 
     @Override
@@ -101,10 +102,10 @@ public class LanguageCommand extends BotCommand implements KeyboardBotCommand, N
     }
 
     private void changeLocale(Message message, Locale locale) {
-        userService.changeLocale(message.getFrom().getId(), locale);
+        userService.changeLocale(message.getFromUser().getId(), locale);
         messageService.sendMessage(
-                new SendMessageContext(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_LANGUAGE_SELECTED, locale))
-                        .replyKeyboard(replyKeyboardService.getMainMenu(message.getChatId(), locale))
+                new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_LANGUAGE_SELECTED, locale))
+                        .setReplyMarkup(replyKeyboardService.getMainMenu(message.getChatId(), locale))
         );
         commandNavigator.silentPop(message.getChatId());
     }

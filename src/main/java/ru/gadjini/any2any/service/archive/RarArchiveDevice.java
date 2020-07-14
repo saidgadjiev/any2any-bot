@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.condition.LinuxMacCondition;
 import ru.gadjini.any2any.service.ProcessExecutor;
-import ru.gadjini.any2any.service.converter.api.Format;
+import ru.gadjini.any2any.service.conversion.api.Format;
 
 import java.util.ArrayList;
 import java.util.List;
