@@ -110,7 +110,9 @@ public class ConvertionService {
     }
 
     public void cancel(int jobId) {
-        executor.cancelAndComplete(jobId, true);
+        if (!executor.cancelAndComplete(jobId, true)) {
+            queueService.delete(jobId);
+        }
     }
 
     public void shutdown() {
@@ -197,7 +199,6 @@ public class ConvertionService {
                     LOGGER.debug("Candidate not found({}, {})", fileQueueItem.getUserId(), fileQueueItem.getFormat());
                 }
             } finally {
-                queueService.delete(fileQueueItem.getId());
                 executor.complete(fileQueueItem.getId());
             }
         }
