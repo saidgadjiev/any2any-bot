@@ -302,6 +302,9 @@ public class InlineKeyboardService {
     }
 
     public InlineKeyboardMarkup getQueriesKeyboard(List<Integer> queryItemsIds) {
+        if (queryItemsIds.isEmpty()) {
+            return null;
+        }
         InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
 
         int i = 1;
