@@ -11,6 +11,7 @@ import ru.gadjini.any2any.dao.queue.ConversionQueueDao;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.model.bot.api.object.User;
 import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.TimeCreator;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 
@@ -24,10 +25,13 @@ public class ConversionQueueService {
 
     private LocalisationService localisationService;
 
+    private TimeCreator timeCreator;
+
     @Autowired
-    public ConversionQueueService(ConversionQueueDao fileQueueDao, LocalisationService localisationService) {
+    public ConversionQueueService(ConversionQueueDao fileQueueDao, LocalisationService localisationService, TimeCreator timeCreator) {
         this.fileQueueDao = fileQueueDao;
         this.localisationService = localisationService;
+        this.timeCreator = timeCreator;
     }
 
     @Transactional
@@ -47,7 +51,9 @@ public class ConversionQueueService {
         }
         fileQueueItem.setTargetFormat(targetFormat);
 
-        fileQueueDao.add(fileQueueItem);
+        fileQueueItem.setLastRunAt(timeCreator.now());
+        fileQueueItem.setStatedAt(timeCreator.now());
+        fileQueueDao.create(fileQueueItem);
         fileQueueItem.setPlaceInQueue(fileQueueDao.getPlaceInQueue(fileQueueItem.getId()));
 
         return fileQueueItem;

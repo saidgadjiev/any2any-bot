@@ -32,10 +32,11 @@ public class ConversionQueueDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public void add(ConversionQueueItem queueItem) {
+    public void create(ConversionQueueItem queueItem) {
         jdbcTemplate.query(
-                "INSERT INTO " + TYPE + " (user_id, file_id, format, size, reply_to_message_id, file_name, target_format, mime_type, status)\n" +
-                        "    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *",
+                "INSERT INTO " + TYPE + " (user_id, file_id, format, size, reply_to_message_id, file_name, target_format, " +
+                        "mime_type, status, last_run_at, started_at)\n" +
+                        "    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *",
                 ps -> {
                     ps.setInt(1, queueItem.getUserId());
                     ps.setString(2, queueItem.getFileId());
@@ -54,6 +55,16 @@ public class ConversionQueueDao {
                         ps.setNull(8, Types.VARCHAR);
                     }
                     ps.setInt(9, queueItem.getStatus().getCode());
+                    if (queueItem.getLastRunAt() != null) {
+                        ps.setTimestamp(10, Timestamp.valueOf(queueItem.getLastRunAt().toLocalDateTime()));
+                    } else {
+                        ps.setNull(10, Types.TIMESTAMP);
+                    }
+                    if (queueItem.getStatedAt() != null) {
+                        ps.setTimestamp(11, Timestamp.valueOf(queueItem.getStatedAt().toLocalDateTime()));
+                    } else {
+                        ps.setNull(11, Types.TIMESTAMP);
+                    }
                 },
                 rs -> {
                     if (rs.next()) {
@@ -172,6 +183,21 @@ public class ConversionQueueDao {
         );
     }
 
+    public void setWaiting(int id) {
+        jdbcTemplate.update("UPDATE conversion_queue SET status = 0 WHERE id = ?",
+                ps -> ps.setInt(1, id));
+    }
+
+    public ConversionQueueItem poll(int id) {
+        return jdbcTemplate.query(
+                "WITH queue_item AS (\n" +
+                        "    UPDATE " + TYPE + " SET status = 1, last_run_at = now(), started_at = COALESCE(started_at, now()) WHERE id = ? RETURNING *\n" +
+                        ") SELECT * FROM queue_item",
+                ps -> ps.setInt(1, id),
+                (rs) -> rs.next() ? map(rs) : null
+        );
+    }
+
     private ConversionQueueItem map(ResultSet rs) throws SQLException {
         Set<String> columns = JdbcUtils.getColumnNames(rs.getMetaData());
         ConversionQueueItem fileQueueItem = new ConversionQueueItem();
@@ -201,20 +227,5 @@ public class ConversionQueueDao {
         }
 
         return fileQueueItem;
-    }
-
-    public void setWaiting(int id) {
-        jdbcTemplate.update("UPDATE conversion_queue SET status = 0 WHERE id = ?",
-                ps -> ps.setInt(1, id));
-    }
-
-    public ConversionQueueItem poll(int id) {
-        return jdbcTemplate.query(
-                "WITH queue_item AS (\n" +
-                        "    UPDATE " + TYPE + " SET status = 1, last_run_at = now(), started_at = COALESCE(started_at, now()) WHERE id = ? RETURNING *\n" +
-                        ") SELECT * FROM queue_item",
-                ps -> ps.setInt(1, id),
-                (rs) -> rs.next() ? map(rs) : null
-        );
     }
 }
