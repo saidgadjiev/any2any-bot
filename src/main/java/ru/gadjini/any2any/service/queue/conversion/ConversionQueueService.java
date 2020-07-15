@@ -99,4 +99,8 @@ public class ConversionQueueService {
     public ConversionQueueItem getItem(int id) {
         return fileQueueDao.getById(id);
     }
+
+    public ConversionQueueItem poll(int id) {
+        return fileQueueDao.poll(id);
+    }
 }

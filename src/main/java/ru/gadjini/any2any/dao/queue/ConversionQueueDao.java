@@ -208,4 +208,13 @@ public class ConversionQueueDao {
                 ps -> ps.setInt(1, id));
     }
 
+    public ConversionQueueItem poll(int id) {
+        return jdbcTemplate.query(
+                "WITH queue_item AS (\n" +
+                        "    UPDATE " + TYPE + " SET status = 1, last_run_at = now(), started_at = COALESCE(started_at, now()) WHERE id = ? RETURNING *\n" +
+                        ") SELECT * FROM queue_item",
+                ps -> ps.setInt(1, id),
+                (rs) -> rs.next() ? map(rs) : null
+        );
+    }
 }

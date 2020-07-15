@@ -105,8 +105,10 @@ public class ConvertionService {
     }
 
     public void executeTask(int id) {
-        ConversionQueueItem item = queueService.getItem(id);
-        executor.execute(new ConversionTask(item));
+        ConversionQueueItem item = queueService.poll(id);
+        if (item != null) {
+            executor.execute(new ConversionTask(item));
+        }
     }
 
     public ConversionQueueItem convert(User user, ConvertState convertState, Format targetFormat) {
