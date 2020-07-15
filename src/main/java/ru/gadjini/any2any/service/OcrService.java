@@ -69,7 +69,7 @@ public class OcrService {
                     messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
                 }
                 messageService.sendMessage(new SendMessage((long) userId, result));
-                LOGGER.debug("Finish({}, {})", userId, StringUtils.substring(result, 20));
+                LOGGER.debug("Finish({}, {})", userId, StringUtils.substring(result, 0, 20));
             } catch (Exception ex) {
                 messageService.sendErrorMessage(userId, locale);
                 throw new TextExtractionFailedException(ex);
