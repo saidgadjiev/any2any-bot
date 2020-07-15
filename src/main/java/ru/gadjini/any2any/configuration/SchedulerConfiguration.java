@@ -124,9 +124,9 @@ public class SchedulerConfiguration {
                 }) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
-                Runnable poll = conversionService.getTask(LIGHT);
+                Job poll = conversionService.getTask(LIGHT);
                 if (poll != null) {
-                    execute(poll);
+                    executorService.execute(poll);
                 }
             }
         };
@@ -139,9 +139,9 @@ public class SchedulerConfiguration {
                 }) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
-                Runnable poll = conversionService.getTask(HEAVY);
+                Job poll = conversionService.getTask(HEAVY);
                 if (poll != null) {
-                    execute(poll);
+                    executorService.execute(poll);
                 }
             }
         };
