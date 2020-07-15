@@ -11,12 +11,12 @@ public class PhantomJsHtmlDevice implements HtmlDevice {
 
     @Override
     public void processHtml(String urlOrHtml, String out) {
-        new ProcessExecutor().execute(buildCommand(urlOrHtml, out), 90);
+        new ProcessExecutor().execute(buildCommand(urlOrHtml, out));
     }
 
     @Override
     public void processUrl(String url, String out) {
-        new ProcessExecutor().execute(buildCommand(UrlUtils.appendScheme(url), out), 90);
+        new ProcessExecutor().execute(buildCommand(UrlUtils.appendScheme(url), out));
     }
 
     private String[] buildCommand(String urlOrHtml, String out) {

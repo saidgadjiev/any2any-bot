@@ -22,12 +22,12 @@ public class P7ZipUnzipDevice extends BaseUnzipDevice {
 
     @Override
     public void unzip(int userId, String in, String out) {
-        new ProcessExecutor().execute(buildUnzipCommand(in, out), 2 * 60);
+        new ProcessExecutor().execute(buildUnzipCommand(in, out));
     }
 
     @Override
     public List<ZipFileHeader> getZipFiles(String zipFile) {
-        String contents = new ProcessExecutor().execute(buildContentsCommand(zipFile), 2 * 60);
+        String contents = new ProcessExecutor().executeWithResult(buildContentsCommand(zipFile));
 
         int mainContentStartIndex = contents.indexOf("----------\n") + "----------\n".length();
         String mainContent = contents.substring(mainContentStartIndex);
@@ -59,7 +59,7 @@ public class P7ZipUnzipDevice extends BaseUnzipDevice {
 
     @Override
     public String unzip(String fileHeader, String archivePath, String dir) {
-        new ProcessExecutor().execute(buildUnzipFileCommand(fileHeader, archivePath, dir), 2 * 60);
+        new ProcessExecutor().execute(buildUnzipFileCommand(fileHeader, archivePath, dir));
 
         return Paths.get(dir, fileHeader).toString();
     }

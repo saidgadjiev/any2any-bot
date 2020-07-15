@@ -53,7 +53,7 @@ public class Tgs2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             stopWatch.start();
             SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "gif"));
             try {
-                new ProcessExecutor().execute(command(file.getAbsolutePath(), result.getAbsolutePath()), 3 * 60);
+                new ProcessExecutor().execute(command(file.getAbsolutePath(), result.getAbsolutePath()));
                 SmartTempFile archive = archiveService.createArchive(fileQueueItem.getUserId(), List.of(result.getFile()), Format.ZIP);
 
                 stopWatch.stop();

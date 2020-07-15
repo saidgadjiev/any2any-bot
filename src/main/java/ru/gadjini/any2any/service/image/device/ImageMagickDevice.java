@@ -12,42 +12,42 @@ public class ImageMagickDevice implements ImageConvertDevice, ImageIdentifyDevic
 
     @Override
     public void convert(String in, String out, String... options) {
-        new ProcessExecutor().execute(getCommand(in, out, options), 10);
+        new ProcessExecutor().execute(getCommand(in, out, options));
     }
 
     @Override
     public void negativeTransparent(String in, String out, String inaccuracy, String... colors) {
-        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, true, inaccuracy, colors), 60);
+        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, true, inaccuracy, colors));
     }
 
     @Override
     public void positiveTransparent(String in, String out, String inaccuracy, String color) {
-        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, false, inaccuracy, color), 60);
+        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, false, inaccuracy, color));
     }
 
     @Override
     public void applyBlackAndWhiteFilter(String in, String out) {
-        new ProcessExecutor().execute(getBlackAndWhiteFilterCommand(in, out), 60);
+        new ProcessExecutor().execute(getBlackAndWhiteFilterCommand(in, out));
     }
 
     @Override
     public void applyNegativeFilter(String in, String out) {
-        new ProcessExecutor().execute(getNegativeFilterCommand(in, out), 60);
+        new ProcessExecutor().execute(getNegativeFilterCommand(in, out));
     }
 
     @Override
     public void applySketchFilter(String in, String out) {
-        new ProcessExecutor().execute(getSketchFilterCommand(in, out), 60);
+        new ProcessExecutor().execute(getSketchFilterCommand(in, out));
     }
 
     @Override
     public void resize(String in, String out, String size) {
-        new ProcessExecutor().execute(getResizeCommand(in, out, size), 60);
+        new ProcessExecutor().execute(getResizeCommand(in, out, size));
     }
 
     @Override
     public String getSize(String in) {
-        return new ProcessExecutor().execute(getSizeCommand(in), 60);
+        return new ProcessExecutor().executeWithResult(getSizeCommand(in));
     }
 
     private String[] getSizeCommand(String in) {

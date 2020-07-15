@@ -23,12 +23,12 @@ public class Url2PdfApiDevice implements HtmlDevice {
 
     @Override
     public void processHtml(String html, String out) {
-        new ProcessExecutor().execute(buildCommandByHtml(html, out), 4 * 60);
+        new ProcessExecutor().execute(buildCommandByHtml(html, out));
     }
 
     @Override
     public void processUrl(String url, String out) {
-        new ProcessExecutor().execute(buildCommandByUrl(prepareUrl(UrlUtils.appendScheme(url)), out), 4 * 60);
+        new ProcessExecutor().execute(buildCommandByUrl(prepareUrl(UrlUtils.appendScheme(url)), out));
     }
 
     private String prepareUrl(String url) {
