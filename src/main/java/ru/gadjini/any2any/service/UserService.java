@@ -83,6 +83,10 @@ public class UserService {
         return false;
     }
 
+    public boolean isAdmin(int userId) {
+        return userId == 171271164;
+    }
+
     public void changeLocale(int userId, Locale locale) {
         userDao.updateLocale(userId, locale);
     }

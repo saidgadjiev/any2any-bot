@@ -266,4 +266,14 @@ public class MessagesProperties {
 
     public static final String MESSAGE_ARCHIVE_FILES_DELETED = "message.archive.files.deleted";
 
+    public static final String ADMIN_COMMAND_NAME = "admin.command.name";
+
+    public static final String DOWNLOAD_FILE_COMMAND_NAME = "download.file.command.name";
+
+    public static final String EXECUTE_CONVERSION_COMMAND_NAME = "execute.conversion.command.name";
+
+    public static final String MESSAGE_DOWNLOAD_FILE_PROCESSING = "message.download.file.processing";
+
+    public static final String MESSAGE_CONVERSION_EXECUTED = "message.conversion.executed";
+
 }

@@ -29,10 +29,14 @@ public class Tgs2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     @Autowired
     public Tgs2AnyConverter(FormatService formatService, TelegramService telegramService,
-                            TempFileService fileService, ArchiveService archiveService) {
+                            TempFileService fileService) {
         super(Set.of(Format.TGS), formatService);
         this.telegramService = telegramService;
         this.fileService = fileService;
+    }
+
+    @Autowired
+    public void setArchiveService(ArchiveService archiveService) {
         this.archiveService = archiveService;
     }
 

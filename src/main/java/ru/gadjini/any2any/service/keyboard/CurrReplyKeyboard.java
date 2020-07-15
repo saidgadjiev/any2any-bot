@@ -23,6 +23,11 @@ public class CurrReplyKeyboard implements ReplyKeyboardService {
     }
 
     @Override
+    public ReplyKeyboardMarkup getAdminKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.getAdminKeyboard(chatId, locale));
+    }
+
+    @Override
     public ReplyKeyboardMarkup archiveTypesKeyboard(long chatId, Locale locale) {
         return setCurrentKeyboard(chatId, keyboardService.archiveTypesKeyboard(chatId, locale));
     }

@@ -59,8 +59,7 @@ public class ConvertionService {
 
     @Autowired
     public ConvertionService(@Qualifier("limits") MessageService messageService,
-                             LocalisationService localisationService, UserService userService,
-                             Set<Any2AnyConverter> any2AnyConvertersSet, InlineKeyboardService inlineKeyboardService,
+                             LocalisationService localisationService, UserService userService,InlineKeyboardService inlineKeyboardService,
                              ConversionQueueService queueService, TelegramService telegramService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
@@ -68,7 +67,6 @@ public class ConvertionService {
         this.inlineKeyboardService = inlineKeyboardService;
         this.queueService = queueService;
         this.telegramService = telegramService;
-        any2AnyConvertersSet.forEach(any2AnyConverters::add);
     }
 
     @PostConstruct
@@ -78,6 +76,11 @@ public class ConvertionService {
         queueService.resetProcessing();
         pushTasks(SmartExecutorService.JobWeight.LIGHT);
         pushTasks(SmartExecutorService.JobWeight.HEAVY);
+    }
+
+    @Autowired
+    public void setAny2AnyConverters(Set<Any2AnyConverter> any2AnyConvertersSet) {
+        any2AnyConvertersSet.forEach(any2AnyConverters::add);
     }
 
     @Autowired
@@ -99,6 +102,11 @@ public class ConvertionService {
             }
             return null;
         }
+    }
+
+    public void executeTask(int id) {
+        ConversionQueueItem item = queueService.getItem(id);
+        executor.execute(new ConversionTask(item));
     }
 
     public ConversionQueueItem convert(User user, ConvertState convertState, Format targetFormat) {

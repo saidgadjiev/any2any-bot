@@ -11,6 +11,7 @@ import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardRemove
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.buttons.KeyboardRow;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.OcrService;
+import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
 
@@ -27,10 +28,26 @@ public class ReplyKeyboardServiceImpl implements ReplyKeyboardService {
 
     private LocalisationService localisationService;
 
+    private UserService userService;
+
     @Autowired
-    public ReplyKeyboardServiceImpl(FormatService formatMapService, LocalisationService localisationService) {
+    public ReplyKeyboardServiceImpl(FormatService formatMapService, LocalisationService localisationService, UserService userService) {
         this.formatMapService = formatMapService;
         this.localisationService = localisationService;
+        this.userService = userService;
+    }
+
+    @Override
+    public ReplyKeyboardMarkup getAdminKeyboard(long chatId, Locale locale) {
+        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
+
+        if (userService.isAdmin((int) chatId)) {
+            replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.DOWNLOAD_FILE_COMMAND_NAME, locale)));
+            replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.EXECUTE_CONVERSION_COMMAND_NAME, locale)));
+        }
+        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
+
+        return replyKeyboardMarkup;
     }
 
     @Override
@@ -79,6 +96,9 @@ public class ReplyKeyboardServiceImpl implements ReplyKeyboardService {
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.RENAME_COMMAND_NAME, locale), localisationService.getMessage(MessagesProperties.EXTRACT_TEXT_COMMAND_NAME, locale)));
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.UNZIP_COMMAND_NAME, locale), localisationService.getMessage(MessagesProperties.ARCHIVE_COMMAND_NAME, locale)));
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.LANGUAGE_COMMAND_NAME, locale), localisationService.getMessage(MessagesProperties.HELP_COMMAND_NAME, locale)));
+        if (userService.isAdmin((int) chatId)) {
+            replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.ADMIN_COMMAND_NAME, locale)));
+        }
 
         return replyKeyboardMarkup;
     }
