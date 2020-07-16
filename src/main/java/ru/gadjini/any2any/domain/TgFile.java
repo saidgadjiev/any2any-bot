@@ -58,16 +58,16 @@ public class TgFile {
     }
 
     public String sql() {
-        StringBuilder sql = new StringBuilder("(");
+        StringBuilder sql = new StringBuilder("(\"");
 
-        sql.append(fileId).append(",");
+        sql.append(fileId).append("\",");
         if (StringUtils.isNotBlank(fileName)) {
-            sql.append(fileName).append(",");
+            sql.append("\"").append(fileName).append("\",");
         } else {
             sql.append(",");
         }
         if (StringUtils.isNotBlank(mimeType)) {
-            sql.append(mimeType).append(",");
+            sql.append("\"").append(mimeType).append("\",");
         } else {
             sql.append(",");
         }
