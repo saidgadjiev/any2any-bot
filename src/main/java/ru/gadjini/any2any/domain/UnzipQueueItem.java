@@ -135,7 +135,9 @@ public class UnzipQueueItem {
 
         UNZIP(0),
 
-        EXTRACT_FILE(1);
+        EXTRACT_FILE(1),
+
+        EXTRACT_ALL(2);
 
         private final int code;
 

@@ -57,4 +57,6 @@ public class CommandNames {
     public static final String CANCEL_ARCHIVE_FILES = "w";
 
     public static final String ADMIN = "x";
+
+    public static final String EXTRACT_ALL = "y";
 }

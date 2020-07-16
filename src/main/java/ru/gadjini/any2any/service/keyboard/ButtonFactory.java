@@ -133,6 +133,16 @@ public class ButtonFactory {
         return delegateButton(localisationService.getMessage(nameCode, locale), delegate, requestParams);
     }
 
+    public InlineKeyboardButton extractAllButton(int unzipJobId, Locale locale) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.EXTRACT_ALL_COMMAND_DESCRIPTION, locale));
+        inlineKeyboardButton.setCallbackData(CommandNames.EXTRACT_ALL + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(Arg.JOB_ID.getKey(), unzipJobId)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return inlineKeyboardButton;
+    }
+
     public InlineKeyboardButton extractFileButton(String name, int id, int unzipJobId) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton(name);
         inlineKeyboardButton.setCallbackData(CommandNames.EXTRACT_FILE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
@@ -185,5 +195,4 @@ public class ButtonFactory {
 
         return button;
     }
-
 }

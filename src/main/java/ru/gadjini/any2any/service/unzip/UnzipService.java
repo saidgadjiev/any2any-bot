@@ -35,6 +35,7 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -108,12 +109,39 @@ public class UnzipService {
             if (peek != null) {
                 if (peek.getItemType() == UnzipQueueItem.ItemType.UNZIP) {
                     return new UnzipTask(peek);
-                } else {
+                } else if (peek.getItemType() == UnzipQueueItem.ItemType.EXTRACT_FILE) {
                     return new ExtractFileTask(peek);
+                } else {
+                    return new ExtractAllTask(peek);
                 }
             }
 
             return null;
+        }
+    }
+
+    public void extractAll(int userId, int messageId, int unzipJobId, String queryId) {
+        UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, false);
+        if (unzipState == null) {
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(
+                    queryId,
+                    localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACT_FILE_IMPOSSIBLE, userService.getLocaleOrDefault(userId)),
+                    true
+            ));
+            messageService.removeInlineKeyboard(userId, messageId);
+        } else if (unzipState.getUnzipJobId() != unzipJobId) {
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(
+                    queryId,
+                    localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACT_FILE_IMPOSSIBLE, userService.getLocaleOrDefault(userId)),
+                    true
+            ));
+            messageService.removeInlineKeyboard(userId, messageId);
+        } else {
+            sendStartExtractingAllMessage(userId, messageId, unzipJobId);
+            UnzipQueueItem item = queueService.createProcessingExtractAllItem(userId, messageId,
+                    unzipState.getFiles().values().stream().map(ZipFileHeader::getSize).mapToLong(i -> i).sum());
+            sendStartExtractingAllMessage(userId, messageId, item.getId());
+            executor.execute(new ExtractAllTask(item));
         }
     }
 
@@ -145,7 +173,7 @@ public class UnzipService {
             } else {
                 UnzipQueueItem item = queueService.createProcessingExtractFileItem(userId, messageId,
                         extractFileId, unzipState.getFiles().get(extractFileId).getSize());
-                sendStartExtractingMessage(userId, messageId, item.getId());
+                sendStartExtractingFileMessage(userId, messageId, item.getId());
                 executor.execute(new ExtractFileTask(item));
             }
         }
@@ -217,12 +245,14 @@ public class UnzipService {
             ));
             UnzipState unzipState = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false);
             if (unzipState != null) {
+                Locale locale = userService.getLocaleOrDefault((int) chatId);
                 String message = localisationService.getMessage(
                         MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
                         new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
-                        userService.getLocaleOrDefault((int) chatId));
+                        locale
+                );
                 messageService.editMessage(new EditMessageText(chatId, messageId, message)
-                        .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), unzipState.getUnzipJobId())));
+                        .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), unzipState.getUnzipJobId(), locale)));
             }
 
             if (!executor.cancelAndComplete(jobId, true)) {
@@ -263,7 +293,18 @@ public class UnzipService {
         }
     }
 
-    private void sendStartExtractingMessage(int userId, int messageId, int jobId) {
+    private void sendStartExtractingAllMessage(int userId, int messageId, int jobId) {
+        Locale locale = userService.getLocaleOrDefault(userId);
+        messageService.editMessage(
+                new EditMessageText(
+                        userId,
+                        messageId,
+                        localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACT_ALL_PROCESSING, locale)
+                ).setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale))
+        );
+    }
+
+    private void sendStartExtractingFileMessage(int userId, int messageId, int jobId) {
         Locale locale = userService.getLocaleOrDefault(userId);
         messageService.editMessage(
                 new EditMessageText(
@@ -272,6 +313,17 @@ public class UnzipService {
                         localisationService.getMessage(MessagesProperties.MESSAGE_UNZIP_PROCESSING, locale)
                 ).setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale))
         );
+    }
+
+    private void finishExtracting(int userId, int messageId, UnzipState unzipState) {
+        Locale locale = userService.getLocaleOrDefault(userId);
+        String message = localisationService.getMessage(
+                MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
+                new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
+                locale
+        );
+        messageService.editMessage(new EditMessageText(userId, messageId, message)
+                .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), unzipState.getUnzipJobId(), locale)));
     }
 
     private UnzipDevice getCandidate(Format format) {
@@ -298,7 +350,98 @@ public class UnzipService {
         executor.shutdown();
     }
 
-    public class ExtractFileTask implements Runnable, SmartExecutorService.Job {
+    public class ExtractAllTask implements SmartExecutorService.Job {
+
+        private UnzipQueueItem item;
+
+        private volatile SmartTempFile out;
+
+        private volatile Supplier<Boolean> checker;
+
+        private volatile boolean canceledByUser;
+
+        private ExtractAllTask(UnzipQueueItem item) {
+            this.item = item;
+        }
+
+        @Override
+        public int getId() {
+            return item.getId();
+        }
+
+        @Override
+        public SmartExecutorService.JobWeight getWeight() {
+            return item.getExtractFileSize() > MemoryUtils.MB_320 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+        }
+
+        @Override
+        public void run() {
+            String size = MemoryUtils.humanReadableByteCount(item.getExtractFileSize());
+            LOGGER.debug("Start extract all({}, {})", item.getUserId(), size);
+            UnzipState unzipState = commandStateService.getState(item.getUserId(), CommandNames.UNZIP_COMMAND_NAME, true);
+
+            try {
+                out = fileService.createTempDir();
+                UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
+
+                for (Map.Entry<Integer, ZipFileHeader> entry : unzipState.getFiles().entrySet()) {
+                    if (unzipState.getFilesCache().containsKey(entry.getKey())) {
+                        messageService.sendDocument(new SendDocument((long) item.getUserId(), unzipState.getFilesCache().get(entry.getKey())));
+                    } else {
+                        String filePath = null;
+                        try {
+                            filePath = unzipDevice.unzip(entry.getValue().getPath(), unzipState.getArchivePath(), out.getAbsolutePath());
+                            SendFileResult result = messageService.sendDocument(new SendDocument((long) item.getUserId(), new File(filePath)));
+                            if (result != null) {
+                                unzipState.getFilesCache().put(entry.getKey(), result.getFileId());
+                                commandStateService.setState(item.getUserId(), CommandNames.UNZIP_COMMAND_NAME, unzipState);
+                            }
+                        } finally {
+                            if (filePath != null) {
+                                new SmartTempFile(new File(filePath), false).smartDelete();
+                            }
+                        }
+                    }
+                }
+                LOGGER.debug("Finish extract all({}, {})", item.getUserId(), size);
+            } catch (Exception ex) {
+                if (!checker.get()) {
+                    LOGGER.error(ex.getMessage(), ex);
+                    messageService.sendErrorMessage(item.getUserId(), userService.getLocaleOrDefault(item.getUserId()));
+                }
+            } finally {
+                finishExtracting(item.getUserId(), item.getMessageId(), unzipState);
+                executor.complete(item.getId());
+                queueService.delete(item.getId());
+                if (out != null) {
+                    out.smartDelete();
+                }
+            }
+        }
+
+        @Override
+        public void setCancelChecker(Supplier<Boolean> checker) {
+            this.checker = checker;
+        }
+
+        @Override
+        public void setCanceledByUser(boolean canceledByUser) {
+            this.canceledByUser = canceledByUser;
+        }
+
+        @Override
+        public void cancel() {
+            if (canceledByUser) {
+                queueService.delete(item.getId());
+                LOGGER.debug("Extracting canceled by user({}, {})", item.getUserId(), MemoryUtils.humanReadableByteCount(item.getExtractFileSize()));
+            }
+            if (out != null) {
+                out.smartDelete();
+            }
+        }
+    }
+
+    public class ExtractFileTask implements SmartExecutorService.Job {
 
         private final Logger LOGGER = LoggerFactory.getLogger(ExtractFileTask.class);
 
@@ -339,9 +482,8 @@ public class UnzipService {
 
                 UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
                 String outFilePath = unzipDevice.unzip(fileHeader.getPath(), unzipState.getArchivePath(), out.getAbsolutePath());
-                SmartTempFile outFile = new SmartTempFile(new File(outFilePath), false);
 
-                SendFileResult result = messageService.sendDocument(new SendDocument((long) userId, outFile.getFile()));
+                SendFileResult result = messageService.sendDocument(new SendDocument((long) userId, new File(outFilePath)));
                 if (result != null) {
                     unzipState.getFilesCache().put(id, result.getFileId());
                     commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
@@ -353,7 +495,7 @@ public class UnzipService {
                     messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
                 }
             } finally {
-                finishExtracting(userId, unzipState);
+                finishExtracting(userId, messageId, unzipState);
                 executor.complete(jobId);
                 queueService.delete(jobId);
                 if (out != null) {
@@ -374,7 +516,7 @@ public class UnzipService {
 
         @Override
         public void setCanceledByUser(boolean canceledByUser) {
-            this.canceledByUser = !canceledByUser;
+            this.canceledByUser = canceledByUser;
         }
 
         @Override
@@ -392,19 +534,9 @@ public class UnzipService {
         public SmartExecutorService.JobWeight getWeight() {
             return fileSize > MemoryUtils.MB_320 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
-
-        private void finishExtracting(int userId, UnzipState unzipState) {
-            String message = localisationService.getMessage(
-                    MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
-                    new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
-                    userService.getLocaleOrDefault(userId)
-            );
-            messageService.editMessage(new EditMessageText(userId, messageId, message)
-                    .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), unzipState.getUnzipJobId())));
-        }
     }
 
-    public class UnzipTask implements Runnable, SmartExecutorService.Job {
+    public class UnzipTask implements SmartExecutorService.Job {
 
         private final Logger LOGGER = LoggerFactory.getLogger(UnzipTask.class);
 
@@ -440,17 +572,18 @@ public class UnzipService {
                 if (unzipState == null) {
                     return;
                 }
+                Locale locale = userService.getLocaleOrDefault(userId);
                 String message = localisationService.getMessage(
                         MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
                         new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
-                        userService.getLocaleOrDefault(userId)
+                        locale
                 );
                 try {
                     messageService.editMessage(new EditMessageText((long) userId, messageId, message)
-                            .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), jobId)));
+                            .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), jobId, locale)));
                 } catch (Exception e) {
                     messageService.sendMessage(new SendMessage((long) userId, message)
-                            .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), jobId)));
+                            .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), jobId, locale)));
                 }
                 commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
 

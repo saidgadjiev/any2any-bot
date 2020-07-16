@@ -43,7 +43,7 @@ public class UnzipQueueDao {
                     },
                     keyHolder
             );
-        } else {
+        } else if (unzipQueueItem.getItemType() == UnzipQueueItem.ItemType.EXTRACT_FILE){
             jdbcTemplate.update(
                     con -> {
                         PreparedStatement ps = con.prepareStatement("INSERT INTO unzip_queue(user_id, extract_file_id, message_id, status, item_type, extract_file_size) " +
@@ -54,6 +54,21 @@ public class UnzipQueueDao {
                         ps.setInt(3, unzipQueueItem.getMessageId());
                         ps.setInt(4, unzipQueueItem.getStatus().getCode());
                         ps.setLong(5, unzipQueueItem.getExtractFileSize());
+
+                        return ps;
+                    },
+                    keyHolder
+            );
+        } else {
+            jdbcTemplate.update(
+                    con -> {
+                        PreparedStatement ps = con.prepareStatement("INSERT INTO unzip_queue(user_id, message_id, status, item_type, extract_file_size) " +
+                                "VALUES (?, ?, ?, 2, ?)", Statement.RETURN_GENERATED_KEYS);
+
+                        ps.setInt(1, unzipQueueItem.getUserId());
+                        ps.setInt(2, unzipQueueItem.getMessageId());
+                        ps.setInt(3, unzipQueueItem.getStatus().getCode());
+                        ps.setLong(4, unzipQueueItem.getExtractFileSize());
 
                         return ps;
                     },
@@ -136,9 +151,12 @@ public class UnzipQueueDao {
             item.setFile(tgFile);
 
             item.setType(Format.valueOf(resultSet.getString(UnzipQueueItem.TYPE)));
-        } else {
+        } else if (itemType == UnzipQueueItem.ItemType.EXTRACT_FILE) {
             item.setExtractFileId(resultSet.getInt(UnzipQueueItem.EXTRACT_FILE_ID));
             item.setExtractFileSize(resultSet.getInt(UnzipQueueItem.EXTRACT_FILE_SIZE));
+        } else {
+            item.setExtractFileSize(resultSet.getInt(UnzipQueueItem.EXTRACT_FILE_SIZE));
+
         }
 
         return item;

@@ -37,7 +37,7 @@ public class ArchiveQueueService {
             tgFile.setSize(any2AnyFile.getFileSize());
             archiveQueueItem.getFiles().add(tgFile);
         }
-        archiveQueueItem.setTotalFileSize(archiveQueueItem.getFiles().stream().map(TgFile::getSize).count());
+        archiveQueueItem.setTotalFileSize(archiveQueueItem.getFiles().stream().map(TgFile::getSize).mapToLong(i -> i).sum());
 
         int id = dao.create(archiveQueueItem);
         archiveQueueItem.setId(id);
