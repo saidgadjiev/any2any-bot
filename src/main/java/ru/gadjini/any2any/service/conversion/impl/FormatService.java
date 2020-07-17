@@ -42,9 +42,9 @@ public class FormatService {
         FORMATS.put(FormatCategory.DOCUMENTS, documents);
 
         Map<List<Format>, List<Format>> images = new LinkedHashMap<>();
-        images.put(List.of(PNG), List.of(PDF, JPG, JP2, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
-        images.put(List.of(PHOTO), List.of(PDF, PNG, JPG, JP2, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
-        images.put(List.of(JPG), List.of(PDF, PNG, JP2, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
+        images.put(List.of(PNG), List.of(PDF, DOC, DOCX, JPG, JP2, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
+        images.put(List.of(PHOTO), List.of(PDF, DOC, DOCX, PNG, JPG, JP2, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
+        images.put(List.of(JPG), List.of(PDF, DOC, DOCX, PNG, JP2, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
         images.put(List.of(TIFF), List.of(PDF, DOCX, DOC));
         images.put(List.of(BMP), List.of(PDF, PNG, JPG, JP2, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
         images.put(List.of(WEBP), List.of(PDF, PNG, JPG, JP2, BMP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));

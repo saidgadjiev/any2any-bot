@@ -1,13 +1,15 @@
 package ru.gadjini.any2any.service.conversion.impl;
 
+import com.aspose.words.Document;
+import com.aspose.words.DocumentBuilder;
 import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.service.conversion.api.result.StickerResult;
@@ -23,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PHOTO, Format.HEIC, Format.HEIF, Format.PNG, Format.SVG,
-           Format.JP2, Format.JPG, Format.BMP, Format.WEBP);
+            Format.JP2, Format.JPG, Format.BMP, Format.WEBP);
 
     private TelegramService telegramService;
 
@@ -45,6 +47,9 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     @Override
     public FileResult convert(ConversionQueueItem fileQueueItem) {
+        if (fileQueueItem.getTargetFormat() == Format.DOC || fileQueueItem.getTargetFormat() == Format.DOCX) {
+            return doConvertToWord(fileQueueItem);
+        }
         if (fileQueueItem.getFormat() == Format.HEIC && fileQueueItem.getTargetFormat() == Format.PDF) {
             return doConvertHeicToPdf(fileQueueItem);
         }
@@ -58,13 +63,43 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         return doConvert(fileQueueItem);
     }
 
+    private FileResult doConvertToWord(ConversionQueueItem fileQueueItem) {
+        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
+
+        try {
+            normalize(file.getFile(), fileQueueItem);
+
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+
+            Document document = new Document();
+            try {
+                DocumentBuilder documentBuilder = new DocumentBuilder(document);
+                documentBuilder.insertImage(file.getAbsolutePath());
+                SmartTempFile out = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+                documentBuilder.getDocument().save(out.getAbsolutePath());
+
+                stopWatch.stop();
+                return new FileResult(out, stopWatch.getTime(TimeUnit.SECONDS));
+            } finally {
+                document.cleanup();
+            }
+        } catch (Exception e) {
+            throw new ConvertException(e);
+        } finally {
+            file.smartDelete();
+        }
+    }
+
     private FileResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
-        normalize(file.getFile(), fileQueueItem);
 
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
         try {
+            normalize(file.getFile(), fileQueueItem);
+
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
+
             SmartTempFile tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
 
             imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath());
