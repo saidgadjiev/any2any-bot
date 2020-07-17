@@ -170,13 +170,13 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     private void checkInMediaSize(Message message) {
         Any2AnyFile file = fileService.getFile(message, Locale.getDefault());
         if (file.getFileSize() > LARGE_FILE_SIZE) {
-            LOGGER.debug("Large in file({}, {})", message.getFromUser().getId(), MemoryUtils.humanReadableByteCount(file.getFileSize()));
+            LOGGER.warn("Large in file({}, {})", message.getFromUser().getId(), MemoryUtils.humanReadableByteCount(file.getFileSize()));
             throw new UserException(localisationService.getMessage(
                     MessagesProperties.MESSAGE_TOO_LARGE_IN_FILE,
                     new Object[]{MemoryUtils.humanReadableByteCount(message.getDocument().getFileSize())},
                     userService.getLocaleOrDefault(message.getFromUser().getId())));
         } else if (file.getFileSize() > MemoryUtils.MB_320) {
-            LOGGER.debug("Heavy file({}, {}, {}, {})", message.getFromUser().getId(), file.getFileSize(), file.getMimeType(), file.getFileName());
+            LOGGER.warn("Heavy file({}, {}, {}, {})", message.getFromUser().getId(), file.getFileSize(), file.getMimeType(), file.getFileName());
         }
     }
 

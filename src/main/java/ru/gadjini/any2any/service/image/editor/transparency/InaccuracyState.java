@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.service.image.editor.transparency;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -21,6 +23,8 @@ import java.util.Locale;
 
 @Component
 public class InaccuracyState implements State {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(InaccuracyState.class);
 
     private TransparencyState transparencyState;
 
@@ -107,9 +111,11 @@ public class InaccuracyState implements State {
         try {
             v = Double.parseDouble(inaccuracy);
         } catch (NumberFormatException ex) {
+            LOGGER.warn("NF({})", inaccuracy);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_INACCURACY, locale));
         }
         if (v < 0 || v > 100) {
+            LOGGER.warn("Incorrect({})", inaccuracy);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_INACCURACY, locale));
         }
 

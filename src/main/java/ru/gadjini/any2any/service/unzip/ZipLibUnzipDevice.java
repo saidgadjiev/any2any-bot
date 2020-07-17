@@ -3,6 +3,8 @@ package ru.gadjini.any2any.service.unzip;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
@@ -26,6 +28,8 @@ import java.util.stream.Collectors;
 @Conditional(WindowsCondition.class)
 @Qualifier("zip")
 public class ZipLibUnzipDevice extends BaseUnzipDevice {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZipLibUnzipDevice.class);
 
     private LocalisationService localisationService;
 
@@ -73,9 +77,11 @@ public class ZipLibUnzipDevice extends BaseUnzipDevice {
 
     private ZipFile checkZip(ZipFile zipFile, Locale locale) throws ZipException {
         if (zipFile.isEncrypted()) {
+            LOGGER.warn("Encrypted");
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_ENCRYPTED, locale));
         }
         if (!zipFile.isValidZipFile()) {
+            LOGGER.warn("Invalid");
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_INVALID, locale));
         }
 

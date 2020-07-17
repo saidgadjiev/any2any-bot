@@ -138,7 +138,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
         renameState.setFile(file);
 
         if (renameState.getFile() == null) {
-            LOGGER.debug("No file({}, {})", message.getFromUser().getId(), TgMessage.getMetaTypes(message));
+            LOGGER.warn("No file({}, {})", message.getFromUser().getId(), TgMessage.getMetaTypes(message));
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FORBIDDEN, locale));
         }
 

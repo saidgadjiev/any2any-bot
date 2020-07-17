@@ -47,8 +47,7 @@ public class BotController {
         try {
             botFilter.doFilter(update);
         } catch (UserException ex) {
-            LOGGER.error(ex.getMessage(), ex);
-            messageService.sendMessage(new HtmlMessage(TgMessage.getChatId(update), ex.getMessage()));
+            messageService.sendMessage(new HtmlMessage(TgMessage.getChatId(update), ex.getHumanMessage()));
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
             TgMessage tgMessage = TgMessage.from(update);

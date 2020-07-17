@@ -209,6 +209,7 @@ public class ArchiveService {
             }
         }
 
+        LOGGER.warn("No candidate({})", format);
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_TYPE_UNSUPPORTED, new Object[]{format}, locale));
     }
 

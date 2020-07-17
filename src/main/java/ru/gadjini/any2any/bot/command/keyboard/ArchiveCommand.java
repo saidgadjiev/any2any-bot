@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.bot.command.keyboard;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -10,6 +12,7 @@ import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
@@ -33,6 +36,8 @@ import java.util.Set;
 
 @Component
 public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ArchiveCommand.class);
 
     private ArchiveService archiveService;
 
@@ -118,7 +123,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
                 messageService.sendMessage(new HtmlMessage(message.getChatId(),
                         localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale)));
             } else {
-                Format associatedFormat = checkFormat(formatService.getAssociatedFormat(message.getText()), locale);
+                Format associatedFormat = checkFormat(text, formatService.getAssociatedFormat(text), locale);
                 archiveService.removeAndCancelCurrentTasks(message.getChatId());
                 archiveService.createArchive(message.getFromUser().getId(), archiveState, associatedFormat);
                 commandStateService.deleteState(message.getChatId(), CommandNames.ARCHIVE_COMMAND_NAME);
@@ -150,6 +155,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
         if (any2AnyFile != null) {
             return any2AnyFile;
         } else {
+            LOGGER.warn("No file message({}, {})", message.getFromUser().getId(), TgMessage.getMetaTypes(message));
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_CANT_BE_ADDED_TO_ARCHIVE, locale));
         }
     }
@@ -167,8 +173,9 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
         return files.toString();
     }
 
-    private Format checkFormat(Format format, Locale locale) {
+    private Format checkFormat(String text, Format format, Locale locale) {
         if (format == null || format.getCategory() != FormatCategory.ARCHIVE) {
+            LOGGER.warn("Incorrect archive format({})", text);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_ARCHIVE_TYPE, locale));
         }
 

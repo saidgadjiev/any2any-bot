@@ -1,6 +1,8 @@
 package ru.gadjini.any2any.service.image.resize;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -33,6 +35,8 @@ import java.util.regex.Pattern;
 @SuppressWarnings("CPD-START")
 @Component
 public class ResizeState implements State {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResizeState.class);
 
     private static final Pattern SIZE_PATTERN = Pattern.compile("\\d*\\.?\\d+[xX]\\d*\\.?\\d+");
 
@@ -184,6 +188,7 @@ public class ResizeState implements State {
             return;
         }
 
+        LOGGER.warn("Incorrect size({})", size);
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_IMAGE_SIZE, locale));
     }
 }

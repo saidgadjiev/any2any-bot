@@ -164,13 +164,13 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
     private void checkFormat(int userId, Format format, String fileId, String fileName, String mimeType) {
         if (format == null) {
             Locale locale = userService.getLocaleOrDefault(userId);
-            LOGGER.debug("Ocr impossible({}, {}, {}, {})", userId, mimeType, fileName, fileId);
+            LOGGER.warn("Ocr impossible({}, {}, {}, {})", userId, mimeType, fileName, fileId);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_IMPOSSIBLE, locale));
         }
 
         if (format.getCategory() != FormatCategory.IMAGES) {
             Locale locale = userService.getLocaleOrDefault(userId);
-            LOGGER.debug("Only images({}, {}, {}, {})", userId, format.getCategory(), mimeType, fileName);
+            LOGGER.warn("Only images({}, {}, {}, {})", userId, format.getCategory(), mimeType, fileName);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_IMPOSSIBLE, locale));
         }
     }

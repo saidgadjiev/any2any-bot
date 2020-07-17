@@ -343,6 +343,7 @@ public class UnzipService {
             }
         }
 
+        LOGGER.warn("Candidate not found({})", format);
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SUPPORTED_ZIP_FORMATS, locale));
     }
 

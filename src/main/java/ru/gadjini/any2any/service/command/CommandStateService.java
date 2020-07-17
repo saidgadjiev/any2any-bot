@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.service.command;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,8 @@ import ru.gadjini.any2any.service.UserService;
 
 @Service
 public class CommandStateService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommandStateService.class);
 
     private CommandStateDao commandStateDao;
 
@@ -34,6 +38,7 @@ public class CommandStateService {
         T state = commandStateDao.getState(chatId, command);
 
         if (expiredCheck && state == null) {
+            LOGGER.warn("State not found({}, {})", chatId, command);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SESSION_EXPIRED, userService.getLocaleOrDefault((int) chatId)));
         }
 

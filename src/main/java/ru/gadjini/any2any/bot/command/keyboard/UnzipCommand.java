@@ -133,10 +133,11 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
 
     private Format checkFormat(int userId, Format format, String mimeType, String fileName, Locale locale) {
         if (format == null) {
-            LOGGER.debug("Format is null({}, {}, {})", userId, mimeType, fileName);
+            LOGGER.warn("Format is null({}, {}, {})", userId, mimeType, fileName);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SUPPORTED_ZIP_FORMATS, locale));
         }
         if (format.getCategory() != FormatCategory.ARCHIVE) {
+            LOGGER.warn("No archive({}, {})", userId, format.getCategory());
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SUPPORTED_ZIP_FORMATS, locale));
         }
 

@@ -1,6 +1,8 @@
 package ru.gadjini.any2any.service.image.editor.transparency;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -32,6 +34,8 @@ import java.util.regex.Pattern;
 
 @Component
 public class ColorState implements State {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ColorState.class);
 
     private static final Pattern HEX = Pattern.compile("^#[0-9a-fA-F]{6}$");
 
@@ -205,6 +209,7 @@ public class ColorState implements State {
             return;
         }
 
+        LOGGER.warn("Incorrect color({})", colorText);
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_COLOR, locale));
     }
 }
