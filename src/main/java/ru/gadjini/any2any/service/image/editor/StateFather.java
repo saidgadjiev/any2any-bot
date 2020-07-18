@@ -33,6 +33,8 @@ import java.util.Set;
 @Service
 public class StateFather implements State {
 
+    private static final String TAG = "father";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(StateFather.class);
 
     private Set<State> states;
@@ -54,7 +56,7 @@ public class StateFather implements State {
     private LocalisationService localisationService;
 
     @Autowired
-    public StateFather(CommandStateService commandStateService,  @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
+    public StateFather(CommandStateService commandStateService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
                        @Qualifier("limits") MessageService messageService, TempFileService tempFileService,
                        InlineKeyboardService inlineKeyboardService,
                        TelegramService telegramService, ImageConvertDevice imageDevice, LocalisationService localisationService) {
@@ -137,7 +139,7 @@ public class StateFather implements State {
     @Override
     public void inaccuracy(ImageEditorCommand command, long chatId, String queryId, String inaccuracy) {
         State state = getState(chatId, command.getHistoryName());
-        LOGGER.debug(state.getClass().getSimpleName() + "#inaccuracy({}, {})",chatId, inaccuracy);
+        LOGGER.debug(state.getClass().getSimpleName() + "#inaccuracy({}, {})", chatId, inaccuracy);
 
         state.inaccuracy(command, chatId, queryId, inaccuracy);
     }
@@ -162,14 +164,14 @@ public class StateFather implements State {
         executor.execute(() -> {
             deleteCurrentState(chatId, command.getHistoryName());
 
-            SmartTempFile file = tempFileService.createTempFile(Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), any2AnyFile.getFormat().getExt()));
+            SmartTempFile file = tempFileService.createTempFile0(TAG, any2AnyFile.getFormat().getExt());
             telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file);
             try {
-                SmartTempFile result = tempFileService.createTempFile(Any2AnyFileNameUtils.getFileName(file.getName(), Format.PNG.getExt()));
+                SmartTempFile result = tempFileService.createTempFile0(TAG, Format.PNG.getExt());
                 imageDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
-                EditorState state = createState(result.getAbsolutePath(), result.getName());
+                EditorState state = createState(result.getAbsolutePath(), Any2AnyFileNameUtils.getFileName(file.getName(), Format.PNG.getExt()));
                 state.setLanguage(locale.getLanguage());
-                SendFileResult fileResult = messageService.sendDocument(new SendDocument(chatId, result.getFile())
+                SendFileResult fileResult = messageService.sendDocument(new SendDocument(chatId, state.getFileName(), result.getFile())
                         .setCaption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
                         .setReplyMarkup(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())));
                 state.setMessageId(fileResult.getMessageId());
@@ -191,7 +193,7 @@ public class StateFather implements State {
         try {
             File file = new File(state.getCurrentFilePath());
             if (file.length() > 0) {
-                messageService.sendDocument(new SendDocument(chatId, new File(state.getCurrentFilePath())));
+                messageService.sendDocument(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath())));
                 messageService.deleteMessage(chatId, state.getMessageId());
             } else {
                 messageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId()));
@@ -234,7 +236,7 @@ public class StateFather implements State {
             try {
                 File file = new File(state.getCurrentFilePath());
                 if (file.length() > 0) {
-                    messageService.sendDocument(new SendDocument(chatId, new File(state.getCurrentFilePath())));
+                    messageService.sendDocument(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath())));
                     messageService.deleteMessage(chatId, state.getMessageId());
                 } else {
                     messageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId()));

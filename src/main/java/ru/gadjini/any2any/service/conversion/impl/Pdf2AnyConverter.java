@@ -25,6 +25,8 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
+    private static final String TAG = "pdf2";
+
     private TempFileService fileService;
 
     private TelegramService telegramService;
@@ -46,7 +48,8 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     @Override
     public ConvertResult convert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile0(TAG, fileQueueItem.getFormat().getExt());
+        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
         try {
             boolean validPdf = fileValidator.isValidPdf(file.getFile().getAbsolutePath());
@@ -74,11 +77,12 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             Document pdf = new Document(pdfFile.getAbsolutePath());
             try {
                 TiffDevice tiffDevice = new TiffDevice();
-                SmartTempFile tiff = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), "tiff"));
+                SmartTempFile tiff = fileService.createTempFile0(TAG, Format.TIFF.getExt());
                 tiffDevice.process(pdf, tiff.getAbsolutePath());
 
                 stopWatch.stop();
-                return new FileResult(tiff, stopWatch.getTime(TimeUnit.SECONDS));
+                String fileName = Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), Format.TIFF.getExt());
+                return new FileResult(fileName, tiff, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
                 pdf.dispose();
             }
@@ -92,11 +96,12 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.EPUB.getExt()));
+            SmartTempFile result = fileService.createTempFile0(TAG, Format.EPUB.getExt());
             convertDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
 
             stopWatch.stop();
-            return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.EPUB.getExt());
+            return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
         } finally {
             file.smartDelete();
         }
@@ -109,11 +114,12 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
             Document document = new Document(file.getAbsolutePath());
             try {
-                SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+                SmartTempFile result = fileService.createTempFile0(TAG, fileQueueItem.getTargetFormat().getExt());
                 document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
                 stopWatch.stop();
-                return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());
+                return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
                 document.dispose();
             }

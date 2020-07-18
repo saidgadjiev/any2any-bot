@@ -20,6 +20,7 @@ import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
+import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.device.ImageIdentifyDevice;
 import ru.gadjini.any2any.service.image.editor.EditorState;
@@ -35,6 +36,8 @@ import java.util.regex.Pattern;
 @SuppressWarnings("CPD-START")
 @Component
 public class ResizeState implements State {
+
+    private static final String TAG = "resize";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ResizeState.class);
 
@@ -91,7 +94,7 @@ public class ResizeState implements State {
         messageService.deleteMessage(chatId, editorState.getMessageId());
         String size = identifyDevice.getSize(editorState.getCurrentFilePath());
         Locale locale = new Locale(editorState.getLanguage());
-        SendFileResult sendFileResult = messageService.sendDocument(new SendDocument(chatId, new File(editorState.getCurrentFilePath()))
+        SendFileResult sendFileResult = messageService.sendDocument(new SendDocument(chatId, editorState.getFileName(), new File(editorState.getCurrentFilePath()))
                 .setCaption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_SIZE, new Object[]{size}, locale) + "\n\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_RESIZE_IMAGE_WELCOME, locale))
                 .setReplyMarkup(inlineKeyboardService.getResizeKeyboard(locale, editorState.canCancel())));
@@ -144,7 +147,7 @@ public class ResizeState implements State {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         validateSize(size, new Locale(editorState.getLanguage()));
         executor.execute(() -> {
-            SmartTempFile result = tempFileService.getTempFile(editorState.getFileName());
+            SmartTempFile result = tempFileService.createTempFile0(TAG, Format.PNG.getExt());
             imageDevice.resize(editorState.getCurrentFilePath(), result.getAbsolutePath(), size);
             if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
                 SmartTempFile prevFile = new SmartTempFile(new File(editorState.getPrevFilePath()), true);
@@ -155,7 +158,7 @@ public class ResizeState implements State {
             editorState.setCurrentFilePath(result.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
             String newSize = identifyDevice.getSize(editorState.getCurrentFilePath());
-            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), result.getFile(),
+            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), editorState.getFileName(), result.getFile(),
                     localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_SIZE, new Object[]{newSize}, locale) + "\n\n" +
                             localisationService.getMessage(MessagesProperties.MESSAGE_RESIZE_IMAGE_WELCOME, locale))
                     .setReplyMarkup(inlineKeyboardService.getResizeKeyboard(locale, editorState.canCancel())));

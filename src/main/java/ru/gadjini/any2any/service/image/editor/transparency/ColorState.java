@@ -21,6 +21,7 @@ import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
+import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.editor.EditMessageBuilder;
 import ru.gadjini.any2any.service.image.editor.EditorState;
@@ -34,6 +35,8 @@ import java.util.regex.Pattern;
 
 @Component
 public class ColorState implements State {
+
+    private static final String TAG = "color";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ColorState.class);
 
@@ -87,7 +90,7 @@ public class ColorState implements State {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
         messageService.deleteMessage(chatId, state.getMessageId());
         Locale locale = new Locale(state.getLanguage());
-        SendFileResult sendFileResult = messageService.sendDocument(new SendDocument(chatId, new File(state.getCurrentFilePath()))
+        SendFileResult sendFileResult = messageService.sendDocument(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath()))
                 .setCaption(messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, locale))
                 .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(locale, state.canCancel())));
@@ -123,7 +126,7 @@ public class ColorState implements State {
         validateColor(colorText, new Locale(editorState.getLanguage()));
 
         executor.execute(() -> {
-            SmartTempFile tempFile = fileService.getTempFile(editorState.getFileName());
+            SmartTempFile tempFile = fileService.createTempFile0(TAG, Format.PNG.getExt());
 
             if (editorState.getMode() == ModeState.Mode.NEGATIVE) {
                 String[] transparentColors = getNegativeTransparentColors(colorText);
@@ -139,8 +142,9 @@ public class ColorState implements State {
             editorState.setPrevFileId(editorState.getCurrentFileId());
             editorState.setCurrentFilePath(tempFile.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
-            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), tempFile.getFile(), messageBuilder.getSettingsStr(editorState) + "\n\n"
-                            + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, locale))
+            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMessageMedia(chatId,
+                    editorState.getMessageId(), editorState.getFileName(), tempFile.getFile(), messageBuilder.getSettingsStr(editorState) + "\n\n"
+                    + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, locale))
                     .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(locale, editorState.canCancel())));
             editorState.setCurrentFileId(editMediaResult.getFileId());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);

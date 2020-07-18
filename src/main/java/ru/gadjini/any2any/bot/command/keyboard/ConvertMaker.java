@@ -21,6 +21,7 @@ import ru.gadjini.any2any.model.bot.api.object.Sticker;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.conversion.ConvertionService;
@@ -40,6 +41,8 @@ import java.util.function.Supplier;
 
 @Component
 public class ConvertMaker {
+
+    private static final String TAG = "convert";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConvertMaker.class);
 
@@ -61,11 +64,13 @@ public class ConvertMaker {
 
     private TelegramService telegramService;
 
+    private TempFileService fileService;
+
     @Autowired
     public ConvertMaker(CommandStateService commandStateService, UserService userService,
                         ConvertionService conversionService, ConversionQueueMessageBuilder queueMessageBuilder, @Qualifier("limits") MessageService messageService,
                         LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
-                        FormatService formatService, TelegramService telegramService) {
+                        FormatService formatService, TelegramService telegramService, TempFileService fileService) {
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.conversionService = conversionService;
@@ -75,6 +80,7 @@ public class ConvertMaker {
         this.replyKeyboardService = replyKeyboardService;
         this.formatService = formatService;
         this.telegramService = telegramService;
+        this.fileService = fileService;
     }
 
     public void processNonCommandUpdate(String controllerName, Message message, String text, Supplier<ReplyKeyboard> replyKeyboard) {
@@ -141,7 +147,8 @@ public class ConvertMaker {
     }
 
     private boolean isBaseUrlMissed(String fileId) {
-        SmartTempFile file = telegramService.downloadFileByFileId(fileId, Format.HTML.getExt());
+        SmartTempFile file = fileService.createTempFile0(TAG, Format.HTML.getExt());
+        telegramService.downloadFileByFileId(fileId, file);
 
         try {
             Document parse = Jsoup.parse(file.getFile(), StandardCharsets.UTF_8.name());

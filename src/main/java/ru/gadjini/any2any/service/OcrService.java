@@ -23,6 +23,8 @@ import java.util.Locale;
 @Service
 public class OcrService {
 
+    private static final String TAG = "ocr";
+
     public static final List<Locale> SUPPORTED_LOCALES = List.of(
             new Locale("ru"),
             new Locale("en")
@@ -42,21 +44,25 @@ public class OcrService {
 
     private LocalisationService localisationService;
 
+    private TempFileService fileService;
+
     @Autowired
     public OcrService(TelegramService telegramService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
                       @Qualifier("limits") MessageService messageService,
-                      UserService userService, LocalisationService localisationService) {
+                      UserService userService, LocalisationService localisationService, TempFileService fileService) {
         this.telegramService = telegramService;
         this.executor = executor;
         this.messageService = messageService;
         this.userService = userService;
         this.localisationService = localisationService;
+        this.fileService = fileService;
     }
 
     public void extractText(int userId, Any2AnyFile any2AnyFile, Locale ocrLocale) {
         executor.execute(() -> {
             LOGGER.debug("Start({}, {})", userId, any2AnyFile.getFileId());
-            SmartTempFile file = telegramService.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFormat().getExt());
+            SmartTempFile file = fileService.createTempFile0(TAG, any2AnyFile.getFormat().getExt());
+            telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file);
             ITesseract tesseract = new Tesseract();
             tesseract.setLanguage(ocrLocale.getISO3Language());
             tesseract.setDatapath(TESSDATA_PATH);

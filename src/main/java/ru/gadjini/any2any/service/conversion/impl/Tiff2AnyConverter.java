@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
@@ -22,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
+
+    private static final String TAG = "tiff2";
 
     private TelegramService telegramService;
 
@@ -48,7 +50,8 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toWord(ConversionQueueItem queueItem) {
-        SmartTempFile tiff = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
+        SmartTempFile tiff = fileService.createTempFile0(TAG, queueItem.getFormat().getExt());
+        telegramService.downloadFileByFileId(queueItem.getFileId(), tiff);
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
@@ -58,11 +61,12 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 for (TiffFrame tiffFrame : image.getFrames()) {
                     documentBuilder.insertImage(tiffFrame.toBitmap());
                 }
-                SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), queueItem.getTargetFormat().getExt()));
+                SmartTempFile result = fileService.createTempFile0(TAG, queueItem.getTargetFormat().getExt());
                 documentBuilder.getDocument().save(result.getAbsolutePath());
 
                 stopWatch.stop();
-                return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+                String fileName = Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), queueItem.getTargetFormat().getExt());
+                return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
                 documentBuilder.getDocument().cleanup();
             }
@@ -74,16 +78,18 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toPdf(ConversionQueueItem queueItem) {
-        SmartTempFile tiff = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
+        SmartTempFile tiff = fileService.createTempFile0(TAG, queueItem.getFormat().getExt());
+        telegramService.downloadFileByFileId(queueItem.getFileId(), tiff);
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         try {
-            SmartTempFile pdf = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), "pdf"));
+            SmartTempFile pdf = fileService.createTempFile0(TAG, Format.PDF.getExt());
             imageDevice.convert(tiff.getAbsolutePath(), pdf.getAbsolutePath());
 
             stopWatch.stop();
-            return new FileResult(pdf, stopWatch.getTime(TimeUnit.SECONDS));
+            String fileName = Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), Format.PDF.getExt());
+            return new FileResult(fileName, pdf, stopWatch.getTime(TimeUnit.SECONDS));
         } finally {
             tiff.smartDelete();
         }

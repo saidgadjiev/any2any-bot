@@ -21,6 +21,8 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
+    private static final String TAG = "html2";
+
     private TelegramService telegramService;
 
     private TempFileService fileService;
@@ -46,17 +48,19 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult htmlToPdf(ConversionQueueItem fileQueueItem) {
-        SmartTempFile html = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile html = fileService.createTempFile0(TAG, fileQueueItem.getFormat().getExt());
+        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), html);
 
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
+            SmartTempFile file = fileService.createTempFile0(TAG, Format.PDF.getExt());
             htmlDevice.processHtml(html.getAbsolutePath(), file.getAbsolutePath());
 
             stopWatch.stop();
-            return new FileResult(file, stopWatch.getTime(TimeUnit.SECONDS));
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.PDF.getExt());
+            return new FileResult(fileName, file, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
@@ -69,11 +73,12 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile file = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
+            SmartTempFile file = fileService.createTempFile0(TAG, Format.PDF.getExt());
             htmlDevice.processUrl(fileQueueItem.getFileId(), file.getAbsolutePath());
 
             stopWatch.stop();
-            return new FileResult(file, stopWatch.getTime(TimeUnit.SECONDS));
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.PDF.getExt());
+            return new FileResult(fileName, file, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
         }

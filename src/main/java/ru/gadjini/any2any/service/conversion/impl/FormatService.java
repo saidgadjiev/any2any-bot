@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.FormatCategory;
 import ru.gadjini.any2any.utils.MimeTypeUtils;
@@ -25,6 +26,8 @@ import static ru.gadjini.any2any.service.conversion.api.Format.*;
 
 @Service
 public class FormatService {
+
+    private static final String TAG = "format";
 
     private static final Map<FormatCategory, Map<List<Format>, List<Format>>> FORMATS = new LinkedHashMap<>();
 
@@ -60,9 +63,12 @@ public class FormatService {
 
     private TelegramService telegramService;
 
+    private TempFileService tempFileService;
+
     @Autowired
-    public FormatService(TelegramService telegramService) {
+    public FormatService(TelegramService telegramService, TempFileService tempFileService) {
         this.telegramService = telegramService;
+        this.tempFileService = tempFileService;
     }
 
     public List<Format> getTargetFormats(Format srcFormat) {
@@ -144,7 +150,8 @@ public class FormatService {
     }
 
     public Format getImageFormat(String photoFileId) {
-        SmartTempFile file = telegramService.downloadFileByFileId(photoFileId, "tmp");
+        SmartTempFile file = tempFileService.createTempFile0(TAG, "tmp");
+        telegramService.downloadFileByFileId(photoFileId, file);
 
         try {
             return getImageFormat(file.getFile(), photoFileId);

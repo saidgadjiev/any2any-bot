@@ -35,11 +35,29 @@ public class EditMessageMedia {
         this.media.setCaption(caption);
     }
 
+    public EditMessageMedia(Long chatId, int messageId, String fileName, File file, String caption) {
+        this.chatId = chatId.toString();
+        this.messageId = messageId;
+        this.media = new InputMedia();
+        this.media.setFilePath(file.getAbsolutePath());
+        this.media.setCaption(caption);
+        this.media.setFileName(fileName);
+    }
+
     public EditMessageMedia(Long chatId, int messageId, File file) {
         this.chatId = chatId.toString();
         this.messageId = messageId;
         this.media = new InputMedia();
         this.media.setFilePath(file.getAbsolutePath());
+        this.media.setFileName(file.getName());
+    }
+
+    public EditMessageMedia(Long chatId, int messageId, String fileName, File file) {
+        this.chatId = chatId.toString();
+        this.messageId = messageId;
+        this.media = new InputMedia();
+        this.media.setFilePath(file.getAbsolutePath());
+        this.media.setFileName(fileName);
     }
 
     public EditMessageMedia(Long chatId, int messageId, String fileId) {

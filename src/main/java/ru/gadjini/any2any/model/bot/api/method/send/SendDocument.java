@@ -41,6 +41,15 @@ public class SendDocument {
         this.origChatId = chatId;
         this.document = new InputFile();
         this.document.setFilePath(file.getAbsolutePath());
+        this.document.setFileName(file.getName());
+    }
+
+    public SendDocument(Long chatId, String fileName, File file) {
+        this.chatId = chatId.toString();
+        this.origChatId = chatId;
+        this.document = new InputFile();
+        this.document.setFilePath(file.getAbsolutePath());
+        this.document.setFileName(fileName);
     }
 
     public SendDocument(Long chatId, String fileId) {

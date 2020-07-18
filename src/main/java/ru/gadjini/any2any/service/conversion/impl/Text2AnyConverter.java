@@ -29,6 +29,8 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
+    private static final String TAG = "text2";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(Text2AnyConverter.class);
 
     private TempFileService fileService;
@@ -54,14 +56,15 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
-            SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "txt"));
+            SmartTempFile result = fileService.createTempFile0(TAG, Format.TXT.getExt());
             TextInfo textInfo = textDetector.detect(fileQueueItem.getFileId());
             LOGGER.debug("Text info({})", textInfo);
             String text = TextUtils.removeAllEmojis(fileQueueItem.getFileId(), textInfo.getDirection());
             FileUtils.writeStringToFile(result.getFile(), text, StandardCharsets.UTF_8);
 
             stopWatch.stop();
-            return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.TXT.getExt());
+            return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
         }
@@ -91,11 +94,12 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 }
 
                 documentBuilder.write(text);
-                SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+                SmartTempFile result = fileService.createTempFile0(TAG, fileQueueItem.getTargetFormat().getExt());
                 document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
                 stopWatch.stop();
-                return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());
+                return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
                 document.cleanup();
             }

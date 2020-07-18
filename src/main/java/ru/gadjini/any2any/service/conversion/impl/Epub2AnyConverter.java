@@ -23,6 +23,8 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Epub2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
+    private static final String TAG = "epub2";
+
     private TelegramService telegramService;
 
     private TempFileService fileService;
@@ -47,37 +49,41 @@ public class Epub2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile0(TAG, fileQueueItem.getFormat().getExt());
+        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+            SmartTempFile result = fileService.createTempFile0(TAG, fileQueueItem.getTargetFormat().getExt());
             calibre.convert(file.getAbsolutePath(), result.getAbsolutePath());
 
             stopWatch.stop();
-            return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());
+            return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
         } finally {
             file.smartDelete();
         }
     }
 
     private FileResult toDoc(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile0(TAG, fileQueueItem.getFormat().getExt());
+        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile resultDocx = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.DOCX.getExt()));
+            SmartTempFile resultDocx = fileService.createTempFile0(TAG, Format.DOCX.getExt());
             try {
                 calibre.convert(file.getAbsolutePath(), resultDocx.getAbsolutePath());
                 Document document = new Document(resultDocx.getAbsolutePath());
                 try {
-                    SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.DOC.getExt()));
+                    SmartTempFile result = fileService.createTempFile0(TAG, Format.DOC.getExt());
                     document.save(result.getAbsolutePath(), SaveFormat.DOC);
 
                     stopWatch.stop();
-                    return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.DOC.getExt());
+                    return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
                 } finally {
                     document.cleanup();
                 }

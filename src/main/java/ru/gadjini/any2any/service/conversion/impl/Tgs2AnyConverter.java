@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.ProcessExecutor;
 import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.ConvertResult;
@@ -20,6 +20,8 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class Tgs2AnyConverter extends BaseAny2AnyConverter<FileResult> {
+
+    private static final String TAG = "tgs2";
 
     private TelegramService telegramService;
 
@@ -46,18 +48,20 @@ public class Tgs2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toGiff(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile0(TAG, fileQueueItem.getFormat().getExt());
+        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
-            SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "gif"));
+            SmartTempFile result = fileService.createTempFile0(TAG, Format.GIF.getExt());
             try {
                 new ProcessExecutor().execute(command(file.getAbsolutePath(), result.getAbsolutePath()));
                 SmartTempFile archive = archiveService.createArchive(fileQueueItem.getUserId(), List.of(result.getFile()), Format.ZIP);
 
                 stopWatch.stop();
-                return new FileResult(archive, stopWatch.getTime(TimeUnit.SECONDS));
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.GIF.getExt());
+                return new FileResult(fileName, archive, stopWatch.getTime(TimeUnit.SECONDS));
             } catch (Exception ex) {
                 result.smartDelete();
                 throw ex;
@@ -68,6 +72,6 @@ public class Tgs2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private String[] command(String in, String out) {
-        return new String[] {"node", "tgs-to-gif/cli.js", in, "--out", out};
+        return new String[]{"node", "tgs-to-gif/cli.js", in, "--out", out};
     }
 }

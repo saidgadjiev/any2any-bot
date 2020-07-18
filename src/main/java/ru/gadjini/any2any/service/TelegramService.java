@@ -221,21 +221,10 @@ public class TelegramService {
             LOGGER.debug("Finish downloadFileByFileId({}, {}, {})", fileId, MemoryUtils.humanReadableByteCount(outputFile.length()), stopWatch.getTime(TimeUnit.SECONDS));
         } catch (IOException e) {
             LOGGER.debug(e.getMessage(), e);
+            outputFile.smartDelete();
         } finally {
             downloading.remove(fileId);
         }
-    }
-
-    public SmartTempFile downloadFileByFileId(String fileId, String ext) {
-        SmartTempFile smartTempFile = fileService.createTempFile0(fileId, ext);
-        try {
-            downloadFileByFileId(fileId, smartTempFile);
-        } catch (Exception ex) {
-            smartTempFile.smartDelete();
-            throw ex;
-        }
-
-        return smartTempFile;
     }
 
     public boolean cancelDownloading(String fileId) {

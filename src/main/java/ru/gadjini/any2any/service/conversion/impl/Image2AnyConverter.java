@@ -24,6 +24,8 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
+    private static final String TAG = "image2";
+
     private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PHOTO, Format.HEIC, Format.HEIF, Format.PNG, Format.SVG,
             Format.JP2, Format.JPG, Format.BMP, Format.WEBP);
 
@@ -64,7 +66,8 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult doConvertToWord(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
+        SmartTempFile file = fileService.createTempFile0(TAG, fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
+        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
         try {
             normalize(file.getFile(), fileQueueItem);
@@ -76,11 +79,12 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             try {
                 DocumentBuilder documentBuilder = new DocumentBuilder(document);
                 documentBuilder.insertImage(file.getAbsolutePath());
-                SmartTempFile out = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+                SmartTempFile out = fileService.createTempFile0(TAG, fileQueueItem.getTargetFormat().getExt());
                 documentBuilder.getDocument().save(out.getAbsolutePath());
 
                 stopWatch.stop();
-                return new FileResult(out, stopWatch.getTime(TimeUnit.SECONDS));
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());
+                return new FileResult(fileName, out, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
                 document.cleanup();
             }
@@ -92,7 +96,8 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
+        SmartTempFile file = fileService.createTempFile0(TAG, fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
+        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
         try {
             normalize(file.getFile(), fileQueueItem);
@@ -100,14 +105,15 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+            SmartTempFile tempFile = fileService.createTempFile0(TAG, fileQueueItem.getTargetFormat().getExt());
 
             imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath());
 
             stopWatch.stop();
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());
             return fileQueueItem.getTargetFormat() == Format.STICKER
                     ? new StickerResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS))
-                    : new FileResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS));
+                    : new FileResult(fileName, tempFile, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
@@ -116,19 +122,21 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult doConvertHeicToPdf(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile0(TAG, fileQueueItem.getFormat().getExt());
+        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         try {
-            SmartTempFile tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "png"));
+            SmartTempFile tempFile = fileService.createTempFile0(TAG, Format.PNG.getExt());
             try {
                 imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath());
-                SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
+                SmartTempFile result = fileService.createTempFile0(TAG, Format.PDF.getExt());
                 imageDevice.convert(tempFile.getAbsolutePath(), result.getAbsolutePath());
 
                 stopWatch.stop();
-                return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.PDF.getExt());
+                return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
                 tempFile.smartDelete();
             }
@@ -148,18 +156,19 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult doConvertToIco(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile0(TAG, fileQueueItem.getFormat().getExt());
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         try {
-            SmartTempFile tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+            SmartTempFile tempFile = fileService.createTempFile0(TAG, fileQueueItem.getTargetFormat().getExt());
 
             imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath(),
                     "-resize", "x32", "-gravity", "center", "-crop", "32x32+0+0", "-flatten", "-colors", "256");
 
             stopWatch.stop();
-            return new FileResult(tempFile, stopWatch.getTime(TimeUnit.SECONDS));
+            String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());
+            return new FileResult(fileName, tempFile, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
@@ -168,20 +177,22 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult doConvertToSvg(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile0(TAG, fileQueueItem.getFormat().getExt());
+        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         try {
-            SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "svg"));
+            SmartTempFile result = fileService.createTempFile0(TAG, Format.SVG.getExt());
             if (fileQueueItem.getTargetFormat() != Format.PNG) {
-                SmartTempFile tempFile = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "png"));
+                SmartTempFile tempFile = fileService.createTempFile0(TAG, Format.PNG.getExt());
                 try {
                     imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath());
                     imageTracer.trace(tempFile.getAbsolutePath(), result.getAbsolutePath());
 
                     stopWatch.stop();
-                    return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+                    String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.PNG.getExt());
+                    return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
                 } finally {
                     tempFile.smartDelete();
                 }
@@ -189,7 +200,8 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 imageTracer.trace(file.getAbsolutePath(), result.getAbsolutePath());
 
                 stopWatch.stop();
-                return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.SVG.getExt());
+                return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
             }
         } catch (Exception ex) {
             throw new ConvertException(ex);

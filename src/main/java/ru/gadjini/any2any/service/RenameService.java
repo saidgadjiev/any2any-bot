@@ -161,21 +161,21 @@ public class RenameService {
                         .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale)));
     }
 
-    private SmartTempFile createNewFile(String fileName, String ext) {
+    private String createNewFileName(String fileName, String ext) {
         if (StringUtils.isNotBlank(ext)) {
             String withExt = FilenameUtils.getExtension(fileName);
 
             if (StringUtils.isBlank(withExt)) {
-                return fileService.createTempFile(fileName + "." + ext);
-            } else {
-                return fileService.createTempFile(fileName);
+                return fileName + "." + ext;
             }
         }
 
-        return fileService.createTempFile(fileName);
+        return fileName;
     }
 
     public final class RenameTask implements SmartExecutorService.Job {
+
+        private static final String TAG = "rename";
 
         private int jobId;
         private final int userId;
@@ -206,10 +206,12 @@ public class RenameService {
             LOGGER.debug("Start({}, {}, {})", userId, size, fileId);
 
             try {
-                String ext = formatService.getExt(fileName, mimeType);
-                file = createNewFile(newFileName, ext);
+                file = fileService.createTempFile0(TAG, "tmp");
                 telegramService.downloadFileByFileId(fileId, file);
-                messageService.sendDocument(new SendDocument((long) userId, file.getFile()).setReplyToMessageId(replyToMessageId));
+
+                String ext = formatService.getExt(fileName, mimeType);
+                String fileName = createNewFileName(newFileName, ext);
+                messageService.sendDocument(new SendDocument((long) userId, fileName, file.getFile()).setReplyToMessageId(replyToMessageId));
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, newFileName);
             } catch (Exception ex) {

@@ -258,7 +258,7 @@ public class ConvertionService {
             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
             switch (convertResult.resultType()) {
                 case FILE: {
-                    SendDocument sendDocumentContext = new SendDocument((long) fileQueueItem.getUserId(), ((FileResult) convertResult).getFile())
+                    SendDocument sendDocumentContext = new SendDocument((long) fileQueueItem.getUserId(), ((FileResult) convertResult).getFileName(), ((FileResult) convertResult).getFile())
                             .setCaption(fileQueueItem.getMessage())
                             .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                             .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));

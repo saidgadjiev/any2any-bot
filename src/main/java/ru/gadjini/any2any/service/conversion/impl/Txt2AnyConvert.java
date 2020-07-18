@@ -26,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
 
+    private static final String TAG = "txt2";
+
     private TelegramService telegramService;
 
     private TempFileService fileService;
@@ -47,7 +49,8 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toWord(ConversionQueueItem fileQueueItem) {
-        SmartTempFile txt = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile txt = fileService.createTempFile0(TAG, fileQueueItem.getFormat().getExt());
+        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), txt);
 
         try {
             StopWatch stopWatch = new StopWatch();
@@ -55,11 +58,12 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
 
             com.aspose.words.Document document = new com.aspose.words.Document(txt.getAbsolutePath(), new TxtLoadOptions());
             try {
-                SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt()));
+                SmartTempFile result = fileService.createTempFile0(TAG, fileQueueItem.getTargetFormat().getExt());
                 document.save(result.getAbsolutePath());
 
                 stopWatch.stop();
-                return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), fileQueueItem.getTargetFormat().getExt());
+                return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
                 document.cleanup();
             }
@@ -71,7 +75,8 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toPdf(ConversionQueueItem fileQueueItem) {
-        SmartTempFile txt = telegramService.downloadFileByFileId(fileQueueItem.getFileId(), fileQueueItem.getFormat().getExt());
+        SmartTempFile txt = fileService.createTempFile0(TAG, fileQueueItem.getFormat().getExt());
+        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), txt);
 
         try {
             List<String> lines = Files.readLines(txt.getFile(), StandardCharsets.UTF_8);
@@ -87,11 +92,12 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
 
                 page.getParagraphs().add(text);
 
-                SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), "pdf"));
+                SmartTempFile result = fileService.createTempFile0(TAG, Format.PDF.getExt());
                 doc.save(result.getAbsolutePath());
 
                 stopWatch.stop();
-                return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+                String fileName = Any2AnyFileNameUtils.getFileName(fileQueueItem.getFileName(), Format.PDF.getExt());
+                return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
                 doc.dispose();
             }

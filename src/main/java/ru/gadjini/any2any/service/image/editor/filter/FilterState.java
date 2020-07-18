@@ -17,6 +17,7 @@ import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.command.CommandStateService;
+import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.ImageEditorState;
@@ -29,6 +30,8 @@ import java.util.Locale;
 
 @Component
 public class FilterState implements State {
+
+    private static final String TAG = "filter";
 
     private CommandStateService commandStateService;
 
@@ -75,7 +78,7 @@ public class FilterState implements State {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         messageService.deleteMessage(chatId, editorState.getMessageId());
         Locale locale = new Locale(editorState.getLanguage());
-        SendFileResult sendFileResult = messageService.sendDocument(new SendDocument(chatId, new File(editorState.getCurrentFilePath()))
+        SendFileResult sendFileResult = messageService.sendDocument(new SendDocument(chatId, editorState.getFileName(), new File(editorState.getCurrentFilePath()))
                 .setReplyMarkup(inlineKeyboardService.getImageFiltersKeyboard(locale, editorState.canCancel())));
 
         editorState.setCurrentFileId(sendFileResult.getFileId());
@@ -118,7 +121,7 @@ public class FilterState implements State {
     public void applyFilter(ImageEditorCommand command, long chatId, String queryId, Filter effect) {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         executor.execute(() -> {
-            SmartTempFile result = tempFileService.getTempFile(editorState.getFileName());
+            SmartTempFile result = tempFileService.createTempFile0(TAG, Format.PNG.getExt());
             switch (effect) {
                 case SKETCH:
                     imageDevice.applySketchFilter(editorState.getCurrentFilePath(), result.getAbsolutePath());
@@ -138,7 +141,8 @@ public class FilterState implements State {
             editorState.setPrevFileId(editorState.getCurrentFileId());
             editorState.setCurrentFilePath(result.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
-            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), result.getFile())
+            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMessageMedia(chatId,
+                    editorState.getMessageId(), editorState.getFileName(), result.getFile())
                     .setReplyMarkup(inlineKeyboardService.getImageFiltersKeyboard(locale, editorState.canCancel())));
             editorState.setCurrentFileId(editMediaResult.getFileId());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);

@@ -568,7 +568,8 @@ public class UnzipService {
             LOGGER.debug("Start({}, {}, {}, {})", userId, size, format, fileId);
 
             try {
-                in = telegramService.downloadFileByFileId(fileId, format.getExt());
+                in = fileService.createTempFile0("unzip", format.getExt());
+                telegramService.downloadFileByFileId(fileId, in);
                 UnzipState unzipState = initAndGetState(in.getAbsolutePath());
                 if (unzipState == null) {
                     return;

@@ -8,8 +8,11 @@ public class FileResult extends BaseConvertResult {
 
     private final SmartTempFile file;
 
-    public FileResult(SmartTempFile file, long time) {
+    private String fileName;
+
+    public FileResult(String fileName, SmartTempFile file, long time) {
         super(time);
+        this.fileName = fileName;
         this.file = file;
     }
 
@@ -20,6 +23,10 @@ public class FileResult extends BaseConvertResult {
     @Override
     public ResultType resultType() {
         return ResultType.FILE;
+    }
+
+    public String getFileName() {
+        return fileName;
     }
 
     @Override

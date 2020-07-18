@@ -5,7 +5,7 @@ import ru.gadjini.any2any.io.SmartTempFile;
 public class StickerResult extends FileResult {
 
     public StickerResult(SmartTempFile file, long time) {
-        super(file, time);
+        super(null, file, time);
     }
 
     public ResultType resultType() {

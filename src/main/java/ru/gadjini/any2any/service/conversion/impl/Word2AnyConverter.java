@@ -23,6 +23,8 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
+    private static final String TAG = "word2";
+
     private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.DOC, Format.DOCX);
 
     private TelegramService telegramService;
@@ -57,7 +59,8 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult docToEpub(ConversionQueueItem queueItem) {
-        SmartTempFile file = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile0(TAG, queueItem.getFormat().getExt());
+        telegramService.downloadFileByFileId(queueItem.getFileId(), file);
 
         try {
             StopWatch stopWatch = new StopWatch();
@@ -65,15 +68,16 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
             Document document = new Document(file.getAbsolutePath());
             try {
-                SmartTempFile in = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), Format.DOC.getExt()));
+                SmartTempFile in = fileService.createTempFile0(TAG, Format.DOC.getExt());
 
                 try {
                     document.save(in.getAbsolutePath(), SaveFormat.DOCX);
-                    SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), Format.EPUB.getExt()));
+                    SmartTempFile result = fileService.createTempFile0(TAG, Format.EPUB.getExt());
                     convertDevice.convert(in.getAbsolutePath(), result.getAbsolutePath());
 
                     stopWatch.stop();
-                    return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+                    String fileName = Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), Format.EPUB.getExt());
+                    return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
                 } finally {
                     in.smartDelete();
                 }
@@ -88,17 +92,19 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult docxToEpub(ConversionQueueItem queueItem) {
-        SmartTempFile file = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile0(TAG, queueItem.getFormat().getExt());
+        telegramService.downloadFileByFileId(queueItem.getFileId(), file);
 
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), Format.EPUB.getExt()));
+            SmartTempFile result = fileService.createTempFile0(TAG, Format.EPUB.getExt());
             convertDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
 
             stopWatch.stop();
-            return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+            String fileName = Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), Format.EPUB.getExt());
+            return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
@@ -107,7 +113,8 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toTiff(ConversionQueueItem queueItem) {
-        SmartTempFile file = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile0(TAG, queueItem.getFormat().getExt());
+        telegramService.downloadFileByFileId(queueItem.getFileId(), file);
 
         try {
             StopWatch stopWatch = new StopWatch();
@@ -121,7 +128,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 word.cleanup();
             }
             com.aspose.pdf.Document pdf = new com.aspose.pdf.Document(pdfFile.getAbsolutePath());
-            SmartTempFile tiff = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), "tiff"));
+            SmartTempFile tiff = fileService.createTempFile0(TAG, Format.TIFF.getExt());
             try {
                 TiffDevice tiffDevice = new TiffDevice();
                 tiffDevice.process(pdf, tiff.getAbsolutePath());
@@ -131,7 +138,8 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             }
 
             stopWatch.stop();
-            return new FileResult(tiff, stopWatch.getTime());
+            String fileName = Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), Format.TIFF.getExt());
+            return new FileResult(fileName, tiff, stopWatch.getTime());
         } catch (Exception ex) {
             throw new ConvertException(ex);
         } finally {
@@ -140,7 +148,8 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult doConvert(ConversionQueueItem queueItem) {
-        SmartTempFile file = telegramService.downloadFileByFileId(queueItem.getFileId(), queueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile0(TAG, queueItem.getFormat().getExt());
+        telegramService.downloadFileByFileId(queueItem.getFileId(), file);
 
         try {
             StopWatch stopWatch = new StopWatch();
@@ -148,11 +157,12 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
             Document asposeDocument = new Document(file.getAbsolutePath());
             try {
-                SmartTempFile result = fileService.createTempFile(Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), queueItem.getTargetFormat().getExt()));
+                SmartTempFile result = fileService.createTempFile0(TAG, queueItem.getTargetFormat().getExt());
                 asposeDocument.save(result.getAbsolutePath(), getSaveFormat(queueItem.getTargetFormat()));
 
                 stopWatch.stop();
-                return new FileResult(result, stopWatch.getTime(TimeUnit.SECONDS));
+                String fileName = Any2AnyFileNameUtils.getFileName(queueItem.getFileName(), queueItem.getTargetFormat().getExt());
+                return new FileResult(fileName, result, stopWatch.getTime(TimeUnit.SECONDS));
             } finally {
                 asposeDocument.cleanup();
             }

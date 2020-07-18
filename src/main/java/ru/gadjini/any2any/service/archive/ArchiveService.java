@@ -111,7 +111,7 @@ public class ArchiveService {
 
     public SmartTempFile createArchive(int userId, List<File> files, Format archiveFormat) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        SmartTempFile archive = fileService.getTempFile(
+        SmartTempFile archive = fileService.getTempFileWithExt(
                 Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), archiveFormat.getExt())
         );
         ArchiveDevice archiveDevice = getCandidate(archiveFormat, locale);
@@ -254,7 +254,7 @@ public class ArchiveService {
                 downloadFiles(archiveFiles);
                 Locale locale = userService.getLocaleOrDefault(userId);
 
-                archive = fileService.getTempFile(
+                archive = fileService.getTempFileWithExt(
                         Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), type.getExt())
                 );
                 ArchiveDevice archiveDevice = getCandidate(type, locale);

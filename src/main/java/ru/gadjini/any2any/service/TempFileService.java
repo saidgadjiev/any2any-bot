@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,26 +31,20 @@ public class TempFileService {
     public SmartTempFile createTempFile0(String prefix, String ext) {
         try {
             File file = new File(tempDir, generateName(prefix, ext));
-            file.createNewFile();
+            Files.createFile(file.toPath());
 
-            LOGGER.debug("Temp file({})", file.getAbsolutePath());
+            LOGGER.debug("Temp file({})", file.getName());
             return new SmartTempFile(file, false);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public SmartTempFile getTempFile(String fileName) {
-        try {
-            File tmpdir = new File(tempDir, "tmpdir" + generateUniquePart());
+    public SmartTempFile getTempFileWithExt(String ext) {
+        File tmpFile = new File(tempDir, generateName(null, ext));
 
-            Files.createDirectory(tmpdir.toPath());
-
-            LOGGER.debug("Temp dir({})", tmpdir.getAbsolutePath());
-            return new SmartTempFile(new File(tmpdir, fileName), true);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        LOGGER.debug("Temp dir({})", tmpFile.getName());
+        return new SmartTempFile(tmpFile, false);
     }
 
     public SmartTempFile createTempFile(String fileName) {
@@ -60,18 +55,6 @@ public class TempFileService {
             Files.createFile(file.toPath());
 
             LOGGER.debug("Temp file({})", file.getAbsolutePath());
-            return new SmartTempFile(file, true);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public SmartTempFile createTempDir(String name) {
-        try {
-            File tmpDir = new File(tempDir, "tmpdir" + generateUniquePart());
-            File file = new File(tmpDir, name);
-            Files.createDirectories(file.toPath());
-
             return new SmartTempFile(file, true);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -91,6 +74,8 @@ public class TempFileService {
     }
 
     private String generateName(String prefix, String ext) {
+        prefix = StringUtils.defaultIfBlank(prefix, "");
+        ext = StringUtils.defaultIfBlank(ext, "tmp");
         long n = RANDOM.nextLong();
 
         return prefix + Long.toUnsignedString(n) + "." + ext;
