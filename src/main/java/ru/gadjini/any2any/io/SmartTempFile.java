@@ -15,15 +15,8 @@ public class SmartTempFile {
 
     private File file;
 
-    private boolean deleteParentDir;
-
-    public SmartTempFile(File file, boolean deleteParentDir) {
+    public SmartTempFile(File file) {
         this.file = file;
-        this.deleteParentDir = deleteParentDir;
-    }
-
-    public boolean isDeleteParentDir() {
-        return deleteParentDir;
     }
 
     public String getName() {
@@ -221,11 +214,7 @@ public class SmartTempFile {
 
     public void smartDelete() {
         if (file.exists()) {
-            if (deleteParentDir) {
-                FileUtils.deleteQuietly(file.getParentFile());
-            } else {
-                FileUtils.deleteQuietly(file);
-            }
+            FileUtils.deleteQuietly(file);
         }
     }
 }

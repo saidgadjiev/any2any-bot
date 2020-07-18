@@ -126,7 +126,7 @@ public class ColorState implements State {
         validateColor(colorText, new Locale(editorState.getLanguage()));
 
         executor.execute(() -> {
-            SmartTempFile tempFile = fileService.createTempFile(TAG, Format.PNG.getExt());
+            SmartTempFile tempFile = fileService.getTempFile(TAG, Format.PNG.getExt());
 
             if (editorState.getMode() == ModeState.Mode.NEGATIVE) {
                 String[] transparentColors = getNegativeTransparentColors(colorText);
@@ -135,7 +135,7 @@ public class ColorState implements State {
                 imageDevice.positiveTransparent(editorState.getCurrentFilePath(), tempFile.getAbsolutePath(), editorState.getInaccuracy(), getPositiveTransparentColor(colorText));
             }
             if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
-                SmartTempFile prevFile = new SmartTempFile(new File(editorState.getPrevFilePath()), true);
+                SmartTempFile prevFile = new SmartTempFile(new File(editorState.getPrevFilePath()));
                 prevFile.smartDelete();
             }
             editorState.setPrevFilePath(editorState.getCurrentFilePath());
@@ -171,7 +171,7 @@ public class ColorState implements State {
                     .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
-            new SmartTempFile(new File(editFilePath), true).smartDelete();
+            new SmartTempFile(new File(editFilePath)).smartDelete();
         } else {
             messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_CANT_CANCEL_ANSWER, new Locale(editorState.getLanguage()))));
         }

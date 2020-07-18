@@ -169,7 +169,7 @@ public class StateFather implements State {
             try {
                 SmartTempFile result = tempFileService.createTempFile(TAG, Format.PNG.getExt());
                 imageDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
-                EditorState state = createState(result.getAbsolutePath(), Any2AnyFileNameUtils.getFileName(file.getName(), Format.PNG.getExt()));
+                EditorState state = createState(result.getAbsolutePath(), Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), Format.PNG.getExt()));
                 state.setLanguage(locale.getLanguage());
                 SendFileResult fileResult = messageService.sendDocument(new SendDocument(chatId, state.getFileName(), result.getFile())
                         .setCaption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
@@ -204,10 +204,10 @@ public class StateFather implements State {
             LOGGER.error(ex.getMessage(), ex);
         } finally {
             if (StringUtils.isNotBlank(state.getPrevFilePath())) {
-                new SmartTempFile(new File(state.getPrevFilePath()), true).smartDelete();
+                new SmartTempFile(new File(state.getPrevFilePath())).smartDelete();
             }
 
-            new SmartTempFile(new File(state.getCurrentFilePath()), true).smartDelete();
+            new SmartTempFile(new File(state.getCurrentFilePath())).smartDelete();
         }
     }
 

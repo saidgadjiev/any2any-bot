@@ -104,7 +104,7 @@ public class FilterState implements State {
 
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
-            new SmartTempFile(new File(editFilePath), true).smartDelete();
+            new SmartTempFile(new File(editFilePath)).smartDelete();
         } else {
             messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_CANT_CANCEL_ANSWER, new Locale(editorState.getLanguage()))));
         }
@@ -121,7 +121,7 @@ public class FilterState implements State {
     public void applyFilter(ImageEditorCommand command, long chatId, String queryId, Filter effect) {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         executor.execute(() -> {
-            SmartTempFile result = tempFileService.createTempFile(TAG, Format.PNG.getExt());
+            SmartTempFile result = tempFileService.getTempFile(TAG, Format.PNG.getExt());
             switch (effect) {
                 case SKETCH:
                     imageDevice.applySketchFilter(editorState.getCurrentFilePath(), result.getAbsolutePath());
@@ -134,7 +134,7 @@ public class FilterState implements State {
                     break;
             }
             if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
-                SmartTempFile prevFile = new SmartTempFile(new File(editorState.getPrevFilePath()), true);
+                SmartTempFile prevFile = new SmartTempFile(new File(editorState.getPrevFilePath()));
                 prevFile.smartDelete();
             }
             editorState.setPrevFilePath(editorState.getCurrentFilePath());

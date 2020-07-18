@@ -205,7 +205,7 @@ public class TelegramService {
             stopWatch.start();
             LOGGER.debug("Start downloadFileByFileId({})", fileId);
 
-            HttpEntity<GetFile> request = new HttpEntity<>(new GetFile(fileId, outputFile.getAbsolutePath(), outputFile.isDeleteParentDir()));
+            HttpEntity<GetFile> request = new HttpEntity<>(new GetFile(fileId, outputFile.getAbsolutePath(), false));
             String result = restTemplate.postForObject(getUrl(GetFile.METHOD), request, String.class);
             ApiResponse<String> apiResponse = objectMapper.readValue(result, new TypeReference<>() {
             });
@@ -270,7 +270,7 @@ public class TelegramService {
 
     public void restoreFileIfNeed(String filePath, String fileId) {
         if (!new File(filePath).exists()) {
-            downloadFileByFileId(fileId, new SmartTempFile(new File(filePath), false));
+            downloadFileByFileId(fileId, new SmartTempFile(new File(filePath)));
             LOGGER.debug("File restored({}, {})", fileId, filePath);
         }
     }

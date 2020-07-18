@@ -35,7 +35,8 @@ public class TempFileService {
     public SmartTempFile getTempFile(String prefix, String ext) {
         File file = new File(tempDir, generateName(prefix, ext));
 
-        return new SmartTempFile(file, false);
+        LOGGER.debug("Get({})", file.getAbsolutePath());
+        return new SmartTempFile(file);
     }
 
     public SmartTempFile createTempFile(String prefix, String ext) {
@@ -43,7 +44,8 @@ public class TempFileService {
             File file = new File(tempDir, generateName(prefix, ext));
             Files.createFile(file.toPath());
 
-            return new SmartTempFile(file, false);
+            LOGGER.debug("Create({})", file.getAbsolutePath());
+            return new SmartTempFile(file);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

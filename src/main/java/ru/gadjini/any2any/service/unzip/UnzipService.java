@@ -203,7 +203,7 @@ public class UnzipService {
             List<Integer> ids = queueService.deleteByUserId((int) chatId);
             executor.cancelAndComplete(ids, true);
             if (StringUtils.isNotBlank(unzipState.getArchivePath())) {
-                new SmartTempFile(new File(unzipState.getArchivePath()), false).smartDelete();
+                new SmartTempFile(new File(unzipState.getArchivePath())).smartDelete();
             }
             commandStateService.deleteState(chatId, CommandNames.UNZIP_COMMAND_NAME);
         }
@@ -225,7 +225,7 @@ public class UnzipService {
             if (!executor.cancelAndComplete(jobId, true)) {
                 queueService.delete(jobId);
                 commandStateService.deleteState(chatId, CommandNames.UNZIP_COMMAND_NAME);
-                new SmartTempFile(new File(unzipState.getArchivePath()), false).smartDelete();
+                new SmartTempFile(new File(unzipState.getArchivePath())).smartDelete();
             }
         }
         messageService.editMessage(new EditMessageText(
@@ -274,7 +274,7 @@ public class UnzipService {
         UnzipState state = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false);
         if (state != null) {
             if (StringUtils.isNotBlank(state.getArchivePath())) {
-                new SmartTempFile(new File(state.getArchivePath()), false).smartDelete();
+                new SmartTempFile(new File(state.getArchivePath())).smartDelete();
             }
             commandStateService.deleteState(chatId, CommandNames.UNZIP_COMMAND_NAME);
         }
@@ -405,7 +405,7 @@ public class UnzipService {
                         messageService.sendDocument(new SendDocument((long) item.getUserId(), unzipState.getFilesCache().get(entry.getKey())));
                     } else {
                         String filePath = unzipDevice.unzip(unzipState.getRenamed().get(entry.getKey()), unzipState.getArchivePath(), fileService.getTempDir());
-                        SmartTempFile file = new SmartTempFile(new File(filePath), false);
+                        SmartTempFile file = new SmartTempFile(new File(filePath));
                         files.add(file);
 
                         SendFileResult result = messageService.sendDocument(new SendDocument((long) item.getUserId(),
@@ -493,7 +493,7 @@ public class UnzipService {
                 UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
                 String path = unzipState.getRenamed().get(id);
                 String filePath = unzipDevice.unzip(path, unzipState.getArchivePath(), fileService.getTempDir());
-                out = new SmartTempFile(new File(filePath), false);
+                out = new SmartTempFile(new File(filePath));
 
                 SendFileResult result = messageService.sendDocument(new SendDocument((long) userId, FilenameUtils.getName(fileHeader.getPath()), out.getFile()));
                 if (result != null) {

@@ -100,7 +100,7 @@ public class ImageEditorState implements State {
                     .setReplyMarkup(inlineKeyboardService.getImageEditKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
-            new SmartTempFile(new File(editFilePath), true).smartDelete();
+            new SmartTempFile(new File(editFilePath)).smartDelete();
         } else {
             messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_CANT_CANCEL_ANSWER, new Locale(editorState.getLanguage()))));
         }
