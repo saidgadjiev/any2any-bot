@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service.unzip;
 
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.condition.LinuxMacCondition;
@@ -61,7 +62,7 @@ public class P7ZipUnzipDevice extends BaseUnzipDevice {
     public String unzip(String fileHeader, String archivePath, String dir) {
         new ProcessExecutor().execute(buildUnzipFileCommand(fileHeader, archivePath, dir));
 
-        return Paths.get(dir, fileHeader).toString();
+        return Paths.get(dir, FilenameUtils.getName(fileHeader)).toString();
     }
 
     private String[] buildContentsCommand(String in) {
@@ -69,15 +70,10 @@ public class P7ZipUnzipDevice extends BaseUnzipDevice {
     }
 
     private String[] buildUnzipFileCommand(String file, String archive, String out) {
-        return new String[]{"7z", "x", archive, "-aoa", "-y", "-o" + out, file};
+        return new String[]{"7z", "e", archive, "-aoa", "-y", "-o" + out, file};
     }
 
     private String[] buildUnzipCommand(String in, String out) {
         return new String[]{"7z", "x", in, "-y", "-o" + out};
-    }
-
-    public static void main(String[] args) throws Exception {
-        Runtime.getRuntime().exec("7z x '-i!zip/t.docx' /home/Users/GadzhievSA/zip.zip  -y -o/\n" +
-                "home/");
     }
 }

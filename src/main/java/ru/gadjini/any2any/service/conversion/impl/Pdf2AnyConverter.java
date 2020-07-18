@@ -48,7 +48,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     @Override
     public ConvertResult convert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile0(TAG, fileQueueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
         telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
         try {
@@ -77,7 +77,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             Document pdf = new Document(pdfFile.getAbsolutePath());
             try {
                 TiffDevice tiffDevice = new TiffDevice();
-                SmartTempFile tiff = fileService.createTempFile0(TAG, Format.TIFF.getExt());
+                SmartTempFile tiff = fileService.createTempFile(TAG, Format.TIFF.getExt());
                 tiffDevice.process(pdf, tiff.getAbsolutePath());
 
                 stopWatch.stop();
@@ -96,7 +96,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile result = fileService.createTempFile0(TAG, Format.EPUB.getExt());
+            SmartTempFile result = fileService.createTempFile(TAG, Format.EPUB.getExt());
             convertDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
 
             stopWatch.stop();
@@ -114,7 +114,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
             Document document = new Document(file.getAbsolutePath());
             try {
-                SmartTempFile result = fileService.createTempFile0(TAG, fileQueueItem.getTargetFormat().getExt());
+                SmartTempFile result = fileService.createTempFile(TAG, fileQueueItem.getTargetFormat().getExt());
                 document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
                 stopWatch.stop();

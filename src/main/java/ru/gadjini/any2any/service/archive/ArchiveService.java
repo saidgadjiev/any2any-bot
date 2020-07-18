@@ -28,7 +28,6 @@ import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.archive.ArchiveQueueService;
-import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
@@ -40,6 +39,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class ArchiveService {
+
+    private static final String TAG = "archive";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ArchiveService.class);
 
@@ -111,9 +112,7 @@ public class ArchiveService {
 
     public SmartTempFile createArchive(int userId, List<File> files, Format archiveFormat) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        SmartTempFile archive = fileService.getTempFileWithExt(
-                Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), archiveFormat.getExt())
-        );
+        SmartTempFile archive = fileService.createTempFile(TAG, archiveFormat.getExt());
         ArchiveDevice archiveDevice = getCandidate(archiveFormat, locale);
         archiveDevice.zip(files.stream().map(File::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
 
@@ -219,6 +218,8 @@ public class ArchiveService {
 
     public class ArchiveTask implements SmartExecutorService.Job {
 
+        private static final String TAG = "archive";
+
         private int jobId;
 
         private List<TgFile> archiveFiles;
@@ -251,14 +252,13 @@ public class ArchiveService {
             try {
                 size = MemoryUtils.humanReadableByteCount(totalFileSize);
                 LOGGER.debug("Start({}, {}, {})", userId, size, type);
-                downloadFiles(archiveFiles);
+                DownloadResult downloadResult = downloadFiles(archiveFiles);
                 Locale locale = userService.getLocaleOrDefault(userId);
 
-                archive = fileService.getTempFileWithExt(
-                        Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), type.getExt())
-                );
+                archive = fileService.getTempFile(TAG, type.getExt());
                 ArchiveDevice archiveDevice = getCandidate(type, locale);
                 archiveDevice.zip(files.stream().map(SmartTempFile::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
+                renameFiles(archiveDevice, archive.getAbsolutePath(), downloadResult.originalFileNames, downloadResult.downloadedNames);
                 messageService.sendDocument(new SendDocument((long) userId, archive.getFile()));
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, type);
@@ -313,12 +313,33 @@ public class ArchiveService {
             return totalFileSize > MemoryUtils.MB_320 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
 
-        private void downloadFiles(List<TgFile> tgFiles) {
+        private void renameFiles(ArchiveDevice archiveDevice, String archive,
+                                 Map<Integer, String> originalFileNames, Map<Integer, String> downloadedNames) {
+            for (Map.Entry<Integer, String> entry: downloadedNames.entrySet()) {
+                archiveDevice.rename(archive, entry.getValue(), originalFileNames.get(entry.getKey()));
+            }
+        }
+
+        private DownloadResult downloadFiles(List<TgFile> tgFiles) {
+            DownloadResult downloadResult = new DownloadResult();
+
+            int i = 1;
             for (TgFile tgFile : tgFiles) {
-                SmartTempFile file = fileService.createTempFile(tgFile.getFileName());
+                SmartTempFile file = fileService.createTempFile(TAG, FilenameUtils.getExtension(tgFile.getFileName()));
                 telegramService.downloadFileByFileId(tgFile.getFileId(), file);
+                downloadResult.originalFileNames.put(i, tgFile.getFileName());
+                downloadResult.downloadedNames.put(i++, file.getName());
                 files.add(file);
             }
+
+            return downloadResult;
+        }
+
+        private class DownloadResult {
+
+            private Map<Integer, String> originalFileNames = new HashMap<>();
+
+            private Map<Integer, String> downloadedNames = new HashMap<>();
         }
     }
 }

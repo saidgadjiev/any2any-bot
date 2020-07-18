@@ -121,7 +121,7 @@ public class FilterState implements State {
     public void applyFilter(ImageEditorCommand command, long chatId, String queryId, Filter effect) {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         executor.execute(() -> {
-            SmartTempFile result = tempFileService.createTempFile0(TAG, Format.PNG.getExt());
+            SmartTempFile result = tempFileService.createTempFile(TAG, Format.PNG.getExt());
             switch (effect) {
                 case SKETCH:
                     imageDevice.applySketchFilter(editorState.getCurrentFilePath(), result.getAbsolutePath());

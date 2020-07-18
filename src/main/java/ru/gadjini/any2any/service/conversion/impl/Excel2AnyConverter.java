@@ -41,7 +41,7 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toPdf(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile0(TAG, fileQueueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
         telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
         try {
@@ -50,7 +50,7 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
             Workbook workbook = new Workbook(file.getAbsolutePath());
             try {
-                SmartTempFile tempFile = fileService.createTempFile0(TAG, Format.PDF.getExt());
+                SmartTempFile tempFile = fileService.createTempFile(TAG, Format.PDF.getExt());
                 workbook.save(tempFile.getAbsolutePath(), SaveFormat.PDF);
 
                 stopWatch.stop();

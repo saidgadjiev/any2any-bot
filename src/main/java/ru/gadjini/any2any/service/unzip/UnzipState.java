@@ -17,6 +17,8 @@ public class UnzipState {
 
     private final Map<Integer, ZipFileHeader> files = new HashMap<>();
 
+    private final Map<Integer, String> renamed = new HashMap<>();
+
     private final Map<Integer, String> filesCache = new HashMap<>();
 
     public String getArchivePath() {
@@ -53,5 +55,9 @@ public class UnzipState {
 
     public void setUnzipJobId(int unzipJobId) {
         this.unzipJobId = unzipJobId;
+    }
+
+    public Map<Integer, String> getRenamed() {
+        return renamed;
     }
 }

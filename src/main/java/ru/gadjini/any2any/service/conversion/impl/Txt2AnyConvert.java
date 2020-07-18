@@ -49,7 +49,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toWord(ConversionQueueItem fileQueueItem) {
-        SmartTempFile txt = fileService.createTempFile0(TAG, fileQueueItem.getFormat().getExt());
+        SmartTempFile txt = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
         telegramService.downloadFileByFileId(fileQueueItem.getFileId(), txt);
 
         try {
@@ -58,7 +58,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
 
             com.aspose.words.Document document = new com.aspose.words.Document(txt.getAbsolutePath(), new TxtLoadOptions());
             try {
-                SmartTempFile result = fileService.createTempFile0(TAG, fileQueueItem.getTargetFormat().getExt());
+                SmartTempFile result = fileService.createTempFile(TAG, fileQueueItem.getTargetFormat().getExt());
                 document.save(result.getAbsolutePath());
 
                 stopWatch.stop();
@@ -75,7 +75,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toPdf(ConversionQueueItem fileQueueItem) {
-        SmartTempFile txt = fileService.createTempFile0(TAG, fileQueueItem.getFormat().getExt());
+        SmartTempFile txt = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
         telegramService.downloadFileByFileId(fileQueueItem.getFileId(), txt);
 
         try {
@@ -92,7 +92,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
 
                 page.getParagraphs().add(text);
 
-                SmartTempFile result = fileService.createTempFile0(TAG, Format.PDF.getExt());
+                SmartTempFile result = fileService.createTempFile(TAG, Format.PDF.getExt());
                 doc.save(result.getAbsolutePath());
 
                 stopWatch.stop();

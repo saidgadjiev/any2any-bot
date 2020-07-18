@@ -49,7 +49,7 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toPdf(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile0(TAG, fileQueueItem.getTargetFormat().getExt());
+        SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getTargetFormat().getExt());
         telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
         try {
@@ -58,7 +58,7 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
             Presentation presentation = new Presentation(file.getAbsolutePath());
             try {
-                SmartTempFile tempFile = fileService.createTempFile0(TAG, Format.PDF.getExt());
+                SmartTempFile tempFile = fileService.createTempFile(TAG, Format.PDF.getExt());
                 presentation.save(tempFile.getAbsolutePath(), SaveFormat.Pdf);
 
                 stopWatch.stop();

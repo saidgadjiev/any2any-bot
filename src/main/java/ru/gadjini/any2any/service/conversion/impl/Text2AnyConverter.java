@@ -56,7 +56,7 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
-            SmartTempFile result = fileService.createTempFile0(TAG, Format.TXT.getExt());
+            SmartTempFile result = fileService.createTempFile(TAG, Format.TXT.getExt());
             TextInfo textInfo = textDetector.detect(fileQueueItem.getFileId());
             LOGGER.debug("Text info({})", textInfo);
             String text = TextUtils.removeAllEmojis(fileQueueItem.getFileId(), textInfo.getDirection());
@@ -94,7 +94,7 @@ public class Text2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 }
 
                 documentBuilder.write(text);
-                SmartTempFile result = fileService.createTempFile0(TAG, fileQueueItem.getTargetFormat().getExt());
+                SmartTempFile result = fileService.createTempFile(TAG, fileQueueItem.getTargetFormat().getExt());
                 document.save(result.getAbsolutePath(), getSaveFormat(fileQueueItem.getTargetFormat()));
 
                 stopWatch.stop();

@@ -147,7 +147,7 @@ public class ConvertMaker {
     }
 
     private boolean isBaseUrlMissed(String fileId) {
-        SmartTempFile file = fileService.createTempFile0(TAG, Format.HTML.getExt());
+        SmartTempFile file = fileService.createTempFile(TAG, Format.HTML.getExt());
         telegramService.downloadFileByFileId(fileId, file);
 
         try {

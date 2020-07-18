@@ -50,7 +50,7 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toWord(ConversionQueueItem queueItem) {
-        SmartTempFile tiff = fileService.createTempFile0(TAG, queueItem.getFormat().getExt());
+        SmartTempFile tiff = fileService.createTempFile(TAG, queueItem.getFormat().getExt());
         telegramService.downloadFileByFileId(queueItem.getFileId(), tiff);
 
         StopWatch stopWatch = new StopWatch();
@@ -61,7 +61,7 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
                 for (TiffFrame tiffFrame : image.getFrames()) {
                     documentBuilder.insertImage(tiffFrame.toBitmap());
                 }
-                SmartTempFile result = fileService.createTempFile0(TAG, queueItem.getTargetFormat().getExt());
+                SmartTempFile result = fileService.createTempFile(TAG, queueItem.getTargetFormat().getExt());
                 documentBuilder.getDocument().save(result.getAbsolutePath());
 
                 stopWatch.stop();
@@ -78,13 +78,13 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toPdf(ConversionQueueItem queueItem) {
-        SmartTempFile tiff = fileService.createTempFile0(TAG, queueItem.getFormat().getExt());
+        SmartTempFile tiff = fileService.createTempFile(TAG, queueItem.getFormat().getExt());
         telegramService.downloadFileByFileId(queueItem.getFileId(), tiff);
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         try {
-            SmartTempFile pdf = fileService.createTempFile0(TAG, Format.PDF.getExt());
+            SmartTempFile pdf = fileService.createTempFile(TAG, Format.PDF.getExt());
             imageDevice.convert(tiff.getAbsolutePath(), pdf.getAbsolutePath());
 
             stopWatch.stop();

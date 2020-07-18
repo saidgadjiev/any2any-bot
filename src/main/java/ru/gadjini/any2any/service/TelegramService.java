@@ -42,16 +42,13 @@ public class TelegramService {
 
     private final TelegramProperties telegramProperties;
 
-    private TempFileService fileService;
-
     private RestTemplate restTemplate;
 
     private ObjectMapper objectMapper;
 
     @Autowired
-    public TelegramService(TelegramProperties telegramProperties, TempFileService fileService, ObjectMapper objectMapper) {
+    public TelegramService(TelegramProperties telegramProperties, ObjectMapper objectMapper) {
         this.telegramProperties = telegramProperties;
-        this.fileService = fileService;
         this.objectMapper = objectMapper;
         this.restTemplate = new RestTemplate();
     }

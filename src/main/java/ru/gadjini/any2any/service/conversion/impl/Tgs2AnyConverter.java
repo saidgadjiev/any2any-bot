@@ -48,13 +48,13 @@ public class Tgs2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toGiff(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile0(TAG, fileQueueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
         telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
-            SmartTempFile result = fileService.createTempFile0(TAG, Format.GIF.getExt());
+            SmartTempFile result = fileService.createTempFile(TAG, Format.GIF.getExt());
             try {
                 new ProcessExecutor().execute(command(file.getAbsolutePath(), result.getAbsolutePath()));
                 SmartTempFile archive = archiveService.createArchive(fileQueueItem.getUserId(), List.of(result.getFile()), Format.ZIP);
