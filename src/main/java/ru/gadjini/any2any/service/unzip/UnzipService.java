@@ -423,10 +423,12 @@ public class UnzipService {
                     messageService.sendErrorMessage(item.getUserId(), userService.getLocaleOrDefault(item.getUserId()));
                 }
             } finally {
-                finishExtracting(item.getUserId(), item.getMessageId(), unzipState);
-                executor.complete(item.getId());
-                queueService.delete(item.getId());
-                files.forEach(SmartTempFile::smartDelete);
+                if (!checker.get()) {
+                    finishExtracting(item.getUserId(), item.getMessageId(), unzipState);
+                    executor.complete(item.getId());
+                    queueService.delete(item.getId());
+                    files.forEach(SmartTempFile::smartDelete);
+                }
             }
         }
 
@@ -507,11 +509,13 @@ public class UnzipService {
                     messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
                 }
             } finally {
-                finishExtracting(userId, messageId, unzipState);
-                executor.complete(jobId);
-                queueService.delete(jobId);
-                if (out != null) {
-                    out.smartDelete();
+                if (!checker.get()) {
+                    finishExtracting(userId, messageId, unzipState);
+                    executor.complete(jobId);
+                    queueService.delete(jobId);
+                    if (out != null) {
+                        out.smartDelete();
+                    }
                 }
             }
         }
@@ -613,8 +617,11 @@ public class UnzipService {
                     messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
                 }
             } finally {
-                executor.complete(jobId);
-                queueService.delete(jobId);
+                if (!checker.get()) {
+                    executor.complete(jobId);
+                    queueService.delete(jobId);
+
+                }
             }
         }
 

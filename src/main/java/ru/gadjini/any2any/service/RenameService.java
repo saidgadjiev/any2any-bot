@@ -220,11 +220,13 @@ public class RenameService {
                     messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
                 }
             } finally {
-                executor.complete(jobId);
-                renameQueueService.delete(jobId);
-                commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
-                if (file != null) {
-                    file.smartDelete();
+                if (!checker.get()) {
+                    executor.complete(jobId);
+                    renameQueueService.delete(jobId);
+                    commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+                    if (file != null) {
+                        file.smartDelete();
+                    }
                 }
             }
         }

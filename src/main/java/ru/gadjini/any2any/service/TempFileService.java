@@ -56,6 +56,6 @@ public class TempFileService {
         ext = StringUtils.defaultIfBlank(ext, "tmp");
         long n = RANDOM.nextLong();
 
-        return prefix + Long.toUnsignedString(n) + "." + ext;
+        return prefix + System.nanoTime() + "_" + Long.toUnsignedString(n) + "." + ext;
     }
 }

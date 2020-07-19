@@ -271,13 +271,15 @@ public class ArchiveService {
                     messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
                 }
             } finally {
-                executor.complete(jobId);
-                archiveQueueService.delete(jobId);
-                files.forEach(SmartTempFile::smartDelete);
-                files.clear();
+                if (!checker.get()) {
+                    executor.complete(jobId);
+                    archiveQueueService.delete(jobId);
+                    files.forEach(SmartTempFile::smartDelete);
+                    files.clear();
 
-                if (archive != null) {
-                    archive.smartDelete();
+                    if (archive != null) {
+                        archive.smartDelete();
+                    }
                 }
             }
         }

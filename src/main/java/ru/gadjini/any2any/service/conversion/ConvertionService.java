@@ -209,7 +209,9 @@ public class ConvertionService {
                     LOGGER.debug("Candidate not found({}, {})", fileQueueItem.getUserId(), fileQueueItem.getFormat());
                 }
             } finally {
-                executor.complete(fileQueueItem.getId());
+                if (!checker.get()) {
+                    executor.complete(fileQueueItem.getId());
+                }
             }
         }
 
