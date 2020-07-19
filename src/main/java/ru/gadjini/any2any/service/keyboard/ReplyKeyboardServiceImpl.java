@@ -44,6 +44,7 @@ public class ReplyKeyboardServiceImpl implements ReplyKeyboardService {
         if (userService.isAdmin((int) chatId)) {
             replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.DOWNLOAD_FILE_COMMAND_NAME, locale)));
             replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.EXECUTE_CONVERSION_COMMAND_NAME, locale)));
+            replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.ENABLE_DISTRIBUTIONS_COMMAND_NAME, locale)));
         }
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
 

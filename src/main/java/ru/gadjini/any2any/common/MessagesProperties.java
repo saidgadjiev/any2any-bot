@@ -281,4 +281,8 @@ public class MessagesProperties {
     public static final String MESSAGE_EXTRACT_ALL_PROCESSING = "message.extract.all.processing";
 
     public static final String MESSAGE_TOO_MANY_FILES_IN_ARCHIVE = "message.too.many.files.in.archive";
+
+    public static final String ENABLE_DISTRIBUTIONS_COMMAND_NAME = "enable.distributions.command.name";
+
+    public static final String MESSAGE_DISTRIBUTIONS_ENABLED = "message.distributions.enabled";
 }

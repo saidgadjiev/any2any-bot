@@ -74,6 +74,9 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Override
     public boolean canHandle(long chatId, String command) {
+        if (!userService.isAdmin((int) chatId)) {
+            return false;
+        }
         return names.contains(command);
     }
 
