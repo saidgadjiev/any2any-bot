@@ -13,6 +13,7 @@ import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.Message;
@@ -188,6 +189,9 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
             any2AnyFile.setFileId(photoSize.getFileId());
             any2AnyFile.setFileName(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale));
             any2AnyFile.setFormat(formatService.getImageFormat(photoSize.getFileId()));
+        } else {
+            LOGGER.debug("No image({}, {})", message.getChatId(), TgMessage.getMetaTypes(message));
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MAIN_WELCOME, userService.getLocaleOrDefault(message.getFromUser().getId())));
         }
 
         return any2AnyFile;

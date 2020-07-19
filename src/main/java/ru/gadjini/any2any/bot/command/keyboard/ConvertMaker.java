@@ -117,6 +117,7 @@ public class ConvertMaker {
         convertState.setMessageId(message.getMessageId());
         convertState.setUserLanguage(locale.getLanguage());
 
+        LOGGER.debug("Convert state({}, {})", message.getChatId(), TgMessage.getMetaTypes(message));
         if (message.hasDocument()) {
             convertState.setFileId(message.getDocument().getFileId());
             convertState.setFileSize(message.getDocument().getFileSize());
@@ -141,6 +142,8 @@ public class ConvertMaker {
             convertState.setFileId(message.getText());
             convertState.setFileSize(message.getText().length());
             convertState.setFormat(formatService.getFormat(message.getText()));
+        } else {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale));
         }
 
         return convertState;

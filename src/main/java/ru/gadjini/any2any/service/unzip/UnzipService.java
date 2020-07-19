@@ -11,6 +11,7 @@ import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.UnzipQueueItem;
 import ru.gadjini.any2any.exception.UserException;
+import ru.gadjini.any2any.filter.TelegramLimitsFilter;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendFileResult;
@@ -591,13 +592,20 @@ public class UnzipService {
                 if (unzipState == null) {
                     return;
                 }
-                doRenameFiles(unzipState);
                 Locale locale = userService.getLocaleOrDefault(userId);
                 String message = localisationService.getMessage(
                         MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
                         new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
                         locale
                 );
+                if (message.length() > TelegramLimitsFilter.TEXT_LENGTH_LIMIT) {
+                    LOGGER.warn("Too many files archive({}, {}, {}, {})", userId, fileId, format, size);
+                    messageService.editMessage(
+                            new EditMessageText(userId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_TOO_MANY_FILES_IN_ARCHIVE, locale))
+                    );
+                    return;
+                }
+                doRenameFiles(unzipState);
                 try {
                     messageService.editMessage(new EditMessageText((long) userId, messageId, message)
                             .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), jobId, locale)));
@@ -620,7 +628,6 @@ public class UnzipService {
                 if (!checker.get()) {
                     executor.complete(jobId);
                     queueService.delete(jobId);
-
                 }
             }
         }

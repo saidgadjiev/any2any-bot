@@ -9,6 +9,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendFileResult;
@@ -18,6 +19,7 @@ import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
+import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
@@ -55,11 +57,13 @@ public class StateFather implements State {
 
     private LocalisationService localisationService;
 
+    private UserService userService;
+
     @Autowired
     public StateFather(CommandStateService commandStateService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
                        @Qualifier("limits") MessageService messageService, TempFileService tempFileService,
                        InlineKeyboardService inlineKeyboardService,
-                       TelegramService telegramService, ImageConvertDevice imageDevice, LocalisationService localisationService) {
+                       TelegramService telegramService, ImageConvertDevice imageDevice, LocalisationService localisationService, UserService userService) {
         this.commandStateService = commandStateService;
         this.executor = executor;
         this.messageService = messageService;
@@ -68,6 +72,7 @@ public class StateFather implements State {
         this.telegramService = telegramService;
         this.imageDevice = imageDevice;
         this.localisationService = localisationService;
+        this.userService = userService;
     }
 
     @Autowired
@@ -248,7 +253,11 @@ public class StateFather implements State {
     }
 
     private EditorState getEditorState(long chatId, String commandName) {
-        EditorState editorState = commandStateService.getState(chatId, commandName, true);
+        EditorState editorState = commandStateService.getState(chatId, commandName, false);
+
+        if (editorState == null) {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MAIN_WELCOME, userService.getLocaleOrDefault((int) chatId)));
+        }
 
         try {
             telegramService.restoreFileIfNeed(editorState.getCurrentFilePath(), editorState.getCurrentFileId());

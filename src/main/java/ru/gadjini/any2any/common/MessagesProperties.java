@@ -279,4 +279,6 @@ public class MessagesProperties {
     public static final String EXTRACT_ALL_COMMAND_DESCRIPTION = "extract.all.command.description";
 
     public static final String MESSAGE_EXTRACT_ALL_PROCESSING = "message.extract.all.processing";
+
+    public static final String MESSAGE_TOO_MANY_FILES_IN_ARCHIVE = "message.too.many.files.in.archive";
 }
