@@ -39,7 +39,7 @@ public class CommandStateService {
 
         if (expiredCheck && state == null) {
             LOGGER.warn("State not found({}, {})", chatId, command);
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SESSION_EXPIRED, userService.getLocaleOrDefault((int) chatId)));
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SESSION_EXPIRED, userService.getLocaleOrDefault((int) chatId)), true);
         }
 
         return state;
