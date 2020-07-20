@@ -92,4 +92,18 @@ public class ConvertState {
     public void deleteWarns() {
         warnings.clear();
     }
+
+    @Override
+    public String toString() {
+        return "ConvertState{" +
+                "fileId='" + fileId + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", mimeType='" + mimeType + '\'' +
+                ", fileSize=" + fileSize +
+                ", messageId=" + messageId +
+                ", format=" + format +
+                ", userLanguage='" + userLanguage + '\'' +
+                ", warnings=" + warnings +
+                '}';
+    }
 }

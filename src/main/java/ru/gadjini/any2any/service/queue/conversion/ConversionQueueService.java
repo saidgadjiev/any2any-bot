@@ -2,6 +2,8 @@ package ru.gadjini.any2any.service.queue.conversion;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,8 @@ import java.util.Locale;
 @Service
 public class ConversionQueueService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConversionQueueService.class);
+
     private ConversionQueueDao fileQueueDao;
 
     private LocalisationService localisationService;
@@ -39,6 +43,9 @@ public class ConversionQueueService {
         ConversionQueueItem fileQueueItem = new ConversionQueueItem();
 
         fileQueueItem.setFileId(convertState.getFileId());
+        if (convertState.getFileSize() == null) {
+            LOGGER.warn("File size null({}, {}, {})", user.getId(), targetFormat, convertState);
+        }
         fileQueueItem.setSize(convertState.getFileSize());
         fileQueueItem.setFormat(convertState.getFormat());
         fileQueueItem.setUserId(user.getId());
