@@ -1,10 +1,12 @@
 package ru.gadjini.any2any.service;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.gadjini.any2any.exception.ProcessException;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -13,22 +15,33 @@ public class ProcessExecutor {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessExecutor.class);
 
     public String executeWithResult(String[] command) {
-        return execute(command, ProcessBuilder.Redirect.PIPE);
+        return execute(command, ProcessBuilder.Redirect.PIPE, null);
+    }
+
+    public void executeWithFile(String[] command, String outputFile) {
+        execute(command, null, outputFile);
     }
 
     public void execute(String[] command) {
-        execute(command, ProcessBuilder.Redirect.DISCARD);
+        execute(command, ProcessBuilder.Redirect.DISCARD, null);
     }
 
-    public String execute(String[] command, ProcessBuilder.Redirect redirect) {
+    public String execute(String[] command, ProcessBuilder.Redirect redirect, String outputFile) {
         try {
-            Process process = new ProcessBuilder(command).redirectOutput(redirect).start();
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            if (redirect != null) {
+                processBuilder.redirectOutput(redirect);
+            } else if (StringUtils.isNotBlank(outputFile)) {
+                processBuilder.redirectOutput(new File(outputFile));
+            }
+            Process process = processBuilder.start();
             try {
                 int exitValue = process.waitFor();
                 if (exitValue != 0) {
                     String error = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
 
                     LOGGER.error("Error({}, {}, {})", process.exitValue(), Arrays.toString(command), error);
+                    throw new ProcessException("Error " + process.exitValue() + "\nCommand " + Arrays.toString(command) + "\n" + error);
                 }
 
                 if (redirect == ProcessBuilder.Redirect.PIPE) {
@@ -40,7 +53,11 @@ public class ProcessExecutor {
                 process.destroy();
             }
         } catch (Exception ex) {
-            throw new ProcessException(ex);
+            if (ex instanceof ProcessException) {
+                throw (ProcessException) ex;
+            } else {
+                throw new ProcessException(ex);
+            }
         }
     }
 }

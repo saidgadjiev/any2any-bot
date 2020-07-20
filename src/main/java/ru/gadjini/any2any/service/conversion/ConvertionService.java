@@ -243,7 +243,7 @@ public class ConvertionService {
 
         @Override
         public SmartExecutorService.JobWeight getWeight() {
-            return fileQueueItem.getSize() > MemoryUtils.MB_320 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+            return fileQueueItem.getSize() > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
 
         private Any2AnyConverter<ConvertResult> getCandidate(ConversionQueueItem fileQueueItem) {

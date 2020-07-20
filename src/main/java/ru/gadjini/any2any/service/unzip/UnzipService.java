@@ -25,7 +25,6 @@ import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.service.archive.ArchiveDevice;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
@@ -44,8 +43,6 @@ import java.util.function.Supplier;
 public class UnzipService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(UnzipService.class);
-
-    private Set<ArchiveDevice> archiveDevices;
 
     private Set<UnzipDevice> unzipDevices;
 
@@ -70,13 +67,12 @@ public class UnzipService {
     private UnzipMessageBuilder messageBuilder;
 
     @Autowired
-    public UnzipService(Set<ArchiveDevice> archiveDevices, Set<UnzipDevice> unzipDevices, LocalisationService localisationService,
+    public UnzipService(Set<UnzipDevice> unzipDevices, LocalisationService localisationService,
                         @Qualifier("limits") MessageService messageService,
                         TelegramService telegramService, TempFileService fileService,
                         UnzipQueueService queueService, UserService userService,
                         CommandStateService commandStateService, InlineKeyboardService inlineKeyboardService,
                         UnzipMessageBuilder messageBuilder) {
-        this.archiveDevices = archiveDevices;
         this.unzipDevices = unzipDevices;
         this.localisationService = localisationService;
         this.messageService = messageService;
@@ -330,17 +326,6 @@ public class UnzipService {
                 .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), unzipState.getUnzipJobId(), locale)));
     }
 
-    private ArchiveDevice getArchiveDevice(Format format) {
-        for (ArchiveDevice archiveDevice : archiveDevices) {
-            if (archiveDevice.accept(format)) {
-                return archiveDevice;
-            }
-        }
-
-        LOGGER.warn("No candidate({})", format);
-        throw new IllegalArgumentException("No candidate for " + format);
-    }
-
     private UnzipDevice getCandidate(Format format) {
         for (UnzipDevice unzipDevice : unzipDevices) {
             if (unzipDevice.accept(format)) {
@@ -389,7 +374,7 @@ public class UnzipService {
 
         @Override
         public SmartExecutorService.JobWeight getWeight() {
-            return item.getExtractFileSize() > MemoryUtils.MB_320 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+            return item.getExtractFileSize() > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
 
         @Override
@@ -405,9 +390,9 @@ public class UnzipService {
                     if (unzipState.getFilesCache().containsKey(entry.getKey())) {
                         messageService.sendDocument(new SendDocument((long) item.getUserId(), unzipState.getFilesCache().get(entry.getKey())));
                     } else {
-                        String filePath = unzipDevice.unzip(unzipState.getRenamed().get(entry.getKey()), unzipState.getArchivePath(), fileService.getTempDir());
-                        SmartTempFile file = new SmartTempFile(new File(filePath));
+                        SmartTempFile file = fileService.createTempFile(TAG, FilenameUtils.getExtension(entry.getValue().getPath()));
                         files.add(file);
+                        unzipDevice.unzip(entry.getValue().getPath(), unzipState.getArchivePath(), file.getAbsolutePath());
 
                         SendFileResult result = messageService.sendDocument(new SendDocument((long) item.getUserId(),
                                 FilenameUtils.getName(entry.getValue().getPath()), file.getFile()));
@@ -494,9 +479,8 @@ public class UnzipService {
                 LOGGER.debug("Start({}, {})", userId, size);
 
                 UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
-                String path = unzipState.getRenamed().get(id);
-                String filePath = unzipDevice.unzip(path, unzipState.getArchivePath(), fileService.getTempDir());
-                out = new SmartTempFile(new File(filePath));
+                out = fileService.createTempFile(TAG, FilenameUtils.getExtension(fileHeader.getPath()));
+                unzipDevice.unzip(fileHeader.getPath(), unzipState.getArchivePath(), out.getAbsolutePath());
 
                 SendFileResult result = messageService.sendDocument(new SendDocument((long) userId, FilenameUtils.getName(fileHeader.getPath()), out.getFile()));
                 if (result != null) {
@@ -549,7 +533,7 @@ public class UnzipService {
 
         @Override
         public SmartExecutorService.JobWeight getWeight() {
-            return fileSize > MemoryUtils.MB_320 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+            return fileSize > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
     }
 
@@ -605,7 +589,6 @@ public class UnzipService {
                     );
                     return;
                 }
-                doRenameFiles(unzipState);
                 try {
                     messageService.editMessage(new EditMessageText((long) userId, messageId, message)
                             .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), jobId, locale)));
@@ -661,18 +644,7 @@ public class UnzipService {
 
         @Override
         public SmartExecutorService.JobWeight getWeight() {
-            return fileSize > MemoryUtils.MB_320 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
-        }
-
-        private void doRenameFiles(UnzipState state) {
-            ArchiveDevice archiveDevice = getArchiveDevice(state.getArchiveType());
-
-            for (Map.Entry<Integer, ZipFileHeader> entry : state.getFiles().entrySet()) {
-                String ext = FilenameUtils.getExtension(entry.getValue().getPath());
-                String name = fileService.generateName(TAG, ext);
-                String newFileHeader = archiveDevice.rename(state.getArchivePath(), entry.getValue().getPath(), name);
-                state.getRenamed().put(entry.getKey(), newFileHeader);
-            }
+            return fileSize > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
 
         private UnzipState initAndGetState(String zipFile) {

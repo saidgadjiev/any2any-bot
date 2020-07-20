@@ -14,8 +14,7 @@ public interface UnzipDevice {
         return Collections.emptyList();
     }
 
-    default String unzip(String fileHeader, String archivePath, String dir) {
-        return null;
+    default void unzip(String fileHeader, String archivePath, String out) {
     }
 
     boolean accept(Format zipFormat);

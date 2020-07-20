@@ -18,7 +18,6 @@ import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -64,15 +63,8 @@ public class ZipLibUnzipDevice extends BaseUnzipDevice {
     }
 
     @Override
-    public String unzip(String fileHeader, String archivePath, String dir) {
-        ZipFile zipFile = new ZipFile(archivePath);
-        try {
-            zipFile.extractFile(fileHeader, dir);
-
-            return Paths.get(dir, fileHeader).toString();
-        } catch (ZipException e) {
-            throw new UnzipException(e);
-        }
+    public void unzip(String fileHeader, String archivePath, String out) {
+        throw new UnsupportedOperationException();
     }
 
     private ZipFile checkZip(ZipFile zipFile, Locale locale) throws ZipException {

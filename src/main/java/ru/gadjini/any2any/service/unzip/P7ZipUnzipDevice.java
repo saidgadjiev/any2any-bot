@@ -1,6 +1,5 @@
 package ru.gadjini.any2any.service.unzip;
 
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.condition.LinuxMacCondition;
@@ -8,7 +7,6 @@ import ru.gadjini.any2any.model.ZipFileHeader;
 import ru.gadjini.any2any.service.ProcessExecutor;
 import ru.gadjini.any2any.service.conversion.api.Format;
 
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -59,18 +57,16 @@ public class P7ZipUnzipDevice extends BaseUnzipDevice {
     }
 
     @Override
-    public String unzip(String fileHeader, String archivePath, String dir) {
-        new ProcessExecutor().execute(buildUnzipFileCommand(fileHeader, archivePath, dir));
-
-        return Paths.get(dir, FilenameUtils.getName(fileHeader)).toString();
+    public void unzip(String fileHeader, String archivePath, String out) {
+        new ProcessExecutor().executeWithFile(buildUnzipFileCommand(fileHeader, archivePath), out);
     }
 
     private String[] buildContentsCommand(String in) {
         return new String[]{"7z", "l", "-slt", in};
     }
 
-    private String[] buildUnzipFileCommand(String file, String archive, String out) {
-        return new String[]{"7z", "e", archive, "-aoa", "-y", "-o" + out, file};
+    private String[] buildUnzipFileCommand(String file, String archive) {
+        return new String[]{"7z", "e", archive, "-so", "-y", file};
     }
 
     private String[] buildUnzipCommand(String in, String out) {

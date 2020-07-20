@@ -108,7 +108,7 @@ public class ConversionQueueDao {
                         "FROM queue_items\n" +
                         "ORDER BY created_at",
                 ps -> {
-                    ps.setLong(1, MemoryUtils.MB_320);
+                    ps.setLong(1, MemoryUtils.MB_100);
                     ps.setInt(2, limit);
                 },
                 (rs, rowNum) -> map(rs)
