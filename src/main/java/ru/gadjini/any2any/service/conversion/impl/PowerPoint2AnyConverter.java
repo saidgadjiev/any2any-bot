@@ -50,9 +50,9 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult toPdf(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getTargetFormat().getExt());
-        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
         try {
+            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 

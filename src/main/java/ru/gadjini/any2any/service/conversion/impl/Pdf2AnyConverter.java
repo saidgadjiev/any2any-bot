@@ -49,9 +49,9 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     @Override
     public ConvertResult convert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
-        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
         try {
+            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
             boolean validPdf = fileValidator.isValidPdf(file.getFile().getAbsolutePath());
             if (!validPdf) {
                 throw new CorruptedFileException("Damaged pdf file");

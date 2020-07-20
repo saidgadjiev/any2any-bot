@@ -151,9 +151,10 @@ public class ConvertMaker {
 
     private boolean isBaseUrlMissed(String fileId) {
         SmartTempFile file = fileService.createTempFile(TAG, Format.HTML.getExt());
-        telegramService.downloadFileByFileId(fileId, file);
 
         try {
+            telegramService.downloadFileByFileId(fileId, file);
+
             Document parse = Jsoup.parse(file.getFile(), StandardCharsets.UTF_8.name());
             Elements base = parse.head().getElementsByTag("base");
 

@@ -61,14 +61,15 @@ public class OcrService {
     public void extractText(int userId, Any2AnyFile any2AnyFile, Locale ocrLocale) {
         executor.execute(() -> {
             LOGGER.debug("Start({}, {})", userId, any2AnyFile.getFileId());
-            SmartTempFile file = fileService.createTempFile(TAG, any2AnyFile.getFormat().getExt());
-            telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file);
             ITesseract tesseract = new Tesseract();
             tesseract.setLanguage(ocrLocale.getISO3Language());
             tesseract.setDatapath(TESSDATA_PATH);
 
             Locale locale = userService.getLocaleOrDefault(userId);
+            SmartTempFile file = fileService.createTempFile(TAG, any2AnyFile.getFormat().getExt());
             try {
+                telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file);
+
                 String result = tesseract.doOCR(file.getFile());
                 result = result.replace("\n\n", "\n");
                 if (StringUtils.isBlank(result)) {

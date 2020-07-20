@@ -60,9 +60,9 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult docToEpub(ConversionQueueItem queueItem) {
         SmartTempFile file = fileService.createTempFile(TAG, queueItem.getFormat().getExt());
-        telegramService.downloadFileByFileId(queueItem.getFileId(), file);
 
         try {
+            telegramService.downloadFileByFileId(queueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
@@ -93,9 +93,9 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult docxToEpub(ConversionQueueItem queueItem) {
         SmartTempFile file = fileService.createTempFile(TAG, queueItem.getFormat().getExt());
-        telegramService.downloadFileByFileId(queueItem.getFileId(), file);
 
         try {
+            telegramService.downloadFileByFileId(queueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
@@ -114,9 +114,9 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult toTiff(ConversionQueueItem queueItem) {
         SmartTempFile file = fileService.createTempFile(TAG, queueItem.getFormat().getExt());
-        telegramService.downloadFileByFileId(queueItem.getFileId(), file);
 
         try {
+            telegramService.downloadFileByFileId(queueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
@@ -149,9 +149,9 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult doConvert(ConversionQueueItem queueItem) {
         SmartTempFile file = fileService.createTempFile(TAG, queueItem.getFormat().getExt());
-        telegramService.downloadFileByFileId(queueItem.getFileId(), file);
 
         try {
+            telegramService.downloadFileByFileId(queueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 

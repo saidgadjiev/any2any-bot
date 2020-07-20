@@ -50,8 +50,8 @@ public class Epub2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
-        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
         try {
+            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
@@ -68,8 +68,8 @@ public class Epub2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult toDoc(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
-        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
         try {
+            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 

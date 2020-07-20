@@ -50,9 +50,10 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult toWord(ConversionQueueItem fileQueueItem) {
         SmartTempFile txt = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
-        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), txt);
 
         try {
+            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), txt);
+
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
@@ -76,9 +77,9 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult toPdf(ConversionQueueItem fileQueueItem) {
         SmartTempFile txt = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
-        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), txt);
 
         try {
+            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), txt);
             List<String> lines = Files.readLines(txt.getFile(), StandardCharsets.UTF_8);
             StringBuilder builder = new StringBuilder();
             lines.forEach(builder::append);

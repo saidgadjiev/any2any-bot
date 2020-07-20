@@ -67,9 +67,9 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult doConvertToWord(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
-        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
         try {
+            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
             normalize(file.getFile(), fileQueueItem);
 
             StopWatch stopWatch = new StopWatch();
@@ -97,9 +97,9 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult doConvert(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
-        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
         try {
+            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
             normalize(file.getFile(), fileQueueItem);
 
             StopWatch stopWatch = new StopWatch();
@@ -123,11 +123,11 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult doConvertHeicToPdf(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
-        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
         try {
+            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
             SmartTempFile tempFile = fileService.createTempFile(TAG, Format.PNG.getExt());
             try {
                 imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath());
@@ -178,11 +178,11 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private FileResult doConvertToSvg(ConversionQueueItem fileQueueItem) {
         SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
-        telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
 
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
         try {
+            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start();
             SmartTempFile result = fileService.createTempFile(TAG, Format.SVG.getExt());
             if (fileQueueItem.getTargetFormat() != Format.PNG) {
                 SmartTempFile tempFile = fileService.createTempFile(TAG, Format.PNG.getExt());
