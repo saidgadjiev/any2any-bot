@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.UnzipQueueItem;
+import ru.gadjini.any2any.exception.ProcessException;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.filter.TelegramLimitsFilter;
 import ru.gadjini.any2any.io.SmartTempFile;
@@ -222,7 +223,9 @@ public class UnzipService {
             if (!executor.cancelAndComplete(jobId, true)) {
                 queueService.delete(jobId);
                 commandStateService.deleteState(chatId, CommandNames.UNZIP_COMMAND_NAME);
-                new SmartTempFile(new File(unzipState.getArchivePath())).smartDelete();
+                if (StringUtils.isNotBlank(unzipState.getArchivePath())) {
+                    new SmartTempFile(new File(unzipState.getArchivePath())).smartDelete();
+                }
             }
         }
         messageService.editMessage(new EditMessageText(
@@ -406,7 +409,13 @@ public class UnzipService {
             } catch (Exception ex) {
                 if (!checker.get()) {
                     LOGGER.error(ex.getMessage(), ex);
-                    messageService.sendErrorMessage(item.getUserId(), userService.getLocaleOrDefault(item.getUserId()));
+
+                    Locale locale = userService.getLocaleOrDefault(item.getUserId());
+                    if (ex instanceof ProcessException) {
+                        messageService.sendMessage(new SendMessage((long) item.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_UNZIP_ERROR, locale)));
+                    } else {
+                        messageService.sendErrorMessage(item.getUserId(), locale);
+                    }
                 }
             } finally {
                 if (!checker.get()) {
@@ -491,7 +500,12 @@ public class UnzipService {
             } catch (Exception ex) {
                 if (!checker.get()) {
                     LOGGER.error(ex.getMessage(), ex);
-                    messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
+                    Locale locale = userService.getLocaleOrDefault(userId);
+                    if (ex instanceof ProcessException) {
+                        messageService.sendMessage(new SendMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACT_FILE_ERROR, locale)));
+                    } else {
+                        messageService.sendErrorMessage(userId, locale);
+                    }
                 }
             } finally {
                 if (!checker.get()) {
@@ -605,7 +619,13 @@ public class UnzipService {
                     if (in != null) {
                         in.smartDelete();
                     }
-                    messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
+                    commandStateService.deleteState(userId, CommandNames.UNZIP_COMMAND_NAME);
+                    Locale locale = userService.getLocaleOrDefault(userId);
+                    if (e instanceof ProcessException) {
+                        messageService.sendMessage(new SendMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_UNZIP_ERROR, locale)));
+                    } else {
+                        messageService.sendErrorMessage(userId, locale);
+                    }
                 }
             } finally {
                 if (!checker.get()) {

@@ -39,6 +39,7 @@ public class ProcessExecutor {
                 int exitValue = process.waitFor();
                 if (exitValue != 0) {
                     String error = IOUtils.toString(process.getErrorStream(), StandardCharsets.UTF_8);
+                    error += "\n" + IOUtils.toString(process.getInputStream(), StandardCharsets.UTF_8);
 
                     LOGGER.error("Error({}, {}, {})", process.exitValue(), Arrays.toString(command), error);
                     throw new ProcessException("Error " + process.exitValue() + "\nCommand " + Arrays.toString(command) + "\n" + error);

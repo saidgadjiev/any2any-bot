@@ -213,7 +213,7 @@ public class SmartTempFile {
     }
 
     public void smartDelete() {
-        if (file.exists()) {
+        if (file != null && file.exists()) {
             FileUtils.deleteQuietly(file);
         }
     }

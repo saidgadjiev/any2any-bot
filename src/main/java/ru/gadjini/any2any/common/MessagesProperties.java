@@ -2,7 +2,8 @@ package ru.gadjini.any2any.common;
 
 public class MessagesProperties {
 
-    private MessagesProperties() {}
+    private MessagesProperties() {
+    }
 
     public static final String MESSAGE_FILE_QUEUED = "message.file.queued";
 
@@ -285,4 +286,8 @@ public class MessagesProperties {
     public static final String ENABLE_DISTRIBUTIONS_COMMAND_NAME = "enable.distributions.command.name";
 
     public static final String MESSAGE_DISTRIBUTIONS_ENABLED = "message.distributions.enabled";
+
+    public static final String MESSAGE_EXTRACT_FILE_ERROR = "message.extract.file.error";
+
+    public static final String MESSAGE_UNZIP_ERROR = "message.unzip.error";
 }
