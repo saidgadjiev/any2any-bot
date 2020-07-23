@@ -397,8 +397,9 @@ public class UnzipService {
                         files.add(file);
                         unzipDevice.unzip(entry.getValue().getPath(), unzipState.getArchivePath(), file.getAbsolutePath());
 
+                        String fileName = FilenameUtils.getName(entry.getValue().getPath());
                         SendFileResult result = messageService.sendDocument(new SendDocument((long) item.getUserId(),
-                                FilenameUtils.getName(entry.getValue().getPath()), file.getFile()));
+                                fileName, file.getFile()).setCaption(fileName));
                         if (result != null) {
                             unzipState.getFilesCache().put(entry.getKey(), result.getFileId());
                             commandStateService.setState(item.getUserId(), CommandNames.UNZIP_COMMAND_NAME, unzipState);
@@ -491,7 +492,9 @@ public class UnzipService {
                 out = fileService.createTempFile(TAG, FilenameUtils.getExtension(fileHeader.getPath()));
                 unzipDevice.unzip(fileHeader.getPath(), unzipState.getArchivePath(), out.getAbsolutePath());
 
-                SendFileResult result = messageService.sendDocument(new SendDocument((long) userId, FilenameUtils.getName(fileHeader.getPath()), out.getFile()));
+                String fileName = FilenameUtils.getName(fileHeader.getPath());
+                SendFileResult result = messageService.sendDocument(new SendDocument((long) userId, fileName, out.getFile())
+                        .setCaption(fileName));
                 if (result != null) {
                     unzipState.getFilesCache().put(id, result.getFileId());
                     commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
