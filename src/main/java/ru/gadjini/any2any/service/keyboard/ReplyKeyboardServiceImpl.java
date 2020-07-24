@@ -10,7 +10,6 @@ import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.buttons.KeyboardRow;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.OcrService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
@@ -68,19 +67,6 @@ public class ReplyKeyboardServiceImpl implements ReplyKeyboardService {
         List<String> languages = new ArrayList<>();
         for (Locale l : localisationService.getSupportedLocales()) {
             languages.add(StringUtils.capitalize(l.getDisplayLanguage(l)));
-        }
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(languages.toArray(new String[0])));
-        replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
-
-        return replyKeyboardMarkup;
-    }
-
-    @Override
-    public ReplyKeyboardMarkup getOcrKeyboard(long chatId, Locale locale) {
-        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
-        List<String> languages = new ArrayList<>();
-        for (Locale l : OcrService.SUPPORTED_LOCALES) {
-            languages.add(StringUtils.capitalize(l.getDisplayLanguage(locale)));
         }
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(languages.toArray(new String[0])));
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));

@@ -1,6 +1,5 @@
 package ru.gadjini.any2any.bot.command.keyboard;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,14 +16,13 @@ import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.PhotoSize;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.OcrService;
 import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.FormatCategory;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.any2any.service.ocr.OcrService;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -37,8 +35,6 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
     private static final Logger LOGGER = LoggerFactory.getLogger(OcrCommand.class);
 
     private Set<String> names = new HashSet<>();
-
-    private CommandStateService commandStateService;
 
     private OcrService ocrService;
 
@@ -53,10 +49,9 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
     private FormatService formatService;
 
     @Autowired
-    public OcrCommand(CommandStateService commandStateService, OcrService ocrService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
+    public OcrCommand(OcrService ocrService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                       UserService userService, LocalisationService localisationService,
                       @Qualifier("limits") MessageService messageService, FormatService formatService) {
-        this.commandStateService = commandStateService;
         this.ocrService = ocrService;
         this.replyKeyboardService = replyKeyboardService;
         this.userService = userService;
@@ -92,10 +87,9 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        commandStateService.setState(chatId, getHistoryName(), locale.getLanguage());
         messageService.sendMessage(new HtmlMessage(chatId,
-                localisationService.getMessage(MessagesProperties.MESSAGE_FILE_TO_EXTRACT, new Object[]{StringUtils.capitalize(locale.getDisplayLanguage(locale))}, locale))
-                .setReplyMarkup(replyKeyboardService.getOcrKeyboard(chatId, locale)));
+                localisationService.getMessage(MessagesProperties.MESSAGE_FILE_TO_EXTRACT, locale))
+                .setReplyMarkup(replyKeyboardService.goBack(chatId, locale)));
     }
 
     @Override
@@ -110,34 +104,14 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
 
     @Override
     public boolean accept(Message message) {
-        return message.hasDocument() || message.hasPhoto() || message.hasText();
+        return message.hasDocument() || message.hasPhoto();
     }
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        if (message.hasText()) {
-            Locale userLocale = userService.getLocaleOrDefault(message.getFromUser().getId());
-            text = text.toLowerCase();
-            for (Locale l : OcrService.SUPPORTED_LOCALES) {
-                if (text.equals(l.getDisplayLanguage(userLocale).toLowerCase())) {
-                    commandStateService.setState(message.getChatId(), getHistoryName(), l.getLanguage());
-                    messageService.sendMessage(new HtmlMessage(message.getChatId(),
-                            localisationService.getMessage(MessagesProperties.MESSAGE_OCR_LANGUAGE_CHANGED,
-                                    new Object[]{StringUtils.capitalize(l.getDisplayLanguage(userLocale))}, userLocale)));
-                    return;
-                }
-            }
-        } else {
-            Locale locale = new Locale(commandStateService.getState(message.getChatId(), getHistoryName(), true));
-            ocrService.extractText(message.getFromUser().getId(), getFile(message), locale);
-            messageService.sendMessage(new HtmlMessage(message.getChatId(),
-                    localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_PROCESSING, userService.getLocaleOrDefault(message.getFromUser().getId()))));
-        }
-    }
-
-    @Override
-    public void leave(long chatId) {
-        commandStateService.deleteState(chatId, getHistoryName());
+        ocrService.extractText(message.getFromUser().getId(), getFile(message));
+        messageService.sendMessage(new HtmlMessage(message.getChatId(),
+                localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_PROCESSING, userService.getLocaleOrDefault(message.getFromUser().getId()))));
     }
 
     private Any2AnyFile getFile(Message message) {

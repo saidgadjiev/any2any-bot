@@ -195,12 +195,6 @@
         </dependency>
 
         <dependency>
-            <groupId>net.sourceforge.tess4j</groupId>
-            <artifactId>tess4j</artifactId>
-            <version>4.5.1</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.detectlanguage</groupId>
             <artifactId>detectlanguage</artifactId>
             <version>1.1.0</version>
@@ -216,6 +210,10 @@
             <artifactId>guava</artifactId>
             <version>23.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-vision</artifactId>
+            <version>1.99.3</version>
+        </dependency>
     </dependencies>
 </project>

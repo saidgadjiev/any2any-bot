@@ -1,7 +1,5 @@
-package ru.gadjini.any2any.service;
+package ru.gadjini.any2any.service.ocr;
 
-import net.sourceforge.tess4j.ITesseract;
-import net.sourceforge.tess4j.Tesseract;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,14 +8,17 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.exception.TextExtractionFailedException;
+import ru.gadjini.any2any.exception.OcrException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
+import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.TempFileService;
+import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.message.MessageService;
 
-import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -25,14 +26,7 @@ public class OcrService {
 
     private static final String TAG = "ocr";
 
-    public static final List<Locale> SUPPORTED_LOCALES = List.of(
-            new Locale("ru"),
-            new Locale("en")
-    );
-
     private static final Logger LOGGER = LoggerFactory.getLogger(OcrService.class);
-
-    private static final String TESSDATA_PATH = "tessdata";
 
     private TelegramService telegramService;
 
@@ -46,40 +40,40 @@ public class OcrService {
 
     private TempFileService fileService;
 
+    private OcrDevice ocrDevice;
+
     @Autowired
     public OcrService(TelegramService telegramService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
                       @Qualifier("limits") MessageService messageService,
-                      UserService userService, LocalisationService localisationService, TempFileService fileService) {
+                      UserService userService, LocalisationService localisationService, TempFileService fileService, OcrDevice ocrDevice) {
         this.telegramService = telegramService;
         this.executor = executor;
         this.messageService = messageService;
         this.userService = userService;
         this.localisationService = localisationService;
         this.fileService = fileService;
+        this.ocrDevice = ocrDevice;
     }
 
-    public void extractText(int userId, Any2AnyFile any2AnyFile, Locale ocrLocale) {
+    public void extractText(int userId, Any2AnyFile any2AnyFile) {
         executor.execute(() -> {
             LOGGER.debug("Start({}, {})", userId, any2AnyFile.getFileId());
-            ITesseract tesseract = new Tesseract();
-            tesseract.setLanguage(ocrLocale.getISO3Language());
-            tesseract.setDatapath(TESSDATA_PATH);
 
             Locale locale = userService.getLocaleOrDefault(userId);
             SmartTempFile file = fileService.createTempFile(TAG, any2AnyFile.getFormat().getExt());
             try {
                 telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file);
 
-                String result = tesseract.doOCR(file.getFile());
-                result = result.replace("\n\n", "\n");
+                String result = ocrDevice.getText(file.getAbsolutePath());
                 if (StringUtils.isBlank(result)) {
                     messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
+                } else {
+                    messageService.sendMessage(new SendMessage((long) userId, result));
                 }
-                messageService.sendMessage(new SendMessage((long) userId, result));
                 LOGGER.debug("Finish({}, {})", userId, StringUtils.substring(result, 0, 50));
             } catch (Exception ex) {
-                messageService.sendErrorMessage(userId, locale);
-                throw new TextExtractionFailedException(ex);
+                messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
+                throw new OcrException(ex);
             } finally {
                 file.smartDelete();
             }

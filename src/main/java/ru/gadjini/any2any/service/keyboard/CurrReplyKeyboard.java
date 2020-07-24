@@ -38,11 +38,6 @@ public class CurrReplyKeyboard implements ReplyKeyboardService {
     }
 
     @Override
-    public ReplyKeyboardMarkup getOcrKeyboard(long chatId, Locale locale) {
-        return setCurrentKeyboard(chatId, keyboardService.getOcrKeyboard(chatId, locale));
-    }
-
-    @Override
     public ReplyKeyboardMarkup getMainMenu(long chatId, Locale locale) {
         return setCurrentKeyboard(chatId, keyboardService.getMainMenu(chatId, locale));
     }
