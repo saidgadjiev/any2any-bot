@@ -7,6 +7,8 @@ public class Audio {
     private static final String FILEID_FIELD = "file_id";
     private static final String MIMETYPE_FIELD = "mime_type";
     private static final String FILESIZE_FIELD = "file_size";
+    private static final String FILE_NAME_FIELD = "file_name";
+    private static final String THUMBNAIL_FIELD = "thumb";
 
     @JsonProperty(FILEID_FIELD)
     private String fileId;
@@ -14,6 +16,10 @@ public class Audio {
     private String mimeType;
     @JsonProperty(FILESIZE_FIELD)
     private Integer fileSize;
+    @JsonProperty(FILE_NAME_FIELD)
+    private String fileName;
+    @JsonProperty(THUMBNAIL_FIELD)
+    private Thumb thumb;
 
     public String getFileId() {
         return fileId;
@@ -27,6 +33,18 @@ public class Audio {
         return fileSize;
     }
 
+    public Thumb getThumb() {
+        return thumb;
+    }
+
+    public boolean hasThumb() {
+        return thumb != null;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
     @Override
     public String toString() {
         return "Audio{" +
@@ -35,4 +53,5 @@ public class Audio {
                 ", fileSize=" + fileSize +
                 '}';
     }
+
 }

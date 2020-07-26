@@ -14,6 +14,8 @@ public class Any2AnyFile {
 
     private int fileSize;
 
+    private String thumb;
+
     public String getFileId() {
         return fileId;
     }
@@ -46,6 +48,22 @@ public class Any2AnyFile {
         this.mimeType = mimeType;
     }
 
+    public int getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(int fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public String getThumb() {
+        return thumb;
+    }
+
+    public void setThumb(String thumb) {
+        this.thumb = thumb;
+    }
+
     @Override
     public String toString() {
         return "Any2AnyFile{" +
@@ -54,13 +72,5 @@ public class Any2AnyFile {
                 ", mimeType='" + mimeType + '\'' +
                 ", format=" + format +
                 '}';
-    }
-
-    public int getFileSize() {
-        return fileSize;
-    }
-
-    public void setFileSize(int fileSize) {
-        this.fileSize = fileSize;
     }
 }

@@ -18,6 +18,7 @@ import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
+import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
@@ -36,7 +37,7 @@ public class RenameService {
 
     private TelegramService telegramService;
 
-    private TempFileService fileService;
+    private TempFileService tempFileService;
 
     private FormatService formatService;
 
@@ -55,12 +56,12 @@ public class RenameService {
     private UserService userService;
 
     @Autowired
-    public RenameService(TelegramService telegramService, TempFileService fileService, FormatService formatService,
+    public RenameService(TelegramService telegramService, TempFileService tempFileService, FormatService formatService,
                          @Qualifier("limits") MessageService messageService, RenameQueueService renameQueueService,
                          LocalisationService localisationService, InlineKeyboardService inlineKeyboardService,
                          CommandStateService commandStateService, UserService userService) {
         this.telegramService = telegramService;
-        this.fileService = fileService;
+        this.tempFileService = tempFileService;
         this.formatService = formatService;
         this.messageService = messageService;
         this.renameQueueService = renameQueueService;
@@ -188,6 +189,8 @@ public class RenameService {
         private volatile Supplier<Boolean> checker;
         private volatile boolean canceledByUser;
         private volatile SmartTempFile file;
+        private volatile SmartTempFile thumbFile;
+        private String thumb;
 
         private RenameTask(RenameQueueItem queueItem) {
             this.jobId = queueItem.getId();
@@ -198,6 +201,7 @@ public class RenameService {
             this.fileId = queueItem.getFile().getFileId();
             this.fileSize = queueItem.getFile().getSize();
             this.replyToMessageId = queueItem.getReplyToMessageId();
+            this.thumb = queueItem.getFile().getThumb();
         }
 
         @Override
@@ -207,11 +211,17 @@ public class RenameService {
 
             try {
                 String ext = formatService.getExt(fileName, mimeType);
-                file = fileService.createTempFile(TAG, ext);
+                file = tempFileService.createTempFile(TAG, ext);
                 telegramService.downloadFileByFileId(fileId, file);
 
                 String fileName = createNewFileName(newFileName, ext);
-                messageService.sendDocument(new SendDocument((long) userId, fileName, file.getFile()).setReplyToMessageId(replyToMessageId));
+                if (StringUtils.isNotBlank(thumb)) {
+                    thumbFile = tempFileService.createTempFile(TAG, Format.JPG.getExt());
+                    telegramService.downloadFileByFileId(thumb, thumbFile);
+                }
+                messageService.sendDocument(new SendDocument((long) userId, fileName, file.getFile())
+                        .setThumb(thumbFile != null ? thumbFile.getAbsolutePath() : null)
+                        .setReplyToMessageId(replyToMessageId));
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, newFileName);
             } catch (Exception ex) {
@@ -227,6 +237,9 @@ public class RenameService {
                     if (file != null) {
                         file.smartDelete();
                     }
+                    if (thumbFile != null) {
+                        thumbFile.smartDelete();
+                    }
                 }
             }
         }
@@ -240,6 +253,9 @@ public class RenameService {
         public void cancel() {
             if (!telegramService.cancelDownloading(fileId) && file != null) {
                 file.smartDelete();
+            }
+            if (!telegramService.cancelDownloading(thumb) && thumbFile != null) {
+                thumbFile.smartDelete();
             }
             if (canceledByUser) {
                 renameQueueService.deleteWithReturning(jobId);

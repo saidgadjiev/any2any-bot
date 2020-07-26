@@ -7,6 +7,7 @@ public class InputFile {
     public static final String MEDIA_FILE_ID_FIELD = "file_id";
     public static final String MEDIA_FILE_PATH_FIELD = "file_path";
     public static final String MEDIA_FILE_NAME_FIELD = "file_name";
+    private static final String THUMBNAIL = "thumb";
 
     @JsonProperty(MEDIA_FILE_ID_FIELD)
     private String fileId;
@@ -14,8 +15,18 @@ public class InputFile {
     private String filePath;
     @JsonProperty(MEDIA_FILE_NAME_FIELD)
     private String fileName;
+    @JsonProperty(THUMBNAIL)
+    private String thumb;
 
     public InputFile() {
+    }
+
+    public String getThumb() {
+        return thumb;
+    }
+
+    public void setThumb(String thumb) {
+        this.thumb = thumb;
     }
 
     public String getFileId() {

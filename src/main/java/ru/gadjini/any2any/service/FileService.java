@@ -59,6 +59,7 @@ public class FileService {
             any2AnyFile.setFileId(message.getDocument().getFileId());
             any2AnyFile.setMimeType(message.getDocument().getMimeType());
             any2AnyFile.setFileSize(message.getDocument().getFileSize());
+            any2AnyFile.setThumb(message.getDocument().hasThumb() ? message.getDocument().getThumb().getFileId() : null);
 
             return any2AnyFile;
         } else if (message.hasPhoto()) {
@@ -80,16 +81,25 @@ public class FileService {
             any2AnyFile.setFileName(fileName);
             any2AnyFile.setFileId(message.getVideo().getFileId());
             any2AnyFile.setFileSize(message.getVideo().getFileSize());
+            any2AnyFile.setFileName(message.getVideo().getFileName());
+            any2AnyFile.setThumb(message.getVideo().hasThumb() ? message.getVideo().getThumb().getFileId() : null);
+            any2AnyFile.setMimeType(message.getVideo().getMimeType());
 
             return any2AnyFile;
         } else if (message.hasAudio()) {
-            String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + ".";
-            String extension = formatService.getExt(message.getAudio().getMimeType());
-            fileName += extension;
+            String fileName = message.getAudio().getFileName();
+
+            if (StringUtils.isBlank(fileName)) {
+                fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + ".";
+                String extension = formatService.getExt(message.getAudio().getMimeType());
+                fileName += extension;
+            }
             any2AnyFile.setFileName(fileName);
             any2AnyFile.setFileId(message.getAudio().getFileId());
             any2AnyFile.setMimeType(message.getAudio().getMimeType());
             any2AnyFile.setFileSize(message.getAudio().getFileSize());
+            any2AnyFile.setFileName(message.getAudio().getFileName());
+            any2AnyFile.setThumb(message.getAudio().hasThumb() ? message.getAudio().getThumb().getFileId() : null);
 
             return any2AnyFile;
         } else if (message.hasSticker()) {

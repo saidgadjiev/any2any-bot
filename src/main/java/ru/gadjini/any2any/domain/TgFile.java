@@ -17,6 +17,8 @@ public class TgFile {
 
     public static final String SIZE = "size";
 
+    public static final String THUMB = "thumb";
+
     private String fileId;
 
     private String fileName;
@@ -24,6 +26,8 @@ public class TgFile {
     private String mimeType;
 
     private int size;
+
+    private String thumb;
 
     public String getFileId() {
         return fileId;
@@ -57,21 +61,32 @@ public class TgFile {
         this.size = size;
     }
 
+    public String getThumb() {
+        return thumb;
+    }
+
+    public void setThumb(String thumb) {
+        this.thumb = thumb;
+    }
+
     public String sql() {
         StringBuilder sql = new StringBuilder("(\"");
 
         sql.append(fileId).append("\",");
-        if (StringUtils.isNotBlank(fileName)) {
-            sql.append("\"").append(fileName).append("\",");
-        } else {
-            sql.append(",");
-        }
         if (StringUtils.isNotBlank(mimeType)) {
             sql.append("\"").append(mimeType).append("\",");
         } else {
             sql.append(",");
         }
-        sql.append(size);
+        if (StringUtils.isNotBlank(fileName)) {
+            sql.append("\"").append(fileName).append("\",");
+        } else {
+            sql.append(",");
+        }
+        sql.append(size).append(",");
+        if (StringUtils.isNotBlank(thumb)) {
+            sql.append("\"").append(thumb).append("\"");
+        }
         sql.append(")");
 
         return sql.toString();

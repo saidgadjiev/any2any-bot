@@ -8,6 +8,7 @@ public class Document {
     private static final String FILENAME_FIELD = "file_name";
     private static final String MIMETYPE_FIELD = "mime_type";
     private static final String FILESIZE_FIELD = "file_size";
+    private static final String THUMBNAIL = "thumb";
 
     @JsonProperty(FILEID_FIELD)
     private String fileId;
@@ -17,6 +18,8 @@ public class Document {
     private String mimeType;
     @JsonProperty(FILESIZE_FIELD)
     private Integer fileSize;
+    @JsonProperty(THUMBNAIL)
+    private Thumb thumb;
 
     public String getFileId() {
         return fileId;
@@ -32,6 +35,14 @@ public class Document {
 
     public Integer getFileSize() {
         return fileSize;
+    }
+
+    public Thumb getThumb() {
+        return thumb;
+    }
+
+    public boolean hasThumb() {
+        return thumb != null;
     }
 
     @Override

@@ -101,6 +101,7 @@ public class RenameQueueDao {
         tgFile.setFileId(resultSet.getString(TgFile.FILE_ID));
         tgFile.setFileName(resultSet.getString(TgFile.FILE_NAME));
         tgFile.setMimeType(resultSet.getString(TgFile.MIME_TYPE));
+        tgFile.setThumb(resultSet.getString(TgFile.THUMB));
         item.setFile(tgFile);
 
         item.setNewFileName(resultSet.getString(RenameQueueItem.NEW_FILE_NAME));

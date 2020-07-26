@@ -59,6 +59,12 @@ public class SendDocument {
         this.document.setFileId(fileId);
     }
 
+    public SendDocument setThumb(String thumb) {
+        document.setThumb(thumb);
+
+        return this;
+    }
+
     public String getChatId() {
         return chatId;
     }

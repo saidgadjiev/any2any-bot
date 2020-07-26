@@ -35,6 +35,7 @@ public class RenameQueueService {
         file.setFileId(renameState.getFile().getFileId());
         file.setMimeType(renameState.getFile().getMimeType());
         file.setSize(renameState.getFile().getFileSize());
+        file.setThumb(renameState.getFile().getThumb());
         renameQueueItem.setFile(file);
 
         renameQueueItem.setStatus(RenameQueueItem.Status.PROCESSING);
