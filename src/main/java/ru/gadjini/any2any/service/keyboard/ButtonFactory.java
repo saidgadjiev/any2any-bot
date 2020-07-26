@@ -24,6 +24,32 @@ public class ButtonFactory {
         this.localisationService = localisationService;
     }
 
+    public InlineKeyboardButton toNextPage(String delegate, int prevLimit, int offset) {
+        InlineKeyboardButton button = new InlineKeyboardButton("Next");
+        button.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(Arg.OFFSET.getKey(), offset)
+                        .add(Arg.PREV_LIMIT.getKey(), prevLimit)
+                        .add(Arg.PAGINATION.getKey(), true)
+                        .add(Arg.CALLBACK_DELEGATE.getKey(), delegate)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return button;
+    }
+
+    public InlineKeyboardButton toPrevPage(String delegate, int prevLimit, int offset) {
+        InlineKeyboardButton button = new InlineKeyboardButton("Prev");
+        button.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
+                new RequestParams()
+                        .add(Arg.OFFSET.getKey(), offset)
+                        .add(Arg.PREV_LIMIT.getKey(), prevLimit)
+                        .add(Arg.PAGINATION.getKey(), true)
+                        .add(Arg.CALLBACK_DELEGATE.getKey(), delegate)
+                        .serialize(CommandParser.COMMAND_ARG_SEPARATOR));
+
+        return button;
+    }
+
     public InlineKeyboardButton resizeButton(Locale locale) {
         return delegateButton(MessagesProperties.RESIZE_IMAGE_COMMAND_DESCRIPTION, CommandNames.IMAGE_EDITOR_COMMAND_NAME,
                 new RequestParams().add(Arg.EDIT_STATE_NAME.getKey(), State.Name.RESIZE.name()), locale);

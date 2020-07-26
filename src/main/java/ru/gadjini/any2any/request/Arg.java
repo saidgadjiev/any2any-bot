@@ -15,7 +15,10 @@ public enum Arg {
     IMAGE_SIZE("o"),
     UPDATE_EDITED_IMAGE("p"),
     EXTRACT_FILE_ID("r"),
-    JOB_ID("s");
+    JOB_ID("s"),
+    OFFSET("t"),
+    PAGINATION("u"),
+    PREV_LIMIT("v");
 
     private final String key;
 

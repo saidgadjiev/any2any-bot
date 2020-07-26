@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.bot.command.api.BotCommand;
+import ru.gadjini.any2any.bot.command.api.CallbackBotCommand;
 import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
@@ -13,7 +14,10 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.request.Arg;
+import ru.gadjini.any2any.request.RequestParams;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
@@ -31,7 +35,7 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand {
+public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand, CallbackBotCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UnzipCommand.class);
 
@@ -129,6 +133,25 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
     @Override
     public void leave(long chatId) {
         unzipService.leave(chatId);
+    }
+
+
+    @Override
+    public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
+        if (requestParams.contains(Arg.PAGINATION.getKey())) {
+            unzipService.nextOrPrev(callbackQuery.getId(), callbackQuery.getMessage().getChatId(), callbackQuery.getFromUser().getId(),
+                    callbackQuery.getMessage().getMessageId(), requestParams.getInt(Arg.PREV_LIMIT.getKey()), requestParams.getInt(Arg.OFFSET.getKey()));
+        }
+    }
+
+    @Override
+    public String getName() {
+        return getHistoryName();
+    }
+
+    @Override
+    public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
+
     }
 
     private Format checkFormat(int userId, Format format, String mimeType, String fileName, Locale locale) {

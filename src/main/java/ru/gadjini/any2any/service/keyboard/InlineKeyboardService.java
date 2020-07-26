@@ -42,6 +42,35 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
+    public InlineKeyboardMarkup getFilesListKeyboard(Set<Integer> filesIds, int limit, int prevLimit, int offset, int unzipJobId, Locale locale) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+
+        if (!(offset == 0 && filesIds.size() == limit)) {
+            if (filesIds.size() == offset + limit) {
+                inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.toPrevPage(CommandNames.UNZIP_COMMAND_NAME, limit, Math.max(0, offset - prevLimit))));
+            } else if (offset == 0) {
+                inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.toNextPage(CommandNames.UNZIP_COMMAND_NAME, limit, offset + limit)));
+            } else {
+                inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.toPrevPage(CommandNames.UNZIP_COMMAND_NAME, limit, Math.max(0, offset - prevLimit)),
+                        buttonFactory.toNextPage(CommandNames.UNZIP_COMMAND_NAME, limit, offset + limit)));
+            }
+        }
+        List<List<Integer>> lists = Lists.partition(filesIds.stream().skip(offset).limit(limit).collect(Collectors.toCollection(ArrayList::new)), 4);
+        int i = offset + 1;
+        for (List<Integer> list : lists) {
+            List<InlineKeyboardButton> row = new ArrayList<>();
+
+            for (int id : list) {
+                row.add(buttonFactory.extractFileButton(String.valueOf(i++), id, unzipJobId));
+            }
+
+            inlineKeyboardMarkup.getKeyboard().add(row);
+        }
+        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.extractAllButton(unzipJobId, locale)));
+
+        return inlineKeyboardMarkup;
+    }
+
     public InlineKeyboardMarkup getFilesListKeyboard(Set<Integer> filesIds, int unzipJobId, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
 

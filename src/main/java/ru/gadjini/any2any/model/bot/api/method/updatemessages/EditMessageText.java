@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.model.bot.api.method.updatemessages;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import ru.gadjini.any2any.model.bot.api.object.ParseMode;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
@@ -26,6 +27,8 @@ public class EditMessageText {
     private Boolean disableWebPagePreview;
     @JsonProperty(REPLYMARKUP_FIELD)
     private InlineKeyboardMarkup replyMarkup;
+    @JsonIgnore
+    private boolean throwEx;
 
     public EditMessageText() {
     }
@@ -112,6 +115,16 @@ public class EditMessageText {
 
     public EditMessageText setParseMode(String parseMode) {
         this.parseMode = parseMode;
+        return this;
+    }
+
+    public boolean isThrowEx() {
+        return throwEx;
+    }
+
+    public EditMessageText setThrowEx(boolean throwEx) {
+        this.throwEx = throwEx;
+
         return this;
     }
 

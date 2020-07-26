@@ -12,7 +12,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.UnzipQueueItem;
 import ru.gadjini.any2any.exception.ProcessException;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.filter.TelegramLimitsFilter;
+import ru.gadjini.any2any.exception.botapi.TelegramApiException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendFileResult;
@@ -22,6 +22,7 @@ import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
@@ -176,6 +177,35 @@ public class UnzipService {
                         extractFileId, unzipState.getFiles().get(extractFileId).getSize());
                 sendStartExtractingFileMessage(userId, messageId, item.getId());
                 executor.execute(new ExtractFileTask(item));
+            }
+        }
+    }
+
+    public void nextOrPrev(String queryId, long chatId, int userId, int messageId, int prevLimit, int offset) {
+        UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, false);
+        if (unzipState == null) {
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(
+                    queryId,
+                    localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACT_FILE_IMPOSSIBLE, userService.getLocaleOrDefault(userId)),
+                    true
+            ));
+            messageService.removeInlineKeyboard(userId, messageId);
+        } else {
+            Locale locale = userService.getLocaleOrDefault(userId);
+            UnzipMessageBuilder.FilesMessage filesList = messageBuilder.getFilesList(unzipState.getFiles(), 0, offset, locale);
+            InlineKeyboardMarkup filesListKeyboard = inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(),
+                    filesList.getLimit(), prevLimit, offset, unzipState.getUnzipJobId(), locale);
+
+            try {
+                messageService.editMessage(new EditMessageText(chatId, messageId, filesList.getMessage())
+                        .setThrowEx(true)
+                        .setReplyMarkup(filesListKeyboard));
+            } catch (Exception e) {
+                messageService.sendMessage(new SendMessage((long) userId, filesList.getMessage())
+                        .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), filesList.getLimit(), 0, filesList.getOffset(), unzipState.getUnzipJobId(), locale)));
+                if (!(e instanceof TelegramApiException)) {
+                    LOGGER.error(e.getMessage(), e);
+                }
             }
         }
     }
@@ -594,24 +624,18 @@ public class UnzipService {
                     return;
                 }
                 Locale locale = userService.getLocaleOrDefault(userId);
-                String message = localisationService.getMessage(
-                        MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
-                        new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
-                        locale
-                );
-                if (message.length() > TelegramLimitsFilter.TEXT_LENGTH_LIMIT) {
-                    LOGGER.warn("Too many files archive({}, {}, {}, {})", userId, fileId, format, size);
-                    messageService.editMessage(
-                            new EditMessageText(userId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_TOO_MANY_FILES_IN_ARCHIVE, locale))
-                    );
-                    return;
-                }
+                UnzipMessageBuilder.FilesMessage filesList = messageBuilder.getFilesList(unzipState.getFiles(), 0, 0, locale);
+
                 try {
-                    messageService.editMessage(new EditMessageText((long) userId, messageId, message)
-                            .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), jobId, locale)));
+                    messageService.editMessage(new EditMessageText((long) userId, messageId, filesList.getMessage())
+                            .setThrowEx(true)
+                            .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), filesList.getLimit(), 0, filesList.getOffset(), jobId, locale)));
                 } catch (Exception e) {
-                    messageService.sendMessage(new SendMessage((long) userId, message)
-                            .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), jobId, locale)));
+                    messageService.sendMessage(new SendMessage((long) userId, filesList.getMessage())
+                            .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), filesList.getLimit(), 0, filesList.getOffset(), jobId, locale)));
+                    if (!(e instanceof TelegramApiException)) {
+                        LOGGER.error(e.getMessage(), e);
+                    }
                 }
                 commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
 

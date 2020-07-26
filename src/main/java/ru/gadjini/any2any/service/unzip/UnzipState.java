@@ -4,6 +4,7 @@ import ru.gadjini.any2any.model.ZipFileHeader;
 import ru.gadjini.any2any.service.conversion.api.Format;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,7 +16,7 @@ public class UnzipState {
 
     private int unzipJobId;
 
-    private final Map<Integer, ZipFileHeader> files = new HashMap<>();
+    private final Map<Integer, ZipFileHeader> files = new LinkedHashMap<>();
 
     private final Map<Integer, String> filesCache = new HashMap<>();
 

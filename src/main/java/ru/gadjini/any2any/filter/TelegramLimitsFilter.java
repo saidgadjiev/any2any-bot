@@ -39,7 +39,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramLimitsFilter.class);
 
-    public static final int TEXT_LENGTH_LIMIT = 4090;
+    public static final int TEXT_LENGTH_LIMIT = 4000;
 
     //1.5 GB
     private static final long LARGE_FILE_SIZE = 1610612736;
