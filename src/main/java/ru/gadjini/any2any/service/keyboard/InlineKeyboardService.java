@@ -47,12 +47,12 @@ public class InlineKeyboardService {
 
         if (!(offset == 0 && filesIds.size() == limit)) {
             if (filesIds.size() == offset + limit) {
-                inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.toPrevPage(CommandNames.UNZIP_COMMAND_NAME, limit, Math.max(0, offset - prevLimit))));
+                inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.toPrevPage(CommandNames.UNZIP_COMMAND_NAME, limit, Math.max(0, offset - prevLimit), locale)));
             } else if (offset == 0) {
-                inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.toNextPage(CommandNames.UNZIP_COMMAND_NAME, limit, offset + limit)));
+                inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.toNextPage(CommandNames.UNZIP_COMMAND_NAME, limit, offset + limit, locale)));
             } else {
-                inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.toPrevPage(CommandNames.UNZIP_COMMAND_NAME, limit, Math.max(0, offset - prevLimit)),
-                        buttonFactory.toNextPage(CommandNames.UNZIP_COMMAND_NAME, limit, offset + limit)));
+                inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.toPrevPage(CommandNames.UNZIP_COMMAND_NAME, limit, Math.max(0, offset - prevLimit), locale),
+                        buttonFactory.toNextPage(CommandNames.UNZIP_COMMAND_NAME, limit, offset + limit, locale)));
             }
         }
         List<List<Integer>> lists = Lists.partition(filesIds.stream().skip(offset).limit(limit).collect(Collectors.toCollection(ArrayList::new)), 4);

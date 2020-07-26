@@ -97,7 +97,7 @@ public class MessagesProperties {
 
     public static final String UNZIP_COMMAND_NAME = "unzip.command.name";
 
-    public static final String MESSAGE_ZIP_FILE = "message.zip.file";
+    public static final String MESSAGE_ZIP_FILE = "message.unzip.welcome";
 
     public static final String MESSAGE_EXTRACT_FILE_IMPOSSIBLE = "message.extract.file.impossible";
 
@@ -290,4 +290,8 @@ public class MessagesProperties {
     public static final String MESSAGE_EXTRACT_FILE_ERROR = "message.extract.file.error";
 
     public static final String MESSAGE_UNZIP_ERROR = "message.unzip.error";
+
+    public static final String MESSAGE_NEXT_PAGE = "message.next.page";
+
+    public static final String MESSAGE_PREV_PAGE = "message.prev.page";
 }

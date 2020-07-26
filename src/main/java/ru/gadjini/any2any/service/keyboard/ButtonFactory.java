@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
@@ -24,8 +25,8 @@ public class ButtonFactory {
         this.localisationService = localisationService;
     }
 
-    public InlineKeyboardButton toNextPage(String delegate, int prevLimit, int offset) {
-        InlineKeyboardButton button = new InlineKeyboardButton("Next");
+    public InlineKeyboardButton toNextPage(String delegate, int prevLimit, int offset, Locale locale) {
+        InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.MESSAGE_NEXT_PAGE, locale));
         button.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams()
                         .add(Arg.OFFSET.getKey(), offset)
@@ -37,8 +38,8 @@ public class ButtonFactory {
         return button;
     }
 
-    public InlineKeyboardButton toPrevPage(String delegate, int prevLimit, int offset) {
-        InlineKeyboardButton button = new InlineKeyboardButton("Prev");
+    public InlineKeyboardButton toPrevPage(String delegate, int prevLimit, int offset, Locale locale) {
+        InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.MESSAGE_PREV_PAGE, locale));
         button.setCallbackData(CommandNames.CALLBACK_DELEGATE_COMMAND_NAME + CommandParser.COMMAND_NAME_SEPARATOR +
                 new RequestParams()
                         .add(Arg.OFFSET.getKey(), offset)
