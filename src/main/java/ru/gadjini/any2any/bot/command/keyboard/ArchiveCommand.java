@@ -138,7 +138,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
             messageService.sendMessage(
                     new SendMessage(
                             message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CURRENT_FILES,
-                            new Object[]{toString(archiveState.getFiles())}, locale)
+                            new Object[]{toString(archiveState.getFiles()), archiveState.getFiles().size()}, locale)
                     )
                             .setReplyMarkup(inlineKeyboardService.getArchiveFilesKeyboard(locale))
             );
@@ -162,12 +162,13 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     private String toString(List<Any2AnyFile> any2AnyFiles) {
         StringBuilder files = new StringBuilder();
+        int i = 1;
         for (Any2AnyFile any2AnyFile : any2AnyFiles) {
             if (files.length() > 0) {
                 files.append(", ");
             }
 
-            files.append(any2AnyFile.getFileName());
+            files.append(i++).append(") ").append(any2AnyFile.getFileName());
         }
 
         return files.toString();
