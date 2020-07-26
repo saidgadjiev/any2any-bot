@@ -206,10 +206,10 @@ public class RenameService {
             LOGGER.debug("Start({}, {}, {})", userId, size, fileId);
 
             try {
-                file = fileService.createTempFile(TAG, "tmp");
+                String ext = formatService.getExt(fileName, mimeType);
+                file = fileService.createTempFile(TAG, ext);
                 telegramService.downloadFileByFileId(fileId, file);
 
-                String ext = formatService.getExt(fileName, mimeType);
                 String fileName = createNewFileName(newFileName, ext);
                 messageService.sendDocument(new SendDocument((long) userId, fileName, file.getFile()).setReplyToMessageId(replyToMessageId));
 

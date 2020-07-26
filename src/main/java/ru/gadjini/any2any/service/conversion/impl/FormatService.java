@@ -131,7 +131,7 @@ public class FormatService {
             return "jpg";
         }
 
-        return StringUtils.isBlank(extension) ? null : extension;
+        return StringUtils.isBlank(extension) ? "bin" : extension;
     }
 
     public Format getFormat(String fileName, String mimeType) {
