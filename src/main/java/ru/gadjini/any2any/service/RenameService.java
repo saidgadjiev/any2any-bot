@@ -176,6 +176,8 @@ public class RenameService {
 
     public final class RenameTask implements SmartExecutorService.Job {
 
+        private final Logger LOGGER = LoggerFactory.getLogger(RenameTask.class);
+
         private static final String TAG = "rename";
 
         private int jobId;

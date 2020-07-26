@@ -121,7 +121,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             stopWatch.start();
 
             Document word = new Document(file.getAbsolutePath());
-            SmartTempFile pdfFile = fileService.createTempFile("any2any", "pdf");
+            SmartTempFile pdfFile = fileService.createTempFile("any2any", Format.PDF.getExt());
             try {
                 word.save(pdfFile.getAbsolutePath(), SaveFormat.PDF);
             } finally {

@@ -113,6 +113,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_RENAMING = "message.renaming";
 
+    public static final String MESSAGE_THUMB_PROCESSING = "message.thumb.processing";
+
     public static final String MESSAGE_CONVERT_FILE = "message.convert.file";
 
     public static final String MESSAGE_ZERO_LENGTH_FILE = "message.zero.length.file";
@@ -294,4 +296,10 @@ public class MessagesProperties {
     public static final String MESSAGE_NEXT_PAGE = "message.next.page";
 
     public static final String MESSAGE_PREV_PAGE = "message.prev.page";
+
+    public static final String THUMB_COMMAND_NAME = "thumb.command.name";
+
+    public static final String MESSAGE_THUMB_WELCOME = "message.thumb.welcome";
+
+    public static final String MESSAGE_SEND_THUMB = "message.send.thumb";
 }

@@ -59,4 +59,6 @@ public class CommandNames {
     public static final String ADMIN = "x";
 
     public static final String EXTRACT_ALL = "y";
+
+    public static final String THUMB_COMMAND = "z";
 }
