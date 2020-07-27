@@ -74,7 +74,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     }
 
     @Override
-    public String getParentCommandName() {
+    public String getParentCommandName(long chatId) {
         return CommandNames.START_COMMAND;
     }
 

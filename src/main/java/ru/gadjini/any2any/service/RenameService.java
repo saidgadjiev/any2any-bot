@@ -12,6 +12,7 @@ import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.RenameQueueItem;
 import ru.gadjini.any2any.io.SmartTempFile;
+import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
@@ -23,6 +24,7 @@ import ru.gadjini.any2any.service.conversion.impl.FormatService;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.rename.RenameQueueService;
+import ru.gadjini.any2any.service.thumb.ThumbService;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
@@ -55,11 +57,15 @@ public class RenameService {
 
     private UserService userService;
 
+    private BotSettingsService botSettingsService;
+
+    private ThumbService thumbService;
+
     @Autowired
     public RenameService(TelegramService telegramService, TempFileService tempFileService, FormatService formatService,
                          @Qualifier("limits") MessageService messageService, RenameQueueService renameQueueService,
                          LocalisationService localisationService, InlineKeyboardService inlineKeyboardService,
-                         CommandStateService commandStateService, UserService userService) {
+                         CommandStateService commandStateService, UserService userService, BotSettingsService botSettingsService, ThumbService thumbService) {
         this.telegramService = telegramService;
         this.tempFileService = tempFileService;
         this.formatService = formatService;
@@ -69,6 +75,8 @@ public class RenameService {
         this.inlineKeyboardService = inlineKeyboardService;
         this.commandStateService = commandStateService;
         this.userService = userService;
+        this.botSettingsService = botSettingsService;
+        this.thumbService = thumbService;
     }
 
     @PostConstruct
@@ -217,7 +225,10 @@ public class RenameService {
                 telegramService.downloadFileByFileId(fileId, file);
 
                 String fileName = createNewFileName(newFileName, ext);
-                if (StringUtils.isNotBlank(thumb)) {
+                Any2AnyFile thumbnail = botSettingsService.getThumbnail(userId);
+                if (thumbnail != null) {
+                    thumbFile = thumbService.convertToThumb(thumbnail);
+                } else if (StringUtils.isNotBlank(thumb)) {
                     thumbFile = tempFileService.createTempFile(TAG, Format.JPG.getExt());
                     telegramService.downloadFileByFileId(thumb, thumbFile);
                 }
@@ -236,6 +247,7 @@ public class RenameService {
                     executor.complete(jobId);
                     renameQueueService.delete(jobId);
                     commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+                    botSettingsService.deleteThumbnail(userId);
                     if (file != null) {
                         file.smartDelete();
                     }
@@ -265,6 +277,7 @@ public class RenameService {
             }
 
             commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+            botSettingsService.deleteThumbnail(userId);
         }
 
         @Override

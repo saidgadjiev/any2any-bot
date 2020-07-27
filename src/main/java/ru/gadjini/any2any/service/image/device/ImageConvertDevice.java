@@ -15,4 +15,6 @@ public interface ImageConvertDevice {
     void applySketchFilter(String in, String out);
 
     void resize(String in, String out, String size);
+
+    void convertToThumb(String in, String out);
 }

@@ -5,7 +5,7 @@ import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup
 
 public interface NavigableBotCommand extends MyBotCommand {
 
-    String getParentCommandName();
+    String getParentCommandName(long chatId);
 
     String getHistoryName();
 
@@ -18,6 +18,10 @@ public interface NavigableBotCommand extends MyBotCommand {
     }
 
     default void leave(long chatId) {
+
+    }
+
+    default void setPrevCommand(long chatId, String prevCommand) {
 
     }
 

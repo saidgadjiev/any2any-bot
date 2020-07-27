@@ -48,6 +48,7 @@ public class CommandNavigator {
                 return;
             }
             currCommand.leave(chatId);
+            navigableBotCommand.setPrevCommand(chatId, currCommand.getHistoryName());
         }
 
         setCurrentCommand(chatId, navigableBotCommand);
@@ -67,7 +68,7 @@ public class CommandNavigator {
             parentCommand.restore(message);
         } else {
             if (currentCommand.canLeave(chatId)) {
-                String parentHistoryName = currentCommand.getParentCommandName();
+                String parentHistoryName = currentCommand.getParentCommandName(chatId);
 
                 if (StringUtils.isNotBlank(parentHistoryName)) {
                     currentCommand.leave(chatId);
@@ -89,9 +90,9 @@ public class CommandNavigator {
         if (navigableBotCommand == null) {
             return null;
         }
-        navigableBotCommand.leave(chatId);
+        String parentHistoryName = navigableBotCommand.getParentCommandName(chatId);
 
-        String parentHistoryName = navigableBotCommand.getParentCommandName();
+        navigableBotCommand.leave(chatId);
         NavigableBotCommand parentCommand = navigableBotCommands.get(parentHistoryName);
 
         setCurrentCommand(chatId, parentCommand);

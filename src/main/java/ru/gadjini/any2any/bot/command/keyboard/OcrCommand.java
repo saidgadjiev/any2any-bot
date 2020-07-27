@@ -93,7 +93,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
     }
 
     @Override
-    public String getParentCommandName() {
+    public String getParentCommandName(long chatId) {
         return CommandNames.START_COMMAND;
     }
 

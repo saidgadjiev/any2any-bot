@@ -46,8 +46,23 @@ public class ImageMagickDevice implements ImageConvertDevice, ImageIdentifyDevic
     }
 
     @Override
+    public void convertToThumb(String in, String out) {
+        new ProcessExecutor().execute(getThumbCommand(in, out));
+    }
+
+    @Override
     public String getSize(String in) {
         return new ProcessExecutor().executeWithResult(getSizeCommand(in));
+    }
+
+    private String[] getThumbCommand(String in, String out) {
+        List<String> command = new ArrayList<>(convertCommandName());
+        command.add("-thumbnail");
+        command.add("320x320");
+        command.add(in);
+        command.add(out);
+
+        return command.toArray(new String[0]);
     }
 
     private String[] getSizeCommand(String in) {

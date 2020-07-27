@@ -15,6 +15,7 @@ import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.RenameService;
@@ -98,7 +99,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
     }
 
     @Override
-    public String getParentCommandName() {
+    public String getParentCommandName(long chatId) {
         return CommandNames.START_COMMAND;
     }
 
@@ -129,6 +130,24 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
     @Override
     public void leave(long chatId) {
         renameService.leave(chatId);
+    }
+
+    @Override
+    public void restore(TgMessage message) {
+        RenameState renameState = commandStateService.getState(message.getChatId(), CommandNames.RENAME_COMMAND_NAME, true);
+        Locale locale = userService.getLocaleOrDefault(message.getUser().getId());
+        String msg = localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FILE, locale);
+        if (renameState != null) {
+            msg = localisationService.getMessage(MessagesProperties.MESSAGE_NEW_FILE_NAME, locale);
+        }
+        messageService.sendMessage(new HtmlMessage(message.getChatId(), msg)
+                .setReplyMarkup(replyKeyboardService.goBack(message.getChatId(), locale)));
+    }
+
+    @Override
+    public ReplyKeyboardMarkup getKeyboard(long chatId) {
+        Locale locale = userService.getLocaleOrDefault((int) chatId);
+        return replyKeyboardService.goBack(chatId, locale);
     }
 
     private RenameState createState(Message message, Locale locale) {

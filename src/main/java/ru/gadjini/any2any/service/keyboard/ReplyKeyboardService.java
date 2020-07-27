@@ -21,6 +21,8 @@ public interface ReplyKeyboardService {
 
     ReplyKeyboardMarkup goBack(long chatId, Locale locale);
 
+    ReplyKeyboardMarkup cancel(long chatId, Locale locale);
+
     ReplyKeyboardMarkup getFormatsKeyboard(long chatId, Format format, Locale locale);
 
     ReplyKeyboardRemove removeKeyboard(long chatId);

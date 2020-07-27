@@ -61,4 +61,10 @@ public class CommandNames {
     public static final String EXTRACT_ALL = "y";
 
     public static final String THUMB_COMMAND = "z";
+
+    public static final String SET_THUMBNAIL_COMMAND = "sethumb";
+
+    public static final String DEL_THUMBNAIL_COMMAND = "delthumb";
+
+    public static final String VIEW_THUMBNAIL_COMMAND = "viewthumb";
 }

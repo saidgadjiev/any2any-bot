@@ -11,6 +11,7 @@ import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.PhotoSize;
 import ru.gadjini.any2any.model.bot.api.object.Sticker;
+import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
 
 import java.util.Comparator;
@@ -60,6 +61,7 @@ public class FileService {
             any2AnyFile.setMimeType(message.getDocument().getMimeType());
             any2AnyFile.setFileSize(message.getDocument().getFileSize());
             any2AnyFile.setThumb(message.getDocument().hasThumb() ? message.getDocument().getThumb().getFileId() : null);
+            any2AnyFile.setFormat(formatService.getFormat(any2AnyFile.getFileName(), any2AnyFile.getMimeType()));
 
             return any2AnyFile;
         } else if (message.hasPhoto()) {
@@ -68,13 +70,14 @@ public class FileService {
             any2AnyFile.setFileId(photoSize.getFileId());
             any2AnyFile.setMimeType("image/jpeg");
             any2AnyFile.setFileSize(photoSize.getFileSize());
+            any2AnyFile.setFormat(Format.JPG);
 
             return any2AnyFile;
         } else if (message.hasVideo()) {
             String fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + ".";
-            String extension = formatService.getExt(message.getVideo().getMimeType());
-            if (StringUtils.isNotBlank(extension)) {
-                fileName += extension;
+            Format format = formatService.getFormat(message.getVideo().getFileName(), message.getVideo().getMimeType());
+            if (format != null) {
+                fileName += format.getExt();
             } else {
                 fileName += "mp4";
             }
@@ -84,15 +87,16 @@ public class FileService {
             any2AnyFile.setFileName(message.getVideo().getFileName());
             any2AnyFile.setThumb(message.getVideo().hasThumb() ? message.getVideo().getThumb().getFileId() : null);
             any2AnyFile.setMimeType(message.getVideo().getMimeType());
+            any2AnyFile.setFormat(format);
 
             return any2AnyFile;
         } else if (message.hasAudio()) {
             String fileName = message.getAudio().getFileName();
+            Format format = formatService.getFormat(message.getAudio().getFileName(), message.getAudio().getMimeType());
 
             if (StringUtils.isBlank(fileName)) {
                 fileName = localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale) + ".";
-                String extension = formatService.getExt(message.getAudio().getMimeType());
-                fileName += extension;
+                fileName += format.getExt();
             }
             any2AnyFile.setFileName(fileName);
             any2AnyFile.setFileId(message.getAudio().getFileId());
@@ -100,6 +104,7 @@ public class FileService {
             any2AnyFile.setFileSize(message.getAudio().getFileSize());
             any2AnyFile.setFileName(message.getAudio().getFileName());
             any2AnyFile.setThumb(message.getAudio().hasThumb() ? message.getAudio().getThumb().getFileId() : null);
+            any2AnyFile.setFormat(format);
 
             return any2AnyFile;
         } else if (message.hasSticker()) {
@@ -110,6 +115,7 @@ public class FileService {
             any2AnyFile.setFileName(fileName);
             any2AnyFile.setMimeType(sticker.getAnimated() ? null : "image/webp");
             any2AnyFile.setFileSize(message.getSticker().getFileSize());
+            any2AnyFile.setFormat(sticker.getAnimated() ? Format.TGS : Format.WEBP);
 
             return any2AnyFile;
         }

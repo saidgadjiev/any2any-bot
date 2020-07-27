@@ -302,4 +302,12 @@ public class MessagesProperties {
     public static final String MESSAGE_THUMB_WELCOME = "message.thumb.welcome";
 
     public static final String MESSAGE_SEND_THUMB = "message.send.thumb";
+
+    public static final String MESSAGE_THUMB_ADDED = "message.thumb.added";
+
+    public static final String MESSAGE_THUMB_INVALID_FILE = "message.thumb.invalid.file";
+
+    public static final String MESSAGE_THUMB_NOT_FOUND = "message.thumb.not.found";
+
+    public static final String MESSAGE_THUMB_DELETED = "message.thumb.deleted";
 }

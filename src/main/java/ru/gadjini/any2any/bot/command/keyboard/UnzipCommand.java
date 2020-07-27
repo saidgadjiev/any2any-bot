@@ -121,7 +121,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
     }
 
     @Override
-    public String getParentCommandName() {
+    public String getParentCommandName(long chatId) {
         return CommandNames.START_COMMAND;
     }
 

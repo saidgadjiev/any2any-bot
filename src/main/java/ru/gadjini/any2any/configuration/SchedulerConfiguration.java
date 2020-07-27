@@ -15,7 +15,6 @@ import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.ConvertionService;
-import ru.gadjini.any2any.service.thumb.ThumbService;
 import ru.gadjini.any2any.service.unzip.UnzipService;
 
 import java.util.Map;
@@ -54,8 +53,6 @@ public class SchedulerConfiguration {
 
     private UserService userService;
 
-    private ThumbService thumbService;
-
     @Autowired
     public void setConversionService(ConvertionService conversionService) {
         this.conversionService = conversionService;
@@ -79,11 +76,6 @@ public class SchedulerConfiguration {
     @Autowired
     public void setUserService(UserService userService) {
         this.userService = userService;
-    }
-
-    @Autowired
-    public void setThumbService(ThumbService thumbService) {
-        this.thumbService = thumbService;
     }
 
     @Bean
@@ -197,48 +189,6 @@ public class SchedulerConfiguration {
 
         LOGGER.debug("Rename light thread pool({})", lightTaskExecutor.getCorePoolSize());
         LOGGER.debug("Rename heavy thread pool({})", heavyTaskExecutor.getCorePoolSize());
-
-        return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor, HEAVY, heavyTaskExecutor));
-    }
-
-
-    @Bean
-    @Qualifier("thumbTaskExecutor")
-    public SmartExecutorService thumbTaskExecutor() {
-        SmartExecutorService executorService = new SmartExecutorService();
-        ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(LIGHT_THREADS_COUNT, LIGHT_THREADS_COUNT,
-                THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
-                new LinkedBlockingQueue<>(LIGHT_QUEUE_SIZE),
-                (r, executor) -> {
-                    executorService.complete(((Job) r).getId());
-                    thumbService.reject((Job) r);
-                }) {
-            @Override
-            protected void afterExecute(Runnable r, Throwable t) {
-                Job poll = thumbService.getTask(LIGHT);
-                if (poll != null) {
-                    executorService.execute(poll);
-                }
-            }
-        };
-        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(HEAVY_THREADS_COUNT, HEAVY_THREADS_COUNT,
-                THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
-                new LinkedBlockingQueue<>(HEAVY_QUEUE_SIZE),
-                (r, executor) -> {
-                    executorService.complete(((Job) r).getId());
-                    thumbService.reject((Job) r);
-                }) {
-            @Override
-            protected void afterExecute(Runnable r, Throwable t) {
-                Job poll = thumbService.getTask(HEAVY);
-                if (poll != null) {
-                    executorService.execute(poll);
-                }
-            }
-        };
-
-        LOGGER.debug("Thumb light thread pool({})", lightTaskExecutor.getCorePoolSize());
-        LOGGER.debug("Thumb heavy thread pool({})", heavyTaskExecutor.getCorePoolSize());
 
         return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor, HEAVY, heavyTaskExecutor));
     }

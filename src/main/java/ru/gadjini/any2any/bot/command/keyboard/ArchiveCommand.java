@@ -105,7 +105,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
     }
 
     @Override
-    public String getParentCommandName() {
+    public String getParentCommandName(long chatId) {
         return CommandNames.START_COMMAND;
     }
 
