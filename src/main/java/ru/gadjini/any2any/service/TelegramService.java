@@ -16,10 +16,7 @@ import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.ApiResponse;
 import ru.gadjini.any2any.model.bot.api.method.CancelDownloading;
-import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
-import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
+import ru.gadjini.any2any.model.bot.api.method.send.*;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.*;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.GetFile;
@@ -231,6 +228,26 @@ public class TelegramService {
             }
         } catch (RestClientException e) {
             throw new TelegramApiRequestException(sendDocument.getChatId(), e.getMessage(), e);
+        }
+    }
+
+    public Message sendPhoto(SendPhoto sendPhoto) {
+        try {
+            HttpEntity<SendPhoto> request = new HttpEntity<>(sendPhoto);
+            String response = restTemplate.postForObject(getUrl(SendPhoto.METHOD), request, String.class);
+            try {
+                ApiResponse<Message> result = objectMapper.readValue(response, new TypeReference<>() {
+                });
+                if (result.getOk()) {
+                    return result.getResult();
+                } else {
+                    throw new TelegramApiRequestException(sendPhoto.getChatId(), "Error sending photo", result);
+                }
+            } catch (IOException e) {
+                throw new TelegramApiRequestException(sendPhoto.getChatId(), "Unable to deserialize response(" + response + ")\n" + e.getMessage(), e);
+            }
+        } catch (RestClientException e) {
+            throw new TelegramApiRequestException(sendPhoto.getChatId(), e.getMessage(), e);
         }
     }
 

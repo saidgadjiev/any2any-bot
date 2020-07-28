@@ -47,8 +47,9 @@ public class CommandNavigator {
             if (Objects.equals(currCommand.getHistoryName(), navigableBotCommand.getHistoryName())) {
                 return;
             }
-            currCommand.leave(chatId);
-            navigableBotCommand.setPrevCommand(chatId, currCommand.getHistoryName());
+            if (!navigableBotCommand.setPrevCommand(chatId, currCommand.getHistoryName())) {
+                currCommand.leave(chatId);
+            }
         }
 
         setCurrentCommand(chatId, navigableBotCommand);

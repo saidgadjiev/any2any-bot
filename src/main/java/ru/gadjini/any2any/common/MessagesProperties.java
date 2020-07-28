@@ -113,8 +113,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_RENAMING = "message.renaming";
 
-    public static final String MESSAGE_THUMB_PROCESSING = "message.thumb.processing";
-
     public static final String MESSAGE_CONVERT_FILE = "message.convert.file";
 
     public static final String MESSAGE_ZERO_LENGTH_FILE = "message.zero.length.file";
@@ -134,8 +132,6 @@ public class MessagesProperties {
     public static final String MESSAGE_EMPTY_TEXT_EXTRACTED = "message.empty.text.extracted";
 
     public static final String MESSAGE_EXTRACTION_PROCESSING = "message.extraction.processing";
-
-    public static final String MESSAGE_OCR_LANGUAGE_CHANGED = "message.ocr.language.changed";
 
     public static final String ARCHIVE_COMMAND_NAME = "archive.command.name";
 
@@ -283,8 +279,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_EXTRACT_ALL_PROCESSING = "message.extract.all.processing";
 
-    public static final String MESSAGE_TOO_MANY_FILES_IN_ARCHIVE = "message.too.many.files.in.archive";
-
     public static final String ENABLE_DISTRIBUTIONS_COMMAND_NAME = "enable.distributions.command.name";
 
     public static final String MESSAGE_DISTRIBUTIONS_ENABLED = "message.distributions.enabled";
@@ -296,10 +290,6 @@ public class MessagesProperties {
     public static final String MESSAGE_NEXT_PAGE = "message.next.page";
 
     public static final String MESSAGE_PREV_PAGE = "message.prev.page";
-
-    public static final String THUMB_COMMAND_NAME = "thumb.command.name";
-
-    public static final String MESSAGE_THUMB_WELCOME = "message.thumb.welcome";
 
     public static final String MESSAGE_SEND_THUMB = "message.send.thumb";
 

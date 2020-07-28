@@ -1,7 +1,5 @@
 package ru.gadjini.any2any.bot.command.keyboard.rename;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -30,8 +28,6 @@ import java.util.Set;
 
 @Component
 public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RenameCommand.class);
 
     private Set<String> names = new HashSet<>();
 
@@ -88,6 +84,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
     @Override
     public boolean processMessage(Message message, String text) {
         processMessage0(message.getChatId(), message.getFromUser().getId());
+        commandStateService.setState(message.getChatId(), CommandNames.RENAME_COMMAND_NAME, new RenameState());
 
         return true;
     }
@@ -111,7 +108,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
-        RenameState renameState = createState(message, locale);
+        RenameState renameState = initState(message, locale);
 
         if (renameState != null) {
             renameState.setLanguage(locale.getLanguage());
@@ -150,19 +147,16 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
         return replyKeyboardService.goBack(chatId, locale);
     }
 
-    private RenameState createState(Message message, Locale locale) {
+    private RenameState initState(Message message, Locale locale) {
         Any2AnyFile file = fileService.getFile(message, locale);
         if (file == null) {
             return null;
         }
-        RenameState renameState = new RenameState();
+        RenameState renameState = commandStateService.getState(message.getChatId(), CommandNames.RENAME_COMMAND_NAME, true);
         renameState.setReplyMessageId(message.getMessageId());
         renameState.setFile(file);
 
-        if (renameState.getFile() == null) {
-            LOGGER.warn("No file({}, {})", message.getFromUser().getId(), TgMessage.getMetaTypes(message));
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FORBIDDEN, locale));
-        }
+        commandStateService.setState(message.getChatId(), CommandNames.RENAME_COMMAND_NAME, renameState);
 
         return renameState;
     }

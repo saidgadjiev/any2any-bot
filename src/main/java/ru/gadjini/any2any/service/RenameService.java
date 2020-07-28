@@ -57,15 +57,13 @@ public class RenameService {
 
     private UserService userService;
 
-    private BotSettingsService botSettingsService;
-
     private ThumbService thumbService;
 
     @Autowired
     public RenameService(TelegramService telegramService, TempFileService tempFileService, FormatService formatService,
                          @Qualifier("limits") MessageService messageService, RenameQueueService renameQueueService,
                          LocalisationService localisationService, InlineKeyboardService inlineKeyboardService,
-                         CommandStateService commandStateService, UserService userService, BotSettingsService botSettingsService, ThumbService thumbService) {
+                         CommandStateService commandStateService, UserService userService, ThumbService thumbService) {
         this.telegramService = telegramService;
         this.tempFileService = tempFileService;
         this.formatService = formatService;
@@ -75,7 +73,6 @@ public class RenameService {
         this.inlineKeyboardService = inlineKeyboardService;
         this.commandStateService = commandStateService;
         this.userService = userService;
-        this.botSettingsService = botSettingsService;
         this.thumbService = thumbService;
     }
 
@@ -224,8 +221,12 @@ public class RenameService {
                 file = tempFileService.createTempFile(TAG, ext);
                 telegramService.downloadFileByFileId(fileId, file);
 
+                RenameState state = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, false);
+                if (state == null) {
+                    return;
+                }
                 String fileName = createNewFileName(newFileName, ext);
-                Any2AnyFile thumbnail = botSettingsService.getThumbnail(userId);
+                Any2AnyFile thumbnail = state.getThumb();
                 if (thumbnail != null) {
                     thumbFile = thumbService.convertToThumb(thumbnail);
                 } else if (StringUtils.isNotBlank(thumb)) {
@@ -247,7 +248,6 @@ public class RenameService {
                     executor.complete(jobId);
                     renameQueueService.delete(jobId);
                     commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
-                    botSettingsService.deleteThumbnail(userId);
                     if (file != null) {
                         file.smartDelete();
                     }
@@ -277,7 +277,6 @@ public class RenameService {
             }
 
             commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
-            botSettingsService.deleteThumbnail(userId);
         }
 
         @Override

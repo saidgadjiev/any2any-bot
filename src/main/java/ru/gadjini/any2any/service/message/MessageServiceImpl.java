@@ -11,10 +11,7 @@ import ru.gadjini.any2any.exception.botapi.TelegramApiException;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.model.SendFileResult;
-import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
-import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
+import ru.gadjini.any2any.model.bot.api.method.send.*;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.*;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.ChatMember;
@@ -163,6 +160,13 @@ public class MessageServiceImpl implements MessageService {
         }
 
         Message message = telegramService.sendDocument(sendDocument);
+
+        return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
+    }
+
+    @Override
+    public SendFileResult sendPhoto(SendPhoto sendPhoto) {
+        Message message = telegramService.sendPhoto(sendPhoto);
 
         return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
     }

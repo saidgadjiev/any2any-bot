@@ -14,6 +14,7 @@ import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendPhoto;
 import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
@@ -156,6 +157,11 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
         }
 
         return null;
+    }
+
+    @Override
+    public SendFileResult sendPhoto(SendPhoto sendPhoto) {
+        return messageService.sendPhoto(sendPhoto);
     }
 
     @Override

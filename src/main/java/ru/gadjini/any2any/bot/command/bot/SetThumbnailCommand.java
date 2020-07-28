@@ -10,12 +10,12 @@ import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.domain.HasThumb;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
-import ru.gadjini.any2any.service.BotSettingsService;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
@@ -45,21 +45,18 @@ public class SetThumbnailCommand implements BotCommand, NavigableBotCommand {
 
     private ReplyKeyboardService replyKeyboardService;
 
-    private BotSettingsService botSettingsService;
-
     private FileService fileService;
 
     @Autowired
     public SetThumbnailCommand(CommandStateService commandStateService,
                                @Qualifier("limits") MessageService messageService, LocalisationService localisationService,
                                UserService userService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
-                               BotSettingsService botSettingsService, FileService fileService) {
+                               FileService fileService) {
         this.commandStateService = commandStateService;
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
         this.replyKeyboardService = replyKeyboardService;
-        this.botSettingsService = botSettingsService;
         this.fileService = fileService;
     }
 
@@ -87,8 +84,7 @@ public class SetThumbnailCommand implements BotCommand, NavigableBotCommand {
 
         if (any2AnyFile != null) {
             validate(message.getFromUser().getId(), any2AnyFile, locale);
-            botSettingsService.setThumbnail(message.getChatId(), any2AnyFile);
-
+            setThumb(message.getChatId(), any2AnyFile);
             ReplyKeyboardMarkup replyKeyboardMarkup = commandNavigator.silentPop(message.getChatId());
             messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_ADDED, locale))
                     .setReplyMarkup(replyKeyboardMarkup));
@@ -113,8 +109,10 @@ public class SetThumbnailCommand implements BotCommand, NavigableBotCommand {
     }
 
     @Override
-    public void setPrevCommand(long chatId, String prevCommand) {
+    public boolean setPrevCommand(long chatId, String prevCommand) {
         commandStateService.setState(chatId, CommandNames.SET_THUMBNAIL_COMMAND, prevCommand);
+
+        return true;
     }
 
     @Override
@@ -127,5 +125,17 @@ public class SetThumbnailCommand implements BotCommand, NavigableBotCommand {
             LOGGER.debug("Non image thumb({}, {})", userId, any2AnyFile.getFormat());
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_INVALID_FILE, locale));
         }
+    }
+
+    private void setThumb(long chatId, Any2AnyFile any2AnyFile) {
+        String parentCommandName = getParentCommandName(chatId);
+        Object state = commandStateService.getState(chatId, parentCommandName, false);
+        if (!(state instanceof HasThumb)) {
+            return;
+        }
+        HasThumb hasThumb = (HasThumb) state;
+        hasThumb.setThumb(any2AnyFile);
+        commandStateService.setState(chatId, parentCommandName, hasThumb);
+
     }
 }

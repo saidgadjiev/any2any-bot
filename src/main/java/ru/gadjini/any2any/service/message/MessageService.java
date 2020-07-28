@@ -2,6 +2,7 @@ package ru.gadjini.any2any.service.message;
 import ru.gadjini.any2any.model.*;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendPhoto;
 import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
@@ -38,6 +39,8 @@ public interface MessageService {
     void deleteMessage(long chatId, int messageId);
 
     SendFileResult sendDocument(SendDocument sendDocumentContext);
+
+    SendFileResult sendPhoto(SendPhoto sendPhoto);
 
     void sendErrorMessage(long chatId, Locale locale);
 }
