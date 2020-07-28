@@ -38,6 +38,14 @@ public class RenameQueueService {
         file.setThumb(renameState.getFile().getThumb());
         renameQueueItem.setFile(file);
 
+        if (renameState.getThumb() != null) {
+            TgFile thumb = new TgFile();
+            thumb.setFileId(renameState.getThumb().getFileId());
+            thumb.setFileName(renameState.getThumb().getFileName());
+            thumb.setMimeType(renameState.getThumb().getMimeType());
+            renameQueueItem.setThumb(thumb);
+        }
+
         renameQueueItem.setStatus(RenameQueueItem.Status.PROCESSING);
 
         int id = renameQueueDao.create(renameQueueItem);
@@ -59,10 +67,6 @@ public class RenameQueueService {
 
     public List<RenameQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
         return renameQueueDao.poll(weight, limit);
-    }
-
-    public RenameQueueItem deleteWithReturning(int id) {
-        return renameQueueDao.deleteWithReturning(id);
     }
 
     public void delete(int id) {

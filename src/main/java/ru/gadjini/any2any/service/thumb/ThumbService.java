@@ -32,11 +32,11 @@ public class ThumbService {
         this.convertDevice = convertDevice;
     }
 
-    public SmartTempFile convertToThumb(Any2AnyFile thumbFile) {
-        String ext = formatService.getExt(thumbFile.getFileName(), thumbFile.getMimeType());
+    public SmartTempFile convertToThumb(String fileId, String fileName, String mimeType) {
+        String ext = formatService.getExt(fileName, mimeType);
         SmartTempFile thumb = tempFileService.createTempFile(TAG, ext);
         try {
-            telegramService.downloadFileByFileId(thumbFile.getFileId(), thumb);
+            telegramService.downloadFileByFileId(fileId, thumb);
             SmartTempFile out = tempFileService.createTempFile(TAG, Format.JPG.getExt());
             try {
                 convertDevice.convertToThumb(thumb.getAbsolutePath(), out.getAbsolutePath());

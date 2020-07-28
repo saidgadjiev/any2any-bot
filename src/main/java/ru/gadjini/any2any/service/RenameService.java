@@ -11,8 +11,8 @@ import ru.gadjini.any2any.bot.command.keyboard.rename.RenameState;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.RenameQueueItem;
+import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
@@ -197,6 +197,7 @@ public class RenameService {
         private volatile boolean canceledByUser;
         private volatile SmartTempFile file;
         private volatile SmartTempFile thumbFile;
+        private TgFile userThumb;
         private String thumb;
 
         private RenameTask(RenameQueueItem queueItem) {
@@ -209,6 +210,7 @@ public class RenameService {
             this.fileSize = queueItem.getFile().getSize();
             this.replyToMessageId = queueItem.getReplyToMessageId();
             this.thumb = queueItem.getFile().getThumb();
+            this.userThumb = queueItem.getThumb();
         }
 
         @Override
@@ -221,14 +223,9 @@ public class RenameService {
                 file = tempFileService.createTempFile(TAG, ext);
                 telegramService.downloadFileByFileId(fileId, file);
 
-                RenameState state = commandStateService.getState(userId, CommandNames.RENAME_COMMAND_NAME, false);
-                if (state == null) {
-                    return;
-                }
                 String fileName = createNewFileName(newFileName, ext);
-                Any2AnyFile thumbnail = state.getThumb();
-                if (thumbnail != null) {
-                    thumbFile = thumbService.convertToThumb(thumbnail);
+                if (userThumb != null) {
+                    thumbFile = thumbService.convertToThumb(userThumb.getFileId(), userThumb.getFileName(), userThumb.getMimeType());
                 } else if (StringUtils.isNotBlank(thumb)) {
                     thumbFile = tempFileService.createTempFile(TAG, Format.JPG.getExt());
                     telegramService.downloadFileByFileId(thumb, thumbFile);
@@ -272,7 +269,7 @@ public class RenameService {
                 thumbFile.smartDelete();
             }
             if (canceledByUser) {
-                renameQueueService.deleteWithReturning(jobId);
+                renameQueueService.delete(jobId);
                 LOGGER.debug("Canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(fileSize));
             }
 

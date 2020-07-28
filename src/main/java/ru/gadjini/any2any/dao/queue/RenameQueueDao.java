@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.dao.queue;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -30,14 +31,15 @@ public class RenameQueueDao {
 
         jdbcTemplate.update(
                 con -> {
-                    PreparedStatement ps = con.prepareStatement("INSERT INTO rename_queue(user_id, file, new_file_name, reply_to_message_id, status) " +
-                            "VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+                    PreparedStatement ps = con.prepareStatement("INSERT INTO rename_queue(user_id, file, thumb, new_file_name, reply_to_message_id, status) " +
+                            "VALUES (?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 
                     ps.setInt(1, renameQueueItem.getUserId());
                     ps.setObject(2, renameQueueItem.getFile().sqlObject());
-                    ps.setString(3, renameQueueItem.getNewFileName());
-                    ps.setInt(4, renameQueueItem.getReplyToMessageId());
-                    ps.setInt(5, renameQueueItem.getStatus().getCode());
+                    ps.setObject(3, renameQueueItem.getThumb().sqlObject());
+                    ps.setString(4, renameQueueItem.getNewFileName());
+                    ps.setInt(5, renameQueueItem.getReplyToMessageId());
+                    ps.setInt(6, renameQueueItem.getStatus().getCode());
 
                     return ps;
                 },
@@ -62,21 +64,13 @@ public class RenameQueueDao {
                         "    UPDATE rename_queue SET status = 1 WHERE id = (SELECT id FROM rename_queue WHERE status = 0 " +
                         "AND (file).size " + (weight.equals(JobWeight.LIGHT) ? "<=" : ">") + " ? ORDER BY created_at LIMIT ?) RETURNING *\n" +
                         ")\n" +
-                        "SELECT *, (file).*\n" +
+                        "SELECT *, (file).*, (thumb).file_id as th_file_id, (thumb).file_name as th_file_name, (thumb).mime_type as th_mime_type\n" +
                         "FROM r",
                 ps -> {
                     ps.setLong(1, MemoryUtils.MB_100);
                     ps.setInt(2, limit);
                 },
                 (rs, rowNum) -> map(rs)
-        );
-    }
-
-    public RenameQueueItem deleteWithReturning(int id) {
-        return jdbcTemplate.query(
-                "WITH del AS (DELETE FROM rename_queue WHERE id = ? RETURNING *) SELECT *, (file).* FROM del",
-                ps -> ps.setInt(1, id),
-                rs -> rs.next() ? map(rs) : null
         );
     }
 
@@ -103,6 +97,15 @@ public class RenameQueueDao {
         tgFile.setMimeType(resultSet.getString(TgFile.MIME_TYPE));
         tgFile.setThumb(resultSet.getString(TgFile.THUMB));
         item.setFile(tgFile);
+
+        String thumbFileId = resultSet.getString("th_" + TgFile.FILE_ID);
+        if (StringUtils.isNotBlank(thumbFileId)) {
+            TgFile thumb = new TgFile();
+            thumb.setFileId(thumbFileId);
+            thumb.setFileName(resultSet.getString("th_" + TgFile.FILE_NAME));
+            thumb.setMimeType(resultSet.getString("th_" + TgFile.MIME_TYPE));
+            item.setThumb(thumb);
+        }
 
         item.setNewFileName(resultSet.getString(RenameQueueItem.NEW_FILE_NAME));
         item.setReplyToMessageId(resultSet.getInt(RenameQueueItem.REPLY_TO_MESSAGE_ID));

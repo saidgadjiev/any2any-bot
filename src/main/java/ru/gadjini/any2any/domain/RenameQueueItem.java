@@ -18,6 +18,8 @@ public class RenameQueueItem {
 
     private TgFile file;
 
+    private TgFile thumb;
+
     private String newFileName;
 
     private int userId;
@@ -72,6 +74,14 @@ public class RenameQueueItem {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public TgFile getThumb() {
+        return thumb;
+    }
+
+    public void setThumb(TgFile thumb) {
+        this.thumb = thumb;
     }
 
     public enum Status {
