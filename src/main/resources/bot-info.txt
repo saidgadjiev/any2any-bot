@@ -14,6 +14,9 @@ imageditor - image editor
 conversion - conversion
 queries - my conversion queries
 rename - rename file
+sethumb- set thumbnail
+viewthumb - view thumbnail
+delthumb - delete thumbnail
 ocr - extract text from an image
 unzip - extract files from an archive
 archive - create an archive
