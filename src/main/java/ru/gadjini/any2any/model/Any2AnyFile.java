@@ -16,6 +16,8 @@ public class Any2AnyFile {
 
     private String thumb;
 
+    private String cachedFileId;
+
     public String getFileId() {
         return fileId;
     }
@@ -62,6 +64,14 @@ public class Any2AnyFile {
 
     public void setThumb(String thumb) {
         this.thumb = thumb;
+    }
+
+    public String getCachedFileId() {
+        return cachedFileId;
+    }
+
+    public void setCachedFileId(String cachedFileId) {
+        this.cachedFileId = cachedFileId;
     }
 
     @Override

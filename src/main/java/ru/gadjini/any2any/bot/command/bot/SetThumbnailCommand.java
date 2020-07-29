@@ -73,6 +73,7 @@ public class SetThumbnailCommand implements BotCommand, NavigableBotCommand {
     @Override
     public void processMessage(Message message) {
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+        checkParentCommand(message.getChatId(), locale);
         messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_SEND_THUMB, locale))
                 .setReplyMarkup(replyKeyboardService.cancel(message.getChatId(), locale)));
     }
@@ -84,7 +85,7 @@ public class SetThumbnailCommand implements BotCommand, NavigableBotCommand {
 
         if (any2AnyFile != null) {
             validate(message.getFromUser().getId(), any2AnyFile, locale);
-            setThumb(message.getChatId(), any2AnyFile);
+            setThumb(message.getChatId(), any2AnyFile, locale);
             ReplyKeyboardMarkup replyKeyboardMarkup = commandNavigator.silentPop(message.getChatId());
             messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_ADDED, locale))
                     .setReplyMarkup(replyKeyboardMarkup));
@@ -127,15 +128,27 @@ public class SetThumbnailCommand implements BotCommand, NavigableBotCommand {
         }
     }
 
-    private void setThumb(long chatId, Any2AnyFile any2AnyFile) {
+    private void setThumb(long chatId, Any2AnyFile any2AnyFile, Locale locale) {
         String parentCommandName = getParentCommandName(chatId);
         Object state = commandStateService.getState(chatId, parentCommandName, false);
         if (!(state instanceof HasThumb)) {
-            return;
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_BAD_PARENT_COMMAND, locale));
         }
         HasThumb hasThumb = (HasThumb) state;
         hasThumb.setThumb(any2AnyFile);
         commandStateService.setState(chatId, parentCommandName, hasThumb);
+    }
 
+    private void checkParentCommand(long chatId, Locale locale) {
+        NavigableBotCommand currentCommand = commandNavigator.getCurrentCommand(chatId);
+
+        if (currentCommand != null) {
+            String commandName = currentCommand.getHistoryName();
+            Object state = commandStateService.getState(chatId, commandName, false);
+
+            if (!(state instanceof HasThumb)) {
+                throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_BAD_PARENT_COMMAND, locale));
+            }
+        }
     }
 }

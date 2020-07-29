@@ -3,7 +3,6 @@ package ru.gadjini.any2any.service.thumb;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;

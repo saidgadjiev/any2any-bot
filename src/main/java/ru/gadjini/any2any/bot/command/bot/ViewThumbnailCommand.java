@@ -1,7 +1,9 @@
 package ru.gadjini.any2any.bot.command.bot;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
@@ -10,6 +12,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.HasThumb;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendPhoto;
 import ru.gadjini.any2any.model.bot.api.object.Message;
@@ -37,14 +40,18 @@ public class ViewThumbnailCommand implements BotCommand {
 
     private CommandStateService commandStateService;
 
+    private ThreadPoolTaskExecutor executor;
+
     @Autowired
     public ViewThumbnailCommand(@Qualifier("limits") MessageService messageService, LocalisationService localisationService,
-                                UserService userService, ThumbService thumbService, CommandStateService commandStateService) {
+                                UserService userService, ThumbService thumbService, CommandStateService commandStateService,
+                                @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
         this.thumbService = thumbService;
         this.commandStateService = commandStateService;
+        this.executor = executor;
     }
 
     @Autowired
@@ -54,17 +61,31 @@ public class ViewThumbnailCommand implements BotCommand {
 
     @Override
     public void processMessage(Message message) {
-        Any2AnyFile thumbnail = getThumb(message.getChatId());
-        if (thumbnail != null) {
-            SmartTempFile tempFile = thumbService.convertToThumb(thumbnail.getFileId(), thumbnail.getFileName(), thumbnail.getMimeType());
-            try {
-                messageService.sendPhoto(new SendPhoto(message.getChatId(), tempFile.getAbsolutePath()));
-            } finally {
-                tempFile.smartDelete();
+        String currentCommandName = getCurrentCommandName(message.getChatId());
+        if (StringUtils.isNotBlank(currentCommandName)) {
+            HasThumb state = getState(message.getChatId(), currentCommandName);
+
+            if (state != null) {
+                Any2AnyFile thumbnail = state.getThumb();
+                if (StringUtils.isNotBlank(thumbnail.getCachedFileId())) {
+                    messageService.sendPhoto(new SendPhoto(message.getChatId(), thumbnail.getCachedFileId()));
+                } else {
+                    executor.execute(() -> {
+                        SmartTempFile tempFile = thumbService.convertToThumb(thumbnail.getFileId(), thumbnail.getFileName(), thumbnail.getMimeType());
+                        try {
+                            SendFileResult sendFileResult = messageService.sendPhoto(new SendPhoto(message.getChatId(), tempFile.getAbsolutePath()));
+                            thumbnail.setCachedFileId(sendFileResult.getFileId());
+                            commandStateService.setState(message.getChatId(), currentCommandName, state);
+                        } finally {
+                            tempFile.smartDelete();
+                        }
+                    });
+                }
+            } else {
+                thumbNotFound(message);
             }
         } else {
-            Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
-            messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_NOT_FOUND, locale)));
+            thumbNotFound(message);
         }
     }
 
@@ -73,16 +94,26 @@ public class ViewThumbnailCommand implements BotCommand {
         return CommandNames.VIEW_THUMBNAIL_COMMAND;
     }
 
-    private Any2AnyFile getThumb(long chatId) {
+    private void thumbNotFound(Message message) {
+        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+        messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_NOT_FOUND, locale)));
+    }
+
+    private String getCurrentCommandName(long chatId) {
         NavigableBotCommand currentCommand = commandNavigator.getCurrentCommand(chatId);
 
         if (currentCommand != null) {
-            String commandName = currentCommand.getHistoryName();
-            Object state = commandStateService.getState(chatId, commandName, false);
+            return currentCommand.getHistoryName();
+        }
 
-            if (state instanceof HasThumb) {
-                return ((HasThumb) state).getThumb();
-            }
+        return null;
+    }
+
+    private HasThumb getState(long chatId, String commandName) {
+        Object state = commandStateService.getState(chatId, commandName, false);
+
+        if (state instanceof HasThumb) {
+            return (HasThumb) state;
         }
 
         return null;

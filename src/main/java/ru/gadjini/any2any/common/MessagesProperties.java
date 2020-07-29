@@ -300,4 +300,6 @@ public class MessagesProperties {
     public static final String MESSAGE_THUMB_NOT_FOUND = "message.thumb.not.found";
 
     public static final String MESSAGE_THUMB_DELETED = "message.thumb.deleted";
+
+    public static final String MESSAGE_THUMB_BAD_PARENT_COMMAND = "message.thumb.bad.parent.command";
 }
