@@ -34,7 +34,7 @@ public class P7ArchiveDevice extends BaseArchiveDevice {
 
     private String[] buildRenameCommand(String archive, String fileHeader, String newFileHeader) {
         return new String[]{
-                "7z", "rn", archive, fileHeader, newFileHeader
+                "7z", "rn", archive, fileHeader, newFileHeader.replace("@", "")
         };
     }
 
