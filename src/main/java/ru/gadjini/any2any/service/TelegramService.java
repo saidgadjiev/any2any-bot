@@ -2,6 +2,7 @@ package ru.gadjini.any2any.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -281,6 +282,9 @@ public class TelegramService {
     }
 
     public boolean cancelDownloading(String fileId) {
+        if (StringUtils.isBlank(fileId)) {
+            return false;
+        }
         try {
             SmartTempFile tempFile = downloading.get(fileId);
             if (tempFile != null) {

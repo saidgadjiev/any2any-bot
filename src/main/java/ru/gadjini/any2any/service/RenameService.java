@@ -115,7 +115,7 @@ public class RenameService {
         if (renameState != null) {
             List<Integer> ids = renameQueueService.deleteByUserId((int) chatId);
             executor.cancelAndComplete(ids, false);
-            commandStateService.deleteState(chatId, CommandNames.RENAME_COMMAND_NAME);
+            commandStateService.setState(chatId, CommandNames.RENAME_COMMAND_NAME, new RenameState());
         }
     }
 
@@ -133,7 +133,7 @@ public class RenameService {
             ));
             if (!executor.cancelAndComplete(jobId, true)) {
                 renameQueueService.delete(jobId);
-                commandStateService.deleteState(chatId, CommandNames.RENAME_COMMAND_NAME);
+                commandStateService.setState(chatId, CommandNames.RENAME_COMMAND_NAME, new RenameState());
             }
         }
         messageService.editMessage(new EditMessageText(
@@ -244,7 +244,7 @@ public class RenameService {
                 if (!checker.get()) {
                     executor.complete(jobId);
                     renameQueueService.delete(jobId);
-                    commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+                    commandStateService.setState(userId, CommandNames.RENAME_COMMAND_NAME, new RenameState());
                     if (file != null) {
                         file.smartDelete();
                     }
@@ -272,8 +272,7 @@ public class RenameService {
                 renameQueueService.delete(jobId);
                 LOGGER.debug("Canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(fileSize));
             }
-
-            commandStateService.deleteState(userId, CommandNames.RENAME_COMMAND_NAME);
+            commandStateService.setState(userId, CommandNames.RENAME_COMMAND_NAME, new RenameState());
         }
 
         @Override
