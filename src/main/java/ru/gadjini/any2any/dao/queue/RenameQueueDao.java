@@ -10,10 +10,7 @@ import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService.JobWeight;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.List;
 
 @Repository
@@ -36,7 +33,11 @@ public class RenameQueueDao {
 
                     ps.setInt(1, renameQueueItem.getUserId());
                     ps.setObject(2, renameQueueItem.getFile().sqlObject());
-                    ps.setObject(3, renameQueueItem.getThumb().sqlObject());
+                    if (renameQueueItem.getThumb() != null) {
+                        ps.setObject(3, renameQueueItem.getThumb().sqlObject());
+                    } else {
+                        ps.setNull(3, Types.OTHER);
+                    }
                     ps.setString(4, renameQueueItem.getNewFileName());
                     ps.setInt(5, renameQueueItem.getReplyToMessageId());
                     ps.setInt(6, renameQueueItem.getStatus().getCode());
