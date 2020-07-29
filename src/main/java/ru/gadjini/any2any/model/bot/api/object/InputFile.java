@@ -21,6 +21,10 @@ public class InputFile {
     public InputFile() {
     }
 
+    public InputFile(String fileId) {
+        this.fileId = fileId;
+    }
+
     public String getThumb() {
         return thumb;
     }

@@ -12,10 +12,8 @@ import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.model.SendFileResult;
-import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
-import ru.gadjini.any2any.model.bot.api.method.send.SendPhoto;
-import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
+import ru.gadjini.any2any.model.bot.api.MediaType;
+import ru.gadjini.any2any.model.bot.api.method.send.*;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
@@ -165,8 +163,23 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
+    public SendFileResult sendVideo(SendVideo sendVideo) {
+        return messageService.sendVideo(sendVideo);
+    }
+
+    @Override
+    public SendFileResult sendAudio(SendAudio sendAudio) {
+        return messageService.sendAudio(sendAudio);
+    }
+
+    @Override
     public void sendErrorMessage(long chatId, Locale locale) {
         messageService.sendErrorMessage(chatId, locale);
+    }
+
+    @Override
+    public MediaType getMediaType(String fileId) {
+        return messageService.getMediaType(fileId);
     }
 
     private boolean isMediaMessage(Message message) {

@@ -11,6 +11,7 @@ import ru.gadjini.any2any.exception.botapi.TelegramApiException;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.model.SendFileResult;
+import ru.gadjini.any2any.model.bot.api.MediaType;
 import ru.gadjini.any2any.model.bot.api.method.send.*;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.*;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
@@ -172,8 +173,35 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    public SendFileResult sendVideo(SendVideo sendVideo) {
+        if (StringUtils.isNotBlank(sendVideo.getCaption())) {
+            sendVideo.setParseMode(ParseMode.HTML);
+        }
+
+        Message message = telegramService.sendVideo(sendVideo);
+
+        return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
+    }
+
+    @Override
+    public SendFileResult sendAudio(SendAudio sendAudio) {
+        if (StringUtils.isNotBlank(sendAudio.getCaption())) {
+            sendAudio.setParseMode(ParseMode.HTML);
+        }
+
+        Message message = telegramService.sendAudio(sendAudio);
+
+        return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
+    }
+
+    @Override
     public void sendErrorMessage(long chatId, Locale locale) {
         sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ERROR, locale)));
+    }
+
+    @Override
+    public MediaType getMediaType(String fileId) {
+        return telegramService.getMediaType(fileId);
     }
 
     @Override

@@ -1,9 +1,7 @@
 package ru.gadjini.any2any.service.message;
 import ru.gadjini.any2any.model.*;
-import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
-import ru.gadjini.any2any.model.bot.api.method.send.SendPhoto;
-import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
+import ru.gadjini.any2any.model.bot.api.MediaType;
+import ru.gadjini.any2any.model.bot.api.method.send.*;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
@@ -42,5 +40,11 @@ public interface MessageService {
 
     SendFileResult sendPhoto(SendPhoto sendPhoto);
 
+    SendFileResult sendVideo(SendVideo sendVideo);
+
+    SendFileResult sendAudio(SendAudio sendAudio);
+
     void sendErrorMessage(long chatId, Locale locale);
+
+    MediaType getMediaType(String fileId);
 }

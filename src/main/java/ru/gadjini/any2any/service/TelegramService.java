@@ -1,7 +1,9 @@
 package ru.gadjini.any2any.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.StopWatch;
 import org.slf4j.Logger;
@@ -16,6 +18,7 @@ import ru.gadjini.any2any.exception.botapi.TelegramApiException;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.ApiResponse;
+import ru.gadjini.any2any.model.bot.api.MediaType;
 import ru.gadjini.any2any.model.bot.api.method.CancelDownloading;
 import ru.gadjini.any2any.model.bot.api.method.send.*;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.*;
@@ -232,6 +235,46 @@ public class TelegramService {
         }
     }
 
+    public Message sendVideo(SendVideo sendVideo) {
+        try {
+            HttpEntity<SendVideo> request = new HttpEntity<>(sendVideo);
+            String response = restTemplate.postForObject(getUrl(SendVideo.METHOD), request, String.class);
+            try {
+                ApiResponse<Message> result = objectMapper.readValue(response, new TypeReference<>() {
+                });
+                if (result.getOk()) {
+                    return result.getResult();
+                } else {
+                    throw new TelegramApiRequestException(sendVideo.getChatId(), "Error sending document", result);
+                }
+            } catch (IOException e) {
+                throw new TelegramApiRequestException(sendVideo.getChatId(), "Unable to deserialize response(" + response + ")\n" + e.getMessage(), e);
+            }
+        } catch (RestClientException e) {
+            throw new TelegramApiRequestException(sendVideo.getChatId(), e.getMessage(), e);
+        }
+    }
+
+    public Message sendAudio(SendAudio sendAudio) {
+        try {
+            HttpEntity<SendAudio> request = new HttpEntity<>(sendAudio);
+            String response = restTemplate.postForObject(getUrl(SendAudio.METHOD), request, String.class);
+            try {
+                ApiResponse<Message> result = objectMapper.readValue(response, new TypeReference<>() {
+                });
+                if (result.getOk()) {
+                    return result.getResult();
+                } else {
+                    throw new TelegramApiRequestException(sendAudio.getChatId(), "Error sending document", result);
+                }
+            } catch (IOException e) {
+                throw new TelegramApiRequestException(sendAudio.getChatId(), "Unable to deserialize response(" + response + ")\n" + e.getMessage(), e);
+            }
+        } catch (RestClientException e) {
+            throw new TelegramApiRequestException(sendAudio.getChatId(), e.getMessage(), e);
+        }
+    }
+
     public Message sendPhoto(SendPhoto sendPhoto) {
         try {
             HttpEntity<SendPhoto> request = new HttpEntity<>(sendPhoto);
@@ -249,6 +292,33 @@ public class TelegramService {
             }
         } catch (RestClientException e) {
             throw new TelegramApiRequestException(sendPhoto.getChatId(), e.getMessage(), e);
+        }
+    }
+
+    public MediaType getMediaType(String fileId) {
+        try {
+            ObjectNode objectNode = objectMapper.createObjectNode();
+            objectNode.put("file_id", fileId);
+            HttpEntity<ObjectNode> request = new HttpEntity<>(objectNode);
+            String response = restTemplate.postForObject(getUrl("head"), request, String.class);
+            try {
+                ObjectNode result = objectMapper.readValue(response, new TypeReference<>() {
+                });
+                JsonNode jsonNode = result.get("media_type");
+
+                if (jsonNode.isNull()) {
+                    LOGGER.debug("Media type not resolved({})", fileId);
+
+                    return MediaType.DOCUMENT;
+                } else {
+                    int mediaType = jsonNode.asInt();
+                    return MediaType.fromCode(mediaType);
+                }
+            } catch (IOException e) {
+                throw new TelegramApiException(fileId + " Unable to deserialize response(" + response + ")\n" + e.getMessage(), e);
+            }
+        } catch (RestClientException e) {
+            throw new TelegramApiException(fileId + " " + e.getMessage(), e);
         }
     }
 
