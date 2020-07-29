@@ -60,7 +60,7 @@ public class ConversionQueueItem {
 
     private Format format;
 
-    private int size;
+    private long size;
 
     private int placeInQueue;
 
@@ -158,11 +158,11 @@ public class ConversionQueueItem {
         this.format = format;
     }
 
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 
-    public void setSize(int size) {
+    public void setSize(long size) {
         this.size = size;
     }
 

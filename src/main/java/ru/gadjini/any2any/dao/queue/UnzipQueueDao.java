@@ -153,9 +153,9 @@ public class UnzipQueueDao {
             item.setType(Format.valueOf(resultSet.getString(UnzipQueueItem.TYPE)));
         } else if (itemType == UnzipQueueItem.ItemType.EXTRACT_FILE) {
             item.setExtractFileId(resultSet.getInt(UnzipQueueItem.EXTRACT_FILE_ID));
-            item.setExtractFileSize(resultSet.getInt(UnzipQueueItem.EXTRACT_FILE_SIZE));
+            item.setExtractFileSize(resultSet.getLong(UnzipQueueItem.EXTRACT_FILE_SIZE));
         } else {
-            item.setExtractFileSize(resultSet.getInt(UnzipQueueItem.EXTRACT_FILE_SIZE));
+            item.setExtractFileSize(resultSet.getLong(UnzipQueueItem.EXTRACT_FILE_SIZE));
 
         }
 

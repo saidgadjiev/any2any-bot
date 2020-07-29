@@ -41,7 +41,7 @@ public class ConversionQueueDao {
                     ps.setInt(1, queueItem.getUserId());
                     ps.setString(2, queueItem.getFileId());
                     ps.setString(3, queueItem.getFormat().name());
-                    ps.setInt(4, queueItem.getSize());
+                    ps.setLong(4, queueItem.getSize());
                     ps.setInt(5, queueItem.getReplyToMessageId());
                     if (queueItem.getFileName() != null) {
                         ps.setString(6, queueItem.getFileName());
@@ -214,7 +214,7 @@ public class ConversionQueueDao {
 
         fileQueueItem.setFormat(Format.valueOf(rs.getString(ConversionQueueItem.FORMAT)));
         fileQueueItem.setTargetFormat(Format.valueOf(rs.getString(ConversionQueueItem.TARGET_FORMAT)));
-        fileQueueItem.setSize(rs.getInt(ConversionQueueItem.SIZE));
+        fileQueueItem.setSize(rs.getLong(ConversionQueueItem.SIZE));
         fileQueueItem.setMessage(rs.getString(ConversionQueueItem.MESSAGE));
         Timestamp lastRunAt = rs.getTimestamp(ConversionQueueItem.LAST_RUN_AT);
         if (lastRunAt != null) {
