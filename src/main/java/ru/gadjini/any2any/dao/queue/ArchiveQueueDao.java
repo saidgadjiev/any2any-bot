@@ -69,7 +69,7 @@ public class ArchiveQueueDao {
     public List<ArchiveQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
         return jdbcTemplate.query(
                 "WITH r AS (\n" +
-                        "    UPDATE archive_queue SET status = 1 WHERE id = (SELECT id FROM archive_queue WHERE status = 0 " +
+                        "    UPDATE archive_queue SET status = 1 WHERE id IN (SELECT id FROM archive_queue WHERE status = 0 " +
                         "AND total_file_size " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ? ORDER BY created_at LIMIT ?) RETURNING *\n" +
                         ")\n" +
                         "SELECT *\n" +

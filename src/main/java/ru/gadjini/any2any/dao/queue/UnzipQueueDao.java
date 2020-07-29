@@ -95,7 +95,7 @@ public class UnzipQueueDao {
 
         return jdbcTemplate.query(
                 "WITH r AS (\n" +
-                        "    UPDATE unzip_queue SET status = 1 WHERE id = (SELECT id FROM unzip_queue " +
+                        "    UPDATE unzip_queue SET status = 1 WHERE id IN (SELECT id FROM unzip_queue " +
                         "WHERE status = 0 AND CASE WHEN item_type = 0 THEN " +
                         "(file).size " + sign + " ? ELSE " +
                         "extract_file_size " + sign + " ? END ORDER BY created_at LIMIT " + limit + ") RETURNING *\n" +
