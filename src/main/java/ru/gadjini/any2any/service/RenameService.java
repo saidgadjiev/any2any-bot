@@ -182,7 +182,7 @@ public class RenameService {
 
         private final Logger LOGGER = LoggerFactory.getLogger(RenameTask.class);
 
-        private static final String TAG = "rename";
+        public static final String TAG = "rename";
 
         private int jobId;
         private final int userId;

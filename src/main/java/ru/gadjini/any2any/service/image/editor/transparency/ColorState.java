@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 @Component
 public class ColorState implements State {
 
-    private static final String TAG = "color";
+    public static final String TAG = "color";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ColorState.class);
 

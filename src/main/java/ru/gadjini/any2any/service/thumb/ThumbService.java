@@ -12,7 +12,7 @@ import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 @Service
 public class ThumbService {
 
-    private static final String TAG = "thumb";
+    public static final String TAG = "thumb";
 
     private TelegramService telegramService;
 

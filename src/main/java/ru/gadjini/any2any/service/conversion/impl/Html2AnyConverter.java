@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private static final String TAG = "html2";
+    public static final String TAG = "html2";
 
     private TelegramService telegramService;
 

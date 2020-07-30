@@ -302,4 +302,8 @@ public class MessagesProperties {
     public static final String MESSAGE_THUMB_DELETED = "message.thumb.deleted";
 
     public static final String MESSAGE_THUMB_BAD_PARENT_COMMAND = "message.thumb.bad.parent.command";
+
+    public static final String REMOVE_GARBAGE_FILES_COMMAND_NAME = "remove.garbage.files.command.name";
+
+    public static final String MESSAGE_COLLECTED_GARBAGE = "message.collected.garbage";
 }

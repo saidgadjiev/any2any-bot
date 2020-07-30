@@ -24,7 +24,7 @@ import java.util.Locale;
 @Service
 public class OcrService {
 
-    private static final String TAG = "ocr";
+    public static final String TAG = "ocr";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OcrService.class);
 

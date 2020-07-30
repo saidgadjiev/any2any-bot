@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private static final String TAG = "tiff2";
+    public static final String TAG = "tiff2";
 
     private TelegramService telegramService;
 

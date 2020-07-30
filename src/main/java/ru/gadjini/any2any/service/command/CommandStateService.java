@@ -12,7 +12,6 @@ import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 
 import java.util.Collection;
-import java.util.List;
 
 @Service
 public class CommandStateService {

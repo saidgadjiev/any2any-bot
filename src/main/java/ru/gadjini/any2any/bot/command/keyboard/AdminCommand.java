@@ -13,6 +13,7 @@ import ru.gadjini.any2any.model.bot.api.method.send.*;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.cleaner.GarbageFileCollector;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.conversion.ConvertionService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
@@ -37,11 +38,14 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     private ConvertionService convertionService;
 
+    private GarbageFileCollector garbageFileCollector;
+
     private Set<String> names = new HashSet<>();
 
     @Autowired
-    public AdminCommand(LocalisationService localisationService) {
+    public AdminCommand(LocalisationService localisationService, GarbageFileCollector garbageFileCollector) {
         this.localisationService = localisationService;
+        this.garbageFileCollector = garbageFileCollector;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.ADMIN_COMMAND_NAME, locale));
         }
@@ -121,6 +125,9 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
 
                 messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_EXECUTED, locale)));
             }
+        } else if (text.equals(localisationService.getMessage(MessagesProperties.REMOVE_GARBAGE_FILES_COMMAND_NAME, locale))) {
+            int deleted = garbageFileCollector.clean();
+            messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_COLLECTED_GARBAGE, new Object[] {deleted}, locale)));
         } else {
             commandStateService.setState(message.getChatId(), CommandNames.ADMIN, text);
         }

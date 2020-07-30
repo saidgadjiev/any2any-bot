@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Excel2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private static final String TAG = "excel2";
+    public static final String TAG = "excel2";
 
     private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.XLS, Format.XLSX);
 

@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private static final String TAG = "pdf2";
+    public static final String TAG = "pdf2";
 
     private TempFileService fileService;
 

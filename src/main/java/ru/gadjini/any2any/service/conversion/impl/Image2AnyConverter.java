@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private static final String TAG = "image2";
+    public static final String TAG = "image2";
 
     private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PHOTO, Format.HEIC, Format.HEIF, Format.PNG, Format.SVG,
             Format.JP2, Format.JPG, Format.BMP, Format.WEBP);

@@ -27,7 +27,7 @@ import static ru.gadjini.any2any.service.conversion.api.Format.*;
 @Service
 public class FormatService {
 
-    private static final String TAG = "format";
+    public static final String TAG = "format";
 
     private static final Map<FormatCategory, Map<List<Format>, List<Format>>> FORMATS = new LinkedHashMap<>();
 

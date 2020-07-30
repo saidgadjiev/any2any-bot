@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private static final String TAG = "word2";
+    public static final String TAG = "word2";
 
     private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.DOC, Format.DOCX);
 

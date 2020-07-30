@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 @Component
 public class ResizeState implements State {
 
-    private static final String TAG = "resize";
+    public static final String TAG = "resize";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ResizeState.class);
 

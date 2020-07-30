@@ -35,7 +35,7 @@ import java.util.Set;
 @Service
 public class StateFather implements State {
 
-    private static final String TAG = "father";
+    public static final String TAG = "father";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StateFather.class);
 

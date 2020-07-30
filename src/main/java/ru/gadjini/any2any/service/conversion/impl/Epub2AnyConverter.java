@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Epub2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
-    private static final String TAG = "epub2";
+    public static final String TAG = "epub2";
 
     private TelegramService telegramService;
 

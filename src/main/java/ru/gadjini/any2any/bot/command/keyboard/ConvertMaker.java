@@ -42,7 +42,7 @@ import java.util.function.Supplier;
 @Component
 public class ConvertMaker {
 
-    private static final String TAG = "convert";
+    public static final String TAG = "convert";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConvertMaker.class);
 

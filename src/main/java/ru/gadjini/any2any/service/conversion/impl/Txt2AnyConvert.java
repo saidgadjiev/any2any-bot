@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
 
-    private static final String TAG = "txt2";
+    public static final String TAG = "txt2";
 
     private TelegramService telegramService;
 
