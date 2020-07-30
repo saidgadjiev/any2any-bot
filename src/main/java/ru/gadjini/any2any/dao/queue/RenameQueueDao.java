@@ -88,6 +88,10 @@ public class RenameQueueDao {
         return jdbcTemplate.query("SELECT TRUE FROM rename_queue WHERE id = ?", ps -> ps.setInt(1, jobId), ResultSet::next);
     }
 
+    public Boolean existsByReplyToMessageId(int messageId) {
+        return jdbcTemplate.query("SELECT TRUE FROM rename_queue WHERE reply_to_message_id = ?", ps -> ps.setInt(1, messageId), ResultSet::next);
+    }
+
     private RenameQueueItem map(ResultSet resultSet) throws SQLException {
         RenameQueueItem item = new RenameQueueItem();
         item.setId(resultSet.getInt(RenameQueueItem.ID));

@@ -108,14 +108,16 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
-        RenameState renameState = initState(message, locale);
+        Any2AnyFile any2AnyFile = fileService.getFile(message, locale);
 
-        if (renameState.getFile() != null) {
+        if (any2AnyFile != null) {
+            RenameState renameState = initState(message, any2AnyFile);
+
             messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_NEW_FILE_NAME, locale)));
             renameService.removeAndCancelCurrentTasks(message.getChatId());
             commandStateService.setState(message.getChatId(), getHistoryName(), renameState);
         } else if (message.hasText()) {
-            renameState = commandStateService.getState(message.getChatId(), getHistoryName(), true);
+            RenameState renameState = commandStateService.getState(message.getChatId(), getHistoryName(), true);
             if (renameState.getFile() == null) {
                 throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FILE, locale));
             }
@@ -158,15 +160,10 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
         return msg;
     }
 
-    private RenameState initState(Message message, Locale locale) {
+    private RenameState initState(Message message, Any2AnyFile any2AnyFile) {
         RenameState renameState = commandStateService.getState(message.getChatId(), CommandNames.RENAME_COMMAND_NAME, true);
         renameState.setReplyMessageId(message.getMessageId());
-
-        Any2AnyFile file = fileService.getFile(message, locale);
-        renameState.setFile(file);
-        if (file == null) {
-            return renameState;
-        }
+        renameState.setFile(any2AnyFile);
 
         commandStateService.setState(message.getChatId(), CommandNames.RENAME_COMMAND_NAME, renameState);
 

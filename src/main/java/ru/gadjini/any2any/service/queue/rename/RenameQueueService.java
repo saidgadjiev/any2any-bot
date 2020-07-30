@@ -80,4 +80,8 @@ public class RenameQueueService {
     public boolean exists(int jobId) {
         return renameQueueDao.exists(jobId);
     }
+
+    public boolean existsByToReplyMessageId(int replyToMessageId) {
+        return renameQueueDao.exists(replyToMessageId);
+    }
 }

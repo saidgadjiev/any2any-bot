@@ -132,7 +132,6 @@ public class RenameService {
             ));
             if (!executor.cancelAndComplete(jobId, true)) {
                 renameQueueService.delete(jobId);
-                commandStateService.setState(chatId, CommandNames.RENAME_COMMAND_NAME, new RenameState());
             }
         }
         messageService.editMessage(new EditMessageText(
@@ -243,7 +242,6 @@ public class RenameService {
                 if (!checker.get()) {
                     executor.complete(jobId);
                     renameQueueService.delete(jobId);
-                    commandStateService.setState(userId, CommandNames.RENAME_COMMAND_NAME, new RenameState());
                     if (file != null) {
                         file.smartDelete();
                     }
@@ -271,7 +269,6 @@ public class RenameService {
                 renameQueueService.delete(jobId);
                 LOGGER.debug("Canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(fileSize));
             }
-            commandStateService.setState(userId, CommandNames.RENAME_COMMAND_NAME, new RenameState());
         }
 
         @Override
