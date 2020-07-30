@@ -48,14 +48,14 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult htmlToPdf(ConversionQueueItem fileQueueItem) {
-        SmartTempFile html = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
+        SmartTempFile html = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
             telegramService.downloadFileByFileId(fileQueueItem.getFileId(), html);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile file = fileService.createTempFile(TAG, Format.PDF.getExt());
+            SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.PDF.getExt());
             htmlDevice.processHtml(html.getAbsolutePath(), file.getAbsolutePath());
 
             stopWatch.stop();
@@ -73,7 +73,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile file = fileService.createTempFile(TAG, Format.PDF.getExt());
+            SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.PDF.getExt());
             htmlDevice.processUrl(fileQueueItem.getFileId(), file.getAbsolutePath());
 
             stopWatch.stop();

@@ -386,7 +386,7 @@ public class UnzipService {
 
     public class ExtractAllTask implements SmartExecutorService.Job {
 
-        private static final String TAG = "extractall";
+        public static final String TAG = "extractall";
 
         private UnzipQueueItem item;
 
@@ -423,7 +423,7 @@ public class UnzipService {
                     if (unzipState.getFilesCache().containsKey(entry.getKey())) {
                         messageService.sendDocument(new SendDocument((long) item.getUserId(), unzipState.getFilesCache().get(entry.getKey())));
                     } else {
-                        SmartTempFile file = fileService.createTempFile(TAG, FilenameUtils.getExtension(entry.getValue().getPath()));
+                        SmartTempFile file = fileService.createTempFile(item.getUserId(), TAG, FilenameUtils.getExtension(entry.getValue().getPath()));
                         files.add(file);
                         unzipDevice.unzip(entry.getValue().getPath(), unzipState.getArchivePath(), file.getAbsolutePath());
 
@@ -480,7 +480,7 @@ public class UnzipService {
 
     public class ExtractFileTask implements SmartExecutorService.Job {
 
-        private static final String TAG = "extractfile";
+        public static final String TAG = "extractfile";
 
         private final Logger LOGGER = LoggerFactory.getLogger(ExtractFileTask.class);
 
@@ -519,7 +519,7 @@ public class UnzipService {
                 LOGGER.debug("Start({}, {})", userId, size);
 
                 UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
-                out = fileService.createTempFile(TAG, FilenameUtils.getExtension(fileHeader.getPath()));
+                out = fileService.createTempFile(userId, TAG, FilenameUtils.getExtension(fileHeader.getPath()));
                 unzipDevice.unzip(fileHeader.getPath(), unzipState.getArchivePath(), out.getAbsolutePath());
 
                 String fileName = FilenameUtils.getName(fileHeader.getPath());
@@ -586,7 +586,7 @@ public class UnzipService {
 
     public class UnzipTask implements SmartExecutorService.Job {
 
-        private static final String TAG = "unzip";
+        public static final String TAG = "unzip";
 
         private final Logger LOGGER = LoggerFactory.getLogger(UnzipTask.class);
 
@@ -617,7 +617,7 @@ public class UnzipService {
             LOGGER.debug("Start({}, {}, {}, {})", userId, size, format, fileId);
 
             try {
-                in = fileService.createTempFile(TAG, format.getExt());
+                in = fileService.createTempFile(userId, fileId, TAG, format.getExt());
                 telegramService.downloadFileByFileId(fileId, in);
                 UnzipState unzipState = initAndGetState(in.getAbsolutePath());
                 if (unzipState == null) {

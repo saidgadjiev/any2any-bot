@@ -49,7 +49,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toWord(ConversionQueueItem fileQueueItem) {
-        SmartTempFile txt = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
+        SmartTempFile txt = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
             telegramService.downloadFileByFileId(fileQueueItem.getFileId(), txt);
@@ -59,7 +59,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
 
             com.aspose.words.Document document = new com.aspose.words.Document(txt.getAbsolutePath(), new TxtLoadOptions());
             try {
-                SmartTempFile result = fileService.createTempFile(TAG, fileQueueItem.getTargetFormat().getExt());
+                SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 document.save(result.getAbsolutePath());
 
                 stopWatch.stop();
@@ -76,7 +76,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toPdf(ConversionQueueItem fileQueueItem) {
-        SmartTempFile txt = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
+        SmartTempFile txt = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
             telegramService.downloadFileByFileId(fileQueueItem.getFileId(), txt);
@@ -93,7 +93,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
 
                 page.getParagraphs().add(text);
 
-                SmartTempFile result = fileService.createTempFile(TAG, Format.PDF.getExt());
+                SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.PDF.getExt());
                 doc.save(result.getAbsolutePath());
 
                 stopWatch.stop();

@@ -169,10 +169,10 @@ public class StateFather implements State {
         executor.execute(() -> {
             deleteCurrentState(chatId, command.getHistoryName());
 
-            SmartTempFile file = tempFileService.createTempFile(TAG, any2AnyFile.getFormat().getExt());
+            SmartTempFile file = tempFileService.createTempFile(chatId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
             try {
                 telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file);
-                SmartTempFile result = tempFileService.createTempFile(TAG, Format.PNG.getExt());
+                SmartTempFile result = tempFileService.createTempFile(chatId, any2AnyFile.getFileId(), TAG, Format.PNG.getExt());
                 imageDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
                 EditorState state = createState(result.getAbsolutePath(), Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), Format.PNG.getExt()));
                 state.setLanguage(locale.getLanguage());

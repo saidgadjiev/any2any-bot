@@ -49,13 +49,13 @@ public class Epub2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
         try {
             telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile result = fileService.createTempFile(TAG, fileQueueItem.getTargetFormat().getExt());
+            SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
             calibre.convert(file.getAbsolutePath(), result.getAbsolutePath());
 
             stopWatch.stop();
@@ -67,18 +67,18 @@ public class Epub2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult toDoc(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
         try {
             telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile resultDocx = fileService.createTempFile(TAG, Format.DOCX.getExt());
+            SmartTempFile resultDocx = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.DOCX.getExt());
             try {
                 calibre.convert(file.getAbsolutePath(), resultDocx.getAbsolutePath());
                 Document document = new Document(resultDocx.getAbsolutePath());
                 try {
-                    SmartTempFile result = fileService.createTempFile(TAG, Format.DOC.getExt());
+                    SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.DOC.getExt());
                     document.save(result.getAbsolutePath(), SaveFormat.DOC);
 
                     stopWatch.stop();

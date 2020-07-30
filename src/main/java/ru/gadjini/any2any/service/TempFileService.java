@@ -32,30 +32,39 @@ public class TempFileService {
         return tempDir;
     }
 
-    public SmartTempFile getTempFile(String prefix, String ext) {
-        File file = new File(tempDir, generateName(prefix, ext));
+    public SmartTempFile getTempFile(long chatId, String fileId, String tag, String ext) {
+        File file = new File(tempDir, generateName(chatId, fileId, tag, ext));
 
         LOGGER.debug("Get({})", file.getAbsolutePath());
         return new SmartTempFile(file);
     }
 
-    public SmartTempFile createTempFile(String prefix, String ext) {
+    public SmartTempFile getTempFile(long chatId, String tag, String ext) {
+        return getTempFile(chatId, null, tag, ext);
+    }
+
+    public SmartTempFile createTempFile(long chatId, String fileId, String tag, String ext) {
         try {
-            File file = new File(tempDir, generateName(prefix, ext));
+            File file = new File(tempDir, generateName(chatId, fileId, tag, ext));
             Files.createFile(file.toPath());
 
-            LOGGER.debug("Create({})", file.getAbsolutePath());
+            LOGGER.debug("Create({}, {}, {})", chatId, fileId, file.getAbsolutePath());
             return new SmartTempFile(file);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public String generateName(String prefix, String ext) {
-        prefix = StringUtils.defaultIfBlank(prefix, "");
+    public SmartTempFile createTempFile(long chatId, String tag, String ext) {
+        return createTempFile(chatId, null, tag, ext);
+    }
+
+    public String generateName(long chatId, String fileId, String tag, String ext) {
+        tag = StringUtils.defaultIfBlank(tag, "-");
         ext = StringUtils.defaultIfBlank(ext, "tmp");
+        fileId = StringUtils.defaultIfBlank(fileId, "-");
         long n = RANDOM.nextLong();
 
-        return prefix + System.nanoTime() + "_" + Long.toUnsignedString(n) + "." + ext;
+        return "tag_" + tag + "_chatId_" + chatId + "_fileId_" + fileId + "_time_" + System.nanoTime() + "_salt_" + Long.toUnsignedString(n) + "." + ext;
     }
 }

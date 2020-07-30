@@ -126,7 +126,7 @@ public class ColorState implements State {
         validateColor(colorText, new Locale(editorState.getLanguage()));
 
         executor.execute(() -> {
-            SmartTempFile tempFile = fileService.getTempFile(TAG, Format.PNG.getExt());
+            SmartTempFile tempFile = fileService.getTempFile(chatId, editorState.getCurrentFileId(), TAG, Format.PNG.getExt());
 
             if (editorState.getMode() == ModeState.Mode.NEGATIVE) {
                 String[] transparentColors = getNegativeTransparentColors(colorText);

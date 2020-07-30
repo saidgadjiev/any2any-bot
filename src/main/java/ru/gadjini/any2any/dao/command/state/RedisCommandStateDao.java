@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.Map;
+
 @Repository
 @Qualifier("redis")
 public class RedisCommandStateDao implements CommandStateDao {
@@ -45,6 +48,13 @@ public class RedisCommandStateDao implements CommandStateDao {
     @Override
     public void deleteState(long chatId, String command) {
         redisTemplate.opsForHash().delete(KEY, key(chatId, command));
+    }
+
+    @Override
+    public Collection<Object> getAllStates() {
+        Map<Object, Object> entries = redisTemplate.opsForHash().entries(KEY);
+
+        return entries.values();
     }
 
     private String key(long chatId, String command) {

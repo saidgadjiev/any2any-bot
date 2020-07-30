@@ -11,6 +11,9 @@ import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 
+import java.util.Collection;
+import java.util.List;
+
 @Service
 public class CommandStateService {
 
@@ -51,5 +54,9 @@ public class CommandStateService {
 
     public void deleteState(long chatId, String command) {
         commandStateDao.deleteState(chatId, command);
+    }
+
+    public Collection<Object> getAllStates() {
+        return commandStateDao.getAllStates();
     }
 }

@@ -147,7 +147,7 @@ public class ResizeState implements State {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         validateSize(size, new Locale(editorState.getLanguage()));
         executor.execute(() -> {
-            SmartTempFile result = tempFileService.getTempFile(TAG, Format.PNG.getExt());
+            SmartTempFile result = tempFileService.getTempFile(chatId, editorState.getCurrentFileId(), TAG, Format.PNG.getExt());
             imageDevice.resize(editorState.getCurrentFilePath(), result.getAbsolutePath(), size);
             if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
                 SmartTempFile prevFile = new SmartTempFile(new File(editorState.getPrevFilePath()));

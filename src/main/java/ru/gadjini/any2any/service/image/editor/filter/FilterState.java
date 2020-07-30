@@ -31,7 +31,7 @@ import java.util.Locale;
 @Component
 public class FilterState implements State {
 
-    private static final String TAG = "filter";
+    public static final String TAG = "filter";
 
     private CommandStateService commandStateService;
 
@@ -121,7 +121,7 @@ public class FilterState implements State {
     public void applyFilter(ImageEditorCommand command, long chatId, String queryId, Filter effect) {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
         executor.execute(() -> {
-            SmartTempFile result = tempFileService.getTempFile(TAG, Format.PNG.getExt());
+            SmartTempFile result = tempFileService.getTempFile(chatId, editorState.getCurrentFileId(), TAG, Format.PNG.getExt());
             switch (effect) {
                 case SKETCH:
                     imageDevice.applySketchFilter(editorState.getCurrentFilePath(), result.getAbsolutePath());

@@ -60,7 +60,7 @@ public class OcrService {
             LOGGER.debug("Start({}, {})", userId, any2AnyFile.getFileId());
 
             Locale locale = userService.getLocaleOrDefault(userId);
-            SmartTempFile file = fileService.createTempFile(TAG, any2AnyFile.getFormat().getExt());
+            SmartTempFile file = fileService.createTempFile(userId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
             try {
                 telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file);
 

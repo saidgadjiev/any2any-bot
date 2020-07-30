@@ -143,8 +143,8 @@ public class FormatService {
         return null;
     }
 
-    public Format getImageFormat(String photoFileId) {
-        SmartTempFile file = tempFileService.createTempFile(TAG, "tmp");
+    public Format getImageFormat(long chatId, String photoFileId) {
+        SmartTempFile file = tempFileService.createTempFile(chatId, photoFileId, TAG, "tmp");
 
         try {
             telegramService.downloadFileByFileId(photoFileId, file);

@@ -219,14 +219,14 @@ public class RenameService {
 
             try {
                 String ext = formatService.getExt(fileName, mimeType);
-                file = tempFileService.createTempFile(TAG, ext);
+                file = tempFileService.createTempFile(userId, fileId, TAG, ext);
                 telegramService.downloadFileByFileId(fileId, file);
 
                 String fileName = createNewFileName(newFileName, ext);
                 if (userThumb != null) {
-                    thumbFile = thumbService.convertToThumb(userThumb.getFileId(), userThumb.getFileName(), userThumb.getMimeType());
+                    thumbFile = thumbService.convertToThumb(userId, userThumb.getFileId(), userThumb.getFileName(), userThumb.getMimeType());
                 } else if (StringUtils.isNotBlank(thumb)) {
-                    thumbFile = tempFileService.createTempFile(TAG, Format.JPG.getExt());
+                    thumbFile = tempFileService.createTempFile(userId, fileId, TAG, Format.JPG.getExt());
                     telegramService.downloadFileByFileId(thumb, thumbFile);
                 }
                 messageService.sendDocument(new SendDocument((long) userId, fileName, file.getFile())

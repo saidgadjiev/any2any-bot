@@ -125,7 +125,7 @@ public class ConvertMaker {
             convertState.setMimeType(message.getDocument().getMimeType());
             Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
             convertState.setFormat(checkFormat(message.getFromUser().getId(), format, message.getDocument().getMimeType(), message.getDocument().getFileName(), locale));
-            if (convertState.getFormat() == Format.HTML && isBaseUrlMissed(message.getDocument().getFileId())) {
+            if (convertState.getFormat() == Format.HTML && isBaseUrlMissed(message.getChatId(), message.getDocument().getFileId())) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_NO_BASE_URL_IN_HTML, locale));
             }
         } else if (message.hasPhoto()) {
@@ -149,8 +149,8 @@ public class ConvertMaker {
         return convertState;
     }
 
-    private boolean isBaseUrlMissed(String fileId) {
-        SmartTempFile file = fileService.createTempFile(TAG, Format.HTML.getExt());
+    private boolean isBaseUrlMissed(long chatId, String fileId) {
+        SmartTempFile file = fileService.createTempFile(chatId, fileId, TAG, Format.HTML.getExt());
 
         try {
             telegramService.downloadFileByFileId(fileId, file);

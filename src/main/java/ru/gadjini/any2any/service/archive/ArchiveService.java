@@ -113,7 +113,7 @@ public class ArchiveService {
 
     public SmartTempFile createArchive(int userId, List<File> files, Format archiveFormat) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        SmartTempFile archive = fileService.createTempFile(TAG, archiveFormat.getExt());
+        SmartTempFile archive = fileService.createTempFile(userId, TAG, archiveFormat.getExt());
         ArchiveDevice archiveDevice = getCandidate(archiveFormat, locale);
         archiveDevice.zip(files.stream().map(File::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
 
@@ -219,7 +219,7 @@ public class ArchiveService {
 
     public class ArchiveTask implements SmartExecutorService.Job {
 
-        private static final String TAG = "archive";
+        public static final String TAG = "archive";
 
         private int jobId;
 
@@ -253,10 +253,10 @@ public class ArchiveService {
             try {
                 size = MemoryUtils.humanReadableByteCount(totalFileSize);
                 LOGGER.debug("Start({}, {}, {})", userId, size, type);
-                DownloadResult downloadResult = downloadFiles(archiveFiles);
+                DownloadResult downloadResult = downloadFiles(userId, archiveFiles);
                 Locale locale = userService.getLocaleOrDefault(userId);
 
-                archive = fileService.getTempFile(TAG, type.getExt());
+                archive = fileService.getTempFile(userId, TAG, type.getExt());
                 ArchiveDevice archiveDevice = getCandidate(type, locale);
                 archiveDevice.zip(files.stream().map(SmartTempFile::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
                 renameFiles(archiveDevice, archive.getAbsolutePath(), downloadResult.originalFileNames, downloadResult.downloadedNames);
@@ -325,12 +325,12 @@ public class ArchiveService {
             }
         }
 
-        private DownloadResult downloadFiles(List<TgFile> tgFiles) {
+        private DownloadResult downloadFiles(int userId, List<TgFile> tgFiles) {
             DownloadResult downloadResult = new DownloadResult();
 
             int i = 1;
             for (TgFile tgFile : tgFiles) {
-                SmartTempFile file = fileService.createTempFile(TAG, FilenameUtils.getExtension(tgFile.getFileName()));
+                SmartTempFile file = fileService.createTempFile(userId, tgFile.getFileId(), TAG, FilenameUtils.getExtension(tgFile.getFileName()));
                 telegramService.downloadFileByFileId(tgFile.getFileId(), file);
                 downloadResult.originalFileNames.put(i, tgFile.getFileName());
                 downloadResult.downloadedNames.put(i++, file.getName());

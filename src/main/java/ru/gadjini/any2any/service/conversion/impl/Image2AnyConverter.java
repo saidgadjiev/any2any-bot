@@ -66,7 +66,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult doConvertToWord(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
+        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
 
         try {
             telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
@@ -79,7 +79,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             try {
                 DocumentBuilder documentBuilder = new DocumentBuilder(document);
                 documentBuilder.insertImage(file.getAbsolutePath());
-                SmartTempFile out = fileService.createTempFile(TAG, fileQueueItem.getTargetFormat().getExt());
+                SmartTempFile out = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
                 documentBuilder.getDocument().save(out.getAbsolutePath());
 
                 stopWatch.stop();
@@ -96,7 +96,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult doConvert(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
+        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
 
         try {
             telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
@@ -105,7 +105,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
-            SmartTempFile tempFile = fileService.createTempFile(TAG, fileQueueItem.getTargetFormat().getExt());
+            SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
             imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath());
 
@@ -122,16 +122,16 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult doConvertHeicToPdf(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
             telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
-            SmartTempFile tempFile = fileService.createTempFile(TAG, Format.PNG.getExt());
+            SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.PNG.getExt());
             try {
                 imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath());
-                SmartTempFile result = fileService.createTempFile(TAG, Format.PDF.getExt());
+                SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.PDF.getExt());
                 imageDevice.convert(tempFile.getAbsolutePath(), result.getAbsolutePath());
 
                 stopWatch.stop();
@@ -156,12 +156,12 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult doConvertToIco(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         try {
-            SmartTempFile tempFile = fileService.createTempFile(TAG, fileQueueItem.getTargetFormat().getExt());
+            SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
             imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath(),
                     "-resize", "x32", "-gravity", "center", "-crop", "32x32+0+0", "-flatten", "-colors", "256");
@@ -177,15 +177,15 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     }
 
     private FileResult doConvertToSvg(ConversionQueueItem fileQueueItem) {
-        SmartTempFile file = fileService.createTempFile(TAG, fileQueueItem.getFormat().getExt());
+        SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
             telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
-            SmartTempFile result = fileService.createTempFile(TAG, Format.SVG.getExt());
+            SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.SVG.getExt());
             if (fileQueueItem.getTargetFormat() != Format.PNG) {
-                SmartTempFile tempFile = fileService.createTempFile(TAG, Format.PNG.getExt());
+                SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.PNG.getExt());
                 try {
                     imageDevice.convert(file.getAbsolutePath(), tempFile.getAbsolutePath());
                     imageTracer.trace(tempFile.getAbsolutePath(), result.getAbsolutePath());

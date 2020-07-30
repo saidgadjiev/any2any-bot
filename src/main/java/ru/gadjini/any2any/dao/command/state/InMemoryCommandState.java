@@ -3,6 +3,8 @@ package ru.gadjini.any2any.dao.command.state;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,5 +32,10 @@ public class InMemoryCommandState implements CommandStateDao {
     @Override
     public void deleteState(long chatId, String command) {
         states.remove(chatId);
+    }
+
+    @Override
+    public Collection<Object> getAllStates() {
+        return Collections.emptyList();
     }
 }
