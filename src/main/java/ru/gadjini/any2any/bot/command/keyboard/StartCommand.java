@@ -7,9 +7,9 @@ import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.model.TgMessage;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
 import ru.gadjini.any2any.service.CommandMessageBuilder;
 import ru.gadjini.any2any.service.LocalisationService;
@@ -94,6 +94,12 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     @Override
     public ReplyKeyboardMarkup getKeyboard(long chatId) {
         return replyKeyboardService.getMainMenu(chatId, userService.getLocaleOrDefault((int) chatId));
+    }
+
+    @Override
+    public String getMessage(long chatId) {
+        Locale locale = userService.getLocaleOrDefault((int) chatId);
+        return localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale);
     }
 
     @Override

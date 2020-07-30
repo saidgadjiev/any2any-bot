@@ -112,10 +112,9 @@ public class RenameService {
 
     public void removeAndCancelCurrentTasks(long chatId) {
         RenameState renameState = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, false);
-        if (renameState != null) {
+        if (renameState != null && renameState.getFile() != null) {
             List<Integer> ids = renameQueueService.deleteByUserId((int) chatId);
             executor.cancelAndComplete(ids, false);
-            commandStateService.setState(chatId, CommandNames.RENAME_COMMAND_NAME, new RenameState());
         }
     }
 

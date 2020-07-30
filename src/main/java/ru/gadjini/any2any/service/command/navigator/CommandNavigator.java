@@ -86,7 +86,7 @@ public class CommandNavigator {
         }
     }
 
-    public ReplyKeyboardMarkup silentPop(long chatId) {
+    public SilentPop silentPop(long chatId) {
         NavigableBotCommand navigableBotCommand = getCurrentCommand(chatId);
         if (navigableBotCommand == null) {
             return null;
@@ -98,7 +98,7 @@ public class CommandNavigator {
 
         setCurrentCommand(chatId, parentCommand);
 
-        return parentCommand.getKeyboard(chatId);
+        return new SilentPop(parentCommand.getKeyboard(chatId), parentCommand.getMessage(chatId));
     }
 
     public void zeroRestore(long chatId, NavigableBotCommand botCommand) {
@@ -131,5 +131,25 @@ public class CommandNavigator {
 
     private void setCurrentCommand(long chatId, NavigableBotCommand navigableBotCommand) {
         navigatorDao.set(chatId, navigableBotCommand.getHistoryName());
+    }
+
+    public class SilentPop {
+
+        private ReplyKeyboardMarkup replyKeyboardMarkup;
+
+        private String message;
+
+        public SilentPop(ReplyKeyboardMarkup replyKeyboardMarkup, String message) {
+            this.replyKeyboardMarkup = replyKeyboardMarkup;
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public ReplyKeyboardMarkup getReplyKeyboardMarkup() {
+            return replyKeyboardMarkup;
+        }
     }
 }

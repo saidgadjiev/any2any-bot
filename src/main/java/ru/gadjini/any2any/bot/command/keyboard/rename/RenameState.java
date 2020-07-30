@@ -7,8 +7,6 @@ public class RenameState implements HasThumb {
 
     private Any2AnyFile file;
 
-    private String language;
-
     private int replyMessageId;
 
     private Any2AnyFile thumb;
@@ -19,14 +17,6 @@ public class RenameState implements HasThumb {
 
     public Any2AnyFile getFile() {
         return file;
-    }
-
-    public String getLanguage() {
-        return language;
-    }
-
-    public void setLanguage(String language) {
-        this.language = language;
     }
 
     public int getReplyMessageId() {

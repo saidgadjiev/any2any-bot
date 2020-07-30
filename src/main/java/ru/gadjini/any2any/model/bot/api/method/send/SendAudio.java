@@ -16,7 +16,6 @@ public class SendAudio {
     private static final String REPLYTOMESSAGEID_FIELD = "reply_to_message_id";
     private static final String REPLYMARKUP_FIELD = "reply_markup";
     private static final String PARSEMODE_FIELD = "parse_mode";
-    private static final String THUMB_FIELD = "thumb";
 
     @JsonProperty(CHATID_FIELD)
     private String chatId;
@@ -30,8 +29,6 @@ public class SendAudio {
     private ReplyKeyboard replyMarkup;
     @JsonProperty(PARSEMODE_FIELD)
     private String parseMode;
-    @JsonProperty(THUMB_FIELD)
-    private InputFile thumb;
 
     public SendAudio(Long chatId, File file) {
         this.chatId = chatId.toString();
@@ -119,15 +116,6 @@ public class SendAudio {
         return this;
     }
 
-    public InputFile getThumb() {
-        return thumb;
-    }
-
-    public SendAudio setThumb(InputFile thumb) {
-        this.thumb = thumb;
-        return this;
-    }
-
     @Override
     public String toString() {
         return "SendVideo{" +
@@ -137,7 +125,6 @@ public class SendAudio {
                 ", replyToMessageId=" + replyToMessageId +
                 ", replyMarkup=" + replyMarkup +
                 ", parseMode='" + parseMode + '\'' +
-                ", thumb=" + thumb +
                 '}';
     }
 }

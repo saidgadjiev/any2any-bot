@@ -67,19 +67,23 @@ public class ViewThumbnailCommand implements BotCommand {
 
             if (state != null) {
                 Any2AnyFile thumbnail = state.getThumb();
-                if (StringUtils.isNotBlank(thumbnail.getCachedFileId())) {
-                    messageService.sendPhoto(new SendPhoto(message.getChatId(), thumbnail.getCachedFileId()));
+                if (thumbnail != null) {
+                    if (StringUtils.isNotBlank(thumbnail.getCachedFileId())) {
+                        messageService.sendPhoto(new SendPhoto(message.getChatId(), thumbnail.getCachedFileId()));
+                    } else {
+                        executor.execute(() -> {
+                            SmartTempFile tempFile = thumbService.convertToThumb(thumbnail.getFileId(), thumbnail.getFileName(), thumbnail.getMimeType());
+                            try {
+                                SendFileResult sendFileResult = messageService.sendPhoto(new SendPhoto(message.getChatId(), tempFile.getAbsolutePath()));
+                                thumbnail.setCachedFileId(sendFileResult.getFileId());
+                                commandStateService.setState(message.getChatId(), currentCommandName, state);
+                            } finally {
+                                tempFile.smartDelete();
+                            }
+                        });
+                    }
                 } else {
-                    executor.execute(() -> {
-                        SmartTempFile tempFile = thumbService.convertToThumb(thumbnail.getFileId(), thumbnail.getFileName(), thumbnail.getMimeType());
-                        try {
-                            SendFileResult sendFileResult = messageService.sendPhoto(new SendPhoto(message.getChatId(), tempFile.getAbsolutePath()));
-                            thumbnail.setCachedFileId(sendFileResult.getFileId());
-                            commandStateService.setState(message.getChatId(), currentCommandName, state);
-                        } finally {
-                            tempFile.smartDelete();
-                        }
-                    });
+                    thumbNotFound(message);
                 }
             } else {
                 thumbNotFound(message);

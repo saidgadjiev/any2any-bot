@@ -30,8 +30,6 @@ public class SendVideo {
     private ReplyKeyboard replyMarkup;
     @JsonProperty(PARSEMODE_FIELD)
     private String parseMode;
-    @JsonProperty(THUMB_FIELD)
-    private InputFile thumb;
 
     public SendVideo(Long chatId, File file) {
         this.chatId = chatId.toString();
@@ -119,15 +117,6 @@ public class SendVideo {
         return this;
     }
 
-    public InputFile getThumb() {
-        return thumb;
-    }
-
-    public SendVideo setThumb(InputFile thumb) {
-        this.thumb = thumb;
-        return this;
-    }
-
     @Override
     public String toString() {
         return "SendVideo{" +
@@ -137,7 +126,6 @@ public class SendVideo {
                 ", replyToMessageId=" + replyToMessageId +
                 ", replyMarkup=" + replyMarkup +
                 ", parseMode='" + parseMode + '\'' +
-                ", thumb=" + thumb +
                 '}';
     }
 }

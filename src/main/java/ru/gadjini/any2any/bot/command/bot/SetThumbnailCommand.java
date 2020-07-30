@@ -13,9 +13,9 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.HasThumb;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
@@ -86,9 +86,10 @@ public class SetThumbnailCommand implements BotCommand, NavigableBotCommand {
         if (any2AnyFile != null) {
             validate(message.getFromUser().getId(), any2AnyFile, locale);
             setThumb(message.getChatId(), any2AnyFile, locale);
-            ReplyKeyboardMarkup replyKeyboardMarkup = commandNavigator.silentPop(message.getChatId());
-            messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_ADDED, locale))
-                    .setReplyMarkup(replyKeyboardMarkup));
+            CommandNavigator.SilentPop silentPop = commandNavigator.silentPop(message.getChatId());
+            messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_ADDED, locale) +
+                    "\n\n" + silentPop.getMessage())
+                    .setReplyMarkup(silentPop.getReplyKeyboardMarkup()));
         }
     }
 

@@ -17,6 +17,10 @@ public interface NavigableBotCommand extends MyBotCommand {
         throw new UnsupportedOperationException();
     }
 
+    default String getMessage(long chatId) {
+        throw new UnsupportedOperationException();
+    }
+
     default void leave(long chatId) {
 
     }

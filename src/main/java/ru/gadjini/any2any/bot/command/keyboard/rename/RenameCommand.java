@@ -110,14 +110,13 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
         RenameState renameState = initState(message, locale);
 
-        if (renameState != null) {
-            renameState.setLanguage(locale.getLanguage());
+        if (renameState.getFile() != null) {
             messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_NEW_FILE_NAME, locale)));
             renameService.removeAndCancelCurrentTasks(message.getChatId());
             commandStateService.setState(message.getChatId(), getHistoryName(), renameState);
         } else if (message.hasText()) {
-            renameState = commandStateService.getState(message.getChatId(), getHistoryName(), false);
-            if (renameState == null || renameState.getFile() == null) {
+            renameState = commandStateService.getState(message.getChatId(), getHistoryName(), true);
+            if (renameState.getFile() == null) {
                 throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FILE, locale));
             }
             renameService.rename(message.getFromUser().getId(), renameState, text);
@@ -134,7 +133,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
         RenameState renameState = commandStateService.getState(message.getChatId(), CommandNames.RENAME_COMMAND_NAME, true);
         Locale locale = userService.getLocaleOrDefault(message.getUser().getId());
         String msg = localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FILE, locale);
-        if (renameState != null) {
+        if (renameState.getFile() != null) {
             msg = localisationService.getMessage(MessagesProperties.MESSAGE_NEW_FILE_NAME, locale);
         }
         messageService.sendMessage(new HtmlMessage(message.getChatId(), msg)
@@ -147,14 +146,27 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
         return replyKeyboardService.goBack(chatId, locale);
     }
 
-    private RenameState initState(Message message, Locale locale) {
-        Any2AnyFile file = fileService.getFile(message, locale);
-        if (file == null) {
-            return null;
+    @Override
+    public String getMessage(long chatId) {
+        RenameState renameState = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, true);
+        Locale locale = userService.getLocaleOrDefault((int) chatId);
+        String msg = localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FILE, locale);
+        if (renameState.getFile() != null) {
+            msg = localisationService.getMessage(MessagesProperties.MESSAGE_NEW_FILE_NAME, locale);
         }
+
+        return msg;
+    }
+
+    private RenameState initState(Message message, Locale locale) {
         RenameState renameState = commandStateService.getState(message.getChatId(), CommandNames.RENAME_COMMAND_NAME, true);
         renameState.setReplyMessageId(message.getMessageId());
+
+        Any2AnyFile file = fileService.getFile(message, locale);
         renameState.setFile(file);
+        if (file == null) {
+            return renameState;
+        }
 
         commandStateService.setState(message.getChatId(), CommandNames.RENAME_COMMAND_NAME, renameState);
 

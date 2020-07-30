@@ -25,6 +25,7 @@ public class BotConfiguration implements Jackson2ObjectMapperBuilderCustomizer {
     public void customize(Jackson2ObjectMapperBuilder jacksonObjectMapperBuilder) {
         jacksonObjectMapperBuilder.visibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE)
                 .visibility(PropertyAccessor.SETTER, JsonAutoDetect.Visibility.NONE)
-                .visibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+                .visibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+                .failOnUnknownProperties(false);
     }
 }
