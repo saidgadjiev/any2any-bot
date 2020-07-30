@@ -6,7 +6,7 @@ services:
     build: ../../../
     volumes:
       - ${PWD}/data/logs:/home/bot/app/logs
-      - ${PWD}/data/tessdata:/home/bot/app/tessdata
+        - ../../../data/shr:/tmp/shr
     ports:
       - 5005:5005
     env_file:

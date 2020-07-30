@@ -16,7 +16,6 @@ public class SendVideo {
     private static final String REPLYTOMESSAGEID_FIELD = "reply_to_message_id";
     private static final String REPLYMARKUP_FIELD = "reply_markup";
     private static final String PARSEMODE_FIELD = "parse_mode";
-    private static final String THUMB_FIELD = "thumb";
 
     @JsonProperty(CHATID_FIELD)
     private String chatId;
