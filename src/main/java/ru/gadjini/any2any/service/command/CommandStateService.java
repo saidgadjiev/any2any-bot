@@ -12,11 +12,14 @@ import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class CommandStateService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandStateService.class);
+
+    private static final long TTL = 1;
 
     private CommandStateDao commandStateDao;
 
@@ -33,7 +36,7 @@ public class CommandStateService {
     }
 
     public void setState(long chatId, String command, Object state) {
-        commandStateDao.setState(chatId, command, state);
+        commandStateDao.setState(chatId, command, state, TTL, TimeUnit.HOURS);
     }
 
     public <T> T getState(long chatId, String command, boolean expiredCheck, Class<T> tClass) {
@@ -41,7 +44,7 @@ public class CommandStateService {
 
         if (expiredCheck && state == null) {
             LOGGER.warn("State not found({}, {})", chatId, command);
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SESSION_EXPIRED, userService.getLocaleOrDefault((int) chatId)), true);
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SESSION_EXPIRED, userService.getLocaleOrDefault((int) chatId)));
         }
 
         return state;

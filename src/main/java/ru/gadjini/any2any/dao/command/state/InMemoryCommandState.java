@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Repository
 @Qualifier("inMemory")
@@ -15,7 +16,7 @@ public class InMemoryCommandState implements CommandStateDao {
     private Map<Long, Object> states = new ConcurrentHashMap<>();
 
     @Override
-    public void setState(long chatId, String command, Object state) {
+    public void setState(long chatId, String command, Object state, long ttl, TimeUnit timeUnit) {
         states.put(chatId, state);
     }
 

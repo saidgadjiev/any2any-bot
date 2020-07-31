@@ -8,8 +8,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @Repository
 @Qualifier("redis")
@@ -17,7 +20,7 @@ public class RedisCommandStateDao implements CommandStateDao {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisCommandStateDao.class);
 
-    private static final String KEY = "command:state";
+    private static final String KEY = "cmd";
 
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -30,14 +33,14 @@ public class RedisCommandStateDao implements CommandStateDao {
     }
 
     @Override
-    public void setState(long chatId, String command, Object state) {
-        redisTemplate.opsForHash().put(KEY, key(chatId, command), state);
+    public void setState(long chatId, String command, Object state, long ttl, TimeUnit timeUnit) {
+        redisTemplate.opsForValue().set(key(chatId, command), state, ttl, timeUnit);
     }
 
     @Override
     public <T> T getState(long chatId, String command, Class<T> tClass) {
         try {
-            Object o = redisTemplate.opsForHash().get(KEY, key(chatId, command));
+            Object o = redisTemplate.opsForValue().get(key(chatId, command));
 
             if (o == null) {
                 return null;
@@ -55,22 +58,34 @@ public class RedisCommandStateDao implements CommandStateDao {
 
     @Override
     public boolean hasState(long chatId, String command) {
-        return redisTemplate.opsForHash().hasKey(KEY, key(chatId, command));
+        Boolean aBoolean = redisTemplate.hasKey(key(chatId, command));
+
+        return aBoolean != null && aBoolean;
     }
 
     @Override
     public void deleteState(long chatId, String command) {
-        redisTemplate.opsForHash().delete(KEY, key(chatId, command));
+        redisTemplate.delete(key(chatId, command));
     }
 
     @Override
     public Collection<Object> getAllStates() {
-        Map<Object, Object> entries = redisTemplate.opsForHash().entries(KEY);
+        Set<String> keys = redisTemplate.keys("cmd:");
+        if (keys == null) {
+            return Collections.emptyList();
+        }
+        Collection<Object> states = new ArrayList<>();
+        for (String key : keys) {
+            Object state = redisTemplate.opsForValue().get(key);
+            if (state != null) {
+                states.add(state);
+            }
+        }
 
-        return entries.values();
+        return states;
     }
 
     private String key(long chatId, String command) {
-        return command + ":" + chatId;
+        return KEY + ":" + command + ":" + chatId;
     }
 }

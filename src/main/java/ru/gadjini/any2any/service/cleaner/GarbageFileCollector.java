@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -25,9 +26,9 @@ public class GarbageFileCollector {
     private TempFileService tempFileService;
 
     @Autowired
-    public GarbageFileCollector(TempFileService tempFileService, Set<GarbageAlgorithm> algorithms) {
+    public GarbageFileCollector(TempFileService tempFileService) {
         this.tempFileService = tempFileService;
-        this.algorithms = algorithms;
+        this.algorithms = new HashSet<>();
     }
 
     public int clean() {
