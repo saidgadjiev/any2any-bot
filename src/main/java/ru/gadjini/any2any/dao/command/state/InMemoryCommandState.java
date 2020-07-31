@@ -20,7 +20,7 @@ public class InMemoryCommandState implements CommandStateDao {
     }
 
     @Override
-    public <T> T getState(long chatId, String command) {
+    public <T> T getState(long chatId, String command, Class<T> tClass) {
         return (T) states.get(chatId);
     }
 

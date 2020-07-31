@@ -61,14 +61,14 @@ public class InaccuracyState implements State {
     @Override
     public void goBack(ImageEditorCommand command, CallbackQuery callbackQuery) {
         transparencyState.enter(command, callbackQuery.getMessage().getChatId());
-        EditorState state = commandStateService.getState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), true, EditorState.class);
         state.setStateName(transparencyState.getName());
         commandStateService.setState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), state);
     }
 
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
-        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         messageService.editMessageCaption(new EditMessageCaption(chatId, state.getMessageId(),
                 messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_INACCURACY_WELCOME, new Locale(state.getLanguage())))
@@ -77,7 +77,7 @@ public class InaccuracyState implements State {
 
     @Override
     public void inaccuracy(ImageEditorCommand command, long chatId, String queryId, String inaccuracy) {
-        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         Locale locale = new Locale(state.getLanguage());
         inaccuracy = validateAndGet(inaccuracy, locale);
         if (state.getInaccuracy().equals(inaccuracy)) {

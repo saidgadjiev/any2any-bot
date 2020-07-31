@@ -71,7 +71,7 @@ public class TransparencyState implements State {
 
     @Override
     public void go(ImageEditorCommand command, long chatId, String queryId, Name name) {
-        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
 
         switch (name) {
             case COLOR:
@@ -92,7 +92,7 @@ public class TransparencyState implements State {
 
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
-        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         messageService.editMessageCaption(new EditMessageCaption(chatId, state.getMessageId(),
                 messageBuilder.getSettingsStr(state))
                 .setReplyMarkup(inlineKeyboardService.getTransparencyKeyboard(new Locale(state.getLanguage()))));
@@ -100,7 +100,7 @@ public class TransparencyState implements State {
 
     @Override
     public void goBack(ImageEditorCommand command, CallbackQuery callbackQuery) {
-        EditorState state = commandStateService.getState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), true, EditorState.class);
         state.setStateName(imageEditorState.getName());
         imageEditorState.enter(command, callbackQuery.getMessage().getChatId());
         commandStateService.setState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), state);

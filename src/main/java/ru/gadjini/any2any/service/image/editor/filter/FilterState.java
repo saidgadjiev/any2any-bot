@@ -75,7 +75,7 @@ public class FilterState implements State {
 
     @Override
     public void update(ImageEditorCommand command, long chatId, String queryId) {
-        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         messageService.deleteMessage(chatId, editorState.getMessageId());
         Locale locale = new Locale(editorState.getLanguage());
         SendFileResult sendFileResult = messageService.sendDocument(new SendDocument(chatId, editorState.getFileName(), new File(editorState.getCurrentFilePath()))
@@ -91,7 +91,7 @@ public class FilterState implements State {
 
     @Override
     public void cancel(ImageEditorCommand command, long chatId, String queryId) {
-        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
             String editFilePath = editorState.getCurrentFilePath();
             editorState.setCurrentFilePath(editorState.getPrevFilePath());
@@ -112,14 +112,14 @@ public class FilterState implements State {
 
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
-        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         messageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId())
                 .setReplyMarkup(inlineKeyboardService.getImageFiltersKeyboard(new Locale(state.getLanguage()), state.canCancel())));
     }
 
     @Override
     public void applyFilter(ImageEditorCommand command, long chatId, String queryId, Filter effect) {
-        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         executor.execute(() -> {
             SmartTempFile result = tempFileService.getTempFile(chatId, editorState.getCurrentFileId(), TAG, Format.PNG.getExt());
             switch (effect) {
@@ -157,7 +157,7 @@ public class FilterState implements State {
 
     @Override
     public void goBack(ImageEditorCommand command, CallbackQuery callbackQuery) {
-        EditorState state = commandStateService.getState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), true, EditorState.class);
         state.setStateName(imageEditorState.getName());
         imageEditorState.enter(command, callbackQuery.getMessage().getChatId());
         commandStateService.setState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), state);

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
+import ru.gadjini.any2any.bot.command.keyboard.rename.RenameState;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.HasThumb;
@@ -69,10 +70,8 @@ public class DeleteThumbnailCommand implements BotCommand {
     }
 
     private HasThumb getState(long chatId, String commandName) {
-        Object state = commandStateService.getState(chatId, commandName, false);
-
-        if (state instanceof HasThumb) {
-            return (HasThumb) state;
+        if (commandName.equals(CommandNames.RENAME_COMMAND_NAME)) {
+            return commandStateService.getState(chatId, commandName, false, RenameState.class);
         }
 
         return null;

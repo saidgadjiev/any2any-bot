@@ -123,7 +123,7 @@ public class UnzipService {
     }
 
     public void extractAll(int userId, int messageId, int unzipJobId, String queryId) {
-        UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, false);
+        UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, false, UnzipState.class);
         if (unzipState == null) {
             messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(
                     queryId,
@@ -148,7 +148,7 @@ public class UnzipService {
     }
 
     public void extractFile(int userId, int messageId, int unzipJobId, int extractFileId, String queryId) {
-        UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, false);
+        UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, false, UnzipState.class);
         if (unzipState == null) {
             messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(
                     queryId,
@@ -182,7 +182,7 @@ public class UnzipService {
     }
 
     public void nextOrPrev(String queryId, long chatId, int userId, int messageId, int prevLimit, int offset) {
-        UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, false);
+        UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, false, UnzipState.class);
         if (unzipState == null) {
             messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(
                     queryId,
@@ -213,7 +213,7 @@ public class UnzipService {
     public void unzip(int userId, Any2AnyFile file, Locale locale) {
         checkCandidate(file.getFormat(), locale);
         UnzipQueueItem queueItem = queueService.createProcessingUnzipItem(userId, file);
-        UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true);
+        UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true, UnzipState.class);
         unzipState.setUnzipJobId(queueItem.getId());
         commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
         int messageId = sendStartUnzippingMessage(userId, queueItem.getId(), locale);
@@ -224,7 +224,7 @@ public class UnzipService {
     }
 
     public void removeAndCancelCurrentTasks(long chatId) {
-        UnzipState unzipState = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false);
+        UnzipState unzipState = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false, UnzipState.class);
 
         if (unzipState != null) {
             LOGGER.debug("Remove previous state({})", chatId);
@@ -238,7 +238,7 @@ public class UnzipService {
     }
 
     public void cancelUnzip(long chatId, int messageId, String queryId, int jobId) {
-        UnzipState unzipState = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false);
+        UnzipState unzipState = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false, UnzipState.class);
         if (unzipState == null || unzipState.getUnzipJobId() != jobId) {
             messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(
                     queryId,
@@ -276,7 +276,7 @@ public class UnzipService {
                     queryId,
                     localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))
             ));
-            UnzipState unzipState = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false);
+            UnzipState unzipState = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false, UnzipState.class);
             if (unzipState != null) {
                 Locale locale = userService.getLocaleOrDefault((int) chatId);
                 String message = localisationService.getMessage(
@@ -301,7 +301,7 @@ public class UnzipService {
         if (ids.size() > 0) {
             LOGGER.debug("Leave({}, {})", chatId, ids.size());
         }
-        UnzipState state = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false);
+        UnzipState state = commandStateService.getState(chatId, CommandNames.UNZIP_COMMAND_NAME, false, UnzipState.class);
         if (state != null) {
             if (StringUtils.isNotBlank(state.getArchivePath())) {
                 new SmartTempFile(new File(state.getArchivePath())).smartDelete();
@@ -414,7 +414,7 @@ public class UnzipService {
         public void run() {
             String size = MemoryUtils.humanReadableByteCount(item.getExtractFileSize());
             LOGGER.debug("Start extract all({}, {})", item.getUserId(), size);
-            UnzipState unzipState = commandStateService.getState(item.getUserId(), CommandNames.UNZIP_COMMAND_NAME, true);
+            UnzipState unzipState = commandStateService.getState(item.getUserId(), CommandNames.UNZIP_COMMAND_NAME, true, UnzipState.class);
 
             try {
                 UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
@@ -512,7 +512,7 @@ public class UnzipService {
         public void run() {
             String size;
 
-            UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true);
+            UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true, UnzipState.class);
             try {
                 ZipFileHeader fileHeader = unzipState.getFiles().get(id);
                 size = MemoryUtils.humanReadableByteCount(fileHeader.getSize());
@@ -695,7 +695,7 @@ public class UnzipService {
         }
 
         private UnzipState initAndGetState(String zipFile) {
-            UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, false);
+            UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, false, UnzipState.class);
             if (unzipState == null) {
                 return null;
             }

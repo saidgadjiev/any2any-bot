@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.bot.command.api.BotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
+import ru.gadjini.any2any.bot.command.keyboard.rename.RenameState;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.HasThumb;
@@ -100,7 +101,7 @@ public class SetThumbnailCommand implements BotCommand, NavigableBotCommand {
 
     @Override
     public String getParentCommandName(long chatId) {
-        String commandName = commandStateService.getState(chatId, CommandNames.SET_THUMBNAIL_COMMAND, false);
+        String commandName = commandStateService.getState(chatId, CommandNames.SET_THUMBNAIL_COMMAND, false, String.class);
 
         return StringUtils.isBlank(commandName) ? CommandNames.START_COMMAND : commandName;
     }
@@ -131,11 +132,15 @@ public class SetThumbnailCommand implements BotCommand, NavigableBotCommand {
 
     private void setThumb(long chatId, Any2AnyFile any2AnyFile, Locale locale) {
         String parentCommandName = getParentCommandName(chatId);
-        Object state = commandStateService.getState(chatId, parentCommandName, false);
-        if (!(state instanceof HasThumb)) {
+        HasThumb state = null;
+
+        if (parentCommandName.equals(CommandNames.RENAME_COMMAND_NAME)) {
+            state = commandStateService.getState(chatId, parentCommandName, false, RenameState.class);
+        }
+        if (state == null) {
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_BAD_PARENT_COMMAND, locale));
         }
-        HasThumb hasThumb = (HasThumb) state;
+        HasThumb hasThumb = state;
         hasThumb.setThumb(any2AnyFile);
         commandStateService.setState(chatId, parentCommandName, hasThumb);
     }
@@ -145,9 +150,13 @@ public class SetThumbnailCommand implements BotCommand, NavigableBotCommand {
 
         if (currentCommand != null) {
             String commandName = currentCommand.getHistoryName();
-            Object state = commandStateService.getState(chatId, commandName, false);
+            HasThumb state = null;
 
-            if (!(state instanceof HasThumb)) {
+            if (commandName.equals(CommandNames.RENAME_COMMAND_NAME)) {
+                state = commandStateService.getState(chatId, commandName, false, RenameState.class);
+            }
+
+            if (state == null) {
                 throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_BAD_PARENT_COMMAND, locale));
             }
         }

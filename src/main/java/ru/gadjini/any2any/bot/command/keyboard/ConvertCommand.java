@@ -136,9 +136,12 @@ public class ConvertCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     @Override
     public boolean canLeave(long chatId) {
-        Object state = commandStateService.getState(chatId, getHistoryName(), false);
-        commandStateService.deleteState(chatId, getHistoryName());
+        if (commandStateService.hasState(chatId, getHistoryName())) {
+            commandStateService.deleteState(chatId, getHistoryName());
 
-        return state == null;
+            return true;
+        }
+
+        return false;
     }
 }

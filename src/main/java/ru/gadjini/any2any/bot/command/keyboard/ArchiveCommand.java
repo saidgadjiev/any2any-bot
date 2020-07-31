@@ -118,7 +118,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
     public void processNonCommandUpdate(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
         if (message.hasText()) {
-            ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false);
+            ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false, ArchiveState.class);
             if (archiveState == null || archiveState.getFiles().isEmpty()) {
                 messageService.sendMessage(new HtmlMessage(message.getChatId(),
                         localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale)));
@@ -129,7 +129,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
                 commandStateService.deleteState(message.getChatId(), CommandNames.ARCHIVE_COMMAND_NAME);
             }
         } else {
-            ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false);
+            ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false, ArchiveState.class);
             if (archiveState == null) {
                 archiveState = new ArchiveState();
             }

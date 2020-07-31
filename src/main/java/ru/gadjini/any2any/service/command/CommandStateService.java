@@ -36,8 +36,8 @@ public class CommandStateService {
         commandStateDao.setState(chatId, command, state);
     }
 
-    public <T> T getState(long chatId, String command, boolean expiredCheck) {
-        T state = commandStateDao.getState(chatId, command);
+    public <T> T getState(long chatId, String command, boolean expiredCheck, Class<T> tClass) {
+        T state = commandStateDao.getState(chatId, command, tClass);
 
         if (expiredCheck && state == null) {
             LOGGER.warn("State not found({}, {})", chatId, command);

@@ -108,14 +108,14 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
     public void processNonCommandUpdate(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
         if (text.equals(localisationService.getMessage(MessagesProperties.DOWNLOAD_FILE_COMMAND_NAME, locale))) {
-            String fileId = commandStateService.getState(message.getChatId(), CommandNames.ADMIN, false);
+            String fileId = commandStateService.getState(message.getChatId(), CommandNames.ADMIN, false, String.class);
             if (StringUtils.isNotBlank(fileId)) {
                 commandStateService.deleteState(message.getChatId(), CommandNames.ADMIN);
                 messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOAD_FILE_PROCESSING, locale)));
                 messageService.sendFile(message.getChatId(), fileId);
             }
         } else if (text.equals(localisationService.getMessage(MessagesProperties.EXECUTE_CONVERSION_COMMAND_NAME, locale))) {
-            String jobIdStr = commandStateService.getState(message.getChatId(), CommandNames.ADMIN, false);
+            String jobIdStr = commandStateService.getState(message.getChatId(), CommandNames.ADMIN, false, String.class);
             if (StringUtils.isNotBlank(jobIdStr)) {
                 commandStateService.deleteState(message.getChatId(), CommandNames.ADMIN);
                 int jobId = Integer.parseInt(jobIdStr);

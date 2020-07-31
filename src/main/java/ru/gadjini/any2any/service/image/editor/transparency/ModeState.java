@@ -55,7 +55,7 @@ public class ModeState implements State {
 
     @Override
     public void goBack(ImageEditorCommand command, CallbackQuery callbackQuery) {
-        EditorState state = commandStateService.getState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), true, EditorState.class);
         state.setStateName(transparencyState.getName());
         transparencyState.enter(command, callbackQuery.getMessage().getChatId());
         commandStateService.setState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), state);
@@ -63,7 +63,7 @@ public class ModeState implements State {
 
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
-        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         messageService.editMessageCaption(new EditMessageCaption(chatId, state.getMessageId(),
                 messageBuilder.getSettingsStr(state) + "\n\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MODE_WELCOME, new Locale(state.getLanguage())))
@@ -72,7 +72,7 @@ public class ModeState implements State {
 
     @Override
     public void transparentMode(ImageEditorCommand command, long chatId, String queryId, Mode mode) {
-        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         Locale locale = new Locale(state.getLanguage());
         if (state.getMode() == mode) {
             messageService.sendAnswerCallbackQuery(

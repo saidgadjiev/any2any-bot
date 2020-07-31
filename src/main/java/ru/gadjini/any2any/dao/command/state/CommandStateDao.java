@@ -5,7 +5,7 @@ import java.util.Collection;
 public interface CommandStateDao {
     void setState(long chatId, String command, Object state);
 
-    <T> T getState(long chatId, String command);
+    <T> T getState(long chatId, String command, Class<T> tClass);
 
     boolean hasState(long chatId, String command);
 

@@ -89,7 +89,7 @@ public class ResizeState implements State {
 
     @Override
     public void update(ImageEditorCommand command, long chatId, String queryId) {
-        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
 
         messageService.deleteMessage(chatId, editorState.getMessageId());
         String size = identifyDevice.getSize(editorState.getCurrentFilePath());
@@ -109,7 +109,7 @@ public class ResizeState implements State {
 
     @Override
     public void cancel(ImageEditorCommand command, long chatId, String queryId) {
-        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
             String editFilePath = editorState.getCurrentFilePath();
             editorState.setCurrentFilePath(editorState.getPrevFilePath());
@@ -133,7 +133,7 @@ public class ResizeState implements State {
 
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
-        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         String size = identifyDevice.getSize(state.getCurrentFilePath());
         Locale locale = new Locale(state.getLanguage());
         messageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId(),
@@ -144,7 +144,7 @@ public class ResizeState implements State {
 
     @Override
     public void size(ImageEditorCommand command, long chatId, String queryId, String size) {
-        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         validateSize(size, new Locale(editorState.getLanguage()));
         executor.execute(() -> {
             SmartTempFile result = tempFileService.getTempFile(chatId, editorState.getCurrentFileId(), TAG, Format.PNG.getExt());
@@ -175,7 +175,7 @@ public class ResizeState implements State {
 
     @Override
     public void goBack(ImageEditorCommand command, CallbackQuery callbackQuery) {
-        EditorState state = commandStateService.getState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), true, EditorState.class);
         state.setStateName(imageEditorState.getName());
         imageEditorState.enter(command, callbackQuery.getMessage().getChatId());
         commandStateService.setState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), state);

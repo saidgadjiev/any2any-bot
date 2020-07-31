@@ -190,7 +190,7 @@ public class StateFather implements State {
     }
 
     public void leave(ImageEditorCommand command, long chatId) {
-        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), false);
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), false, EditorState.class);
         if (state == null) {
             LOGGER.debug("Empty state({})", chatId);
             return;
@@ -235,7 +235,7 @@ public class StateFather implements State {
     }
 
     private void deleteCurrentState(long chatId, String commandName) {
-        EditorState state = commandStateService.getState(chatId, commandName, false);
+        EditorState state = commandStateService.getState(chatId, commandName, false, EditorState.class);
 
         if (state != null) {
             try {
@@ -253,7 +253,7 @@ public class StateFather implements State {
     }
 
     private EditorState getEditorState(long chatId, String commandName) {
-        EditorState editorState = commandStateService.getState(chatId, commandName, false);
+        EditorState editorState = commandStateService.getState(chatId, commandName, false, EditorState.class);
 
         if (editorState == null) {
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MAIN_WELCOME, userService.getLocaleOrDefault((int) chatId)));

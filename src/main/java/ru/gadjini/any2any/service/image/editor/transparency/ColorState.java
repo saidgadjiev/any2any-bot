@@ -34,6 +34,7 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 @Component
+@SuppressWarnings("CPD-START")
 public class ColorState implements State {
 
     public static final String TAG = "color";
@@ -87,7 +88,7 @@ public class ColorState implements State {
 
     @Override
     public void update(ImageEditorCommand command, long chatId, String queryId) {
-        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         messageService.deleteMessage(chatId, state.getMessageId());
         Locale locale = new Locale(state.getLanguage());
         SendFileResult sendFileResult = messageService.sendDocument(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath()))
@@ -106,14 +107,14 @@ public class ColorState implements State {
     @Override
     public void goBack(ImageEditorCommand command, CallbackQuery callbackQuery) {
         transparencyState.enter(command, callbackQuery.getMessage().getChatId());
-        EditorState state = commandStateService.getState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), true, EditorState.class);
         state.setStateName(transparencyState.getName());
         commandStateService.setState(callbackQuery.getMessage().getChatId(), command.getHistoryName(), state);
     }
 
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
-        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         messageService.editMessageCaption(new EditMessageCaption(chatId, state.getMessageId(),
                 messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, new Locale(state.getLanguage())))
@@ -122,7 +123,7 @@ public class ColorState implements State {
 
     @Override
     public void transparentColor(ImageEditorCommand command, long chatId, String queryId, String colorText) {
-        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         validateColor(colorText, new Locale(editorState.getLanguage()));
 
         executor.execute(() -> {
@@ -159,7 +160,7 @@ public class ColorState implements State {
 
     @Override
     public void cancel(ImageEditorCommand command, long chatId, String queryId) {
-        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
             String editFilePath = editorState.getCurrentFilePath();
             editorState.setCurrentFilePath(editorState.getPrevFilePath());

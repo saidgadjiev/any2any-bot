@@ -96,11 +96,11 @@ public class ConvertMaker {
             convertState.deleteWarns();
             commandStateService.setState(message.getChatId(), controllerName, convertState);
         } else if (isMediaMessage(message)) {
-            ConvertState convertState = commandStateService.getState(message.getChatId(), controllerName, true);
+            ConvertState convertState = commandStateService.getState(message.getChatId(), controllerName, true, ConvertState.class);
             convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_TOO_MANY_FILES, locale));
             commandStateService.setState(message.getChatId(), controllerName, convertState);
         } else if (message.hasText()) {
-            ConvertState convertState = commandStateService.getState(message.getChatId(), controllerName, true);
+            ConvertState convertState = commandStateService.getState(message.getChatId(), controllerName, true, ConvertState.class);
             Format targetFormat = checkTargetFormat(message.getFromUser().getId(), convertState.getFormat(), formatService.getAssociatedFormat(text), text, locale);
             if (targetFormat == Format.GIF) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_GIF_WARN, locale));

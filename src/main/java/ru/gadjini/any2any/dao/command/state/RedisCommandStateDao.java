@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.dao.command.state;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +21,12 @@ public class RedisCommandStateDao implements CommandStateDao {
 
     private RedisTemplate<String, Object> redisTemplate;
 
+    private ObjectMapper objectMapper;
+
     @Autowired
-    public RedisCommandStateDao(RedisTemplate<String, Object> redisTemplate) {
+    public RedisCommandStateDao(RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper) {
         this.redisTemplate = redisTemplate;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -31,9 +35,18 @@ public class RedisCommandStateDao implements CommandStateDao {
     }
 
     @Override
-    public <T> T getState(long chatId, String command) {
+    public <T> T getState(long chatId, String command, Class<T> tClass) {
         try {
-            return (T) redisTemplate.opsForHash().get(KEY, key(chatId, command));
+            Object o = redisTemplate.opsForHash().get(KEY, key(chatId, command));
+
+            if (o == null) {
+                return null;
+            }
+            if (o.getClass() == tClass) {
+                return tClass.cast(o);
+            }
+
+            return objectMapper.convertValue(o, tClass);
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
             return null;

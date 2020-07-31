@@ -72,7 +72,7 @@ public class ImageEditorState implements State {
 
     @Override
     public void update(ImageEditorCommand command, long chatId, String queryId) {
-        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         messageService.deleteMessage(chatId, editorState.getMessageId());
         Locale locale = new Locale(editorState.getLanguage());
         SendFileResult sendFileResult = messageService.sendDocument(new SendDocument(chatId, editorState.getCurrentFileId())
@@ -88,7 +88,7 @@ public class ImageEditorState implements State {
 
     @Override
     public void cancel(ImageEditorCommand command, long chatId, String queryId) {
-        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
             String editFilePath = editorState.getCurrentFilePath();
             editorState.setCurrentFilePath(editorState.getPrevFilePath());
@@ -108,7 +108,7 @@ public class ImageEditorState implements State {
 
     @Override
     public void go(ImageEditorCommand command, long chatId, String queryId, Name name) {
-        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
 
         switch (name) {
             case TRANSPARENCY:
@@ -129,7 +129,7 @@ public class ImageEditorState implements State {
 
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
-        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true);
+        EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         Locale locale = new Locale(state.getLanguage());
         messageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId(),
                 localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))

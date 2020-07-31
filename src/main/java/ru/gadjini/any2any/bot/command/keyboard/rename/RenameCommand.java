@@ -117,7 +117,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
             renameService.removeAndCancelCurrentTasks(message.getChatId());
             commandStateService.setState(message.getChatId(), getHistoryName(), renameState);
         } else if (message.hasText()) {
-            RenameState renameState = commandStateService.getState(message.getChatId(), getHistoryName(), true);
+            RenameState renameState = commandStateService.getState(message.getChatId(), getHistoryName(), true, RenameState.class);
             if (renameState.getFile() == null) {
                 throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FILE, locale));
             }
@@ -132,7 +132,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
 
     @Override
     public void restore(TgMessage message) {
-        RenameState renameState = commandStateService.getState(message.getChatId(), CommandNames.RENAME_COMMAND_NAME, true);
+        RenameState renameState = commandStateService.getState(message.getChatId(), CommandNames.RENAME_COMMAND_NAME, true, RenameState.class);
         Locale locale = userService.getLocaleOrDefault(message.getUser().getId());
         String msg = localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FILE, locale);
         if (renameState.getFile() != null) {
@@ -150,7 +150,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
 
     @Override
     public String getMessage(long chatId) {
-        RenameState renameState = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, true);
+        RenameState renameState = commandStateService.getState(chatId, CommandNames.RENAME_COMMAND_NAME, true, RenameState.class);
         Locale locale = userService.getLocaleOrDefault((int) chatId);
         String msg = localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FILE, locale);
         if (renameState.getFile() != null) {
@@ -161,7 +161,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
     }
 
     private RenameState initState(Message message, Any2AnyFile any2AnyFile) {
-        RenameState renameState = commandStateService.getState(message.getChatId(), CommandNames.RENAME_COMMAND_NAME, true);
+        RenameState renameState = commandStateService.getState(message.getChatId(), CommandNames.RENAME_COMMAND_NAME, true, RenameState.class);
         renameState.setReplyMessageId(message.getMessageId());
         renameState.setFile(any2AnyFile);
 
