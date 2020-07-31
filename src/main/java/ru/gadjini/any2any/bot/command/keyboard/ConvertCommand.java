@@ -139,9 +139,9 @@ public class ConvertCommand implements KeyboardBotCommand, NavigableBotCommand, 
         if (commandStateService.hasState(chatId, getHistoryName())) {
             commandStateService.deleteState(chatId, getHistoryName());
 
-            return true;
+            return false;
         }
 
-        return false;
+        return true;
     }
 }

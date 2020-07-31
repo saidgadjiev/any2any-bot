@@ -8,10 +8,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Repository
@@ -66,23 +62,6 @@ public class RedisCommandStateDao implements CommandStateDao {
     @Override
     public void deleteState(long chatId, String command) {
         redisTemplate.delete(key(chatId, command));
-    }
-
-    @Override
-    public Collection<Object> getAllStates() {
-        Set<String> keys = redisTemplate.keys("cmd:");
-        if (keys == null) {
-            return Collections.emptyList();
-        }
-        Collection<Object> states = new ArrayList<>();
-        for (String key : keys) {
-            Object state = redisTemplate.opsForValue().get(key);
-            if (state != null) {
-                states.add(state);
-            }
-        }
-
-        return states;
     }
 
     private String key(long chatId, String command) {
