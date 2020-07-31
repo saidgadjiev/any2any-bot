@@ -171,7 +171,7 @@ public class UnzipService {
                                 localisationService.getMessage(MessagesProperties.MESSAGE_UNZIP_PROCESSING_ANSWER, userService.getLocaleOrDefault(userId))
                         )
                 );
-                messageService.sendDocument(new SendDocument((long) userId, unzipState.getFilesCache().get(extractFileId)));
+                messageService.sendFile(userId, unzipState.getFilesCache().get(extractFileId));
             } else {
                 UnzipQueueItem item = queueService.createProcessingExtractFileItem(userId, messageId,
                         extractFileId, unzipState.getFiles().get(extractFileId).getSize());
@@ -421,7 +421,7 @@ public class UnzipService {
 
                 for (Map.Entry<Integer, ZipFileHeader> entry : unzipState.getFiles().entrySet()) {
                     if (unzipState.getFilesCache().containsKey(entry.getKey())) {
-                        messageService.sendDocument(new SendDocument((long) item.getUserId(), unzipState.getFilesCache().get(entry.getKey())));
+                        messageService.sendFile(item.getUserId(), unzipState.getFilesCache().get(entry.getKey()));
                     } else {
                         SmartTempFile file = fileService.createTempFile(item.getUserId(), TAG, FilenameUtils.getExtension(entry.getValue().getPath()));
                         files.add(file);

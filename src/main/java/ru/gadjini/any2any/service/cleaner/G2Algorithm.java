@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.unzip.UnzipState;
+import ru.gadjini.any2any.utils.FileUtils2;
 
 import java.io.File;
 import java.util.Collection;
@@ -32,6 +33,9 @@ public class G2Algorithm implements GarbageAlgorithm {
 
     @Override
     public boolean isGarbage(File file) {
+        if (!FileUtils2.isExpired(file, 1)) {
+            return false;
+        }
         Collection<Object> allStates = commandStateService.getAllStates();
         boolean garbage = true;
 

@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.bot.command.keyboard.rename.RenameState;
 import ru.gadjini.any2any.service.RenameService;
 import ru.gadjini.any2any.service.command.CommandStateService;
+import ru.gadjini.any2any.service.conversion.impl.Image2AnyConverter;
+import ru.gadjini.any2any.service.conversion.impl.Pdf2AnyConverter;
 import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.StateFather;
 import ru.gadjini.any2any.service.image.editor.filter.FilterState;
@@ -15,14 +17,9 @@ import ru.gadjini.any2any.service.ocr.OcrService;
 import ru.gadjini.any2any.service.queue.rename.RenameQueueService;
 import ru.gadjini.any2any.service.unzip.UnzipService;
 import ru.gadjini.any2any.service.unzip.UnzipState;
+import ru.gadjini.any2any.utils.FileUtils2;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.attribute.FileTime;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Set;
 
@@ -36,7 +33,9 @@ public class G1Algorithm implements GarbageAlgorithm {
             StateFather.TAG,
             ResizeState.TAG,
             RenameService.RenameTask.TAG,
-            OcrService.TAG
+            OcrService.TAG,
+            Pdf2AnyConverter.TAG,
+            Image2AnyConverter.TAG
     );
 
     private Set<String> imagEditorGarbageTags = Set.of(
@@ -67,7 +66,7 @@ public class G1Algorithm implements GarbageAlgorithm {
 
     @Override
     public boolean isGarbage(File file) {
-        if (!isExpired(file)) {
+        if (!FileUtils2.isExpired(file, 1)) {
             return false;
         }
         if (garbageTags.stream().noneMatch(s -> file.getName().startsWith(s))) {
@@ -96,22 +95,5 @@ public class G1Algorithm implements GarbageAlgorithm {
         }
 
         return garbage;
-    }
-
-    private boolean isExpired(File file) {
-        try {
-            FileTime creationTime = (FileTime) Files.getAttribute(file.toPath(), "creationTime");
-
-            LocalDateTime creationDateTime = creationTime.toInstant().atZone(ZoneOffset.UTC).toLocalDateTime();
-
-            long between = ChronoUnit.DAYS.between(creationDateTime, LocalDateTime.now());
-            if (between > 0) {
-                return true;
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        return false;
     }
 }

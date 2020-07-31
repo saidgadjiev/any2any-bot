@@ -205,6 +205,26 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    public void sendFile(long chatId, String fileId) {
+        MediaType mediaType = getMediaType(fileId);
+
+        switch (mediaType) {
+            case PHOTO:
+                sendPhoto(new SendPhoto(chatId, fileId));
+                break;
+            case VIDEO:
+                sendVideo(new SendVideo(chatId, fileId));
+                break;
+            case AUDIO:
+                sendAudio(new SendAudio(chatId, fileId));
+                break;
+            default:
+                sendDocument(new SendDocument(chatId, fileId));
+                break;
+        }
+    }
+
+    @Override
     public void sendBotRestartedMessage(long chatId, ReplyKeyboard replyKeyboard, Locale locale) {
         sendMessage(
                 new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_BOT_RESTARTED, locale))

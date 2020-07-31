@@ -8,8 +8,7 @@ import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.model.bot.api.MediaType;
-import ru.gadjini.any2any.model.bot.api.method.send.*;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
@@ -113,8 +112,7 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
             if (StringUtils.isNotBlank(fileId)) {
                 commandStateService.deleteState(message.getChatId(), CommandNames.ADMIN);
                 messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOAD_FILE_PROCESSING, locale)));
-                MediaType mediaType = messageService.getMediaType(fileId);
-                sendFile(message.getChatId(), mediaType, fileId);
+                messageService.sendFile(message.getChatId(), fileId);
             }
         } else if (text.equals(localisationService.getMessage(MessagesProperties.EXECUTE_CONVERSION_COMMAND_NAME, locale))) {
             String jobIdStr = commandStateService.getState(message.getChatId(), CommandNames.ADMIN, false);
@@ -127,7 +125,7 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
             }
         } else if (text.equals(localisationService.getMessage(MessagesProperties.REMOVE_GARBAGE_FILES_COMMAND_NAME, locale))) {
             int deleted = garbageFileCollector.clean();
-            messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_COLLECTED_GARBAGE, new Object[] {deleted}, locale)));
+            messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_COLLECTED_GARBAGE, new Object[]{deleted}, locale)));
         } else {
             commandStateService.setState(message.getChatId(), CommandNames.ADMIN, text);
         }
@@ -136,22 +134,5 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
     @Override
     public void leave(long chatId) {
         commandStateService.deleteState(chatId, CommandNames.ADMIN);
-    }
-
-    private void sendFile(long chatId, MediaType mediaType, String fileId) {
-        switch (mediaType) {
-            case PHOTO:
-                messageService.sendPhoto(new SendPhoto(chatId, fileId));
-                break;
-            case VIDEO:
-                messageService.sendVideo(new SendVideo(chatId, fileId));
-                break;
-            case AUDIO:
-                messageService.sendAudio(new SendAudio(chatId, fileId));
-                break;
-            default:
-                messageService.sendDocument(new SendDocument(chatId, fileId));
-                break;
-        }
     }
 }

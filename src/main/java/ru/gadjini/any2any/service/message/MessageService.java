@@ -47,4 +47,6 @@ public interface MessageService {
     void sendErrorMessage(long chatId, Locale locale);
 
     MediaType getMediaType(String fileId);
+
+    void sendFile(long chatId, String fileId);
 }

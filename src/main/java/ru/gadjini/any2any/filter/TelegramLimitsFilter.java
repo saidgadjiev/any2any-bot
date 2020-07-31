@@ -182,6 +182,11 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
         return messageService.getMediaType(fileId);
     }
 
+    @Override
+    public void sendFile(long chatId, String fileId) {
+        messageService.sendFile(chatId, fileId);
+    }
+
     private boolean isMediaMessage(Message message) {
         return message.hasDocument() || message.hasPhoto();
     }
