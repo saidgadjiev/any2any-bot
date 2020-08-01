@@ -200,7 +200,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
                     new Object[]{MemoryUtils.humanReadableByteCount(message.getDocument().getFileSize())},
                     userService.getLocaleOrDefault(message.getFromUser().getId())));
         } else if (file.getFileSize() > MemoryUtils.MB_100) {
-            LOGGER.warn("Heavy file({}, {}, {}, {})", message.getFromUser().getId(), file.getFileSize(), file.getMimeType(), file.getFileName());
+            LOGGER.warn("Heavy file({}, {}, {}, {})", message.getFromUser().getId(), MemoryUtils.humanReadableByteCount(file.getFileSize()), file.getMimeType(), file.getFileName());
         }
     }
 
