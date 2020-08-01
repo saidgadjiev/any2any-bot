@@ -8,6 +8,8 @@ public class GetFile {
 
     private static final String FILE_ID = "file_id";
 
+    private static final String FILE_SIZE = "file_size";
+
     private static final String REMOVE_PARENT_DIR_ON_CANCEL = "remove_parent_dir_on_cancel";
 
     @JsonProperty(FILE_ID)
@@ -18,13 +20,12 @@ public class GetFile {
     @JsonProperty(REMOVE_PARENT_DIR_ON_CANCEL)
     private boolean removeParentDirOnCancel = false;
 
-    public GetFile() {}
+    @JsonProperty(FILE_SIZE)
+    private long fileSize;
 
-    public GetFile(String fileId, String path, boolean removeParentDirOnCancel) {
-        this.fileId = fileId;
-        this.path = path;
-        this.removeParentDirOnCancel = removeParentDirOnCancel;
-    }
+    private Progress progress;
+
+    public GetFile() {}
 
     public String getFileId() {
         return fileId;
@@ -44,5 +45,25 @@ public class GetFile {
 
     public boolean isRemoveParentDirOnCancel() {
         return removeParentDirOnCancel;
+    }
+
+    public long getFileSize() {
+        return fileSize;
+    }
+
+    public void setRemoveParentDirOnCancel(boolean removeParentDirOnCancel) {
+        this.removeParentDirOnCancel = removeParentDirOnCancel;
+    }
+
+    public void setFileSize(long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public Progress getProgress() {
+        return progress;
+    }
+
+    public void setProgress(Progress progress) {
+        this.progress = progress;
     }
 }

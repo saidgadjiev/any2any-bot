@@ -12,7 +12,7 @@ public class Any2AnyFile {
 
     private Format format;
 
-    private int fileSize;
+    private long fileSize;
 
     private String thumb;
 
@@ -50,11 +50,11 @@ public class Any2AnyFile {
         this.mimeType = mimeType;
     }
 
-    public int getFileSize() {
+    public long getFileSize() {
         return fileSize;
     }
 
-    public void setFileSize(int fileSize) {
+    public void setFileSize(long fileSize) {
         this.fileSize = fileSize;
     }
 

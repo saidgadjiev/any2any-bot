@@ -306,4 +306,13 @@ public class MessagesProperties {
     public static final String REMOVE_GARBAGE_FILES_COMMAND_NAME = "remove.garbage.files.command.name";
 
     public static final String MESSAGE_COLLECTED_GARBAGE = "message.collected.garbage";
+
+    public static final String MESSAGE_RENAMING_STEP_ONE = "message.renaming.step.one";
+
+    public static final String MESSAGE_RENAMING_STEP_TWO = "message.renaming.step.two";
+
+    public static final String MESSAGE_RENAMING_STEP_THREE = "message.renaming.step.three";
+
+    public static final String ICON_CHECK = "icon.check";
+
 }

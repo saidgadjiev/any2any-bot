@@ -3,6 +3,7 @@ package ru.gadjini.any2any.model.bot.api.method.send;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import ru.gadjini.any2any.model.bot.api.object.InputFile;
+import ru.gadjini.any2any.model.bot.api.object.Progress;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 
 import java.io.File;
@@ -31,6 +32,8 @@ public class SendDocument {
     private ReplyKeyboard replyMarkup;
     @JsonProperty(PARSEMODE_FIELD)
     private String parseMode;
+
+    private Progress progress;
 
     public SendDocument() {
         super();
@@ -124,6 +127,16 @@ public class SendDocument {
 
     public long getOrigChatId() {
         return origChatId;
+    }
+
+    public Progress getProgress() {
+        return progress;
+    }
+
+    public SendDocument setProgress(Progress progress) {
+        this.progress = progress;
+
+        return this;
     }
 
     @Override

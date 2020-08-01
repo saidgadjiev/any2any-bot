@@ -1,7 +1,7 @@
 package ru.gadjini.any2any.service.cleaner;
 
 import ru.gadjini.any2any.bot.command.keyboard.ConvertMaker;
-import ru.gadjini.any2any.service.RenameService;
+import ru.gadjini.any2any.service.rename.RenameService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.conversion.impl.Epub2AnyConverter;
 import ru.gadjini.any2any.service.conversion.impl.Excel2AnyConverter;

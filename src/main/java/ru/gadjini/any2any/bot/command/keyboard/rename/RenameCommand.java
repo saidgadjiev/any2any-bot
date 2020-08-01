@@ -16,7 +16,7 @@ import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.RenameService;
+import ru.gadjini.any2any.service.rename.RenameService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;

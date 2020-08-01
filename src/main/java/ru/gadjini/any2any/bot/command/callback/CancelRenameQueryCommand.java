@@ -7,7 +7,7 @@ import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.request.RequestParams;
-import ru.gadjini.any2any.service.RenameService;
+import ru.gadjini.any2any.service.rename.RenameService;
 
 @Service
 public class CancelRenameQueryCommand implements CallbackBotCommand {

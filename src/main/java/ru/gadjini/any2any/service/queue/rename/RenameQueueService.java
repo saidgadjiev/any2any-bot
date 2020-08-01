@@ -59,6 +59,10 @@ public class RenameQueueService {
         renameQueueDao.setWaiting(id);
     }
 
+    public void setProgressMessageId(int id, int progressMessageId) {
+        renameQueueDao.setProgressMessageId(id, progressMessageId);
+    }
+
     public RenameQueueItem poll(SmartExecutorService.JobWeight weight) {
         List<RenameQueueItem> poll = renameQueueDao.poll(weight, 1);
 

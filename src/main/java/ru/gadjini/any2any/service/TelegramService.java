@@ -25,6 +25,7 @@ import ru.gadjini.any2any.model.bot.api.method.updatemessages.*;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.GetFile;
 import ru.gadjini.any2any.model.bot.api.object.Message;
+import ru.gadjini.any2any.model.bot.api.object.Progress;
 import ru.gadjini.any2any.property.TelegramProperties;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
@@ -323,13 +324,23 @@ public class TelegramService {
     }
 
     public void downloadFileByFileId(String fileId, SmartTempFile outputFile) {
+        downloadFileByFileId(fileId, 0, null, outputFile);
+    }
+
+    public void downloadFileByFileId(String fileId, long fileSize, Progress progress, SmartTempFile outputFile) {
         downloading.put(fileId, outputFile);
         try {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             LOGGER.debug("Start downloadFileByFileId({})", fileId);
 
-            HttpEntity<GetFile> request = new HttpEntity<>(new GetFile(fileId, outputFile.getAbsolutePath(), false));
+            GetFile getFile = new GetFile();
+            getFile.setFileId(fileId);
+            getFile.setFileSize(fileSize);
+            getFile.setPath(outputFile.getAbsolutePath());
+            getFile.setRemoveParentDirOnCancel(false);
+            getFile.setProgress(progress);
+            HttpEntity<GetFile> request = new HttpEntity<>(getFile);
             String result = restTemplate.postForObject(getUrl(GetFile.METHOD), request, String.class);
             try {
                 ApiResponse<String> apiResponse = objectMapper.readValue(result, new TypeReference<>() {

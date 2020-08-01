@@ -55,6 +55,14 @@ public class RenameQueueDao {
                 ps -> ps.setInt(1, id));
     }
 
+    public void setProgressMessageId(int id, int progressMessageId) {
+        jdbcTemplate.update("UPDATE rename_queue SET progress_message_id = ? WHERE id = ?",
+                ps -> {
+                    ps.setInt(1, progressMessageId);
+                    ps.setInt(2, id);
+                });
+    }
+
     public void resetProcessing() {
         jdbcTemplate.update("UPDATE rename_queue SET status = 0 WHERE status = 1");
     }
@@ -114,6 +122,7 @@ public class RenameQueueDao {
 
         item.setNewFileName(resultSet.getString(RenameQueueItem.NEW_FILE_NAME));
         item.setReplyToMessageId(resultSet.getInt(RenameQueueItem.REPLY_TO_MESSAGE_ID));
+        item.setProgressMessageId(resultSet.getInt(RenameQueueItem.PROGRESS_MESSAGE_ID));
         item.setUserId(resultSet.getInt(RenameQueueItem.USER_ID));
 
         return item;

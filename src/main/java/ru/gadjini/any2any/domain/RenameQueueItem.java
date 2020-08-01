@@ -14,6 +14,8 @@ public class RenameQueueItem {
 
     public static final String REPLY_TO_MESSAGE_ID = "reply_to_message_id";
 
+    public static final String PROGRESS_MESSAGE_ID = "progress_message_id";
+
     private int id;
 
     private TgFile file;
@@ -25,6 +27,8 @@ public class RenameQueueItem {
     private int userId;
 
     private int replyToMessageId;
+
+    private int progressMessageId;
 
     private Status status;
 
@@ -82,6 +86,14 @@ public class RenameQueueItem {
 
     public void setThumb(TgFile thumb) {
         this.thumb = thumb;
+    }
+
+    public int getProgressMessageId() {
+        return progressMessageId;
+    }
+
+    public void setProgressMessageId(int progressMessageId) {
+        this.progressMessageId = progressMessageId;
     }
 
     public enum Status {

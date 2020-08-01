@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service;
+package ru.gadjini.any2any.service.rename;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +17,11 @@ import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
+import ru.gadjini.any2any.model.bot.api.object.Progress;
+import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.TempFileService;
+import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
@@ -59,11 +64,14 @@ public class RenameService {
 
     private ThumbService thumbService;
 
+    private RenameMessageBuilder renameMessageBuilder;
+
     @Autowired
     public RenameService(TelegramService telegramService, TempFileService tempFileService, FormatService formatService,
                          @Qualifier("limits") MessageService messageService, RenameQueueService renameQueueService,
                          LocalisationService localisationService, InlineKeyboardService inlineKeyboardService,
-                         CommandStateService commandStateService, UserService userService, ThumbService thumbService) {
+                         CommandStateService commandStateService, UserService userService, ThumbService thumbService,
+                         RenameMessageBuilder renameMessageBuilder) {
         this.telegramService = telegramService;
         this.tempFileService = tempFileService;
         this.formatService = formatService;
@@ -74,6 +82,7 @@ public class RenameService {
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.thumbService = thumbService;
+        this.renameMessageBuilder = renameMessageBuilder;
     }
 
     @PostConstruct
@@ -106,7 +115,10 @@ public class RenameService {
 
     public void rename(int userId, RenameState renameState, String newFileName) {
         RenameQueueItem item = renameQueueService.createProcessingItem(userId, renameState, newFileName);
-        sendStartRenamingMessage(item.getId(), userId);
+        int messageId = sendStartRenamingMessage(item.getId(), userId);
+        item.setProgressMessageId(messageId);
+        renameQueueService.setProgressMessageId(item.getId(), messageId);
+
         executor.execute(new RenameTask(item));
     }
 
@@ -158,11 +170,11 @@ public class RenameService {
         }
     }
 
-    private void sendStartRenamingMessage(int jobId, int userId) {
+    private int sendStartRenamingMessage(int jobId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(
-                new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_RENAMING, locale))
-                        .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale)));
+        return messageService.sendMessage(
+                new HtmlMessage((long) userId, String.format(renameMessageBuilder.buildRenamingMessage(RenameStep.DOWNLOADING, locale, RenameMessageBuilder.Lang.JAVA), 0))
+                        .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale))).getMessageId();
     }
 
     private String createNewFileName(String fileName, String ext) {
@@ -177,6 +189,20 @@ public class RenameService {
         return fileName;
     }
 
+    private Progress progress(long chatId, int jobId, int processMessageId, RenameStep renameStep, RenameStep nextStep) {
+        Locale locale = userService.getLocaleOrDefault((int) chatId);
+        Progress progress = new Progress();
+        progress.setChatId(chatId);
+        progress.setProgressMessageId(processMessageId);
+        progress.setProgressMessage(renameMessageBuilder.buildRenamingMessage(renameStep, locale, RenameMessageBuilder.Lang.PYTHON));
+        if (nextStep != null) {
+            progress.setAfterProgressCompletionMessage(String.format(renameMessageBuilder.buildRenamingMessage(nextStep, locale, RenameMessageBuilder.Lang.JAVA), nextStep == RenameStep.RENAMING ? 50 : 0));
+        }
+        progress.setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale));
+
+        return progress;
+    }
+
     public final class RenameTask implements SmartExecutorService.Job {
 
         private final Logger LOGGER = LoggerFactory.getLogger(RenameTask.class);
@@ -189,8 +215,9 @@ public class RenameService {
         private final String newFileName;
         private final String mimeType;
         private final String fileId;
-        private int fileSize;
+        private long fileSize;
         private final int replyToMessageId;
+        private final int progressMessageId;
         private volatile Supplier<Boolean> checker;
         private volatile boolean canceledByUser;
         private volatile SmartTempFile file;
@@ -209,6 +236,7 @@ public class RenameService {
             this.replyToMessageId = queueItem.getReplyToMessageId();
             this.thumb = queueItem.getFile().getThumb();
             this.userThumb = queueItem.getThumb();
+            this.progressMessageId = queueItem.getProgressMessageId();
         }
 
         @Override
@@ -219,7 +247,7 @@ public class RenameService {
             try {
                 String ext = formatService.getExt(fileName, mimeType);
                 file = tempFileService.createTempFile(userId, fileId, TAG, ext);
-                telegramService.downloadFileByFileId(fileId, file);
+                telegramService.downloadFileByFileId(fileId, fileSize, progress(userId, jobId, progressMessageId, RenameStep.DOWNLOADING, RenameStep.RENAMING), file);
 
                 String fileName = createNewFileName(newFileName, ext);
                 if (userThumb != null) {
@@ -229,6 +257,7 @@ public class RenameService {
                     telegramService.downloadFileByFileId(thumb, thumbFile);
                 }
                 messageService.sendDocument(new SendDocument((long) userId, fileName, file.getFile())
+                        .setProgress(progress(userId, jobId, progressMessageId, RenameStep.UPLOADING, RenameStep.COMPLETED))
                         .setThumb(thumbFile != null ? thumbFile.getAbsolutePath() : null)
                         .setReplyToMessageId(replyToMessageId));
 

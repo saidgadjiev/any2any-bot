@@ -150,7 +150,7 @@ public class ArchiveQueueDao {
             if (argMatcher.find()) {
                 String size = t.substring(argMatcher.start(), argMatcher.end() - 1);
                 if (StringUtils.isNotBlank(size)) {
-                    file.setSize(Integer.parseInt(size));
+                    file.setSize(Long.parseLong(size));
                 }
             }
             repeatTimes.add(file);

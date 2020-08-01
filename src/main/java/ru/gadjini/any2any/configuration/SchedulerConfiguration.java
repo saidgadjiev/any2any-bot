@@ -10,7 +10,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
-import ru.gadjini.any2any.service.RenameService;
+import ru.gadjini.any2any.service.rename.RenameService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
