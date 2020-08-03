@@ -189,7 +189,7 @@ public class ConvertionService {
                         queueService.completeWithException(fileQueueItem.getId(), ex.getMessage());
                         LOGGER.error(ex.getMessage());
                         Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-                        messageService.sendMessage(
+                        messageService.sendMessageAsync(
                                 new HtmlMessage((long) fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_DAMAGED_FILE, locale))
                                         .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                         );
@@ -198,7 +198,7 @@ public class ConvertionService {
                             queueService.exception(fileQueueItem.getId(), ex);
                             LOGGER.error(ex.getMessage(), ex);
                             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-                            messageService.sendMessage(
+                            messageService.sendMessageAsync(
                                     new HtmlMessage((long) fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_FAILED, locale))
                                             .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                             );
@@ -265,12 +265,12 @@ public class ConvertionService {
                             .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                             .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                     try {
-                        messageService.sendDocument(sendDocumentContext);
+                        messageService.sendDocumentAsync(sendDocumentContext);
                     } catch (TelegramApiRequestException ex) {
                         if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
                             LOGGER.debug("Reply message not found try send without reply");
                             sendDocumentContext.setReplyToMessageId(null);
-                            messageService.sendDocument(sendDocumentContext);
+                            messageService.sendDocumentAsync(sendDocumentContext);
                         } else {
                             throw ex;
                         }
@@ -282,12 +282,12 @@ public class ConvertionService {
                             .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                             .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                     try {
-                        messageService.sendSticker(sendFileContext);
+                        messageService.sendStickerAsync(sendFileContext);
                     } catch (TelegramApiRequestException ex) {
                         if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
                             LOGGER.debug("Reply message not found try send without reply");
                             sendFileContext.setReplyToMessageId(null);
-                            messageService.sendSticker(sendFileContext);
+                            messageService.sendStickerAsync(sendFileContext);
                         } else {
                             throw ex;
                         }

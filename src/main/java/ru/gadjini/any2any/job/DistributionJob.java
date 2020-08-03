@@ -95,6 +95,6 @@ public class DistributionJob {
 
     private void sendDistribution(Distribution distribution) {
         String message = distribution.getLocalisedMessage();
-        messageService.sendMessage(new HtmlMessage((long) distribution.getUserId(), message));
+        messageService.sendMessageAsync(new HtmlMessage((long) distribution.getUserId(), message));
     }
 }

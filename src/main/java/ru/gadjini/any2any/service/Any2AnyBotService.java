@@ -66,7 +66,7 @@ public class Any2AnyBotService {
                 if (commandExecutor.executeBotCommand(update.getMessage())) {
                     return;
                 } else {
-                    messageService.sendMessage(
+                    messageService.sendMessageAsync(
                             new HtmlMessage(
                                     update.getMessage().getChatId(),
                                     localisationService.getMessage(MessagesProperties.MESSAGE_UNKNOWN_COMMAND, userService.getLocaleOrDefault(update.getMessage().getFromUser().getId()))));
@@ -94,7 +94,7 @@ public class Any2AnyBotService {
         if (commandNavigator.isEmpty(chatId)) {
             commandNavigator.zeroRestore(chatId, (NavigableBotCommand) commandExecutor.getBotCommand(CommandNames.START_COMMAND));
             Locale locale = userService.getLocaleOrDefault((int) chatId);
-            messageService.sendBotRestartedMessage(chatId, replyKeyboardService.getMainMenu(chatId, locale), locale);
+            messageService.sendBotRestartedMessageAsync(chatId, replyKeyboardService.getMainMenu(chatId, locale), locale);
 
             return true;
         }

@@ -158,13 +158,13 @@ public class ArchiveService {
                 archiveQueueService.delete(jobId);
             }
         }
-        messageService.editMessage(new EditMessageText(
+        messageService.editMessageAsync(new EditMessageText(
                 chatId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))));
     }
 
     private void startArchiveCreating(int userId, int jobId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale))
+        messageService.sendMessageAsync(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale))
                 .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale)));
     }
 
@@ -262,7 +262,7 @@ public class ArchiveService {
                 renameFiles(archiveDevice, archive.getAbsolutePath(), downloadResult.originalFileNames, downloadResult.downloadedNames);
 
                 String fileName = Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), type.getExt());
-                messageService.sendDocument(new SendDocument((long) userId, fileName, archive.getFile()));
+                messageService.sendDocumentAsync(new SendDocument((long) userId, fileName, archive.getFile()));
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, type);
             } catch (Exception ex) {

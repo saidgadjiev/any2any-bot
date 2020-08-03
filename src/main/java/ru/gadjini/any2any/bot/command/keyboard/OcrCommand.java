@@ -87,7 +87,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(new HtmlMessage(chatId,
+        messageService.sendMessageAsync(new HtmlMessage(chatId,
                 localisationService.getMessage(MessagesProperties.MESSAGE_FILE_TO_EXTRACT, locale))
                 .setReplyMarkup(replyKeyboardService.goBack(chatId, locale)));
     }
@@ -110,7 +110,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         ocrService.extractText(message.getFromUser().getId(), getFile(message));
-        messageService.sendMessage(new HtmlMessage(message.getChatId(),
+        messageService.sendMessageAsync(new HtmlMessage(message.getChatId(),
                 localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_PROCESSING, userService.getLocaleOrDefault(message.getFromUser().getId()))));
     }
 

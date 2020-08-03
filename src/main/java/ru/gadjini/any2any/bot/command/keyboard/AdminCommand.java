@@ -86,7 +86,7 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
     @Override
     public boolean processMessage(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
-        messageService.sendMessage(
+        messageService.sendMessageAsync(
                 new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.ADMIN_COMMAND_NAME, locale))
                         .setReplyMarkup(replyKeyboardService.getAdminKeyboard(message.getChatId(), locale))
         );
@@ -111,8 +111,8 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
             String fileId = commandStateService.getState(message.getChatId(), CommandNames.ADMIN, false, String.class);
             if (StringUtils.isNotBlank(fileId)) {
                 commandStateService.deleteState(message.getChatId(), CommandNames.ADMIN);
-                messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOAD_FILE_PROCESSING, locale)));
-                messageService.sendFile(message.getChatId(), fileId);
+                messageService.sendMessageAsync(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOAD_FILE_PROCESSING, locale)));
+                messageService.sendFileAsync(message.getChatId(), fileId);
             }
         } else if (text.equals(localisationService.getMessage(MessagesProperties.EXECUTE_CONVERSION_COMMAND_NAME, locale))) {
             String jobIdStr = commandStateService.getState(message.getChatId(), CommandNames.ADMIN, false, String.class);
@@ -121,11 +121,11 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
                 int jobId = Integer.parseInt(jobIdStr);
                 convertionService.executeTask(jobId);
 
-                messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_EXECUTED, locale)));
+                messageService.sendMessageAsync(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_EXECUTED, locale)));
             }
         } else if (text.equals(localisationService.getMessage(MessagesProperties.REMOVE_GARBAGE_FILES_COMMAND_NAME, locale))) {
             int deleted = garbageFileCollector.clean();
-            messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_COLLECTED_GARBAGE, new Object[]{deleted}, locale)));
+            messageService.sendMessageAsync(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_COLLECTED_GARBAGE, new Object[]{deleted}, locale)));
         } else {
             commandStateService.setState(message.getChatId(), CommandNames.ADMIN, text);
         }

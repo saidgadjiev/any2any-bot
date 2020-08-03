@@ -76,7 +76,7 @@ public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand,
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_LANGUAGE, locale))
+        messageService.sendMessageAsync(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_LANGUAGE, locale))
                 .setReplyMarkup(replyKeyboardService.languageKeyboard(chatId, locale)));
     }
 
@@ -103,7 +103,7 @@ public class LanguageCommand implements KeyboardBotCommand, NavigableBotCommand,
 
     private void changeLocale(Message message, Locale locale) {
         userService.changeLocale(message.getFromUser().getId(), locale);
-        messageService.sendMessage(
+        messageService.sendMessageAsync(
                 new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_LANGUAGE_SELECTED, locale))
                         .setReplyMarkup(replyKeyboardService.getMainMenu(message.getChatId(), locale))
         );

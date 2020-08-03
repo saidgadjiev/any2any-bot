@@ -57,9 +57,9 @@ public class DeleteThumbnailCommand implements BotCommand {
             if (state != null && state.getThumb() != null) {
                 state.delThumb();
                 commandStateService.setState(message.getChatId(), currentCommandName, state);
-                messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_DELETED, locale)));
+                messageService.sendMessageAsync(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_DELETED, locale)));
             } else {
-                messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_NOT_FOUND, locale)));
+                messageService.sendMessageAsync(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_NOT_FOUND, locale)));
             }
         }
     }

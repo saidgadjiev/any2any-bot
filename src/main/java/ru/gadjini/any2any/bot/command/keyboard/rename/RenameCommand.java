@@ -91,7 +91,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FILE, locale))
+        messageService.sendMessageAsync(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FILE, locale))
                 .setReplyMarkup(replyKeyboardService.goBack(chatId, locale)));
     }
 
@@ -113,7 +113,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
         if (any2AnyFile != null) {
             RenameState renameState = initState(message, any2AnyFile);
 
-            messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_NEW_FILE_NAME, locale)));
+            messageService.sendMessageAsync(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_NEW_FILE_NAME, locale)));
             renameService.removeAndCancelCurrentTasks(message.getChatId());
             commandStateService.setState(message.getChatId(), getHistoryName(), renameState);
         } else if (message.hasText()) {
@@ -138,7 +138,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
         if (renameState.getFile() != null) {
             msg = localisationService.getMessage(MessagesProperties.MESSAGE_NEW_FILE_NAME, locale);
         }
-        messageService.sendMessage(new HtmlMessage(message.getChatId(), msg)
+        messageService.sendMessageAsync(new HtmlMessage(message.getChatId(), msg)
                 .setReplyMarkup(replyKeyboardService.goBack(message.getChatId(), locale)));
     }
 

@@ -51,12 +51,12 @@ public class CancelQueryCommand implements CallbackBotCommand {
 
         String actionFrom = requestParams.getString(Arg.ACTION_FROM.getKey());
         if (actionFrom.equals(CommandNames.QUERY_ITEM_DETAILS_COMMAND)) {
-            messageService.editMessage(
+            messageService.editMessageAsync(
                     new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale))
                             .setReplyMarkup(new KeyboardCustomizer(callbackQuery.getMessage().getReplyMarkup()).removeExclude(CommandNames.GO_BACK_CALLBACK_COMMAND_NAME).getKeyboardMarkup())
             );
         } else {
-            messageService.editMessage(
+            messageService.editMessageAsync(
                     new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
         }
     }

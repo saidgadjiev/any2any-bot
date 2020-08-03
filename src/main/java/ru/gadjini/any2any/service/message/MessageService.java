@@ -8,45 +8,52 @@ import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.ChatMember;
 import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 
 import java.util.Locale;
+import java.util.function.Consumer;
 
 public interface MessageService {
     void sendAnswerCallbackQuery(AnswerCallbackQuery answerCallbackQuery);
 
     ChatMember getChatMember(String chatId, int userId);
 
-    Message sendMessage(SendMessage sendMessage);
+    void sendMessageAsync(SendMessage sendMessage);
 
-    void removeInlineKeyboard(long chatId, int messageId);
+    void sendMessageAsync(SendMessage sendMessage, Consumer<Message> callback);
 
-    void editMessage(EditMessageText messageContext);
+    void removeInlineKeyboardAsync(long chatId, int messageId);
 
-    void editReplyKeyboard(long chatId, int messageId, InlineKeyboardMarkup replyKeyboard);
+    void editMessageAsync(EditMessageText messageContext);
 
-    void editMessageCaption(EditMessageCaption context);
+    void editMessageCaptionAsync(EditMessageCaption context);
 
-    EditMediaResult editMessageMedia(EditMessageMedia editMediaContext);
+    void editMessageMediaAsync(EditMessageMedia editMediaContext, Consumer<EditMediaResult> consumer);
 
-    void sendBotRestartedMessage(long chatId, ReplyKeyboard replyKeyboard, Locale locale);
+    void editMessageMediaAsync(EditMessageMedia editMediaContext);
 
-    void sendSticker(SendSticker sendSticker);
+    void sendBotRestartedMessageAsync(long chatId, ReplyKeyboard replyKeyboard, Locale locale);
 
-    void deleteMessage(long chatId, int messageId);
+    void sendStickerAsync(SendSticker sendSticker);
 
-    SendFileResult sendDocument(SendDocument sendDocumentContext);
+    void deleteMessageAsync(long chatId, int messageId);
 
-    SendFileResult sendPhoto(SendPhoto sendPhoto);
+    void sendDocumentAsync(SendDocument sendDocumentContext);
 
-    SendFileResult sendVideo(SendVideo sendVideo);
+    void sendDocumentAsync(SendDocument sendDocumentContext, Consumer<SendFileResult> callback);
 
-    SendFileResult sendAudio(SendAudio sendAudio);
+    void sendPhotoAsync(SendPhoto sendPhoto);
+
+    void sendPhotoAsync(SendPhoto sendPhoto, Consumer<SendFileResult> callback);
+
+    void sendVideoAsync(SendVideo sendVideo);
+
+    void sendAudioAsync(SendAudio sendAudio);
 
     void sendErrorMessage(long chatId, Locale locale);
 
     MediaType getMediaType(String fileId);
 
-    void sendFile(long chatId, String fileId);
+    void sendFileAsync(long chatId, String fileId);
+
 }

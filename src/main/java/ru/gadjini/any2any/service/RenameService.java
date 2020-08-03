@@ -134,7 +134,7 @@ public class RenameService {
                 renameQueueService.delete(jobId);
             }
         }
-        messageService.editMessage(new EditMessageText(
+        messageService.editMessageAsync(new EditMessageText(
                 chatId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))));
     }
 
@@ -160,7 +160,7 @@ public class RenameService {
 
     private void sendStartRenamingMessage(int jobId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(
+        messageService.sendMessageAsync(
                 new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_RENAMING, locale))
                         .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale)));
     }
@@ -228,7 +228,7 @@ public class RenameService {
                     thumbFile = tempFileService.createTempFile(userId, fileId, TAG, Format.JPG.getExt());
                     telegramService.downloadFileByFileId(thumb, thumbFile);
                 }
-                messageService.sendDocument(new SendDocument((long) userId, fileName, file.getFile())
+                messageService.sendDocumentAsync(new SendDocument((long) userId, fileName, file.getFile())
                         .setThumb(thumbFile != null ? thumbFile.getAbsolutePath() : null)
                         .setReplyToMessageId(replyToMessageId));
 

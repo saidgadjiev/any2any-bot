@@ -48,9 +48,9 @@ public class ConversionReportCommand implements CallbackBotCommand {
 
         fileReportService.createReport(callbackQuery.getFromUser().getId(), itemId);
 
-        messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
+        messageService.removeInlineKeyboardAsync(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFromUser().getId());
-        messageService.sendMessage(
+        messageService.sendMessageAsync(
                 new HtmlMessage(callbackQuery.getMessage().getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_REPLY, locale))
         );
     }

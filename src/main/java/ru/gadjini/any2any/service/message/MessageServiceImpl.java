@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.botapi.TelegramApiException;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
+import ru.gadjini.any2any.job.TgMethodExecutor;
 import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.MediaType;
@@ -18,13 +19,13 @@ import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.ChatMember;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.ParseMode;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 
 import java.util.Locale;
+import java.util.function.Consumer;
 
 @Service
 @Qualifier("message")
@@ -38,11 +39,15 @@ public class MessageServiceImpl implements MessageService {
 
     private TelegramService telegramService;
 
+    private TgMethodExecutor messageSenderJob;
+
     @Autowired
-    public MessageServiceImpl(LocalisationService localisationService, FileService fileService, TelegramService telegramService) {
+    public MessageServiceImpl(LocalisationService localisationService, FileService fileService,
+                              TelegramService telegramService, TgMethodExecutor messageSenderJob) {
         this.localisationService = localisationService;
         this.fileService = fileService;
         this.telegramService = telegramService;
+        this.messageSenderJob = messageSenderJob;
     }
 
     @Override
@@ -72,131 +77,141 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public Message sendMessage(SendMessage sendMessage) {
-        try {
-            return telegramService.sendMessage(sendMessage);
-        } catch (TelegramApiRequestException ex) {
-            LOGGER.error("Error send message({})", sendMessage);
-            throw ex;
-        }
+    public void sendMessageAsync(SendMessage sendMessage) {
+        sendMessageAsync(sendMessage, null);
     }
 
     @Override
-    public void removeInlineKeyboard(long chatId, int messageId) {
-        EditMessageReplyMarkup edit = new EditMessageReplyMarkup();
-        edit.setChatId(chatId);
-        edit.setMessageId(messageId);
-
-        try {
-            telegramService.editReplyMarkup(edit);
-        } catch (TelegramApiException ex) {
-            LOGGER.error(ex.getMessage(), ex);
-        }
+    public void sendMessageAsync(SendMessage sendMessage, Consumer<Message> callback) {
+        messageSenderJob.push(() -> sendMessage0(sendMessage, callback));
     }
 
     @Override
-    public void editMessage(EditMessageText editMessageText) {
-        editMessageText.setParseMode(ParseMode.HTML);
+    public void removeInlineKeyboardAsync(long chatId, int messageId) {
+        messageSenderJob.push(() -> {
+            EditMessageReplyMarkup edit = new EditMessageReplyMarkup();
+            edit.setChatId(chatId);
+            edit.setMessageId(messageId);
 
-        try {
-            telegramService.editMessageText(editMessageText);
-        } catch (TelegramApiException ex) {
-            LOGGER.error(ex.getMessage(), ex);
-            if (editMessageText.isThrowEx()) {
-                throw ex;
+            try {
+                telegramService.editReplyMarkup(edit);
+            } catch (TelegramApiException ex) {
+                LOGGER.error(ex.getMessage(), ex);
             }
-        }
+        });
     }
 
     @Override
-    public void editReplyKeyboard(long chatId, int messageId, InlineKeyboardMarkup replyKeyboard) {
-        EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup(chatId, messageId);
+    public void editMessageAsync(EditMessageText editMessageText) {
+        messageSenderJob.push(() -> {
+            editMessageText.setParseMode(ParseMode.HTML);
 
-        try {
-            telegramService.editReplyMarkup(editMessageReplyMarkup);
-        } catch (TelegramApiException ex) {
-            LOGGER.error(ex.getMessage(), ex);
-        }
+            try {
+                telegramService.editMessageText(editMessageText);
+            } catch (TelegramApiException ex) {
+                LOGGER.error(ex.getMessage(), ex);
+                if (editMessageText.isThrowEx()) {
+                    throw ex;
+                }
+            }
+        });
     }
 
     @Override
-    public void editMessageCaption(EditMessageCaption editMessageCaption) {
-        editMessageCaption.setParseMode(ParseMode.HTML);
+    public void editMessageCaptionAsync(EditMessageCaption editMessageCaption) {
+        messageSenderJob.push(new Runnable() {
+            @Override
+            public void run() {
+                editMessageCaption.setParseMode(ParseMode.HTML);
 
-        try {
-            telegramService.editMessageCaption(editMessageCaption);
-        } catch (TelegramApiException e) {
-            LOGGER.error(e.getMessage(), e);
-        }
+                try {
+                    telegramService.editMessageCaption(editMessageCaption);
+                } catch (TelegramApiException e) {
+                    LOGGER.error(e.getMessage(), e);
+                }
+            }
+        });
     }
 
     @Override
-    public EditMediaResult editMessageMedia(EditMessageMedia editMessageMedia) {
-        if (StringUtils.isNotBlank(editMessageMedia.getMedia().getCaption())) {
-            editMessageMedia.getMedia().setParseMode(ParseMode.HTML);
-        }
-        Message message = telegramService.editMessageMedia(editMessageMedia);
+    public void editMessageMediaAsync(EditMessageMedia editMessageMedia, Consumer<EditMediaResult> consumer) {
+        messageSenderJob.push(() -> {
+            if (StringUtils.isNotBlank(editMessageMedia.getMedia().getCaption())) {
+                editMessageMedia.getMedia().setParseMode(ParseMode.HTML);
+            }
+            Message message = telegramService.editMessageMedia(editMessageMedia);
 
-        return new EditMediaResult(fileService.getFileId(message));
+            if (consumer != null) {
+                consumer.accept(new EditMediaResult(fileService.getFileId(message)));
+            }
+        });
     }
 
     @Override
-    public void sendSticker(SendSticker sendSticker) {
-        telegramService.sendSticker(sendSticker);
+    public void editMessageMediaAsync(EditMessageMedia editMediaContext) {
+        editMessageMediaAsync(editMediaContext, null);
     }
 
     @Override
-    public void deleteMessage(long chatId, int messageId) {
-        try {
-            telegramService.deleteMessage(new DeleteMessage(chatId, messageId));
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
-        }
+    public void deleteMessageAsync(long chatId, int messageId) {
+        messageSenderJob.push(() -> {
+            try {
+                telegramService.deleteMessage(new DeleteMessage(chatId, messageId));
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+        });
     }
 
     @Override
-    public SendFileResult sendDocument(SendDocument sendDocument) {
-        if (StringUtils.isNotBlank(sendDocument.getCaption())) {
-            sendDocument.setParseMode(ParseMode.HTML);
-        }
-
-        Message message = telegramService.sendDocument(sendDocument);
-
-        return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
+    public void sendDocumentAsync(SendDocument sendDocument) {
+        sendDocument0(sendDocument, null);
     }
 
     @Override
-    public SendFileResult sendPhoto(SendPhoto sendPhoto) {
-        Message message = telegramService.sendPhoto(sendPhoto);
-
-        return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
+    public void sendDocumentAsync(SendDocument sendDocument, Consumer<SendFileResult> callback) {
+        messageSenderJob.push(() -> sendDocument0(sendDocument, callback));
     }
 
     @Override
-    public SendFileResult sendVideo(SendVideo sendVideo) {
-        if (StringUtils.isNotBlank(sendVideo.getCaption())) {
-            sendVideo.setParseMode(ParseMode.HTML);
-        }
-
-        Message message = telegramService.sendVideo(sendVideo);
-
-        return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
+    public void sendPhotoAsync(SendPhoto sendPhoto) {
+        sendPhotoAsync(sendPhoto, null);
     }
 
     @Override
-    public SendFileResult sendAudio(SendAudio sendAudio) {
-        if (StringUtils.isNotBlank(sendAudio.getCaption())) {
-            sendAudio.setParseMode(ParseMode.HTML);
-        }
+    public void sendPhotoAsync(SendPhoto sendPhoto, Consumer<SendFileResult> callback) {
+        messageSenderJob.push(() -> {
+            Message message = telegramService.sendPhoto(sendPhoto);
+            if (callback != null) {
+                callback.accept(new SendFileResult(message.getMessageId(), fileService.getFileId(message)));
+            }
+        });
+    }
 
-        Message message = telegramService.sendAudio(sendAudio);
+    @Override
+    public void sendVideoAsync(SendVideo sendVideo) {
+        messageSenderJob.push(() -> {
+            if (StringUtils.isNotBlank(sendVideo.getCaption())) {
+                sendVideo.setParseMode(ParseMode.HTML);
+            }
+            telegramService.sendVideo(sendVideo);
+        });
+    }
 
-        return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
+    @Override
+    public void sendAudioAsync(SendAudio sendAudio) {
+        messageSenderJob.push(() -> {
+            if (StringUtils.isNotBlank(sendAudio.getCaption())) {
+                sendAudio.setParseMode(ParseMode.HTML);
+            }
+
+            telegramService.sendAudio(sendAudio);
+        });
     }
 
     @Override
     public void sendErrorMessage(long chatId, Locale locale) {
-        sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ERROR, locale)));
+        sendMessageAsync(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ERROR, locale)));
     }
 
     @Override
@@ -205,30 +220,60 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public void sendFile(long chatId, String fileId) {
+    public void sendFileAsync(long chatId, String fileId) {
         MediaType mediaType = getMediaType(fileId);
 
         switch (mediaType) {
             case PHOTO:
-                sendPhoto(new SendPhoto(chatId, fileId));
+                sendPhotoAsync(new SendPhoto(chatId, fileId));
                 break;
             case VIDEO:
-                sendVideo(new SendVideo(chatId, fileId));
+                sendVideoAsync(new SendVideo(chatId, fileId));
                 break;
             case AUDIO:
-                sendAudio(new SendAudio(chatId, fileId));
+                sendAudioAsync(new SendAudio(chatId, fileId));
                 break;
             default:
-                sendDocument(new SendDocument(chatId, fileId));
+                sendDocumentAsync(new SendDocument(chatId, fileId));
                 break;
         }
     }
 
     @Override
-    public void sendBotRestartedMessage(long chatId, ReplyKeyboard replyKeyboard, Locale locale) {
-        sendMessage(
+    public void sendBotRestartedMessageAsync(long chatId, ReplyKeyboard replyKeyboard, Locale locale) {
+        sendMessageAsync(
                 new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_BOT_RESTARTED, locale))
                         .setReplyMarkup(replyKeyboard)
         );
+    }
+
+    @Override
+    public void sendStickerAsync(SendSticker sendSticker) {
+        messageSenderJob.push(() -> telegramService.sendSticker(sendSticker));
+    }
+
+    private void sendMessage0(SendMessage sendMessage, Consumer<Message> callback) {
+        try {
+            Message message = telegramService.sendMessage(sendMessage);
+
+            if (callback != null) {
+                callback.accept(message);
+            }
+        } catch (TelegramApiRequestException ex) {
+            LOGGER.error("Error send message({})", sendMessage);
+            throw ex;
+        }
+    }
+
+    private void sendDocument0(SendDocument sendDocument, Consumer<SendFileResult> callback) {
+        if (StringUtils.isNotBlank(sendDocument.getCaption())) {
+            sendDocument.setParseMode(ParseMode.HTML);
+        }
+
+        Message message = telegramService.sendDocument(sendDocument);
+
+        if (callback != null) {
+            callback.accept(new SendFileResult(message.getMessageId(), fileService.getFileId(message)));
+        }
     }
 }

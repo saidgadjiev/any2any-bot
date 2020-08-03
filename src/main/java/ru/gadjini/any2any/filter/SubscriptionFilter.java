@@ -68,6 +68,6 @@ public class SubscriptionFilter extends BaseBotFilter {
     private void sendNeedSubscription(User user) {
         Locale locale = userService.getLocaleOrDefault(user.getId());
         String msg = localisationService.getMessage(MessagesProperties.MESSAGE_NEED_SUBSCRIPTION, locale);
-        messageService.sendMessage(new HtmlMessage((long) user.getId(), msg));
+        messageService.sendMessageAsync(new HtmlMessage((long) user.getId(), msg));
     }
 }

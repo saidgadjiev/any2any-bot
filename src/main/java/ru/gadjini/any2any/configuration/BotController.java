@@ -50,7 +50,7 @@ public class BotController {
             if (ex.isPrintLog()) {
                 LOGGER.error(ex.getMessage(), ex);
             }
-            messageService.sendMessage(new HtmlMessage(TgMessage.getChatId(update), ex.getHumanMessage()));
+            messageService.sendMessageAsync(new HtmlMessage(TgMessage.getChatId(update), ex.getHumanMessage()));
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
             TgMessage tgMessage = TgMessage.from(update);

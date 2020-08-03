@@ -62,7 +62,7 @@ public class FormatsCommand implements KeyboardBotCommand, BotCommand {
     }
 
     private void processMessage0(int userId, Locale locale) {
-        messageService.sendMessage(
+        messageService.sendMessageAsync(
                 new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_FORMATS, locale)));
     }
 }

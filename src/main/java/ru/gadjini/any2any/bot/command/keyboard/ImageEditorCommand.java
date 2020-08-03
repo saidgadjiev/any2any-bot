@@ -169,7 +169,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
 
-        messageService.sendMessage(
+        messageService.sendMessageAsync(
                 new HtmlMessage(chatId,
                         localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MAIN_WELCOME, locale))
                         .setReplyMarkup(replyKeyboardService.goBack(chatId, locale))

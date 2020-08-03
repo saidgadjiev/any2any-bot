@@ -53,7 +53,7 @@ public class EnableDistributionsCommand implements KeyboardBotCommand {
     public boolean processMessage(Message message, String text) {
         distributionJob.checkDistributions();
 
-        messageService.sendMessage(new SendMessage(message.getChatId(),
+        messageService.sendMessageAsync(new SendMessage(message.getChatId(),
                 localisationService.getMessage(MessagesProperties.MESSAGE_DISTRIBUTIONS_ENABLED, userService.getLocaleOrDefault(message.getFromUser().getId()))));
         return false;
     }

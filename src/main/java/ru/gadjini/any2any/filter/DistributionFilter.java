@@ -40,7 +40,7 @@ public class DistributionFilter extends BaseBotFilter {
         }
         Distribution distribution = distributionService.popDistribution(userId);
         if (distribution != null) {
-            messageService.sendMessage(new HtmlMessage((long) userId, distribution.getLocalisedMessage()));
+            messageService.sendMessageAsync(new HtmlMessage((long) userId, distribution.getLocalisedMessage()));
         }
     }
 }

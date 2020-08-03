@@ -70,7 +70,7 @@ public class QueriesCommand implements KeyboardBotCommand, NavigableCallbackBotC
     @Override
     public void processMessage(Message message) {
         List<ConversionQueueItem> queries = fileQueueService.getActiveItems(message.getFromUser().getId());
-        messageService.sendMessage(
+        messageService.sendMessageAsync(
                 new HtmlMessage(message.getChat().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFromUser().getId())))
                         .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(ConversionQueueItem::getId).collect(Collectors.toList())))
         );
@@ -84,7 +84,7 @@ public class QueriesCommand implements KeyboardBotCommand, NavigableCallbackBotC
     @Override
     public boolean processMessage(Message message, String text) {
         List<ConversionQueueItem> queries = fileQueueService.getActiveItems(message.getFromUser().getId());
-        messageService.sendMessage(
+        messageService.sendMessageAsync(
                 new HtmlMessage((long) message.getFromUser().getId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(message.getFromUser().getId())))
                         .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(ConversionQueueItem::getId).collect(Collectors.toList())))
         );
@@ -95,7 +95,7 @@ public class QueriesCommand implements KeyboardBotCommand, NavigableCallbackBotC
     @Override
     public void restore(TgMessage tgMessage, ReplyKeyboard replyKeyboard, RequestParams requestParams) {
         List<ConversionQueueItem> queries = fileQueueService.getActiveItems(tgMessage.getUser().getId());
-        messageService.editMessage(
+        messageService.editMessageAsync(
                 new EditMessageText(tgMessage.getUser().getId(), tgMessage.getMessageId(), messageBuilder.getItems(queries, userService.getLocaleOrDefault(tgMessage.getUser().getId())))
                         .setReplyMarkup(inlineKeyboardService.getQueriesKeyboard(queries.stream().map(ConversionQueueItem::getId).collect(Collectors.toList())))
         );

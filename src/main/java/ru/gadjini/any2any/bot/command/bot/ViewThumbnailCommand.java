@@ -13,7 +13,6 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.HasThumb;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendPhoto;
 import ru.gadjini.any2any.model.bot.api.object.Message;
@@ -70,14 +69,15 @@ public class ViewThumbnailCommand implements BotCommand {
                 Any2AnyFile thumbnail = state.getThumb();
                 if (thumbnail != null) {
                     if (StringUtils.isNotBlank(thumbnail.getCachedFileId())) {
-                        messageService.sendPhoto(new SendPhoto(message.getChatId(), thumbnail.getCachedFileId()));
+                        messageService.sendPhotoAsync(new SendPhoto(message.getChatId(), thumbnail.getCachedFileId()));
                     } else {
                         executor.execute(() -> {
                             SmartTempFile tempFile = thumbService.convertToThumb(message.getChatId(), thumbnail.getFileId(), thumbnail.getFileName(), thumbnail.getMimeType());
                             try {
-                                SendFileResult sendFileResult = messageService.sendPhoto(new SendPhoto(message.getChatId(), tempFile.getAbsolutePath()));
-                                thumbnail.setCachedFileId(sendFileResult.getFileId());
-                                commandStateService.setState(message.getChatId(), currentCommandName, state);
+                                messageService.sendPhotoAsync(new SendPhoto(message.getChatId(), tempFile.getAbsolutePath()), sendFileResult -> {
+                                    thumbnail.setCachedFileId(sendFileResult.getFileId());
+                                    commandStateService.setState(message.getChatId(), currentCommandName, state);
+                                });
                             } finally {
                                 tempFile.smartDelete();
                             }
@@ -101,7 +101,7 @@ public class ViewThumbnailCommand implements BotCommand {
 
     private void thumbNotFound(Message message) {
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
-        messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_NOT_FOUND, locale)));
+        messageService.sendMessageAsync(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_NOT_FOUND, locale)));
     }
 
     private String getCurrentCommandName(long chatId) {

@@ -103,7 +103,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_FILE, locale))
+        messageService.sendMessageAsync(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_FILE, locale))
                 .setReplyMarkup(replyKeyboardService.goBack(chatId, locale)));
     }
 

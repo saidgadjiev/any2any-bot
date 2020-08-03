@@ -82,7 +82,7 @@ public class ConvertCommand implements KeyboardBotCommand, NavigableBotCommand, 
     public void restore(TgMessage message) {
         commandStateService.deleteState(message.getChatId(), getHistoryName());
         Locale locale = userService.getLocaleOrDefault(message.getUser().getId());
-        messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
+        messageService.sendMessageAsync(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
                 .setReplyMarkup(replyKeyboardService.goBack(message.getChatId(), locale)));
     }
 
@@ -122,7 +122,7 @@ public class ConvertCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(
+        messageService.sendMessageAsync(
                 new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
                         .setReplyMarkup(replyKeyboardService.goBack(chatId, locale))
 

@@ -66,7 +66,7 @@ public class HelpCommand implements KeyboardBotCommand, BotCommand {
     }
 
     private void sendHelpMessage(int userId, Locale locale) {
-        messageService.sendMessage(
+        messageService.sendMessageAsync(
                 new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_HELP,
                         new Object[]{commandMessageBuilder.getCommandsInfo(locale)},
                         locale)));

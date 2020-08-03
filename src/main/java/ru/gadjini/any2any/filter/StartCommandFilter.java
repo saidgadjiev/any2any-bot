@@ -79,7 +79,7 @@ public class StartCommandFilter extends BaseBotFilter {
                     new Object[]{commandMessageBuilder.getCommandsInfo(createOrUpdateResult.getUser().getLocale())},
                     createOrUpdateResult.getUser().getLocale());
             ReplyKeyboard mainMenu = replyKeyboardService.getMainMenu(message.getChatId(), createOrUpdateResult.getUser().getLocale());
-            messageService.sendMessage(
+            messageService.sendMessageAsync(
                     new HtmlMessage(message.getChatId(), text)
                             .setReplyMarkup(mainMenu)
             );

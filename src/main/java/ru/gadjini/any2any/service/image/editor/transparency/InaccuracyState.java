@@ -69,7 +69,7 @@ public class InaccuracyState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
-        messageService.editMessageCaption(new EditMessageCaption(chatId, state.getMessageId(),
+        messageService.editMessageCaptionAsync(new EditMessageCaption(chatId, state.getMessageId(),
                 messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_INACCURACY_WELCOME, new Locale(state.getLanguage())))
                 .setReplyMarkup(inlineKeyboardService.getInaccuracyKeyboard(new Locale(state.getLanguage()))));
@@ -88,7 +88,7 @@ public class InaccuracyState implements State {
             return;
         }
         state.setInaccuracy(inaccuracy);
-        messageService.editMessageCaption(
+        messageService.editMessageCaptionAsync(
                 new EditMessageCaption(chatId, state.getMessageId(), messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_INACCURACY_WELCOME, locale))
                         .setReplyMarkup(inlineKeyboardService.getInaccuracyKeyboard(locale))

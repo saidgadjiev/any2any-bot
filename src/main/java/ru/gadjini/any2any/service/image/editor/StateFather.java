@@ -12,7 +12,6 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
@@ -176,13 +175,14 @@ public class StateFather implements State {
                 imageDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
                 EditorState state = createState(result.getAbsolutePath(), Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), Format.PNG.getExt()));
                 state.setLanguage(locale.getLanguage());
-                SendFileResult fileResult = messageService.sendDocument(new SendDocument(chatId, state.getFileName(), result.getFile())
+                messageService.sendDocumentAsync(new SendDocument(chatId, state.getFileName(), result.getFile())
                         .setCaption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
-                        .setReplyMarkup(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())));
-                state.setMessageId(fileResult.getMessageId());
-                state.setCurrentFileId(fileResult.getFileId());
-                commandStateService.setState(chatId, command.getHistoryName(), state);
-                LOGGER.debug("New state({}, {}, {})", chatId, any2AnyFile.getFormat(), any2AnyFile.getFileId());
+                        .setReplyMarkup(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())), fileResult -> {
+                    state.setMessageId(fileResult.getMessageId());
+                    state.setCurrentFileId(fileResult.getFileId());
+                    commandStateService.setState(chatId, command.getHistoryName(), state);
+                    LOGGER.debug("New state({}, {}, {})", chatId, any2AnyFile.getFormat(), any2AnyFile.getFileId());
+                });
             } finally {
                 file.smartDelete();
             }
@@ -198,10 +198,10 @@ public class StateFather implements State {
         try {
             File file = new File(state.getCurrentFilePath());
             if (file.length() > 0) {
-                messageService.sendDocument(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath())));
-                messageService.deleteMessage(chatId, state.getMessageId());
+                messageService.sendDocumentAsync(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath())));
+                messageService.deleteMessageAsync(chatId, state.getMessageId());
             } else {
-                messageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId()));
+                messageService.editMessageMediaAsync(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId()));
             }
             commandStateService.deleteState(chatId, command.getHistoryName());
             LOGGER.debug("State deleted({})", chatId);
@@ -241,10 +241,10 @@ public class StateFather implements State {
             try {
                 File file = new File(state.getCurrentFilePath());
                 if (file.length() > 0) {
-                    messageService.sendDocument(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath())));
-                    messageService.deleteMessage(chatId, state.getMessageId());
+                    messageService.sendDocumentAsync(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath())));
+                    messageService.deleteMessageAsync(chatId, state.getMessageId());
                 } else {
-                    messageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId()));
+                    messageService.editMessageMediaAsync(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId()));
                 }
             } catch (Exception ex) {
                 LOGGER.error(ex.getMessage(), ex);

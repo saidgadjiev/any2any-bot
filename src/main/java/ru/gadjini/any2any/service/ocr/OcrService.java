@@ -66,13 +66,13 @@ public class OcrService {
 
                 String result = ocrDevice.getText(file.getAbsolutePath());
                 if (StringUtils.isBlank(result)) {
-                    messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
+                    messageService.sendMessageAsync(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
                 } else {
-                    messageService.sendMessage(new SendMessage((long) userId, result));
+                    messageService.sendMessageAsync(new SendMessage((long) userId, result));
                 }
                 LOGGER.debug("Finish({}, {})", userId, StringUtils.substring(result, 0, 50));
             } catch (Exception ex) {
-                messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
+                messageService.sendMessageAsync(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
                 throw new OcrException(ex);
             } finally {
                 file.smartDelete();

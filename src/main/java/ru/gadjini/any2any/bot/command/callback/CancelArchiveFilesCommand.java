@@ -46,7 +46,7 @@ public class CancelArchiveFilesCommand implements CallbackBotCommand {
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         commandStateService.deleteState(callbackQuery.getMessage().getChatId(), CommandNames.ARCHIVE_COMMAND_NAME);
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFromUser().getId());
-        messageService.editMessage(new EditMessageText(
+        messageService.editMessageAsync(new EditMessageText(
                 callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(),
                 localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_DELETED, locale)
         ));

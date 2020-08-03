@@ -18,7 +18,6 @@ import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.*;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
@@ -31,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 @Component
 @Qualifier("limits")
@@ -83,9 +83,14 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public Message sendMessage(SendMessage sendMessage) {
+    public void sendMessageAsync(SendMessage sendMessage) {
+        messageService.sendMessageAsync(sendMessage);
+    }
+
+    @Override
+    public void sendMessageAsync(SendMessage sendMessage, Consumer<Message> callback) {
         if (sendMessage.getText().length() < TEXT_LENGTH_LIMIT) {
-            return messageService.sendMessage(sendMessage);
+            messageService.sendMessageAsync(sendMessage, callback);
         } else {
             List<String> parts = new ArrayList<>();
             Splitter.fixedLength(TEXT_LENGTH_LIMIT)
@@ -96,7 +101,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
                         .setReplyToMessageId(sendMessage.getReplyToMessageId())
                         .setDisableWebPagePreview(sendMessage.getDisableWebPagePreview())
                         .setParseMode(sendMessage.getParseMode());
-                messageService.sendMessage(msg);
+                messageService.sendMessageAsync(msg);
             }
 
             SendMessage msg = new SendMessage(sendMessage.getChatId(), parts.get(parts.size() - 1))
@@ -104,72 +109,82 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
                     .setDisableWebPagePreview(sendMessage.getDisableWebPagePreview())
                     .setParseMode(sendMessage.getParseMode())
                     .setReplyMarkup(sendMessage.getReplyMarkup());
-            return messageService.sendMessage(msg);
+            messageService.sendMessageAsync(msg, callback);
         }
     }
 
     @Override
-    public void removeInlineKeyboard(long chatId, int messageId) {
-        messageService.removeInlineKeyboard(chatId, messageId);
+    public void removeInlineKeyboardAsync(long chatId, int messageId) {
+        messageService.removeInlineKeyboardAsync(chatId, messageId);
     }
 
     @Override
-    public void editMessage(EditMessageText messageContext) {
-        messageService.editMessage(messageContext);
+    public void editMessageAsync(EditMessageText messageContext) {
+        messageService.editMessageAsync(messageContext);
     }
 
     @Override
-    public void editReplyKeyboard(long chatId, int messageId, InlineKeyboardMarkup replyKeyboard) {
-        messageService.editReplyKeyboard(chatId, messageId, replyKeyboard);
+    public void editMessageCaptionAsync(EditMessageCaption context) {
+        messageService.editMessageCaptionAsync(context);
     }
 
     @Override
-    public void editMessageCaption(EditMessageCaption context) {
-        messageService.editMessageCaption(context);
+    public void editMessageMediaAsync(EditMessageMedia editMediaContext, Consumer<EditMediaResult> consumer) {
+        messageService.editMessageMediaAsync(editMediaContext, consumer);
     }
 
     @Override
-    public EditMediaResult editMessageMedia(EditMessageMedia editMediaContext) {
-        return messageService.editMessageMedia(editMediaContext);
+    public void editMessageMediaAsync(EditMessageMedia editMediaContext) {
+        messageService.editMessageMediaAsync(editMediaContext);
     }
 
     @Override
-    public void sendBotRestartedMessage(long chatId, ReplyKeyboard replyKeyboard, Locale locale) {
-        messageService.sendBotRestartedMessage(chatId, replyKeyboard, locale);
+    public void sendBotRestartedMessageAsync(long chatId, ReplyKeyboard replyKeyboard, Locale locale) {
+        messageService.sendBotRestartedMessageAsync(chatId, replyKeyboard, locale);
     }
 
     @Override
-    public void sendSticker(SendSticker sendSticker) {
-        messageService.sendSticker(sendSticker);
+    public void sendStickerAsync(SendSticker sendSticker) {
+        messageService.sendStickerAsync(sendSticker);
     }
 
     @Override
-    public void deleteMessage(long chatId, int messageId) {
-        messageService.deleteMessage(chatId, messageId);
+    public void deleteMessageAsync(long chatId, int messageId) {
+        messageService.deleteMessageAsync(chatId, messageId);
     }
 
     @Override
-    public SendFileResult sendDocument(SendDocument sendDocument) {
+    public void sendDocumentAsync(SendDocument sendDocument) {
         if (validate(sendDocument)) {
-            return messageService.sendDocument(sendDocument);
+            messageService.sendDocumentAsync(sendDocument);
         }
-
-        return null;
     }
 
     @Override
-    public SendFileResult sendPhoto(SendPhoto sendPhoto) {
-        return messageService.sendPhoto(sendPhoto);
+    public void sendDocumentAsync(SendDocument sendDocument, Consumer<SendFileResult> callback) {
+        if (validate(sendDocument)) {
+            messageService.sendDocumentAsync(sendDocument, callback);
+        }
     }
 
     @Override
-    public SendFileResult sendVideo(SendVideo sendVideo) {
-        return messageService.sendVideo(sendVideo);
+    public void sendPhotoAsync(SendPhoto sendPhoto) {
+        messageService.sendPhotoAsync(sendPhoto);
     }
 
     @Override
-    public SendFileResult sendAudio(SendAudio sendAudio) {
-        return messageService.sendAudio(sendAudio);
+    public void sendPhotoAsync(SendPhoto sendPhoto, Consumer<SendFileResult> callback) {
+        messageService.sendPhotoAsync(sendPhoto, callback);
+    }
+
+    @Override
+    public void sendVideoAsync(SendVideo sendVideo) {
+        messageService.sendVideoAsync(sendVideo);
+    }
+
+    @Override
+    public void sendAudioAsync(SendAudio sendAudio) {
+        messageService.sendAudioAsync(sendAudio);
     }
 
     @Override
@@ -183,8 +198,8 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     }
 
     @Override
-    public void sendFile(long chatId, String fileId) {
-        messageService.sendFile(chatId, fileId);
+    public void sendFileAsync(long chatId, String fileId) {
+        messageService.sendFileAsync(chatId, fileId);
     }
 
     private boolean isMediaMessage(Message message) {
@@ -212,7 +227,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
         File file = new File(document.getFilePath());
         if (file.length() == 0) {
             LOGGER.error("Zero file\n{}", Arrays.toString(Thread.currentThread().getStackTrace()));
-            sendMessage(new SendMessage(sendDocument.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZERO_LENGTH_FILE, userService.getLocaleOrDefault((int) sendDocument.getOrigChatId())))
+            sendMessageAsync(new SendMessage(sendDocument.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ZERO_LENGTH_FILE, userService.getLocaleOrDefault((int) sendDocument.getOrigChatId())))
                     .setReplyMarkup(sendDocument.getReplyMarkup())
                     .setReplyToMessageId(sendDocument.getReplyToMessageId()));
 
@@ -224,7 +239,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
                     new Object[]{file.getName(), MemoryUtils.humanReadableByteCount(file.length())},
                     userService.getLocaleOrDefault((int) sendDocument.getOrigChatId()));
 
-            sendMessage(new SendMessage(sendDocument.getChatId(), text)
+            sendMessageAsync(new SendMessage(sendDocument.getChatId(), text)
                     .setReplyMarkup(sendDocument.getReplyMarkup())
                     .setReplyToMessageId(sendDocument.getReplyToMessageId()));
 

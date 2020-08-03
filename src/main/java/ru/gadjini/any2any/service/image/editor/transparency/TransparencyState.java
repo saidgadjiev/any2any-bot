@@ -93,7 +93,7 @@ public class TransparencyState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
-        messageService.editMessageCaption(new EditMessageCaption(chatId, state.getMessageId(),
+        messageService.editMessageCaptionAsync(new EditMessageCaption(chatId, state.getMessageId(),
                 messageBuilder.getSettingsStr(state))
                 .setReplyMarkup(inlineKeyboardService.getTransparencyKeyboard(new Locale(state.getLanguage()))));
     }

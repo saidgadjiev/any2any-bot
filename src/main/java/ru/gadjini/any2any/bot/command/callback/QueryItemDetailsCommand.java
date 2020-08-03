@@ -53,11 +53,11 @@ public class QueryItemDetailsCommand implements CallbackBotCommand {
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFromUser().getId());
         ConversionQueueItem item = fileQueueService.getItem(queryItemId);
         if (item == null) {
-            messageService.editMessage(
+            messageService.editMessageAsync(
                     new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), messageBuilder.queryItemNotFound(locale))
             );
         } else {
-            messageService.editMessage(
+            messageService.editMessageAsync(
                     new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), messageBuilder.getItem(item, locale))
                             .setReplyMarkup(inlineKeyboardService.getQueryDetailsKeyboard(queryItemId, locale))
             );
