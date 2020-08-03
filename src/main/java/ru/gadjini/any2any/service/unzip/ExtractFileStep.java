@@ -4,5 +4,7 @@ public enum ExtractFileStep {
 
     EXTRACTING,
 
-    UPLOADING
+    UPLOADING,
+
+    COMPLETED
 }

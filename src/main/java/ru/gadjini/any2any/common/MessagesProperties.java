@@ -322,4 +322,6 @@ public class MessagesProperties {
     public static final String MESSAGE_UNZIPPING_STEP = "message.unzipping.step";
 
     public static final String MESSAGE_EXTRACTING_STEP = "message.extracting.step";
+
+    public static final String MESSAGE_EXTRACTING_ALL = "message.extracting.all";
 }

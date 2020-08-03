@@ -24,7 +24,13 @@ public class UnzipMessageBuilder {
         this.localisationService = localisationService;
     }
 
-    public String buildUnzipProgressMessage(ExtractFileStep extractFileStep, Lang lang, Locale locale) {
+    public String buildExtractAllProgressMessage(int count, int current, ExtractFileStep extractFileStep, Lang lang, Locale locale) {
+        String msg = localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTING_ALL, new Object[] {current, count}, locale);
+
+        return msg + "\n" + buildExtractFileProgressMessage(extractFileStep, lang, locale);
+    }
+
+    public String buildExtractFileProgressMessage(ExtractFileStep extractFileStep, Lang lang, Locale locale) {
         String formatter = lang == Lang.JAVA ? "%s" : "{}";
         String percentage = lang == Lang.JAVA ? "%%" : "%";
         String iconCheck = localisationService.getMessage(MessagesProperties.ICON_CHECK, locale);
