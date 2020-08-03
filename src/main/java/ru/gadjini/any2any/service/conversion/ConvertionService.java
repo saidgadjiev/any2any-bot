@@ -17,7 +17,6 @@ import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
 import ru.gadjini.any2any.model.bot.api.object.User;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Any2AnyConverter;
@@ -25,6 +24,7 @@ import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.ConvertResult;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.FileManager;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.conversion.ConversionQueueService;
 import ru.gadjini.any2any.utils.MemoryUtils;
@@ -55,18 +55,18 @@ public class ConvertionService {
 
     private SmartExecutorService executor;
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     @Autowired
     public ConvertionService(@Qualifier("limits") MessageService messageService,
                              LocalisationService localisationService, UserService userService,InlineKeyboardService inlineKeyboardService,
-                             ConversionQueueService queueService, TelegramService telegramService) {
+                             ConversionQueueService queueService, FileManager fileManager) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.queueService = queueService;
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
     }
 
     @PostConstruct
@@ -222,7 +222,7 @@ public class ConvertionService {
 
         @Override
         public void cancel() {
-            telegramService.cancelDownloading(fileQueueItem.getFileId());
+            fileManager.cancelDownloading(fileQueueItem.getFileId());
             if (canceledByUser) {
                 queueService.delete(fileQueueItem.getId());
                 LOGGER.debug("Canceled({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getFormat(),

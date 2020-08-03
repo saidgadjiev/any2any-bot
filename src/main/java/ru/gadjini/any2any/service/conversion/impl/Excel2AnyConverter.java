@@ -9,9 +9,9 @@ import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TempFileService;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
+import ru.gadjini.any2any.service.message.FileManager;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.util.Set;
@@ -24,14 +24,14 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.XLS, Format.XLSX);
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private TempFileService fileService;
 
     @Autowired
-    public Excel2AnyConverter(TelegramService telegramService, TempFileService fileService, FormatService formatService) {
+    public Excel2AnyConverter(FileManager fileManager, TempFileService fileService, FormatService formatService) {
         super(ACCEPT_FORMATS, formatService);
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.fileService = fileService;
     }
 
@@ -44,7 +44,7 @@ public class Excel2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 

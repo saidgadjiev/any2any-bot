@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.service.message;
-import ru.gadjini.any2any.model.*;
+
+import ru.gadjini.any2any.model.EditMediaResult;
+import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.MediaType;
 import ru.gadjini.any2any.model.bot.api.method.send.*;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
@@ -14,6 +16,7 @@ import java.util.Locale;
 import java.util.function.Consumer;
 
 public interface MessageService {
+
     void sendAnswerCallbackQuery(AnswerCallbackQuery answerCallbackQuery);
 
     ChatMember getChatMember(String chatId, int userId);

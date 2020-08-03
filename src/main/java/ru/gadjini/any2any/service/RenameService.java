@@ -22,6 +22,7 @@ import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.FileManager;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.rename.RenameQueueService;
 import ru.gadjini.any2any.service.thumb.ThumbService;
@@ -37,7 +38,7 @@ public class RenameService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RenameService.class);
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private TempFileService tempFileService;
 
@@ -60,11 +61,11 @@ public class RenameService {
     private ThumbService thumbService;
 
     @Autowired
-    public RenameService(TelegramService telegramService, TempFileService tempFileService, FormatService formatService,
+    public RenameService(FileManager fileManager, TempFileService tempFileService, FormatService formatService,
                          @Qualifier("limits") MessageService messageService, RenameQueueService renameQueueService,
                          LocalisationService localisationService, InlineKeyboardService inlineKeyboardService,
                          CommandStateService commandStateService, UserService userService, ThumbService thumbService) {
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.tempFileService = tempFileService;
         this.formatService = formatService;
         this.messageService = messageService;
@@ -219,14 +220,14 @@ public class RenameService {
             try {
                 String ext = formatService.getExt(fileName, mimeType);
                 file = tempFileService.createTempFile(userId, fileId, TAG, ext);
-                telegramService.downloadFileByFileId(fileId, file);
+                fileManager.downloadFileByFileId(fileId, file);
 
                 String fileName = createNewFileName(newFileName, ext);
                 if (userThumb != null) {
                     thumbFile = thumbService.convertToThumb(userId, userThumb.getFileId(), userThumb.getFileName(), userThumb.getMimeType());
                 } else if (StringUtils.isNotBlank(thumb)) {
                     thumbFile = tempFileService.createTempFile(userId, fileId, TAG, Format.JPG.getExt());
-                    telegramService.downloadFileByFileId(thumb, thumbFile);
+                    fileManager.downloadFileByFileId(thumb, thumbFile);
                 }
                 messageService.sendDocumentAsync(new SendDocument((long) userId, fileName, file.getFile())
                         .setThumb(thumbFile != null ? thumbFile.getAbsolutePath() : null)
@@ -259,10 +260,10 @@ public class RenameService {
 
         @Override
         public void cancel() {
-            if (!telegramService.cancelDownloading(fileId) && file != null) {
+            if (!fileManager.cancelDownloading(fileId) && file != null) {
                 file.smartDelete();
             }
-            if (!telegramService.cancelDownloading(thumb) && thumbFile != null) {
+            if (!fileManager.cancelDownloading(thumb) && thumbFile != null) {
                 thumbFile.smartDelete();
             }
             if (canceledByUser) {

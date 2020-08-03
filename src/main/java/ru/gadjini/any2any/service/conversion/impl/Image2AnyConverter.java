@@ -8,13 +8,13 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.service.conversion.api.result.StickerResult;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.trace.ImageTracer;
+import ru.gadjini.any2any.service.message.FileManager;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.io.File;
@@ -29,7 +29,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.PHOTO, Format.HEIC, Format.HEIF, Format.PNG, Format.SVG,
             Format.JP2, Format.JPG, Format.BMP, Format.WEBP);
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private TempFileService fileService;
 
@@ -38,10 +38,10 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     private ImageTracer imageTracer;
 
     @Autowired
-    public Image2AnyConverter(TelegramService telegramService, TempFileService fileService,
+    public Image2AnyConverter(FileManager fileManager, TempFileService fileService,
                               FormatService formatService, ImageConvertDevice imageDevice, ImageTracer imageTracer) {
         super(ACCEPT_FORMATS, formatService);
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.fileService = fileService;
         this.imageDevice = imageDevice;
         this.imageTracer = imageTracer;
@@ -69,7 +69,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
 
         try {
-            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             normalize(file.getFile(), fileQueueItem);
 
             StopWatch stopWatch = new StopWatch();
@@ -99,7 +99,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
 
         try {
-            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             normalize(file.getFile(), fileQueueItem);
 
             StopWatch stopWatch = new StopWatch();
@@ -125,7 +125,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.PNG.getExt());
@@ -180,7 +180,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.SVG.getExt());

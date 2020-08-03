@@ -6,12 +6,12 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.ProcessExecutor;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.ConvertResult;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
+import ru.gadjini.any2any.service.message.FileManager;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.util.List;
@@ -23,17 +23,17 @@ public class Tgs2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     public static final String TAG = "tgs2";
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private TempFileService fileService;
 
     private ArchiveService archiveService;
 
     @Autowired
-    public Tgs2AnyConverter(FormatService formatService, TelegramService telegramService,
+    public Tgs2AnyConverter(FormatService formatService, FileManager fileManager,
                             TempFileService fileService) {
         super(Set.of(Format.TGS), formatService);
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.fileService = fileService;
     }
 
@@ -51,7 +51,7 @@ public class Tgs2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.GIF.getExt());

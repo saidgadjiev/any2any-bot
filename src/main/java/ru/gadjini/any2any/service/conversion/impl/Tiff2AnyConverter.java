@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
+import ru.gadjini.any2any.service.message.FileManager;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.util.Set;
@@ -25,17 +25,17 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     public static final String TAG = "tiff2";
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private TempFileService fileService;
 
     private ImageConvertDevice imageDevice;
 
     @Autowired
-    public Tiff2AnyConverter(FormatService formatService, TelegramService telegramService,
+    public Tiff2AnyConverter(FormatService formatService, FileManager fileManager,
                              TempFileService fileService, ImageConvertDevice imageDevice) {
         super(Set.of(Format.TIFF), formatService);
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.fileService = fileService;
         this.imageDevice = imageDevice;
     }
@@ -53,7 +53,7 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile tiff = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), tiff);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), tiff);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             try (TiffImage image = (TiffImage) Image.load(tiff.getAbsolutePath())) {
@@ -82,7 +82,7 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     private FileResult toPdf(ConversionQueueItem fileQueueItem) {
         SmartTempFile tiff = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
        try {
-           telegramService.downloadFileByFileId(fileQueueItem.getFileId(), tiff);
+           fileManager.downloadFileByFileId(fileQueueItem.getFileId(), tiff);
 
            StopWatch stopWatch = new StopWatch();
            stopWatch.start();

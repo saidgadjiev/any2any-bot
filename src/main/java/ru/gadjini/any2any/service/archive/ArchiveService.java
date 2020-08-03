@@ -19,13 +19,13 @@ import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.FileManager;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.archive.ArchiveQueueService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
@@ -51,7 +51,7 @@ public class ArchiveService {
 
     private SmartExecutorService executor;
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private LocalisationService localisationService;
 
@@ -67,13 +67,13 @@ public class ArchiveService {
 
     @Autowired
     public ArchiveService(Set<ArchiveDevice> archiveDevices, TempFileService fileService,
-                          TelegramService telegramService, LocalisationService localisationService,
+                          FileManager fileManager, LocalisationService localisationService,
                           @Qualifier("limits") MessageService messageService, UserService userService,
                           ArchiveQueueService archiveQueueService, CommandStateService commandStateService,
                           InlineKeyboardService inlineKeyboardService) {
         this.archiveDevices = archiveDevices;
         this.fileService = fileService;
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.userService = userService;
@@ -291,7 +291,7 @@ public class ArchiveService {
 
         @Override
         public void cancel() {
-            archiveFiles.forEach(tgFile -> telegramService.cancelDownloading(tgFile.getFileId()));
+            archiveFiles.forEach(tgFile -> fileManager.cancelDownloading(tgFile.getFileId()));
             if (canceledByUser) {
                 LOGGER.debug("Canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(totalFileSize));
             }
@@ -331,7 +331,7 @@ public class ArchiveService {
             int i = 1;
             for (TgFile tgFile : tgFiles) {
                 SmartTempFile file = fileService.createTempFile(userId, tgFile.getFileId(), TAG, FilenameUtils.getExtension(tgFile.getFileName()));
-                telegramService.downloadFileByFileId(tgFile.getFileId(), file);
+                fileManager.downloadFileByFileId(tgFile.getFileId(), file);
                 downloadResult.originalFileNames.put(i, tgFile.getFileName());
                 downloadResult.downloadedNames.put(i++, file.getName());
                 files.add(file);

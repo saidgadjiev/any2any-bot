@@ -14,9 +14,9 @@ import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.message.FileManager;
 import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.Locale;
@@ -28,7 +28,7 @@ public class OcrService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OcrService.class);
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private ThreadPoolTaskExecutor executor;
 
@@ -43,10 +43,10 @@ public class OcrService {
     private OcrDevice ocrDevice;
 
     @Autowired
-    public OcrService(TelegramService telegramService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
+    public OcrService(FileManager fileManager, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
                       @Qualifier("limits") MessageService messageService,
                       UserService userService, LocalisationService localisationService, TempFileService fileService, OcrDevice ocrDevice) {
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.executor = executor;
         this.messageService = messageService;
         this.userService = userService;
@@ -62,7 +62,7 @@ public class OcrService {
             Locale locale = userService.getLocaleOrDefault(userId);
             SmartTempFile file = fileService.createTempFile(userId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
             try {
-                telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file);
+                fileManager.downloadFileByFileId(any2AnyFile.getFileId(), file);
 
                 String result = ocrDevice.getText(file.getAbsolutePath());
                 if (StringUtils.isBlank(result)) {

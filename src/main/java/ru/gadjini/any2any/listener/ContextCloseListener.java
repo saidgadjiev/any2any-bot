@@ -8,9 +8,9 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.service.RenameService;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.conversion.ConvertionService;
+import ru.gadjini.any2any.service.message.FileManager;
 import ru.gadjini.any2any.service.unzip.UnzipService;
 
 @Component
@@ -26,18 +26,18 @@ public class ContextCloseListener implements ApplicationListener<ContextClosedEv
 
     private UnzipService unzipService;
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private ThreadPoolTaskExecutor commonThreadPool;
 
     public ContextCloseListener(ConvertionService conversionService, RenameService renameService,
                                 ArchiveService archiveService, UnzipService unzipService,
-                                TelegramService telegramService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor commonThreadPool) {
+                                FileManager fileManager, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor commonThreadPool) {
         this.conversionService = conversionService;
         this.renameService = renameService;
         this.archiveService = archiveService;
         this.unzipService = unzipService;
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.commonThreadPool = commonThreadPool;
     }
 
@@ -69,7 +69,7 @@ public class ContextCloseListener implements ApplicationListener<ContextClosedEv
             LOGGER.error("Error shutdown commonThreadPool. " + e.getMessage(), e);
         }
         try {
-            telegramService.cancelDownloads();
+            fileManager.cancelDownloads();
         } catch (Throwable e) {
             LOGGER.error("Error cancel downloading telegramService. " + e.getMessage(), e);
         }

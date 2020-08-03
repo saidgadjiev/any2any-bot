@@ -10,13 +10,13 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.CorruptedFileException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.ConvertResult;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.service.conversion.device.ConvertDevice;
 import ru.gadjini.any2any.service.conversion.file.FileValidator;
+import ru.gadjini.any2any.service.message.FileManager;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.util.Set;
@@ -29,7 +29,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private TempFileService fileService;
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private ConvertDevice convertDevice;
 
@@ -37,11 +37,11 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     @Autowired
     public Pdf2AnyConverter(FormatService formatService, TempFileService fileService,
-                            TelegramService telegramService, @Qualifier("calibre") ConvertDevice convertDevice,
+                            FileManager fileManager, @Qualifier("calibre") ConvertDevice convertDevice,
                             FileValidator fileValidator) {
         super(Set.of(Format.PDF), formatService);
         this.fileService = fileService;
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.convertDevice = convertDevice;
         this.fileValidator = fileValidator;
     }
@@ -51,7 +51,7 @@ public class Pdf2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             boolean validPdf = fileValidator.isValidPdf(file.getFile().getAbsolutePath());
             if (!validPdf) {
                 throw new CorruptedFileException("Damaged pdf file");

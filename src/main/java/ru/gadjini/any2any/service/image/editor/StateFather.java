@@ -16,7 +16,6 @@ import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
@@ -24,6 +23,7 @@ import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.FileManager;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
@@ -50,7 +50,7 @@ public class StateFather implements State {
 
     private InlineKeyboardService inlineKeyboardService;
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private ImageConvertDevice imageDevice;
 
@@ -62,13 +62,13 @@ public class StateFather implements State {
     public StateFather(CommandStateService commandStateService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
                        @Qualifier("limits") MessageService messageService, TempFileService tempFileService,
                        InlineKeyboardService inlineKeyboardService,
-                       TelegramService telegramService, ImageConvertDevice imageDevice, LocalisationService localisationService, UserService userService) {
+                       FileManager fileManager, ImageConvertDevice imageDevice, LocalisationService localisationService, UserService userService) {
         this.commandStateService = commandStateService;
         this.executor = executor;
         this.messageService = messageService;
         this.tempFileService = tempFileService;
         this.inlineKeyboardService = inlineKeyboardService;
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.imageDevice = imageDevice;
         this.localisationService = localisationService;
         this.userService = userService;
@@ -170,7 +170,7 @@ public class StateFather implements State {
 
             SmartTempFile file = tempFileService.createTempFile(chatId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
             try {
-                telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file);
+                fileManager.downloadFileByFileId(any2AnyFile.getFileId(), file);
                 SmartTempFile result = tempFileService.createTempFile(chatId, any2AnyFile.getFileId(), TAG, Format.PNG.getExt());
                 imageDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
                 EditorState state = createState(result.getAbsolutePath(), Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), Format.PNG.getExt()));
@@ -260,9 +260,9 @@ public class StateFather implements State {
         }
 
         try {
-            telegramService.restoreFileIfNeed(editorState.getCurrentFilePath(), editorState.getCurrentFileId());
+            fileManager.restoreFileIfNeed(editorState.getCurrentFilePath(), editorState.getCurrentFileId());
             if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
-                telegramService.restoreFileIfNeed(editorState.getPrevFilePath(), editorState.getPrevFileId());
+                fileManager.restoreFileIfNeed(editorState.getPrevFilePath(), editorState.getPrevFileId());
             }
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);

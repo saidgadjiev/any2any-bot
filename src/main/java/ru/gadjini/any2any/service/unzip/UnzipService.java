@@ -23,13 +23,13 @@ import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.FileManager;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.unzip.UnzipQueueService;
 import ru.gadjini.any2any.utils.MemoryUtils;
@@ -54,7 +54,7 @@ public class UnzipService {
 
     private MessageService messageService;
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private TempFileService fileService;
 
@@ -71,14 +71,14 @@ public class UnzipService {
     @Autowired
     public UnzipService(Set<UnzipDevice> unzipDevices, LocalisationService localisationService,
                         @Qualifier("limits") MessageService messageService,
-                        TelegramService telegramService, TempFileService fileService,
+                        FileManager fileManager, TempFileService fileService,
                         UnzipQueueService queueService, UserService userService,
                         CommandStateService commandStateService, InlineKeyboardService inlineKeyboardService,
                         UnzipMessageBuilder messageBuilder) {
         this.unzipDevices = unzipDevices;
         this.localisationService = localisationService;
         this.messageService = messageService;
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.fileService = fileService;
         this.queueService = queueService;
         this.userService = userService;
@@ -632,7 +632,7 @@ public class UnzipService {
 
             try {
                 in = fileService.createTempFile(userId, fileId, TAG, format.getExt());
-                telegramService.downloadFileByFileId(fileId, in);
+                fileManager.downloadFileByFileId(fileId, in);
                 UnzipState unzipState = initAndGetState(in.getAbsolutePath());
                 if (unzipState == null) {
                     return;
@@ -688,7 +688,7 @@ public class UnzipService {
 
         @Override
         public void cancel() {
-            if (!telegramService.cancelDownloading(fileId) && in != null) {
+            if (!fileManager.cancelDownloading(fileId) && in != null) {
                 in.smartDelete();
             }
             if (canceledByUser) {

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
+import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.model.SendFileResult;
@@ -200,6 +201,10 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
     @Override
     public void sendFileAsync(long chatId, String fileId) {
         messageService.sendFileAsync(chatId, fileId);
+    }
+
+    public void downloadFileByFileId(long chatId, String fileId, SmartTempFile outputFile) {
+
     }
 
     private boolean isMediaMessage(Message message) {
