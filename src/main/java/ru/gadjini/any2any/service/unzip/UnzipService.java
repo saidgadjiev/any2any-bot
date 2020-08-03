@@ -432,9 +432,13 @@ public class UnzipService {
                         String fileName = FilenameUtils.getName(entry.getValue().getPath());
                         messageService.sendDocumentAsync(new SendDocument((long) item.getUserId(),
                                 fileName, file.getFile()).setCaption(fileName), result -> {
-                            if (result != null) {
-                                unzipState.getFilesCache().put(entry.getKey(), result.getFileId());
-                                commandStateService.setState(item.getUserId(), CommandNames.UNZIP_COMMAND_NAME, unzipState);
+                            try {
+                                if (result != null) {
+                                    unzipState.getFilesCache().put(entry.getKey(), result.getFileId());
+                                    commandStateService.setState(item.getUserId(), CommandNames.UNZIP_COMMAND_NAME, unzipState);
+                                }
+                            } finally {
+                                file.smartDelete();
                             }
                         });
                     }
@@ -444,6 +448,7 @@ public class UnzipService {
                 if (!checker.get()) {
                     LOGGER.error(ex.getMessage(), ex);
 
+                    files.forEach(SmartTempFile::smartDelete);
                     Locale locale = userService.getLocaleOrDefault(item.getUserId());
                     if (ex instanceof ProcessException) {
                         messageService.sendMessageAsync(new SendMessage((long) item.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_UNZIP_ERROR, locale)));
@@ -456,7 +461,6 @@ public class UnzipService {
                     finishExtracting(item.getUserId(), item.getMessageId(), unzipState);
                     executor.complete(item.getId());
                     queueService.delete(item.getId());
-                    files.forEach(SmartTempFile::smartDelete);
                 }
             }
         }
@@ -528,15 +532,24 @@ public class UnzipService {
                 String fileName = FilenameUtils.getName(fileHeader.getPath());
                 messageService.sendDocumentAsync(new SendDocument((long) userId, fileName, out.getFile())
                         .setCaption(fileName), result -> {
-                            if (result != null) {
-                                unzipState.getFilesCache().put(id, result.getFileId());
-                                commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
-                            }
-                        });
-                LOGGER.debug("Finish({}, {})", userId, size);
+                    try {
+                        if (result != null) {
+                            unzipState.getFilesCache().put(id, result.getFileId());
+                            commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
+                        }
+                        LOGGER.debug("Finish({}, {})", userId, size);
+                    } finally {
+                        if (out != null) {
+                            out.smartDelete();
+                        }
+                    }
+                });
             } catch (Exception ex) {
                 if (!checker.get()) {
                     LOGGER.error(ex.getMessage(), ex);
+                    if (out != null) {
+                        out.smartDelete();
+                    }
                     Locale locale = userService.getLocaleOrDefault(userId);
                     if (ex instanceof ProcessException) {
                         messageService.sendMessageAsync(new SendMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACT_FILE_ERROR, locale)));
@@ -549,9 +562,6 @@ public class UnzipService {
                     finishExtracting(userId, messageId, unzipState);
                     executor.complete(jobId);
                     queueService.delete(jobId);
-                    if (out != null) {
-                        out.smartDelete();
-                    }
                 }
             }
         }

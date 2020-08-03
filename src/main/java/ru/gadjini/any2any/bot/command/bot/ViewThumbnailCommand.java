@@ -73,14 +73,14 @@ public class ViewThumbnailCommand implements BotCommand {
                     } else {
                         executor.execute(() -> {
                             SmartTempFile tempFile = thumbService.convertToThumb(message.getChatId(), thumbnail.getFileId(), thumbnail.getFileName(), thumbnail.getMimeType());
-                            try {
-                                messageService.sendPhotoAsync(new SendPhoto(message.getChatId(), tempFile.getAbsolutePath()), sendFileResult -> {
+                            messageService.sendPhotoAsync(new SendPhoto(message.getChatId(), tempFile.getAbsolutePath()), sendFileResult -> {
+                                try {
                                     thumbnail.setCachedFileId(sendFileResult.getFileId());
                                     commandStateService.setState(message.getChatId(), currentCommandName, state);
-                                });
-                            } finally {
-                                tempFile.smartDelete();
-                            }
+                                } finally {
+                                    tempFile.smartDelete();
+                                }
+                            });
                         });
                     }
                 } else {

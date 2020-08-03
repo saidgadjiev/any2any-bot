@@ -15,7 +15,11 @@ public class TgMethodExecutor {
 
     private BlockingQueue<Runnable> jobsQueue = new LinkedBlockingQueue<>();
 
-    @Scheduled(fixedDelay = 40)
+    public TgMethodExecutor() {
+        LOGGER.debug("Tg method executor initialized");
+    }
+
+    @Scheduled(fixedDelay = 50)
     public void send() {
         try {
             Runnable job = jobsQueue.take();
