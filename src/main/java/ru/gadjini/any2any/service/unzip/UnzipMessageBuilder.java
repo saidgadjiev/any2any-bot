@@ -6,6 +6,7 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.filter.TelegramLimitsFilter;
 import ru.gadjini.any2any.model.ZipFileHeader;
 import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
 import java.util.Collection;
@@ -21,6 +22,25 @@ public class UnzipMessageBuilder {
     @Autowired
     public UnzipMessageBuilder(LocalisationService localisationService) {
         this.localisationService = localisationService;
+    }
+
+    public String buildUnzipProgressMessage(UnzipStep unzipStep, Lang lang, Locale locale) {
+        String formatter = lang == Lang.JAVA ? "%s" : "{}";
+        String percentage = lang == Lang.JAVA ? "%%" : "%";
+        String iconCheck = localisationService.getMessage(MessagesProperties.ICON_CHECK, locale);
+
+        switch (unzipStep) {
+            case DOWNLOADING:
+                return localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
+                        localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" +
+                        localisationService.getMessage(MessagesProperties.MESSAGE_UNZIPPING_STEP, locale) + "\n" +
+            case UNZIPPING:
+                return localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " " + iconCheck + "\n" +
+                        localisationService.getMessage(MessagesProperties.MESSAGE_UNZIPPING_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
+                        localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " " + formatter + "\n";
+            default:
+
+        }
     }
 
     public FilesMessage getFilesList(Map<Integer, ZipFileHeader> files, int limit, int offset, Locale locale) {

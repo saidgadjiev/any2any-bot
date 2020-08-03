@@ -28,6 +28,7 @@ import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.service.queue.rename.RenameQueueService;
 import ru.gadjini.any2any.service.thumb.ThumbService;
 import ru.gadjini.any2any.utils.MemoryUtils;
@@ -173,7 +174,8 @@ public class RenameService {
     private int sendStartRenamingMessage(int jobId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
         return messageService.sendMessage(
-                new HtmlMessage((long) userId, String.format(renameMessageBuilder.buildRenamingMessage(RenameStep.DOWNLOADING, locale, RenameMessageBuilder.Lang.JAVA), 0))
+                new HtmlMessage((long) userId, String.format(renameMessageBuilder.buildRenamingMessage(RenameStep.DOWNLOADING,
+                        locale, Lang.JAVA), 0, localisationService.getMessage(MessagesProperties.MESSAGE_ETA_CALCULATED, locale)))
                         .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale))).getMessageId();
     }
 
@@ -194,9 +196,12 @@ public class RenameService {
         Progress progress = new Progress();
         progress.setChatId(chatId);
         progress.setProgressMessageId(processMessageId);
-        progress.setProgressMessage(renameMessageBuilder.buildRenamingMessage(renameStep, locale, RenameMessageBuilder.Lang.PYTHON));
+        progress.setProgressMessage(renameMessageBuilder.buildRenamingMessage(renameStep, locale, Lang.PYTHON));
         if (nextStep != null) {
-            progress.setAfterProgressCompletionMessage(String.format(renameMessageBuilder.buildRenamingMessage(nextStep, locale, RenameMessageBuilder.Lang.JAVA), nextStep == RenameStep.RENAMING ? 50 : 0));
+            String etaCalculated = localisationService.getMessage(MessagesProperties.MESSAGE_ETA_CALCULATED, locale);
+            String completionMessage = renameMessageBuilder.buildRenamingMessage(nextStep, locale, Lang.JAVA);
+            progress.setAfterProgressCompletionMessage(String.format(completionMessage, nextStep == RenameStep.RENAMING ? 50 : 0, nextStep == RenameStep.RENAMING
+                            ? "7 seconds" : etaCalculated));
         }
         progress.setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale));
 

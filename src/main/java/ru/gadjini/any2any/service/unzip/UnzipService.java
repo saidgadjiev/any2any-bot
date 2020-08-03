@@ -22,6 +22,7 @@ import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
+import ru.gadjini.any2any.model.bot.api.object.Progress;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
@@ -32,7 +33,9 @@ import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.service.queue.unzip.UnzipQueueService;
+import ru.gadjini.any2any.service.rename.RenameStep;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
@@ -311,7 +314,10 @@ public class UnzipService {
     }
 
     private int sendStartUnzippingMessage(int userId, int jobId, Locale locale) {
-        return messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_PROCESSING, locale))
+        String etaCalculated = localisationService.getMessage(MessagesProperties.MESSAGE_ETA_CALCULATED, locale);
+        String message = String.format(messageBuilder.buildUnzipProgressMessage(UnzipStep.DOWNLOADING, Lang.JAVA, locale),
+                0, etaCalculated);
+        return messageService.sendMessage(new HtmlMessage((long) userId, message)
                 .setReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale))).getMessageId();
     }
 
@@ -378,6 +384,23 @@ public class UnzipService {
 
         LOGGER.warn("Candidate not found({})", format);
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SUPPORTED_ZIP_FORMATS, locale));
+    }
+
+    private Progress unzipProgress(long chatId, int jobId, int processMessageId, UnzipStep unzipStep, UnzipStep nextStep) {
+        Locale locale = userService.getLocaleOrDefault((int) chatId);
+        Progress progress = new Progress();
+        progress.setChatId(chatId);
+        progress.setProgressMessageId(processMessageId);
+        progress.setProgressMessage(messageBuilder.buildUnzipProgressMessage(renameStep, locale, Lang.PYTHON));
+        if (nextStep != null) {
+            String etaCalculated = localisationService.getMessage(MessagesProperties.MESSAGE_ETA_CALCULATED, locale);
+            String completionMessage = renameMessageBuilder.buildRenamingMessage(nextStep, locale, Lang.JAVA);
+            progress.setAfterProgressCompletionMessage(String.format(completionMessage, nextStep == RenameStep.RENAMING ? 50 : 0, nextStep == RenameStep.RENAMING
+                    ? "7 seconds" : etaCalculated));
+        }
+        progress.setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale));
+
+        return progress;
     }
 
     public void shutdown() {
@@ -618,7 +641,8 @@ public class UnzipService {
 
             try {
                 in = fileService.createTempFile(userId, fileId, TAG, format.getExt());
-                telegramService.downloadFileByFileId(fileId, in);
+                telegramService.downloadFileByFileId(fileId, fileSize,
+                        unzipProgress(userId, jobId, messageId, D)in);
                 UnzipState unzipState = initAndGetState(in.getAbsolutePath());
                 if (unzipState == null) {
                     return;

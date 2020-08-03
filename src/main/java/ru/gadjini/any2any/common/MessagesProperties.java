@@ -307,12 +307,17 @@ public class MessagesProperties {
 
     public static final String MESSAGE_COLLECTED_GARBAGE = "message.collected.garbage";
 
-    public static final String MESSAGE_RENAMING_STEP_ONE = "message.renaming.step.one";
+    public static final String MESSAGE_DOWNLOADING_STEP = "message.downloading.step";
 
-    public static final String MESSAGE_RENAMING_STEP_TWO = "message.renaming.step.two";
+    public static final String MESSAGE_RENAMING_STEP_TWO = "message.renaming.step";
 
-    public static final String MESSAGE_RENAMING_STEP_THREE = "message.renaming.step.three";
+    public static final String MESSAGE_UPLOADING_STEP = "message.uploading.step";
 
     public static final String ICON_CHECK = "icon.check";
 
+    public static final String MESSAGE_ETA = "message.eta";
+
+    public static final String MESSAGE_ETA_CALCULATED = "message.eta.calculated";
+
+    public static final String MESSAGE_UNZIPPING_STEP = "message.unzipping.step";
 }
