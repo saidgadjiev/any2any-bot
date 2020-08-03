@@ -24,23 +24,34 @@ public class UnzipMessageBuilder {
         this.localisationService = localisationService;
     }
 
+    public String buildUnzipProgressMessage(ExtractFileStep extractFileStep, Lang lang, Locale locale) {
+        String formatter = lang == Lang.JAVA ? "%s" : "{}";
+        String percentage = lang == Lang.JAVA ? "%%" : "%";
+        String iconCheck = localisationService.getMessage(MessagesProperties.ICON_CHECK, locale);
+
+        if (extractFileStep == ExtractFileStep.EXTRACTING) {
+            return localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTING_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
+                    localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" +
+                    localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale);
+        }
+        return localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTING_STEP, locale) + " " + iconCheck + "\n" +
+                localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
+                localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " " + formatter + "\n";
+    }
+
     public String buildUnzipProgressMessage(UnzipStep unzipStep, Lang lang, Locale locale) {
         String formatter = lang == Lang.JAVA ? "%s" : "{}";
         String percentage = lang == Lang.JAVA ? "%%" : "%";
         String iconCheck = localisationService.getMessage(MessagesProperties.ICON_CHECK, locale);
 
-        switch (unzipStep) {
-            case DOWNLOADING:
-                return localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
-                        localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" +
-                        localisationService.getMessage(MessagesProperties.MESSAGE_UNZIPPING_STEP, locale) + "\n" +
-            case UNZIPPING:
-                return localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " " + iconCheck + "\n" +
-                        localisationService.getMessage(MessagesProperties.MESSAGE_UNZIPPING_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
-                        localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " " + formatter + "\n";
-            default:
-
+        if (unzipStep == UnzipStep.DOWNLOADING) {
+            return localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
+                    localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" +
+                    localisationService.getMessage(MessagesProperties.MESSAGE_UNZIPPING_STEP, locale);
         }
+        return localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " " + iconCheck + "\n" +
+                localisationService.getMessage(MessagesProperties.MESSAGE_UNZIPPING_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
+                localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " " + formatter + "\n";
     }
 
     public FilesMessage getFilesList(Map<Integer, ZipFileHeader> files, int limit, int offset, Locale locale) {

@@ -320,4 +320,6 @@ public class MessagesProperties {
     public static final String MESSAGE_ETA_CALCULATED = "message.eta.calculated";
 
     public static final String MESSAGE_UNZIPPING_STEP = "message.unzipping.step";
+
+    public static final String MESSAGE_EXTRACTING_STEP = "message.extracting.step";
 }

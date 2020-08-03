@@ -4,7 +4,5 @@ public enum UnzipStep {
 
     DOWNLOADING,
 
-    UNZIPPING,
-
-    COMPLETED
+    UNZIPPING
 }

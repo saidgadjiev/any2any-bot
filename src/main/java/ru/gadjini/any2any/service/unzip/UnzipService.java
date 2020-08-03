@@ -345,6 +345,7 @@ public class UnzipService {
 
     private void sendStartExtractingFileMessage(int userId, int messageId, int jobId) {
         Locale locale = userService.getLocaleOrDefault(userId);
+        messageBuilder.
         messageService.editMessage(
                 new EditMessageText(
                         userId,
@@ -391,12 +392,12 @@ public class UnzipService {
         Progress progress = new Progress();
         progress.setChatId(chatId);
         progress.setProgressMessageId(processMessageId);
-        progress.setProgressMessage(messageBuilder.buildUnzipProgressMessage(renameStep, locale, Lang.PYTHON));
+        progress.setProgressMessage(messageBuilder.buildUnzipProgressMessage(unzipStep, Lang.PYTHON, locale));
         if (nextStep != null) {
             String etaCalculated = localisationService.getMessage(MessagesProperties.MESSAGE_ETA_CALCULATED, locale);
-            String completionMessage = renameMessageBuilder.buildRenamingMessage(nextStep, locale, Lang.JAVA);
-            progress.setAfterProgressCompletionMessage(String.format(completionMessage, nextStep == RenameStep.RENAMING ? 50 : 0, nextStep == RenameStep.RENAMING
-                    ? "7 seconds" : etaCalculated));
+            String completionMessage = messageBuilder.buildUnzipProgressMessage(nextStep, Lang.JAVA, locale);
+            progress.setAfterProgressCompletionMessage(String.format(completionMessage, nextStep == UnzipStep.UNZIPPING ? 50 : 0, nextStep == UnzipStep.UNZIPPING
+                    ? "10 seconds" : etaCalculated));
         }
         progress.setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale));
 
@@ -642,7 +643,7 @@ public class UnzipService {
             try {
                 in = fileService.createTempFile(userId, fileId, TAG, format.getExt());
                 telegramService.downloadFileByFileId(fileId, fileSize,
-                        unzipProgress(userId, jobId, messageId, D)in);
+                        unzipProgress(userId, jobId, messageId, UnzipStep.DOWNLOADING, UnzipStep.UNZIPPING), in);
                 UnzipState unzipState = initAndGetState(in.getAbsolutePath());
                 if (unzipState == null) {
                     return;
