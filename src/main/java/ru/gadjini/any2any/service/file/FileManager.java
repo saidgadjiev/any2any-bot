@@ -11,7 +11,6 @@ import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.UserService;
 
 import java.util.Locale;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -43,8 +42,6 @@ public class FileManager {
 
             if (ttl == null) {
                 Integer replyToMessageId = fileLimitsDao.getMessageId(chatId);
-                //TODO:
-                Objects.requireNonNull(replyToMessageId, "reply to message id can't be null");
                 Locale locale = userService.getLocaleOrDefault((int) chatId);
                 throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_INPUT_FILE_WAIT, locale)).setReplyToMessageId(replyToMessageId);
             } else {
@@ -61,7 +58,7 @@ public class FileManager {
             telegramService.downloadFileByFileId(fileId, outputFile);
         } finally {
             stopWatch.stop();
-            fileLimitsDao.setInputFileTtl(0, stopWatch.getTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
+            fileLimitsDao.setInputFileTtl(chatId, stopWatch.getTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
         }
     }
 
