@@ -22,7 +22,7 @@ public class DistributionFilter extends BaseBotFilter {
 
     @Autowired
     public DistributionFilter(DistributionJob distributionJob, DistributionService distributionService,
-                              @Qualifier("limits") MessageService messageService) {
+                              @Qualifier("messagelimits") MessageService messageService) {
         this.distributionJob = distributionJob;
         this.distributionService = distributionService;
         this.messageService = messageService;
@@ -40,7 +40,7 @@ public class DistributionFilter extends BaseBotFilter {
         }
         Distribution distribution = distributionService.popDistribution(userId);
         if (distribution != null) {
-            messageService.sendMessageAsync(new HtmlMessage((long) userId, distribution.getLocalisedMessage()));
+            messageService.sendMessage(new HtmlMessage((long) userId, distribution.getLocalisedMessage()));
         }
     }
 }

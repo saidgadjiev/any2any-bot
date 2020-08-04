@@ -30,7 +30,7 @@ public class BotController {
 
     @Autowired
     public BotController(BotFilter botFilter,
-                         @Qualifier("limits") MessageService messageService,
+                         @Qualifier("messagelimits") MessageService messageService,
                          UserService userService) {
         this.botFilter = botFilter;
         this.messageService = messageService;
@@ -50,7 +50,7 @@ public class BotController {
             if (ex.isPrintLog()) {
                 LOGGER.error(ex.getMessage(), ex);
             }
-            messageService.sendMessageAsync(new HtmlMessage(TgMessage.getChatId(update), ex.getHumanMessage()));
+            messageService.sendMessage(new HtmlMessage(TgMessage.getChatId(update), ex.getHumanMessage()).setReplyToMessageId(ex.getReplyToMessageId()));
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
             TgMessage tgMessage = TgMessage.from(update);

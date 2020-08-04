@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.io.SmartTempFile;
+import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
@@ -16,6 +17,7 @@ import ru.gadjini.any2any.service.image.editor.filter.FilterState;
 import ru.gadjini.any2any.service.image.editor.transparency.TransparencyState;
 import ru.gadjini.any2any.service.image.resize.ResizeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 
 import java.io.File;
@@ -37,15 +39,18 @@ public class ImageEditorState implements State {
 
     private MessageService messageService;
 
+    private MediaMessageService mediaMessageService;
+
     private InlineKeyboardService inlineKeyboardService;
 
     @Autowired
     public ImageEditorState(CommandStateService commandStateService,
-                            LocalisationService localisationService, @Qualifier("limits") MessageService messageService,
-                            InlineKeyboardService inlineKeyboardService) {
+                            LocalisationService localisationService, @Qualifier("messagelimits") MessageService messageService,
+                            @Qualifier("medialimits") MediaMessageService mediaMessageService, InlineKeyboardService inlineKeyboardService) {
         this.commandStateService = commandStateService;
         this.localisationService = localisationService;
         this.messageService = messageService;
+        this.mediaMessageService = mediaMessageService;
         this.inlineKeyboardService = inlineKeyboardService;
     }
 
@@ -72,19 +77,18 @@ public class ImageEditorState implements State {
     @Override
     public void update(ImageEditorCommand command, long chatId, String queryId) {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
-        messageService.deleteMessageAsync(chatId, editorState.getMessageId());
+        messageService.deleteMessage(chatId, editorState.getMessageId());
         Locale locale = new Locale(editorState.getLanguage());
 
-        messageService.sendDocumentAsync(new SendDocument(chatId, editorState.getCurrentFileId())
+        SendFileResult sendFileResult = mediaMessageService.sendDocument(new SendDocument(chatId, editorState.getCurrentFileId())
                 .setCaption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
-                .setReplyMarkup(inlineKeyboardService.getImageEditKeyboard(locale, editorState.canCancel())), sendFileResult -> {
-            editorState.setMessageId(sendFileResult.getMessageId());
-            commandStateService.setState(chatId, command.getHistoryName(), editorState);
+                .setReplyMarkup(inlineKeyboardService.getImageEditKeyboard(locale, editorState.canCancel())));
 
-            if (StringUtils.isNotBlank(queryId)) {
-                messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.UPDATE_CALLBACK_ANSWER, locale)));
-            }
-        });
+        editorState.setMessageId(sendFileResult.getMessageId());
+        commandStateService.setState(chatId, command.getHistoryName(), editorState);
+        if (StringUtils.isNotBlank(queryId)) {
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.UPDATE_CALLBACK_ANSWER, locale)));
+        }
     }
 
     @Override
@@ -97,7 +101,7 @@ public class ImageEditorState implements State {
             editorState.setPrevFilePath(null);
             editorState.setPrevFileId(null);
 
-            messageService.editMessageMediaAsync(new EditMessageMedia(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
+            mediaMessageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
                     .setReplyMarkup(inlineKeyboardService.getImageEditKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
@@ -132,7 +136,7 @@ public class ImageEditorState implements State {
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         Locale locale = new Locale(state.getLanguage());
-        messageService.editMessageMediaAsync(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId(),
+        mediaMessageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId(),
                 localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
                 .setReplyMarkup(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())));
     }

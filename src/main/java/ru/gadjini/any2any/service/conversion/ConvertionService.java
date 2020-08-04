@@ -23,8 +23,9 @@ import ru.gadjini.any2any.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.ConvertResult;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
-import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.file.FileManager;
+import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.conversion.ConversionQueueService;
 import ru.gadjini.any2any.utils.MemoryUtils;
@@ -47,6 +48,8 @@ public class ConvertionService {
 
     private MessageService messageService;
 
+    private MediaMessageService mediaMessageService;
+
     private ConversionQueueService queueService;
 
     private LocalisationService localisationService;
@@ -58,13 +61,14 @@ public class ConvertionService {
     private FileManager fileManager;
 
     @Autowired
-    public ConvertionService(@Qualifier("limits") MessageService messageService,
-                             LocalisationService localisationService, UserService userService,InlineKeyboardService inlineKeyboardService,
-                             ConversionQueueService queueService, FileManager fileManager) {
+    public ConvertionService(@Qualifier("messagelimits") MessageService messageService,
+                             LocalisationService localisationService, UserService userService, InlineKeyboardService inlineKeyboardService,
+                             @Qualifier("medialimits") MediaMessageService mediaMessageService, ConversionQueueService queueService, FileManager fileManager) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
         this.inlineKeyboardService = inlineKeyboardService;
+        this.mediaMessageService = mediaMessageService;
         this.queueService = queueService;
         this.fileManager = fileManager;
     }
@@ -189,7 +193,7 @@ public class ConvertionService {
                         queueService.completeWithException(fileQueueItem.getId(), ex.getMessage());
                         LOGGER.error(ex.getMessage());
                         Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-                        messageService.sendMessageAsync(
+                        messageService.sendMessage(
                                 new HtmlMessage((long) fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_DAMAGED_FILE, locale))
                                         .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                         );
@@ -198,7 +202,7 @@ public class ConvertionService {
                             queueService.exception(fileQueueItem.getId(), ex);
                             LOGGER.error(ex.getMessage(), ex);
                             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
-                            messageService.sendMessageAsync(
+                            messageService.sendMessage(
                                     new HtmlMessage((long) fileQueueItem.getUserId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_FAILED, locale))
                                             .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                             );
@@ -265,12 +269,12 @@ public class ConvertionService {
                             .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                             .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                     try {
-                        messageService.sendDocumentAsync(sendDocumentContext);
+                        mediaMessageService.sendDocument(sendDocumentContext);
                     } catch (TelegramApiRequestException ex) {
                         if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
                             LOGGER.debug("Reply message not found try send without reply");
                             sendDocumentContext.setReplyToMessageId(null);
-                            messageService.sendDocumentAsync(sendDocumentContext);
+                            mediaMessageService.sendDocument(sendDocumentContext);
                         } else {
                             throw ex;
                         }
@@ -282,12 +286,12 @@ public class ConvertionService {
                             .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                             .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                     try {
-                        messageService.sendStickerAsync(sendFileContext);
+                        mediaMessageService.sendSticker(sendFileContext);
                     } catch (TelegramApiRequestException ex) {
                         if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
                             LOGGER.debug("Reply message not found try send without reply");
                             sendFileContext.setReplyToMessageId(null);
-                            messageService.sendStickerAsync(sendFileContext);
+                            mediaMessageService.sendSticker(sendFileContext);
                         } else {
                             throw ex;
                         }

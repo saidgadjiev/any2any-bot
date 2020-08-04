@@ -30,7 +30,7 @@ public class DistributionJob {
     private DistributionService distributionService;
 
     @Autowired
-    public DistributionJob(@Qualifier("limits") MessageService messageService, UserService userService, DistributionService distributionService) {
+    public DistributionJob(@Qualifier("messagelimits") MessageService messageService, UserService userService, DistributionService distributionService) {
         this.messageService = messageService;
         this.userService = userService;
         this.distributionService = distributionService;
@@ -95,6 +95,6 @@ public class DistributionJob {
 
     private void sendDistribution(Distribution distribution) {
         String message = distribution.getLocalisedMessage();
-        messageService.sendMessageAsync(new HtmlMessage((long) distribution.getUserId(), message));
+        messageService.sendMessage(new HtmlMessage((long) distribution.getUserId(), message));
     }
 }

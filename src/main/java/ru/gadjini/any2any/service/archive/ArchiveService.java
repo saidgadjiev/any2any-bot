@@ -26,6 +26,7 @@ import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.file.FileManager;
+import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.archive.ArchiveQueueService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
@@ -57,6 +58,8 @@ public class ArchiveService {
 
     private MessageService messageService;
 
+    private MediaMessageService mediaMessageService;
+
     private UserService userService;
 
     private ArchiveQueueService archiveQueueService;
@@ -68,7 +71,8 @@ public class ArchiveService {
     @Autowired
     public ArchiveService(Set<ArchiveDevice> archiveDevices, TempFileService fileService,
                           FileManager fileManager, LocalisationService localisationService,
-                          @Qualifier("limits") MessageService messageService, UserService userService,
+                          @Qualifier("messagelimits") MessageService messageService,
+                          @Qualifier("medialimits") MediaMessageService mediaMessageService, UserService userService,
                           ArchiveQueueService archiveQueueService, CommandStateService commandStateService,
                           InlineKeyboardService inlineKeyboardService) {
         this.archiveDevices = archiveDevices;
@@ -76,6 +80,7 @@ public class ArchiveService {
         this.fileManager = fileManager;
         this.localisationService = localisationService;
         this.messageService = messageService;
+        this.mediaMessageService = mediaMessageService;
         this.userService = userService;
         this.archiveQueueService = archiveQueueService;
         this.commandStateService = commandStateService;
@@ -158,13 +163,13 @@ public class ArchiveService {
                 archiveQueueService.delete(jobId);
             }
         }
-        messageService.editMessageAsync(new EditMessageText(
+        messageService.editMessage(new EditMessageText(
                 chatId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))));
     }
 
     private void startArchiveCreating(int userId, int jobId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessageAsync(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale))
+        messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale))
                 .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale)));
     }
 
@@ -262,7 +267,7 @@ public class ArchiveService {
                 renameFiles(archiveDevice, archive.getAbsolutePath(), downloadResult.originalFileNames, downloadResult.downloadedNames);
 
                 String fileName = Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), type.getExt());
-                messageService.sendDocumentAsync(new SendDocument((long) userId, fileName, archive.getFile()));
+                mediaMessageService.sendDocument(new SendDocument((long) userId, fileName, archive.getFile()));
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, type);
             } catch (Exception ex) {

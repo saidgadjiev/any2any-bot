@@ -59,7 +59,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
 
     @Autowired
     public UnzipCommand(LocalisationService localisationService, UnzipService unzipService,
-                        @Qualifier("limits") MessageService messageService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
+                        @Qualifier("messagelimits") MessageService messageService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                         UserService userService, FormatService formatService, FileService fileService, CommandStateService commandStateService) {
         this.localisationService = localisationService;
         this.unzipService = unzipService;
@@ -103,7 +103,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessageAsync(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_FILE, locale))
+        messageService.sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_FILE, locale))
                 .setReplyMarkup(replyKeyboardService.goBack(chatId, locale)));
     }
 

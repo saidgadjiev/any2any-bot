@@ -36,7 +36,7 @@ public class Any2AnyBotService {
     private CurrReplyKeyboard replyKeyboardService;
 
     @Autowired
-    public Any2AnyBotService(@Qualifier("limits") MessageService messageService, CommandExecutor commandExecutor,
+    public Any2AnyBotService(@Qualifier("messagelimits") MessageService messageService, CommandExecutor commandExecutor,
                              LocalisationService localisationService, UserService userService,
                              CommandNavigator commandNavigator, CurrReplyKeyboard replyKeyboardService) {
         this.messageService = messageService;
@@ -66,7 +66,7 @@ public class Any2AnyBotService {
                 if (commandExecutor.executeBotCommand(update.getMessage())) {
                     return;
                 } else {
-                    messageService.sendMessageAsync(
+                    messageService.sendMessage(
                             new HtmlMessage(
                                     update.getMessage().getChatId(),
                                     localisationService.getMessage(MessagesProperties.MESSAGE_UNKNOWN_COMMAND, userService.getLocaleOrDefault(update.getMessage().getFromUser().getId()))));
@@ -94,7 +94,7 @@ public class Any2AnyBotService {
         if (commandNavigator.isEmpty(chatId)) {
             commandNavigator.zeroRestore(chatId, (NavigableBotCommand) commandExecutor.getBotCommand(CommandNames.START_COMMAND));
             Locale locale = userService.getLocaleOrDefault((int) chatId);
-            messageService.sendBotRestartedMessageAsync(chatId, replyKeyboardService.getMainMenu(chatId, locale), locale);
+            messageService.sendBotRestartedMessage(chatId, replyKeyboardService.getMainMenu(chatId, locale), locale);
 
             return true;
         }

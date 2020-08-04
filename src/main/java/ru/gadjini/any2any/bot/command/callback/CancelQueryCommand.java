@@ -30,7 +30,7 @@ public class CancelQueryCommand implements CallbackBotCommand {
     private UserService userService;
 
     @Autowired
-    public CancelQueryCommand(ConvertionService convertionService, @Qualifier("limits") MessageService messageService,
+    public CancelQueryCommand(ConvertionService convertionService, @Qualifier("messagelimits") MessageService messageService,
                               LocalisationService localisationService, UserService userService) {
         this.convertionService = convertionService;
         this.messageService = messageService;
@@ -51,12 +51,12 @@ public class CancelQueryCommand implements CallbackBotCommand {
 
         String actionFrom = requestParams.getString(Arg.ACTION_FROM.getKey());
         if (actionFrom.equals(CommandNames.QUERY_ITEM_DETAILS_COMMAND)) {
-            messageService.editMessageAsync(
+            messageService.editMessage(
                     new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale))
                             .setReplyMarkup(new KeyboardCustomizer(callbackQuery.getMessage().getReplyMarkup()).removeExclude(CommandNames.GO_BACK_CALLBACK_COMMAND_NAME).getKeyboardMarkup())
             );
         } else {
-            messageService.editMessageAsync(
+            messageService.editMessage(
                     new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, locale)));
         }
     }

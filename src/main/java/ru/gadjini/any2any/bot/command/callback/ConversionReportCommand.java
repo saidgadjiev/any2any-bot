@@ -29,7 +29,7 @@ public class ConversionReportCommand implements CallbackBotCommand {
     private LocalisationService localisationService;
 
     @Autowired
-    public ConversionReportCommand(ConversinoReportService fileReportService, @Qualifier("limits") MessageService messageService,
+    public ConversionReportCommand(ConversinoReportService fileReportService, @Qualifier("messagelimits") MessageService messageService,
                                    UserService userService, LocalisationService localisationService) {
         this.fileReportService = fileReportService;
         this.messageService = messageService;
@@ -48,9 +48,9 @@ public class ConversionReportCommand implements CallbackBotCommand {
 
         fileReportService.createReport(callbackQuery.getFromUser().getId(), itemId);
 
-        messageService.removeInlineKeyboardAsync(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
+        messageService.removeInlineKeyboard(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId());
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFromUser().getId());
-        messageService.sendMessageAsync(
+        messageService.sendMessage(
                 new HtmlMessage(callbackQuery.getMessage().getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_REPLY, locale))
         );
     }

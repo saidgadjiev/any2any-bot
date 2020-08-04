@@ -11,6 +11,8 @@ import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
+import ru.gadjini.any2any.model.EditMediaResult;
+import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
@@ -25,6 +27,7 @@ import ru.gadjini.any2any.service.image.editor.EditMessageBuilder;
 import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 
 import java.io.File;
@@ -47,6 +50,8 @@ public class ColorState implements State {
 
     private MessageService messageService;
 
+    private MediaMessageService mediaMessageService;
+
     private InlineKeyboardService inlineKeyboardService;
 
     private ThreadPoolTaskExecutor executor;
@@ -60,12 +65,14 @@ public class ColorState implements State {
     private LocalisationService localisationService;
 
     @Autowired
-    public ColorState(CommandStateService commandStateService, @Qualifier("limits") MessageService messageService,
-                      InlineKeyboardService inlineKeyboardService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
+    public ColorState(CommandStateService commandStateService, @Qualifier("messagelimits") MessageService messageService,
+                      @Qualifier("medialimits") MediaMessageService mediaMessageService, InlineKeyboardService inlineKeyboardService,
+                      @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
                       TempFileService fileService, ImageConvertDevice imageDevice, EditMessageBuilder messageBuilder,
                       LocalisationService localisationService) {
         this.commandStateService = commandStateService;
         this.messageService = messageService;
+        this.mediaMessageService = mediaMessageService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.executor = executor;
         this.fileService = fileService;
@@ -87,20 +94,20 @@ public class ColorState implements State {
     @Override
     public void update(ImageEditorCommand command, long chatId, String queryId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
-        messageService.deleteMessageAsync(chatId, state.getMessageId());
+        messageService.deleteMessage(chatId, state.getMessageId());
         Locale locale = new Locale(state.getLanguage());
-        messageService.sendDocumentAsync(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath()))
+
+        SendFileResult sendFileResult = mediaMessageService.sendDocument(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath()))
                 .setCaption(messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, locale))
-                .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(locale, state.canCancel())), sendFileResult -> {
-            state.setCurrentFileId(sendFileResult.getFileId());
-            state.setMessageId(sendFileResult.getMessageId());
-            commandStateService.setState(chatId, command.getHistoryName(), state);
+                .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(locale, state.canCancel())));
+        state.setCurrentFileId(sendFileResult.getFileId());
+        state.setMessageId(sendFileResult.getMessageId());
+        commandStateService.setState(chatId, command.getHistoryName(), state);
 
-            if (StringUtils.isNotBlank(queryId)) {
-                messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.UPDATE_CALLBACK_ANSWER, locale)));
-            }
-        });
+        if (StringUtils.isNotBlank(queryId)) {
+            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.UPDATE_CALLBACK_ANSWER, locale)));
+        }
     }
 
     @Override
@@ -114,7 +121,7 @@ public class ColorState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
-        messageService.editMessageCaptionAsync(new EditMessageCaption(chatId, state.getMessageId(),
+        messageService.editMessageCaption(new EditMessageCaption(chatId, state.getMessageId(),
                 messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, new Locale(state.getLanguage())))
                 .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(new Locale(state.getLanguage()), state.canCancel())));
@@ -142,19 +149,18 @@ public class ColorState implements State {
             editorState.setPrevFileId(editorState.getCurrentFileId());
             editorState.setCurrentFilePath(tempFile.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
-            messageService.editMessageMediaAsync(new EditMessageMedia(chatId,
+            EditMediaResult editMediaResult = mediaMessageService.editMessageMedia(new EditMessageMedia(chatId,
                     editorState.getMessageId(), editorState.getFileName(), tempFile.getFile(), messageBuilder.getSettingsStr(editorState) + "\n\n"
                     + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, locale))
-                    .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(locale, editorState.canCancel())), editMediaResult -> {
-                editorState.setCurrentFileId(editMediaResult.getFileId());
-                commandStateService.setState(chatId, command.getHistoryName(), editorState);
+                    .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(locale, editorState.canCancel())));
+            editorState.setCurrentFileId(editMediaResult.getFileId());
+            commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
-                if (StringUtils.isNotBlank(queryId)) {
-                    messageService.sendAnswerCallbackQuery(
-                            new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.TRANSPARENT_COLOR_EDITED_CALLBACK_ANSWER, locale))
-                    );
-                }
-            });
+            if (StringUtils.isNotBlank(queryId)) {
+                messageService.sendAnswerCallbackQuery(
+                        new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.TRANSPARENT_COLOR_EDITED_CALLBACK_ANSWER, locale))
+                );
+            }
         });
     }
 
@@ -168,7 +174,7 @@ public class ColorState implements State {
             editorState.setPrevFilePath(null);
             editorState.setPrevFileId(null);
 
-            messageService.editMessageMediaAsync(new EditMessageMedia(chatId, editorState.getMessageId(), editorState.getCurrentFileId(), messageBuilder.getSettingsStr(editorState))
+            mediaMessageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), editorState.getCurrentFileId(), messageBuilder.getSettingsStr(editorState))
                     .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 

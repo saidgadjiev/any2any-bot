@@ -33,7 +33,7 @@ public class QueryItemDetailsCommand implements CallbackBotCommand {
 
     @Autowired
     public QueryItemDetailsCommand(ConversionQueueService fileQueueService, ConversionQueueMessageBuilder messageBuilder,
-                                   UserService userService, @Qualifier("limits") MessageService messageService,
+                                   UserService userService, @Qualifier("messagelimits") MessageService messageService,
                                    InlineKeyboardService inlineKeyboardService) {
         this.fileQueueService = fileQueueService;
         this.messageBuilder = messageBuilder;
@@ -53,11 +53,11 @@ public class QueryItemDetailsCommand implements CallbackBotCommand {
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFromUser().getId());
         ConversionQueueItem item = fileQueueService.getItem(queryItemId);
         if (item == null) {
-            messageService.editMessageAsync(
+            messageService.editMessage(
                     new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), messageBuilder.queryItemNotFound(locale))
             );
         } else {
-            messageService.editMessageAsync(
+            messageService.editMessage(
                     new EditMessageText(callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(), messageBuilder.getItem(item, locale))
                             .setReplyMarkup(inlineKeyboardService.getQueryDetailsKeyboard(queryItemId, locale))
             );

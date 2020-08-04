@@ -36,7 +36,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     private CommandMessageBuilder commandMessageBuilder;
 
     @Autowired
-    public StartCommand(CommandStateService commandStateService, UserService userService, @Qualifier("limits") MessageService messageService,
+    public StartCommand(CommandStateService commandStateService, UserService userService, @Qualifier("messagelimits") MessageService messageService,
                         LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService, CommandMessageBuilder commandMessageBuilder) {
         this.commandStateService = commandStateService;
         this.userService = userService;
@@ -54,7 +54,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     @Override
     public void processMessage(Message message) {
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
-        messageService.sendMessageAsync(
+        messageService.sendMessage(
                 new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
                         .setReplyMarkup(replyKeyboardService.getMainMenu(message.getChat().getId(), locale))
         );
@@ -68,7 +68,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
-        messageService.sendMessageAsync(
+        messageService.sendMessage(
                 new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_SECTION, new Object[]{commandMessageBuilder.getCommandsInfo(locale)}, locale))
         );
     }
@@ -87,7 +87,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     public void restore(TgMessage message) {
         commandStateService.deleteState(message.getChatId(), getHistoryName());
         Locale locale = userService.getLocaleOrDefault(message.getUser().getId());
-        messageService.sendMessageAsync(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
+        messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
                 .setReplyMarkup(replyKeyboardService.getMainMenu(message.getChatId(), locale)));
     }
 

@@ -51,7 +51,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
     @Autowired
     public OcrCommand(OcrService ocrService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                       UserService userService, LocalisationService localisationService,
-                      @Qualifier("limits") MessageService messageService, FormatService formatService) {
+                      @Qualifier("messagelimits") MessageService messageService, FormatService formatService) {
         this.ocrService = ocrService;
         this.replyKeyboardService = replyKeyboardService;
         this.userService = userService;
@@ -87,7 +87,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessageAsync(new HtmlMessage(chatId,
+        messageService.sendMessage(new HtmlMessage(chatId,
                 localisationService.getMessage(MessagesProperties.MESSAGE_FILE_TO_EXTRACT, locale))
                 .setReplyMarkup(replyKeyboardService.goBack(chatId, locale)));
     }
@@ -110,7 +110,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         ocrService.extractText(message.getFromUser().getId(), getFile(message));
-        messageService.sendMessageAsync(new HtmlMessage(message.getChatId(),
+        messageService.sendMessage(new HtmlMessage(message.getChatId(),
                 localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_PROCESSING, userService.getLocaleOrDefault(message.getFromUser().getId()))));
     }
 

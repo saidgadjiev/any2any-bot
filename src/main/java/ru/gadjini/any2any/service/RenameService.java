@@ -23,6 +23,7 @@ import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.file.FileManager;
+import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.rename.RenameQueueService;
 import ru.gadjini.any2any.service.thumb.ThumbService;
@@ -46,6 +47,8 @@ public class RenameService {
 
     private MessageService messageService;
 
+    private MediaMessageService mediaMessageService;
+
     private RenameQueueService renameQueueService;
 
     private SmartExecutorService executor;
@@ -62,13 +65,15 @@ public class RenameService {
 
     @Autowired
     public RenameService(FileManager fileManager, TempFileService tempFileService, FormatService formatService,
-                         @Qualifier("limits") MessageService messageService, RenameQueueService renameQueueService,
+                         @Qualifier("messagelimits") MessageService messageService,
+                         @Qualifier("medialimits") MediaMessageService mediaMessageService, RenameQueueService renameQueueService,
                          LocalisationService localisationService, InlineKeyboardService inlineKeyboardService,
                          CommandStateService commandStateService, UserService userService, ThumbService thumbService) {
         this.fileManager = fileManager;
         this.tempFileService = tempFileService;
         this.formatService = formatService;
         this.messageService = messageService;
+        this.mediaMessageService = mediaMessageService;
         this.renameQueueService = renameQueueService;
         this.localisationService = localisationService;
         this.inlineKeyboardService = inlineKeyboardService;
@@ -135,7 +140,7 @@ public class RenameService {
                 renameQueueService.delete(jobId);
             }
         }
-        messageService.editMessageAsync(new EditMessageText(
+        messageService.editMessage(new EditMessageText(
                 chatId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))));
     }
 
@@ -161,7 +166,7 @@ public class RenameService {
 
     private void sendStartRenamingMessage(int jobId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessageAsync(
+        messageService.sendMessage(
                 new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_RENAMING, locale))
                         .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale)));
     }
@@ -229,7 +234,7 @@ public class RenameService {
                     thumbFile = tempFileService.createTempFile(userId, fileId, TAG, Format.JPG.getExt());
                     fileManager.downloadFileByFileId(userId, thumb, thumbFile);
                 }
-                messageService.sendDocumentAsync(new SendDocument((long) userId, fileName, file.getFile())
+                mediaMessageService.sendDocument(new SendDocument((long) userId, fileName, file.getFile())
                         .setThumb(thumbFile != null ? thumbFile.getAbsolutePath() : null)
                         .setReplyToMessageId(replyToMessageId));
 

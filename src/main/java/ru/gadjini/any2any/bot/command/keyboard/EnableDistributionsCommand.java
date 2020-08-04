@@ -31,7 +31,7 @@ public class EnableDistributionsCommand implements KeyboardBotCommand {
 
     @Autowired
     public EnableDistributionsCommand(LocalisationService localisationService, UserService userService,
-                                      DistributionJob distributionJob, @Qualifier("limits") MessageService messageService) {
+                                      DistributionJob distributionJob, @Qualifier("messagelimits") MessageService messageService) {
         this.localisationService = localisationService;
         this.userService = userService;
         this.distributionJob = distributionJob;
@@ -53,7 +53,7 @@ public class EnableDistributionsCommand implements KeyboardBotCommand {
     public boolean processMessage(Message message, String text) {
         distributionJob.checkDistributions();
 
-        messageService.sendMessageAsync(new SendMessage(message.getChatId(),
+        messageService.sendMessage(new SendMessage(message.getChatId(),
                 localisationService.getMessage(MessagesProperties.MESSAGE_DISTRIBUTIONS_ENABLED, userService.getLocaleOrDefault(message.getFromUser().getId()))));
         return false;
     }

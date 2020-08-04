@@ -68,7 +68,7 @@ public class ConvertMaker {
 
     @Autowired
     public ConvertMaker(CommandStateService commandStateService, UserService userService,
-                        ConvertionService conversionService, ConversionQueueMessageBuilder queueMessageBuilder, @Qualifier("limits") MessageService messageService,
+                        ConvertionService conversionService, ConversionQueueMessageBuilder queueMessageBuilder, @Qualifier("messagelimits") MessageService messageService,
                         LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                         FormatService formatService, FileManager fileManager, TempFileService fileService) {
         this.commandStateService = commandStateService;
@@ -89,7 +89,7 @@ public class ConvertMaker {
         if (!commandStateService.hasState(message.getChatId(), controllerName)) {
             check(message, locale);
             ConvertState convertState = createState(message, locale);
-            messageService.sendMessageAsync(
+            messageService.sendMessage(
                     new HtmlMessage(message.getChatId(), queueMessageBuilder.getChooseFormat(convertState.getWarnings(), locale))
                             .setReplyMarkup(replyKeyboardService.getFormatsKeyboard(message.getChatId(), convertState.getFormat(), locale))
             );
@@ -107,7 +107,7 @@ public class ConvertMaker {
             }
             ConversionQueueItem queueItem = conversionService.convert(message.getFromUser(), convertState, targetFormat);
             String queuedMessage = queueMessageBuilder.getQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
-            messageService.sendMessageAsync(new HtmlMessage(message.getChatId(), queuedMessage).setReplyMarkup(replyKeyboard.get()));
+            messageService.sendMessage(new HtmlMessage(message.getChatId(), queuedMessage).setReplyMarkup(replyKeyboard.get()));
             commandStateService.deleteState(message.getChatId(), controllerName);
         }
     }

@@ -30,7 +30,7 @@ public class SubscriptionFilter extends BaseBotFilter {
     private UserService userService;
 
     @Autowired
-    public SubscriptionFilter(@Qualifier("limits") MessageService messageService, LocalisationService localisationService, UserService userService) {
+    public SubscriptionFilter(@Qualifier("messagelimits") MessageService messageService, LocalisationService localisationService, UserService userService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
@@ -68,6 +68,6 @@ public class SubscriptionFilter extends BaseBotFilter {
     private void sendNeedSubscription(User user) {
         Locale locale = userService.getLocaleOrDefault(user.getId());
         String msg = localisationService.getMessage(MessagesProperties.MESSAGE_NEED_SUBSCRIPTION, locale);
-        messageService.sendMessageAsync(new HtmlMessage((long) user.getId(), msg));
+        messageService.sendMessage(new HtmlMessage((long) user.getId(), msg));
     }
 }

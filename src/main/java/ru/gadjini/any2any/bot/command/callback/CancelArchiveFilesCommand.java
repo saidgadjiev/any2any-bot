@@ -29,7 +29,7 @@ public class CancelArchiveFilesCommand implements CallbackBotCommand {
     private UserService userService;
 
     @Autowired
-    public CancelArchiveFilesCommand(CommandStateService commandStateService, @Qualifier("limits") MessageService messageService,
+    public CancelArchiveFilesCommand(CommandStateService commandStateService, @Qualifier("messagelimits") MessageService messageService,
                                      LocalisationService localisationService, UserService userService) {
         this.commandStateService = commandStateService;
         this.messageService = messageService;
@@ -46,7 +46,7 @@ public class CancelArchiveFilesCommand implements CallbackBotCommand {
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         commandStateService.deleteState(callbackQuery.getMessage().getChatId(), CommandNames.ARCHIVE_COMMAND_NAME);
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFromUser().getId());
-        messageService.editMessageAsync(new EditMessageText(
+        messageService.editMessage(new EditMessageText(
                 callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(),
                 localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_DELETED, locale)
         ));

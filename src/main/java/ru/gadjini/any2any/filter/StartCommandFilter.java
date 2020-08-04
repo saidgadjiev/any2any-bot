@@ -37,7 +37,7 @@ public class StartCommandFilter extends BaseBotFilter {
 
     @Autowired
     public StartCommandFilter(CommandParser commandParser, UserService userService,
-                              @Qualifier("limits") MessageService messageService, LocalisationService localisationService,
+                              @Qualifier("messagelimits") MessageService messageService, LocalisationService localisationService,
                               @Qualifier("curr") ReplyKeyboardService replyKeyboardService, CommandNavigator commandNavigator, CommandMessageBuilder commandMessageBuilder) {
         this.commandParser = commandParser;
         this.userService = userService;
@@ -79,7 +79,7 @@ public class StartCommandFilter extends BaseBotFilter {
                     new Object[]{commandMessageBuilder.getCommandsInfo(createOrUpdateResult.getUser().getLocale())},
                     createOrUpdateResult.getUser().getLocale());
             ReplyKeyboard mainMenu = replyKeyboardService.getMainMenu(message.getChatId(), createOrUpdateResult.getUser().getLocale());
-            messageService.sendMessageAsync(
+            messageService.sendMessage(
                     new HtmlMessage(message.getChatId(), text)
                             .setReplyMarkup(mainMenu)
             );

@@ -57,7 +57,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     @Autowired
     public ImageEditorCommand(LocalisationService localisationService,
-                              @Qualifier("limits") MessageService messageService, UserService userService,
+                              @Qualifier("messagelimits") MessageService messageService, UserService userService,
                               @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                               StateFather stateFather, FormatService formatService) {
         this.localisationService = localisationService;
@@ -169,7 +169,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
 
-        messageService.sendMessageAsync(
+        messageService.sendMessage(
                 new HtmlMessage(chatId,
                         localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MAIN_WELCOME, locale))
                         .setReplyMarkup(replyKeyboardService.goBack(chatId, locale))

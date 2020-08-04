@@ -34,7 +34,7 @@ public class ModeState implements State {
     private LocalisationService localisationService;
 
     @Autowired
-    public ModeState(@Qualifier("limits") MessageService messageService, InlineKeyboardService inlineKeyboardService,
+    public ModeState(@Qualifier("messagelimits") MessageService messageService, InlineKeyboardService inlineKeyboardService,
                      CommandStateService commandStateService, EditMessageBuilder messageBuilder, LocalisationService localisationService) {
         this.messageService = messageService;
         this.inlineKeyboardService = inlineKeyboardService;
@@ -64,7 +64,7 @@ public class ModeState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
-        messageService.editMessageCaptionAsync(new EditMessageCaption(chatId, state.getMessageId(),
+        messageService.editMessageCaption(new EditMessageCaption(chatId, state.getMessageId(),
                 messageBuilder.getSettingsStr(state) + "\n\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MODE_WELCOME, new Locale(state.getLanguage())))
                 .setReplyMarkup(inlineKeyboardService.getTransparentModeKeyboard(new Locale(state.getLanguage()))));
@@ -82,7 +82,7 @@ public class ModeState implements State {
             return;
         }
         state.setMode(mode);
-        messageService.editMessageCaptionAsync(
+        messageService.editMessageCaption(
                 new EditMessageCaption(chatId, state.getMessageId(), messageBuilder.getSettingsStr(state) + "\n\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MODE_WELCOME, locale))
                         .setReplyMarkup(inlineKeyboardService.getTransparentModeKeyboard(locale))

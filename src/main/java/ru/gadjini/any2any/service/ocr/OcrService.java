@@ -44,7 +44,7 @@ public class OcrService {
 
     @Autowired
     public OcrService(FileManager fileManager, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
-                      @Qualifier("limits") MessageService messageService,
+                      @Qualifier("messagelimits") MessageService messageService,
                       UserService userService, LocalisationService localisationService, TempFileService fileService, OcrDevice ocrDevice) {
         this.fileManager = fileManager;
         this.executor = executor;
@@ -66,13 +66,13 @@ public class OcrService {
 
                 String result = ocrDevice.getText(file.getAbsolutePath());
                 if (StringUtils.isBlank(result)) {
-                    messageService.sendMessageAsync(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
+                    messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
                 } else {
-                    messageService.sendMessageAsync(new SendMessage((long) userId, result));
+                    messageService.sendMessage(new SendMessage((long) userId, result));
                 }
                 LOGGER.debug("Finish({}, {})", userId, StringUtils.substring(result, 0, 50));
             } catch (Exception ex) {
-                messageService.sendMessageAsync(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
+                messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
                 throw new OcrException(ex);
             } finally {
                 file.smartDelete();

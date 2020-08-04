@@ -36,7 +36,7 @@ public class TransparencyState implements State {
     private EditMessageBuilder messageBuilder;
 
     @Autowired
-    public TransparencyState(@Qualifier("limits") MessageService messageService,
+    public TransparencyState(@Qualifier("messagelimits") MessageService messageService,
                              InlineKeyboardService inlineKeyboardService, CommandStateService commandStateService, EditMessageBuilder messageBuilder) {
         this.messageService = messageService;
         this.inlineKeyboardService = inlineKeyboardService;
@@ -93,7 +93,7 @@ public class TransparencyState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
-        messageService.editMessageCaptionAsync(new EditMessageCaption(chatId, state.getMessageId(),
+        messageService.editMessageCaption(new EditMessageCaption(chatId, state.getMessageId(),
                 messageBuilder.getSettingsStr(state))
                 .setReplyMarkup(inlineKeyboardService.getTransparencyKeyboard(new Locale(state.getLanguage()))));
     }

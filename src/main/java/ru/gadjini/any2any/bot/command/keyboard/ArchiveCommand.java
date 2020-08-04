@@ -60,7 +60,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
     private InlineKeyboardService inlineKeyboardService;
 
     @Autowired
-    public ArchiveCommand(ArchiveService archiveService, LocalisationService localisationService, @Qualifier("limits") MessageService messageService,
+    public ArchiveCommand(ArchiveService archiveService, LocalisationService localisationService, @Qualifier("messagelimits") MessageService messageService,
                           CommandStateService commandStateService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                           UserService userService, FormatService formatService, FileService fileService, InlineKeyboardService inlineKeyboardService) {
         this.archiveService = archiveService;
@@ -120,7 +120,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
         if (message.hasText()) {
             ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false, ArchiveState.class);
             if (archiveState == null || archiveState.getFiles().isEmpty()) {
-                messageService.sendMessageAsync(new HtmlMessage(message.getChatId(),
+                messageService.sendMessage(new HtmlMessage(message.getChatId(),
                         localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale)));
             } else {
                 Format associatedFormat = checkFormat(text, formatService.getAssociatedFormat(text), locale);
@@ -135,7 +135,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
             }
             archiveState.getFiles().add(createFile(message, locale));
             commandStateService.setState(message.getChatId(), getHistoryName(), archiveState);
-            messageService.sendMessageAsync(
+            messageService.sendMessage(
                     new SendMessage(
                             message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CURRENT_FILES,
                             new Object[]{toString(archiveState.getFiles()), archiveState.getFiles().size()}, locale)
@@ -185,7 +185,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessageAsync(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES, locale))
+        messageService.sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES, locale))
                 .setReplyMarkup(replyKeyboardService.archiveTypesKeyboard(chatId, locale)));
     }
 }
