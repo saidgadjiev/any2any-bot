@@ -66,8 +66,11 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
 
     @Override
     public void doFilter(Update update) {
-        if (update.hasMessage() && isMediaMessage(update.getMessage())) {
-            checkInMediaSize(update.getMessage());
+        if (update.hasMessage()) {
+            Any2AnyFile file = fileService.getFile(update.getMessage(), Locale.getDefault());
+            if (file != null) {
+                checkInMediaSize(update.getMessage(), file);
+            }
         }
 
         super.doFilter(update);
@@ -203,16 +206,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
         messageService.sendFileAsync(chatId, fileId);
     }
 
-    public void downloadFileByFileId(long chatId, String fileId, SmartTempFile outputFile) {
-
-    }
-
-    private boolean isMediaMessage(Message message) {
-        return message.hasDocument() || message.hasPhoto();
-    }
-
-    private void checkInMediaSize(Message message) {
-        Any2AnyFile file = fileService.getFile(message, Locale.getDefault());
+    private void checkInMediaSize(Message message, Any2AnyFile file) {
         if (file.getFileSize() > LARGE_FILE_SIZE) {
             LOGGER.warn("Large in file({}, {})", message.getFromUser().getId(), MemoryUtils.humanReadableByteCount(file.getFileSize()));
             throw new UserException(localisationService.getMessage(
