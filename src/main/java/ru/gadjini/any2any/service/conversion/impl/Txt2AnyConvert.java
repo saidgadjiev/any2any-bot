@@ -15,7 +15,7 @@ import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.ConvertResult;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
-import ru.gadjini.any2any.service.message.FileManager;
+import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -52,7 +52,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile txt = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), txt);
+            fileManager.downloadFileByFileId(fileQueueItem.getUserId(), fileQueueItem.getFileId(), txt);
 
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
@@ -79,7 +79,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile txt = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), txt);
+            fileManager.downloadFileByFileId(fileQueueItem.getUserId(), fileQueueItem.getFileId(), txt);
             List<String> lines = Files.readLines(txt.getFile(), StandardCharsets.UTF_8);
             StringBuilder builder = new StringBuilder();
             lines.forEach(builder::append);

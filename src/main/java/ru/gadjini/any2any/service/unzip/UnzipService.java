@@ -29,7 +29,7 @@ import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
-import ru.gadjini.any2any.service.message.FileManager;
+import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.unzip.UnzipQueueService;
 import ru.gadjini.any2any.utils.MemoryUtils;
@@ -632,7 +632,7 @@ public class UnzipService {
 
             try {
                 in = fileService.createTempFile(userId, fileId, TAG, format.getExt());
-                fileManager.downloadFileByFileId(fileId, in);
+                fileManager.downloadFileByFileId(userId, fileId, in);
                 UnzipState unzipState = initAndGetState(in.getAbsolutePath());
                 if (unzipState == null) {
                     return;

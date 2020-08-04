@@ -22,7 +22,7 @@ import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
-import ru.gadjini.any2any.service.message.FileManager;
+import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.rename.RenameQueueService;
 import ru.gadjini.any2any.service.thumb.ThumbService;
@@ -220,14 +220,14 @@ public class RenameService {
             try {
                 String ext = formatService.getExt(fileName, mimeType);
                 file = tempFileService.createTempFile(userId, fileId, TAG, ext);
-                fileManager.downloadFileByFileId(fileId, file);
+                fileManager.downloadFileByFileId(userId, fileId, file);
 
                 String fileName = createNewFileName(newFileName, ext);
                 if (userThumb != null) {
                     thumbFile = thumbService.convertToThumb(userId, userThumb.getFileId(), userThumb.getFileName(), userThumb.getMimeType());
                 } else if (StringUtils.isNotBlank(thumb)) {
                     thumbFile = tempFileService.createTempFile(userId, fileId, TAG, Format.JPG.getExt());
-                    fileManager.downloadFileByFileId(thumb, thumbFile);
+                    fileManager.downloadFileByFileId(userId, thumb, thumbFile);
                 }
                 messageService.sendDocumentAsync(new SendDocument((long) userId, fileName, file.getFile())
                         .setThumb(thumbFile != null ? thumbFile.getAbsolutePath() : null)

@@ -16,7 +16,7 @@ import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.service.message.FileManager;
+import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.Locale;
@@ -62,7 +62,7 @@ public class OcrService {
             Locale locale = userService.getLocaleOrDefault(userId);
             SmartTempFile file = fileService.createTempFile(userId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
             try {
-                fileManager.downloadFileByFileId(any2AnyFile.getFileId(), file);
+                fileManager.downloadFileByFileId(userId, any2AnyFile.getFileId(), file);
 
                 String result = ocrDevice.getText(file.getAbsolutePath());
                 if (StringUtils.isBlank(result)) {

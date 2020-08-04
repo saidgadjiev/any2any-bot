@@ -7,7 +7,7 @@ import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
-import ru.gadjini.any2any.service.message.FileManager;
+import ru.gadjini.any2any.service.file.FileManager;
 
 @Service
 public class ThumbService {
@@ -35,7 +35,7 @@ public class ThumbService {
         String ext = formatService.getExt(fileName, mimeType);
         SmartTempFile thumb = tempFileService.createTempFile(chatId, fileId, TAG, ext);
         try {
-            fileManager.downloadFileByFileId(fileId, thumb);
+            fileManager.downloadFileByFileId(chatId, fileId, thumb);
             SmartTempFile out = tempFileService.createTempFile(chatId, fileId, TAG, Format.JPG.getExt());
             try {
                 convertDevice.convertToThumb(thumb.getAbsolutePath(), out.getAbsolutePath());

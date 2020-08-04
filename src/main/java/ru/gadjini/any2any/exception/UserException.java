@@ -2,6 +2,8 @@ package ru.gadjini.any2any.exception;
 
 public class UserException extends RuntimeException {
 
+    private Integer replyToMessageId;
+
     private String humanMessage;
 
     private boolean printLog = false;
@@ -23,5 +25,15 @@ public class UserException extends RuntimeException {
 
     public boolean isPrintLog() {
         return printLog;
+    }
+
+    public Integer getReplyToMessageId() {
+        return replyToMessageId;
+    }
+
+    public UserException setReplyToMessageId(Integer replyToMessageId) {
+        this.replyToMessageId = replyToMessageId;
+
+        return this;
     }
 }

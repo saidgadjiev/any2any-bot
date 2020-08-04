@@ -306,4 +306,8 @@ public class MessagesProperties {
     public static final String REMOVE_GARBAGE_FILES_COMMAND_NAME = "remove.garbage.files.command.name";
 
     public static final String MESSAGE_COLLECTED_GARBAGE = "message.collected.garbage";
+
+    public static final String MESSAGE_INPUT_FILE_WAIT = "message.input.file.wait";
+
+    public static final String MESSAGE_INPUT_FILE_WAIT_TTL = "message.input.file.wait.ttl";
 }

@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.EditMediaResult;
 import ru.gadjini.any2any.model.SendFileResult;
@@ -23,6 +22,7 @@ import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
@@ -52,11 +52,14 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
 
     private FileService fileService;
 
+    private FileManager fileManager;
+
     @Autowired
-    public TelegramLimitsFilter(UserService userService, LocalisationService localisationService, FileService fileService) {
+    public TelegramLimitsFilter(UserService userService, LocalisationService localisationService, FileService fileService, FileManager fileManager) {
         this.userService = userService;
         this.localisationService = localisationService;
         this.fileService = fileService;
+        this.fileManager = fileManager;
     }
 
     @Autowired
@@ -70,6 +73,7 @@ public class TelegramLimitsFilter extends BaseBotFilter implements MessageServic
             Any2AnyFile file = fileService.getFile(update.getMessage(), Locale.getDefault());
             if (file != null) {
                 checkInMediaSize(update.getMessage(), file);
+                fileManager.inputFile(update.getMessage().getChatId(), update.getMessage().getMessageId());
             }
         }
 

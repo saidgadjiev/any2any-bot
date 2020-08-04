@@ -14,7 +14,7 @@ import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
-import ru.gadjini.any2any.service.message.FileManager;
+import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.util.Set;
@@ -53,7 +53,7 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile tiff = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), tiff);
+            fileManager.downloadFileByFileId(fileQueueItem.getUserId(), fileQueueItem.getFileId(), tiff);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             try (TiffImage image = (TiffImage) Image.load(tiff.getAbsolutePath())) {
@@ -82,7 +82,7 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     private FileResult toPdf(ConversionQueueItem fileQueueItem) {
         SmartTempFile tiff = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
        try {
-           fileManager.downloadFileByFileId(fileQueueItem.getFileId(), tiff);
+           fileManager.downloadFileByFileId(fileQueueItem.getUserId(), fileQueueItem.getFileId(), tiff);
 
            StopWatch stopWatch = new StopWatch();
            stopWatch.start();

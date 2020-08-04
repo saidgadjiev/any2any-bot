@@ -12,7 +12,7 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.FormatCategory;
-import ru.gadjini.any2any.service.message.FileManager;
+import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.utils.MimeTypeUtils;
 import ru.gadjini.any2any.utils.UrlUtils;
 
@@ -147,7 +147,7 @@ public class FormatService {
         SmartTempFile file = tempFileService.createTempFile(chatId, photoFileId, TAG, "tmp");
 
         try {
-            fileManager.downloadFileByFileId(photoFileId, file);
+            fileManager.downloadFileByFileId(chatId, photoFileId, file);
             return getImageFormat(file.getFile(), photoFileId);
         } finally {
             file.smartDelete();
