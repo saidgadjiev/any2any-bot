@@ -52,7 +52,7 @@ public class PowerPoint2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getTargetFormat().getExt());
 
         try {
-            fileManager.downloadFileByFileId(fileQueueItem.getUserId(), fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 

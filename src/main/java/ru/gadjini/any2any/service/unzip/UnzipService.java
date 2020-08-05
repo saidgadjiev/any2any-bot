@@ -29,6 +29,7 @@ import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.service.file.FileWorkObject;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.message.MediaMessageService;
@@ -215,7 +216,7 @@ public class UnzipService {
         }
     }
 
-    public void unzip(int userId, Any2AnyFile file, Locale locale) {
+    public void unzip(int userId, int replyToMessageId, Any2AnyFile file, Locale locale) {
         checkCandidate(file.getFormat(), locale);
         UnzipQueueItem queueItem = queueService.createProcessingUnzipItem(userId, file);
         UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true, UnzipState.class);
@@ -225,7 +226,7 @@ public class UnzipService {
         sendStartUnzippingMessage(userId, queueItem.getId(), locale, messageId -> {
             queueItem.setMessageId(messageId);
             queueService.setMessageId(queueItem.getId(), messageId);
-
+            fileManager.setInputFilePending(userId, replyToMessageId);
             executor.execute(new UnzipTask(queueItem));
         });
     }
@@ -607,6 +608,7 @@ public class UnzipService {
         private volatile Supplier<Boolean> checker;
         private volatile boolean canceledByUser;
         private volatile SmartTempFile in;
+        private FileWorkObject fileWorkObject;
 
         private UnzipTask(UnzipQueueItem item) {
             this.jobId = item.getId();
@@ -616,16 +618,18 @@ public class UnzipService {
             this.format = item.getType();
             this.unzipDevice = getCandidate(item.getType());
             this.messageId = item.getMessageId();
+            this.fileWorkObject = fileManager.fileWorkObject(userId);
         }
 
         @Override
         public void run() {
+            fileWorkObject.start();
             String size = MemoryUtils.humanReadableByteCount(fileSize);
             LOGGER.debug("Start({}, {}, {}, {})", userId, size, format, fileId);
 
             try {
                 in = fileService.createTempFile(userId, fileId, TAG, format.getExt());
-                fileManager.downloadFileByFileId(userId, fileId, in);
+                fileManager.downloadFileByFileId(fileId, in);
                 UnzipState unzipState = initAndGetState(in.getAbsolutePath());
                 if (unzipState == null) {
                     return;
@@ -665,6 +669,7 @@ public class UnzipService {
                 if (!checker.get()) {
                     executor.complete(jobId);
                     queueService.delete(jobId);
+                    fileWorkObject.stop();
                 }
             }
         }
@@ -689,6 +694,7 @@ public class UnzipService {
                 LOGGER.debug("Unzip canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(fileSize));
             }
             commandStateService.deleteState(userId, CommandNames.UNZIP_COMMAND_NAME);
+            fileWorkObject.stop();
         }
 
         @Override

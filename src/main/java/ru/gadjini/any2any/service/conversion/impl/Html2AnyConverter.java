@@ -51,7 +51,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile html = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            fileManager.downloadFileByFileId(fileQueueItem.getUserId(), fileQueueItem.getFileId(), html);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), html);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 

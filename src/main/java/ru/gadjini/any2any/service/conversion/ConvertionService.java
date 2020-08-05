@@ -24,6 +24,7 @@ import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.ConvertResult;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.service.file.FileManager;
+import ru.gadjini.any2any.service.file.FileWorkObject;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
@@ -118,6 +119,7 @@ public class ConvertionService {
     public ConversionQueueItem convert(User user, ConvertState convertState, Format targetFormat) {
         ConversionQueueItem queueItem = queueService.createProcessingItem(user, convertState, targetFormat);
 
+        fileManager.setInputFilePending(user.getId(), convertState.getMessageId());
         executor.execute(new ConversionTask(queueItem));
 
         return queueItem;
@@ -173,13 +175,17 @@ public class ConvertionService {
 
         private volatile boolean canceledByUser;
 
+        private FileWorkObject fileWorkObject;
+
         private ConversionTask(ConversionQueueItem fileQueueItem) {
             this.fileQueueItem = fileQueueItem;
+            this.fileWorkObject = fileManager.fileWorkObject(fileQueueItem.getUserId());
         }
 
         @Override
         public void run() {
             try {
+                fileWorkObject.start();
                 Any2AnyConverter<ConvertResult> candidate = getCandidate(fileQueueItem);
                 if (candidate != null) {
                     String size = MemoryUtils.humanReadableByteCount(fileQueueItem.getSize());
@@ -215,6 +221,7 @@ public class ConvertionService {
             } finally {
                 if (!checker.get()) {
                     executor.complete(fileQueueItem.getId());
+                    fileWorkObject.stop();
                 }
             }
         }
@@ -233,6 +240,7 @@ public class ConvertionService {
                         fileQueueItem.getTargetFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), fileQueueItem.getFileId());
             }
             executor.complete(fileQueueItem.getId());
+            fileWorkObject.stop();
         }
 
         @Override

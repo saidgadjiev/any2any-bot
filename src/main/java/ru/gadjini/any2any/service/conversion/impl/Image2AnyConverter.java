@@ -69,7 +69,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
 
         try {
-            fileManager.downloadFileByFileId(fileQueueItem.getUserId(), fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             normalize(file.getFile(), fileQueueItem);
 
             StopWatch stopWatch = new StopWatch();
@@ -99,7 +99,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat() != Format.PHOTO ? fileQueueItem.getFormat().getExt() : "tmp");
 
         try {
-            fileManager.downloadFileByFileId(fileQueueItem.getUserId(), fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             normalize(file.getFile(), fileQueueItem);
 
             StopWatch stopWatch = new StopWatch();
@@ -125,7 +125,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            fileManager.downloadFileByFileId(fileQueueItem.getUserId(), fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             SmartTempFile tempFile = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.PNG.getExt());
@@ -180,7 +180,7 @@ public class Image2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            fileManager.downloadFileByFileId(fileQueueItem.getUserId(), fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             SmartTempFile result = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, Format.SVG.getExt());

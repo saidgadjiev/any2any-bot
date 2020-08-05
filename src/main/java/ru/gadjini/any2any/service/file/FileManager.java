@@ -1,6 +1,5 @@
 package ru.gadjini.any2any.service.file;
 
-import org.apache.commons.lang3.time.StopWatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
@@ -11,7 +10,6 @@ import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.UserService;
 
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class FileManager {
@@ -33,33 +31,32 @@ public class FileManager {
         this.userService = userService;
     }
 
-    public void inputFile(long chatId, int messageId) {
-        boolean hasKey = fileLimitsDao.hasInputFile(chatId);
-        if (!hasKey) {
-            fileLimitsDao.setInputFile(chatId, messageId);
-        } else {
+    public void setInputFilePending(long chatId, Integer replyToMessageId) {
+        fileLimitsDao.setInputFile(chatId, new InputFileState(replyToMessageId));
+    }
+
+    public void inputFile(long chatId) {
+        InputFileState inputFileState = fileLimitsDao.getInputFile(chatId);
+        if (inputFileState != null) {
             Long ttl = fileLimitsDao.getInputFileTtl(chatId);
 
             if (ttl == null) {
-                Integer replyToMessageId = fileLimitsDao.getMessageId(chatId);
+                Integer replyToMessageId = inputFileState.getReplyToMessageId();
                 Locale locale = userService.getLocaleOrDefault((int) chatId);
                 throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_INPUT_FILE_WAIT, locale)).setReplyToMessageId(replyToMessageId);
             } else {
                 Locale locale = userService.getLocaleOrDefault((int) chatId);
-                throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_INPUT_FILE_WAIT_TTL, new Object[] {ttl}, locale));
+                throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_INPUT_FILE_WAIT_TTL, new Object[]{ttl}, locale));
             }
         }
     }
 
-    public void downloadFileByFileId(long chatId, String fileId, SmartTempFile outputFile) {
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
-        try {
-            telegramService.downloadFileByFileId(fileId, outputFile);
-        } finally {
-            stopWatch.stop();
-            fileLimitsDao.setInputFileTtl(chatId, stopWatch.getTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS);
-        }
+    public void downloadFileByFileId(String fileId, SmartTempFile outputFile) {
+        telegramService.downloadFileByFileId(fileId, outputFile);
+    }
+
+    public FileWorkObject fileWorkObject(long chatId) {
+        return new FileWorkObject(chatId, fileLimitsDao);
     }
 
     public boolean cancelDownloading(String fileId) {

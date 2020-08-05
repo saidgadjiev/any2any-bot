@@ -21,6 +21,7 @@ import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
+import ru.gadjini.any2any.service.file.FileWorkObject;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.message.MediaMessageService;
@@ -113,6 +114,7 @@ public class RenameService {
     public void rename(int userId, RenameState renameState, String newFileName) {
         RenameQueueItem item = renameQueueService.createProcessingItem(userId, renameState, newFileName);
         sendStartRenamingMessage(item.getId(), userId);
+        fileManager.setInputFilePending(userId, renameState.getReplyMessageId());
         executor.execute(new RenameTask(item));
     }
 
@@ -203,6 +205,7 @@ public class RenameService {
         private volatile SmartTempFile thumbFile;
         private TgFile userThumb;
         private String thumb;
+        private FileWorkObject fileWorkObject;
 
         private RenameTask(RenameQueueItem queueItem) {
             this.jobId = queueItem.getId();
@@ -215,24 +218,26 @@ public class RenameService {
             this.replyToMessageId = queueItem.getReplyToMessageId();
             this.thumb = queueItem.getFile().getThumb();
             this.userThumb = queueItem.getThumb();
+            this.fileWorkObject = fileManager.fileWorkObject(userId);
         }
 
         @Override
         public void run() {
+            fileWorkObject.start();
             String size = MemoryUtils.humanReadableByteCount(fileSize);
             LOGGER.debug("Start({}, {}, {})", userId, size, fileId);
 
             try {
                 String ext = formatService.getExt(fileName, mimeType);
                 file = tempFileService.createTempFile(userId, fileId, TAG, ext);
-                fileManager.downloadFileByFileId(userId, fileId, file);
+                fileManager.downloadFileByFileId(fileId, file);
 
                 String fileName = createNewFileName(newFileName, ext);
                 if (userThumb != null) {
                     thumbFile = thumbService.convertToThumb(userId, userThumb.getFileId(), userThumb.getFileName(), userThumb.getMimeType());
                 } else if (StringUtils.isNotBlank(thumb)) {
                     thumbFile = tempFileService.createTempFile(userId, fileId, TAG, Format.JPG.getExt());
-                    fileManager.downloadFileByFileId(userId, thumb, thumbFile);
+                    fileManager.downloadFileByFileId(thumb, thumbFile);
                 }
                 mediaMessageService.sendDocument(new SendDocument((long) userId, fileName, file.getFile())
                         .setThumb(thumbFile != null ? thumbFile.getAbsolutePath() : null)
@@ -254,6 +259,7 @@ public class RenameService {
                     if (thumbFile != null) {
                         thumbFile.smartDelete();
                     }
+                    fileWorkObject.stop();
                 }
             }
         }
@@ -273,6 +279,7 @@ public class RenameService {
             }
             if (canceledByUser) {
                 renameQueueService.delete(jobId);
+                fileWorkObject.stop();
                 LOGGER.debug("Canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(fileSize));
             }
         }

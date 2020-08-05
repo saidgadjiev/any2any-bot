@@ -52,7 +52,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile txt = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            fileManager.downloadFileByFileId(fileQueueItem.getUserId(), fileQueueItem.getFileId(), txt);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), txt);
 
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
@@ -79,7 +79,7 @@ public class Txt2AnyConvert extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile txt = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            fileManager.downloadFileByFileId(fileQueueItem.getUserId(), fileQueueItem.getFileId(), txt);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), txt);
             List<String> lines = Files.readLines(txt.getFile(), StandardCharsets.UTF_8);
             StringBuilder builder = new StringBuilder();
             lines.forEach(builder::append);

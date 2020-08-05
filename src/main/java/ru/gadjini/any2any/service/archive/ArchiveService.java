@@ -24,6 +24,7 @@ import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.service.file.FileWorkObject;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.message.MediaMessageService;
@@ -144,6 +145,7 @@ public class ArchiveService {
 
         ArchiveQueueItem item = archiveQueueService.createProcessingItem(userId, archiveState.getFiles(), format);
         startArchiveCreating(userId, item.getId());
+        fileManager.setInputFilePending(userId, null);
         executor.execute(new ArchiveTask(item));
     }
 
@@ -244,16 +246,20 @@ public class ArchiveService {
 
         private volatile boolean canceledByUser;
 
+        private FileWorkObject fileWorkObject;
+
         private ArchiveTask(ArchiveQueueItem item) {
             this.jobId = item.getId();
             this.archiveFiles = item.getFiles();
             this.totalFileSize = item.getTotalFileSize();
             this.userId = item.getUserId();
             this.type = item.getType();
+            this.fileWorkObject = fileManager.fileWorkObject(userId);
         }
 
         @Override
         public void run() {
+            fileWorkObject.start();
             String size;
             try {
                 size = MemoryUtils.humanReadableByteCount(totalFileSize);
@@ -285,6 +291,7 @@ public class ArchiveService {
                     if (archive != null) {
                         archive.smartDelete();
                     }
+                    fileWorkObject.stop();
                 }
             }
         }
@@ -297,14 +304,15 @@ public class ArchiveService {
         @Override
         public void cancel() {
             archiveFiles.forEach(tgFile -> fileManager.cancelDownloading(tgFile.getFileId()));
-            if (canceledByUser) {
-                LOGGER.debug("Canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(totalFileSize));
-            }
             files.forEach(SmartTempFile::smartDelete);
             files.clear();
 
             if (archive != null) {
                 archive.smartDelete();
+            }
+            if (canceledByUser) {
+                fileWorkObject.stop();
+                LOGGER.debug("Canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(totalFileSize));
             }
         }
 
@@ -336,7 +344,7 @@ public class ArchiveService {
             int i = 1;
             for (TgFile tgFile : tgFiles) {
                 SmartTempFile file = fileService.createTempFile(userId, tgFile.getFileId(), TAG, FilenameUtils.getExtension(tgFile.getFileName()));
-                fileManager.downloadFileByFileId(userId, tgFile.getFileId(), file);
+                fileManager.downloadFileByFileId(tgFile.getFileId(), file);
                 downloadResult.originalFileNames.put(i, tgFile.getFileName());
                 downloadResult.downloadedNames.put(i++, file.getName());
                 files.add(file);

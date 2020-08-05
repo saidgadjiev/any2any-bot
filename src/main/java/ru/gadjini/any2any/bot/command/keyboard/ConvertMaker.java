@@ -153,7 +153,7 @@ public class ConvertMaker {
         SmartTempFile file = fileService.createTempFile(chatId, fileId, TAG, Format.HTML.getExt());
 
         try {
-            fileManager.downloadFileByFileId(chatId, fileId, file);
+            fileManager.downloadFileByFileId(fileId, file);
 
             Document parse = Jsoup.parse(file.getFile(), StandardCharsets.UTF_8.name());
             Elements base = parse.head().getElementsByTag("base");

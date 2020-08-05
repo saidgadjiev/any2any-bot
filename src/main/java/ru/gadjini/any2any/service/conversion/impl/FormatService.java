@@ -147,7 +147,7 @@ public class FormatService {
         SmartTempFile file = tempFileService.createTempFile(chatId, photoFileId, TAG, "tmp");
 
         try {
-            fileManager.downloadFileByFileId(chatId, photoFileId, file);
+            fileManager.downloadFileByFileId(photoFileId, file);
             return getImageFormat(file.getFile(), photoFileId);
         } finally {
             file.smartDelete();

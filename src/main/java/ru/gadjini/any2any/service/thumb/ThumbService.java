@@ -35,7 +35,7 @@ public class ThumbService {
         String ext = formatService.getExt(fileName, mimeType);
         SmartTempFile thumb = tempFileService.createTempFile(chatId, fileId, TAG, ext);
         try {
-            fileManager.downloadFileByFileId(chatId, fileId, thumb);
+            fileManager.downloadFileByFileId(fileId, thumb);
             SmartTempFile out = tempFileService.createTempFile(chatId, fileId, TAG, Format.JPG.getExt());
             try {
                 convertDevice.convertToThumb(thumb.getAbsolutePath(), out.getAbsolutePath());

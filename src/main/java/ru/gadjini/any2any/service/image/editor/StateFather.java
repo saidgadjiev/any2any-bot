@@ -174,7 +174,7 @@ public class StateFather implements State {
 
             SmartTempFile file = tempFileService.createTempFile(chatId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
             try {
-                fileManager.downloadFileByFileId(chatId, any2AnyFile.getFileId(), file);
+                fileManager.downloadFileByFileId(any2AnyFile.getFileId(), file);
                 SmartTempFile result = tempFileService.createTempFile(chatId, any2AnyFile.getFileId(), TAG, Format.PNG.getExt());
                 imageDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
                 EditorState state = createState(result.getAbsolutePath(), Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), Format.PNG.getExt()));

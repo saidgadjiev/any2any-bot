@@ -53,7 +53,7 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile tiff = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            fileManager.downloadFileByFileId(fileQueueItem.getUserId(), fileQueueItem.getFileId(), tiff);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), tiff);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
             try (TiffImage image = (TiffImage) Image.load(tiff.getAbsolutePath())) {
@@ -82,7 +82,7 @@ public class Tiff2AnyConverter extends BaseAny2AnyConverter<FileResult> {
     private FileResult toPdf(ConversionQueueItem fileQueueItem) {
         SmartTempFile tiff = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
        try {
-           fileManager.downloadFileByFileId(fileQueueItem.getUserId(), fileQueueItem.getFileId(), tiff);
+           fileManager.downloadFileByFileId(fileQueueItem.getFileId(), tiff);
 
            StopWatch stopWatch = new StopWatch();
            stopWatch.start();
