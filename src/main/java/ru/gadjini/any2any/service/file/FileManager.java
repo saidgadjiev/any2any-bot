@@ -40,7 +40,7 @@ public class FileManager {
         if (inputFileState != null) {
             Long ttl = fileLimitsDao.getInputFileTtl(chatId);
 
-            if (ttl == null) {
+            if (ttl == null || ttl == -1) {
                 Integer replyToMessageId = inputFileState.getReplyToMessageId();
                 Locale locale = userService.getLocaleOrDefault((int) chatId);
                 throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_INPUT_FILE_WAIT, locale)).setReplyToMessageId(replyToMessageId);

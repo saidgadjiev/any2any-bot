@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -21,10 +22,13 @@ public class FileLimitsDao {
     }
 
     public void setInputFile(long chatId, InputFileState inputFileState) {
-        redisTemplate.opsForHash().putAll(key(chatId), Map.of(
-                "replyToMessageId", inputFileState.getReplyToMessageId(),
-                "state", inputFileState.getState().name()
-        ));
+        Map<String, String> values = new HashMap<>();
+
+        values.put("state", inputFileState.getState().name());
+        if (inputFileState.getReplyToMessageId() != null) {
+            values.put("replyToMessageId", inputFileState.getReplyToMessageId().toString());
+        }
+        redisTemplate.opsForHash().putAll(key(chatId), values);
     }
 
     public void setInputFileTtl(long chatId, long ttl, TimeUnit timeUnit) {
@@ -46,7 +50,8 @@ public class FileLimitsDao {
             return null;
         }
         InputFileState inputFileState = new InputFileState();
-        inputFileState.setReplyToMessageId((Integer) entries.get(InputFileState.REPLY_TO_MESSAGE_ID));
+        String replyToMessageId = (String) entries.get(InputFileState.REPLY_TO_MESSAGE_ID);
+        inputFileState.setReplyToMessageId(replyToMessageId == null ? null : Integer.parseInt(replyToMessageId));
         inputFileState.setState(InputFileState.State.valueOf((String) entries.get(InputFileState.STATE)));
 
         return inputFileState;

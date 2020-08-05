@@ -28,7 +28,7 @@ public class InputFileState {
         return replyToMessageId;
     }
 
-    public void setReplyToMessageId(int replyToMessageId) {
+    public void setReplyToMessageId(Integer replyToMessageId) {
         this.replyToMessageId = replyToMessageId;
     }
 
