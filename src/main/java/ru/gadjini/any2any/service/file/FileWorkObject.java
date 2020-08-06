@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 public class FileWorkObject {
 
-    private static final int MIN_10 = 4 * 60;
+    private static final int MIN_10 = 3 * 60;
 
     private long chatId;
 
