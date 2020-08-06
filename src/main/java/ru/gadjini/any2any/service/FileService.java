@@ -119,7 +119,6 @@ public class FileService {
 
             return any2AnyFile;
         }
-        LOGGER.debug("No file({}, {})", message.getFromUser().getId(), TgMessage.getMetaTypes(message));
 
         return null;
     }
