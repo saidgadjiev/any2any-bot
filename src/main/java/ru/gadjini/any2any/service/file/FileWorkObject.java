@@ -6,7 +6,9 @@ import java.util.concurrent.TimeUnit;
 
 public class FileWorkObject {
 
-    private static final int MIN_10 = 3 * 60;
+    private static final int MAX_LIMIT = 3 * 60;
+
+    private static final int MIN_LIMIT = 15;
 
     private long chatId;
 
@@ -38,10 +40,10 @@ public class FileWorkObject {
 
             fileLimitsDao.setState(chatId, InputFileState.State.COMPLETED);
             long seconds = stopWatch.getTime(TimeUnit.SECONDS);
-            if (seconds < 15) {
-                seconds  = 15;
-            } else if (seconds > MIN_10) {
-                seconds = MIN_10;
+            if (seconds < MIN_LIMIT) {
+                seconds  = MIN_LIMIT;
+            } else if (seconds > MAX_LIMIT) {
+                seconds = MAX_LIMIT;
             }
 
             fileLimitsDao.setInputFileTtl(chatId, seconds, TimeUnit.SECONDS);
