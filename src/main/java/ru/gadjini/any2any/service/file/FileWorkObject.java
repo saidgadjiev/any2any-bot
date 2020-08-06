@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 public class FileWorkObject {
 
-    private static final int MIN_10 = 10 * 60;
+    private static final int MIN_10 = 4 * 60;
 
     private long chatId;
 
@@ -38,8 +38,8 @@ public class FileWorkObject {
 
             fileLimitsDao.setState(chatId, InputFileState.State.COMPLETED);
             long seconds = stopWatch.getTime(TimeUnit.SECONDS);
-            if (seconds < 20) {
-                seconds  = 20;
+            if (seconds < 15) {
+                seconds  = 15;
             } else if (seconds > MIN_10) {
                 seconds = MIN_10;
             }
