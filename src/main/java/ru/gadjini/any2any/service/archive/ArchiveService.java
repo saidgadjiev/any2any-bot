@@ -18,6 +18,7 @@ import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
+import ru.gadjini.any2any.model.bot.api.object.Progress;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
@@ -29,7 +30,9 @@ import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.service.queue.archive.ArchiveQueueService;
+import ru.gadjini.any2any.service.unzip.UnzipStep;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
@@ -69,13 +72,15 @@ public class ArchiveService {
 
     private InlineKeyboardService inlineKeyboardService;
 
+    private ArchiveMessageBuilder archiveMessageBuilder;
+
     @Autowired
     public ArchiveService(Set<ArchiveDevice> archiveDevices, TempFileService fileService,
                           FileManager fileManager, LocalisationService localisationService,
                           @Qualifier("messagelimits") MessageService messageService,
                           @Qualifier("medialimits") MediaMessageService mediaMessageService, UserService userService,
                           ArchiveQueueService archiveQueueService, CommandStateService commandStateService,
-                          InlineKeyboardService inlineKeyboardService) {
+                          InlineKeyboardService inlineKeyboardService, ArchiveMessageBuilder archiveMessageBuilder) {
         this.archiveDevices = archiveDevices;
         this.fileService = fileService;
         this.fileManager = fileManager;
@@ -86,6 +91,7 @@ public class ArchiveService {
         this.archiveQueueService = archiveQueueService;
         this.commandStateService = commandStateService;
         this.inlineKeyboardService = inlineKeyboardService;
+        this.archiveMessageBuilder = archiveMessageBuilder;
     }
 
     @PostConstruct
@@ -218,6 +224,25 @@ public class ArchiveService {
 
         LOGGER.warn("No candidate({})", format);
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_TYPE_UNSUPPORTED, new Object[]{format}, locale));
+    }
+
+    private Progress progress(int count, int current, long chatId, int processMessageId) {
+        Locale locale = userService.getLocaleOrDefault((int) chatId);
+        Progress progress = new Progress();
+        progress.setChatId(chatId);
+        progress.setProgressMessageId(processMessageId);
+        if (count > current) {
+            progress.setProgressMessage(archiveMessageBuilder.buildArchiveProgressMessage(count, current, ArchiveStep.DOWNLOADING, Lang.PYTHON, locale));
+
+        } else {
+            progress.set
+        }
+
+        String completionMessage = archiveMessageBuilder.buildUnzipProgressMessage(UnzipStep.UNZIPPING, Lang.JAVA, locale);
+        progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 seconds"));
+        progress.setReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale));
+
+        return progress;
     }
 
     public void shutdown() {

@@ -25,26 +25,22 @@ import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.Progress;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
-import ru.gadjini.any2any.service.file.FileWorkObject;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
-import ru.gadjini.any2any.service.file.FileManager;
-import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.service.queue.unzip.UnzipQueueService;
-import ru.gadjini.any2any.service.rename.RenameStep;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @Service
@@ -60,9 +56,7 @@ public class UnzipService {
 
     private MessageService messageService;
 
-    private MediaMessageService mediaMessageService;
-
-    private FileManager fileManager;
+    private TelegramService telegramService;
 
     private TempFileService fileService;
 
@@ -78,16 +72,15 @@ public class UnzipService {
 
     @Autowired
     public UnzipService(Set<UnzipDevice> unzipDevices, LocalisationService localisationService,
-                        @Qualifier("messagelimits") MessageService messageService,
-                        @Qualifier("medialimits") MediaMessageService mediaMessageService, FileManager fileManager, TempFileService fileService,
+                        @Qualifier("limits") MessageService messageService,
+                        TelegramService telegramService, TempFileService fileService,
                         UnzipQueueService queueService, UserService userService,
                         CommandStateService commandStateService, InlineKeyboardService inlineKeyboardService,
                         UnzipMessageBuilder messageBuilder) {
         this.unzipDevices = unzipDevices;
         this.localisationService = localisationService;
         this.messageService = messageService;
-        this.mediaMessageService = mediaMessageService;
-        this.fileManager = fileManager;
+        this.telegramService = telegramService;
         this.fileService = fileService;
         this.queueService = queueService;
         this.userService = userService;
@@ -148,10 +141,9 @@ public class UnzipService {
             ));
             messageService.removeInlineKeyboard(userId, messageId);
         } else {
-            sendStartExtractingAllMessage(userId, messageId, unzipJobId);
+            sendStartExtractingAllMessage(unzipState.getFiles().size(), userId, messageId, unzipJobId);
             UnzipQueueItem item = queueService.createProcessingExtractAllItem(userId, messageId,
                     unzipState.getFiles().values().stream().map(ZipFileHeader::getSize).mapToLong(i -> i).sum());
-            sendStartExtractingAllMessage(userId, messageId, item.getId());
             executor.execute(new ExtractAllTask(item));
         }
     }
@@ -180,7 +172,7 @@ public class UnzipService {
                                 localisationService.getMessage(MessagesProperties.MESSAGE_UNZIP_PROCESSING_ANSWER, userService.getLocaleOrDefault(userId))
                         )
                 );
-                mediaMessageService.sendFile(userId, unzipState.getFilesCache().get(extractFileId));
+                messageService.sendFile(userId, unzipState.getFilesCache().get(extractFileId));
             } else {
                 UnzipQueueItem item = queueService.createProcessingExtractFileItem(userId, messageId,
                         extractFileId, unzipState.getFiles().get(extractFileId).getSize());
@@ -219,19 +211,17 @@ public class UnzipService {
         }
     }
 
-    public void unzip(int userId, int replyToMessageId, Any2AnyFile file, Locale locale) {
+    public void unzip(int userId, Any2AnyFile file, Locale locale) {
         checkCandidate(file.getFormat(), locale);
         UnzipQueueItem queueItem = queueService.createProcessingUnzipItem(userId, file);
         UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true, UnzipState.class);
         unzipState.setUnzipJobId(queueItem.getId());
         commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
+        int messageId = sendStartUnzippingMessage(userId, queueItem.getId(), locale);
+        queueItem.setMessageId(messageId);
+        queueService.setMessageId(queueItem.getId(), messageId);
 
-        sendStartUnzippingMessage(userId, queueItem.getId(), locale, messageId -> {
-            queueItem.setMessageId(messageId);
-            queueService.setMessageId(queueItem.getId(), messageId);
-            fileManager.setInputFilePending(userId, replyToMessageId);
-            executor.execute(new UnzipTask(queueItem));
-        });
+        executor.execute(new UnzipTask(queueItem));
     }
 
     public void removeAndCancelCurrentTasks(long chatId) {
@@ -340,26 +330,19 @@ public class UnzipService {
         }
     }
 
-    private void sendStartExtractingAllMessage(int userId, int messageId, int jobId) {
+    private void sendStartExtractingAllMessage(int count, int userId, int messageId, int jobId) {
         Locale locale = userService.getLocaleOrDefault(userId);
+        String message = String.format(messageBuilder.buildExtractAllProgressMessage(count, 1, ExtractFileStep.EXTRACTING, Lang.JAVA, locale), 50, "7 seconds");
         messageService.editMessage(
-                new EditMessageText(
-                        userId,
-                        messageId,
-                        localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACT_ALL_PROCESSING, locale)
-                ).setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale))
+                new EditMessageText(userId, messageId, message).setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale))
         );
     }
 
     private void sendStartExtractingFileMessage(int userId, int messageId, int jobId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageBuilder.
+        String message = String.format(messageBuilder.buildExtractFileProgressMessage(ExtractFileStep.EXTRACTING, Lang.JAVA, locale), 50, "7 seconds");
         messageService.editMessage(
-                new EditMessageText(
-                        userId,
-                        messageId,
-                        localisationService.getMessage(MessagesProperties.MESSAGE_UNZIP_PROCESSING, locale)
-                ).setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale))
+                new EditMessageText(userId, messageId, message).setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale))
         );
     }
 
@@ -395,19 +378,43 @@ public class UnzipService {
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_SUPPORTED_ZIP_FORMATS, locale));
     }
 
-    private Progress unzipProgress(long chatId, int jobId, int processMessageId, UnzipStep unzipStep, UnzipStep nextStep) {
+    private Progress extractAllProgress(int count, int current, long chatId, int jobId, int processMessageId) {
         Locale locale = userService.getLocaleOrDefault((int) chatId);
         Progress progress = new Progress();
         progress.setChatId(chatId);
         progress.setProgressMessageId(processMessageId);
-        progress.setProgressMessage(messageBuilder.buildUnzipProgressMessage(unzipStep, Lang.PYTHON, locale));
-        if (nextStep != null) {
-            String etaCalculated = localisationService.getMessage(MessagesProperties.MESSAGE_ETA_CALCULATED, locale);
-            String completionMessage = messageBuilder.buildUnzipProgressMessage(nextStep, Lang.JAVA, locale);
-            progress.setAfterProgressCompletionMessage(String.format(completionMessage, nextStep == UnzipStep.UNZIPPING ? 50 : 0, nextStep == UnzipStep.UNZIPPING
-                    ? "10 seconds" : etaCalculated));
+        progress.setProgressMessage(messageBuilder.buildExtractAllProgressMessage(count, current, ExtractFileStep.UPLOADING, Lang.PYTHON, locale));
+
+        if (current + 1 < count) {
+            String completionMessage = messageBuilder.buildExtractAllProgressMessage(count, current, ExtractFileStep.EXTRACTING, Lang.JAVA, locale);
+            progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 seconds"));
+            progress.setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale));
         }
-        progress.setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale));
+
+        return progress;
+    }
+
+    private Progress extractFileProgress(long chatId, int jobId, int processMessageId) {
+        Locale locale = userService.getLocaleOrDefault((int) chatId);
+        Progress progress = new Progress();
+        progress.setChatId(chatId);
+        progress.setProgressMessageId(processMessageId);
+        progress.setProgressMessage(messageBuilder.buildExtractFileProgressMessage(ExtractFileStep.UPLOADING, Lang.PYTHON, locale));
+        progress.setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale));
+
+        return progress;
+    }
+
+    private Progress unzipProgress(long chatId, int jobId, int processMessageId) {
+        Locale locale = userService.getLocaleOrDefault((int) chatId);
+        Progress progress = new Progress();
+        progress.setChatId(chatId);
+        progress.setProgressMessageId(processMessageId);
+        progress.setProgressMessage(messageBuilder.buildUnzipProgressMessage(UnzipStep.DOWNLOADING, Lang.PYTHON, locale));
+
+        String completionMessage = messageBuilder.buildUnzipProgressMessage(UnzipStep.UNZIPPING, Lang.JAVA, locale);
+        progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 seconds"));
+        progress.setReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale));
 
         return progress;
     }
@@ -449,24 +456,30 @@ public class UnzipService {
             UnzipState unzipState = commandStateService.getState(item.getUserId(), CommandNames.UNZIP_COMMAND_NAME, true, UnzipState.class);
 
             try {
+                Locale locale = userService.getLocaleOrDefault(item.getUserId());
                 UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
 
+                int i = 2;
                 for (Map.Entry<Integer, ZipFileHeader> entry : unzipState.getFiles().entrySet()) {
                     if (unzipState.getFilesCache().containsKey(entry.getKey())) {
-                        mediaMessageService.sendFile(item.getUserId(), unzipState.getFilesCache().get(entry.getKey()));
+                        messageService.sendFile(item.getUserId(), unzipState.getFilesCache().get(entry.getKey()));
+                        String message = messageBuilder.buildExtractAllProgressMessage(unzipState.getFiles().size(), i, ExtractFileStep.EXTRACTING, Lang.JAVA, locale);
+                        messageService.editMessage(new EditMessageText(item.getUserId(), item.getMessageId(), String.format(message, 50, "7 seconds")));
                     } else {
                         SmartTempFile file = fileService.createTempFile(item.getUserId(), TAG, FilenameUtils.getExtension(entry.getValue().getPath()));
                         files.add(file);
                         unzipDevice.unzip(entry.getValue().getPath(), unzipState.getArchivePath(), file.getAbsolutePath());
 
                         String fileName = FilenameUtils.getName(entry.getValue().getPath());
-                        SendFileResult result = mediaMessageService.sendDocument(new SendDocument((long) item.getUserId(),
-                                fileName, file.getFile()).setCaption(fileName));
+                        SendFileResult result = messageService.sendDocument(new SendDocument((long) item.getUserId(), fileName, file.getFile())
+                                .setProgress(extractAllProgress(unzipState.getFiles().size(), i, item.getUserId(), item.getId(), item.getMessageId()))
+                                .setCaption(fileName));
                         if (result != null) {
                             unzipState.getFilesCache().put(entry.getKey(), result.getFileId());
                             commandStateService.setState(item.getUserId(), CommandNames.UNZIP_COMMAND_NAME, unzipState);
                         }
                     }
+                    ++i;
                 }
                 LOGGER.debug("Finish extract all({}, {})", item.getUserId(), size);
             } catch (Exception ex) {
@@ -555,7 +568,8 @@ public class UnzipService {
                 unzipDevice.unzip(fileHeader.getPath(), unzipState.getArchivePath(), out.getAbsolutePath());
 
                 String fileName = FilenameUtils.getName(fileHeader.getPath());
-                SendFileResult result = mediaMessageService.sendDocument(new SendDocument((long) userId, fileName, out.getFile())
+                SendFileResult result = messageService.sendDocument(new SendDocument((long) userId, fileName, out.getFile())
+                        .setProgress(extractFileProgress(userId, jobId, messageId))
                         .setCaption(fileName));
                 if (result != null) {
                     unzipState.getFilesCache().put(id, result.getFileId());
@@ -632,7 +646,6 @@ public class UnzipService {
         private volatile Supplier<Boolean> checker;
         private volatile boolean canceledByUser;
         private volatile SmartTempFile in;
-        private FileWorkObject fileWorkObject;
 
         private UnzipTask(UnzipQueueItem item) {
             this.jobId = item.getId();
@@ -642,19 +655,16 @@ public class UnzipService {
             this.format = item.getType();
             this.unzipDevice = getCandidate(item.getType());
             this.messageId = item.getMessageId();
-            this.fileWorkObject = fileManager.fileWorkObject(userId);
         }
 
         @Override
         public void run() {
-            fileWorkObject.start();
             String size = MemoryUtils.humanReadableByteCount(fileSize);
             LOGGER.debug("Start({}, {}, {}, {})", userId, size, format, fileId);
 
             try {
                 in = fileService.createTempFile(userId, fileId, TAG, format.getExt());
-                fileManager.downloadFileByFileId(fileId, fileSize,
-                        unzipProgress(userId, jobId, messageId, UnzipStep.DOWNLOADING, UnzipStep.UNZIPPING), in);
+                telegramService.downloadFileByFileId(fileId, fileSize, unzipProgress(userId, jobId, messageId), in);
                 UnzipState unzipState = initAndGetState(in.getAbsolutePath());
                 if (unzipState == null) {
                     return;
@@ -694,7 +704,6 @@ public class UnzipService {
                 if (!checker.get()) {
                     executor.complete(jobId);
                     queueService.delete(jobId);
-                    fileWorkObject.stop();
                 }
             }
         }
@@ -711,7 +720,7 @@ public class UnzipService {
 
         @Override
         public void cancel() {
-            if (!fileManager.cancelDownloading(fileId) && in != null) {
+            if (!telegramService.cancelDownloading(fileId) && in != null) {
                 in.smartDelete();
             }
             if (canceledByUser) {
@@ -719,7 +728,6 @@ public class UnzipService {
                 LOGGER.debug("Unzip canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(fileSize));
             }
             commandStateService.deleteState(userId, CommandNames.UNZIP_COMMAND_NAME);
-            fileWorkObject.stop();
         }
 
         @Override
