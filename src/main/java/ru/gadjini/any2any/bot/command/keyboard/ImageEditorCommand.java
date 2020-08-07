@@ -57,7 +57,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     @Autowired
     public ImageEditorCommand(LocalisationService localisationService,
-                              @Qualifier("limits") MessageService messageService, UserService userService,
+                              @Qualifier("messagelimits") MessageService messageService, UserService userService,
                               @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                               StateFather stateFather, FormatService formatService) {
         this.localisationService = localisationService;

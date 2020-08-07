@@ -7,12 +7,12 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.ConvertResult;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.service.html.HtmlDevice;
+import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.util.Set;
@@ -23,17 +23,17 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     public static final String TAG = "html2";
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private TempFileService fileService;
 
     private HtmlDevice htmlDevice;
 
     @Autowired
-    public Html2AnyConverter(FormatService formatService, TelegramService telegramService,
+    public Html2AnyConverter(FormatService formatService, FileManager fileManager,
                              TempFileService fileService, @Qualifier("api") HtmlDevice htmlDevice) {
         super(Set.of(Format.URL, Format.HTML), formatService);
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.fileService = fileService;
         this.htmlDevice = htmlDevice;
     }
@@ -51,7 +51,7 @@ public class Html2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile html = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), html);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), html);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 

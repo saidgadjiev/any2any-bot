@@ -3,10 +3,10 @@ package ru.gadjini.any2any.service.unzip;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.filter.TelegramLimitsFilter;
 import ru.gadjini.any2any.model.ZipFileHeader;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.progress.Lang;
+import ru.gadjini.any2any.service.message.TgLimitsMessageService;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
 import java.util.Collection;
@@ -69,7 +69,7 @@ public class UnzipMessageBuilder {
                     new Object[]{message.toString() + fileHeaderStr.toString()},
                     locale
             );
-            if (finalMessage.length() > TelegramLimitsFilter.TEXT_LENGTH_LIMIT) {
+            if (finalMessage.length() > TgLimitsMessageService.TEXT_LENGTH_LIMIT) {
                 return new FilesMessage(localisationService.getMessage(
                         MessagesProperties.MESSAGE_ARCHIVE_FILES_LIST,
                         new Object[]{message.toString()},

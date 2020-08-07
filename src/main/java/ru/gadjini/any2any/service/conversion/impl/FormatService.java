@@ -9,10 +9,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.FormatCategory;
+import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.utils.MimeTypeUtils;
 import ru.gadjini.any2any.utils.UrlUtils;
 
@@ -61,13 +61,13 @@ public class FormatService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FormatService.class);
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private TempFileService tempFileService;
 
     @Autowired
-    public FormatService(TelegramService telegramService, TempFileService tempFileService) {
-        this.telegramService = telegramService;
+    public FormatService(FileManager fileManager, TempFileService tempFileService) {
+        this.fileManager = fileManager;
         this.tempFileService = tempFileService;
     }
 
@@ -147,7 +147,7 @@ public class FormatService {
         SmartTempFile file = tempFileService.createTempFile(chatId, photoFileId, TAG, "tmp");
 
         try {
-            telegramService.downloadFileByFileId(photoFileId, file);
+            fileManager.downloadFileByFileId(photoFileId, file);
             return getImageFormat(file.getFile(), photoFileId);
         } finally {
             file.smartDelete();

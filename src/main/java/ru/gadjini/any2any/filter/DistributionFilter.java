@@ -22,7 +22,7 @@ public class DistributionFilter extends BaseBotFilter {
 
     @Autowired
     public DistributionFilter(DistributionJob distributionJob, DistributionService distributionService,
-                              @Qualifier("limits") MessageService messageService) {
+                              @Qualifier("messagelimits") MessageService messageService) {
         this.distributionJob = distributionJob;
         this.distributionService = distributionService;
         this.messageService = messageService;

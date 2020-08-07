@@ -17,7 +17,6 @@ import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
@@ -25,6 +24,8 @@ import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.file.FileManager;
+import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
@@ -47,11 +48,13 @@ public class StateFather implements State {
 
     private MessageService messageService;
 
+    private MediaMessageService mediaMessageService;
+
     private TempFileService tempFileService;
 
     private InlineKeyboardService inlineKeyboardService;
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private ImageConvertDevice imageDevice;
 
@@ -61,15 +64,15 @@ public class StateFather implements State {
 
     @Autowired
     public StateFather(CommandStateService commandStateService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
-                       @Qualifier("limits") MessageService messageService, TempFileService tempFileService,
-                       InlineKeyboardService inlineKeyboardService,
-                       TelegramService telegramService, ImageConvertDevice imageDevice, LocalisationService localisationService, UserService userService) {
+                       @Qualifier("messagelimits") MessageService messageService, @Qualifier("medialimits") MediaMessageService mediaMessageService, TempFileService tempFileService,
+                       InlineKeyboardService inlineKeyboardService, FileManager fileManager, ImageConvertDevice imageDevice, LocalisationService localisationService, UserService userService) {
         this.commandStateService = commandStateService;
         this.executor = executor;
         this.messageService = messageService;
+        this.mediaMessageService = mediaMessageService;
         this.tempFileService = tempFileService;
         this.inlineKeyboardService = inlineKeyboardService;
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.imageDevice = imageDevice;
         this.localisationService = localisationService;
         this.userService = userService;
@@ -171,12 +174,12 @@ public class StateFather implements State {
 
             SmartTempFile file = tempFileService.createTempFile(chatId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
             try {
-                telegramService.downloadFileByFileId(any2AnyFile.getFileId(), file);
+                fileManager.downloadFileByFileId(any2AnyFile.getFileId(), file);
                 SmartTempFile result = tempFileService.createTempFile(chatId, any2AnyFile.getFileId(), TAG, Format.PNG.getExt());
                 imageDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
                 EditorState state = createState(result.getAbsolutePath(), Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), Format.PNG.getExt()));
                 state.setLanguage(locale.getLanguage());
-                SendFileResult fileResult = messageService.sendDocument(new SendDocument(chatId, state.getFileName(), result.getFile())
+                SendFileResult fileResult = mediaMessageService.sendDocument(new SendDocument(chatId, state.getFileName(), result.getFile())
                         .setCaption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
                         .setReplyMarkup(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())));
                 state.setMessageId(fileResult.getMessageId());
@@ -198,10 +201,10 @@ public class StateFather implements State {
         try {
             File file = new File(state.getCurrentFilePath());
             if (file.length() > 0) {
-                messageService.sendDocument(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath())));
+                mediaMessageService.sendDocument(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath())));
                 messageService.deleteMessage(chatId, state.getMessageId());
             } else {
-                messageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId()));
+                mediaMessageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId()));
             }
             commandStateService.deleteState(chatId, command.getHistoryName());
             LOGGER.debug("State deleted({})", chatId);
@@ -241,10 +244,10 @@ public class StateFather implements State {
             try {
                 File file = new File(state.getCurrentFilePath());
                 if (file.length() > 0) {
-                    messageService.sendDocument(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath())));
+                    mediaMessageService.sendDocument(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath())));
                     messageService.deleteMessage(chatId, state.getMessageId());
                 } else {
-                    messageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId()));
+                    mediaMessageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId()));
                 }
             } catch (Exception ex) {
                 LOGGER.error(ex.getMessage(), ex);
@@ -260,9 +263,9 @@ public class StateFather implements State {
         }
 
         try {
-            telegramService.restoreFileIfNeed(editorState.getCurrentFilePath(), editorState.getCurrentFileId());
+            fileManager.restoreFileIfNeed(editorState.getCurrentFilePath(), editorState.getCurrentFileId());
             if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
-                telegramService.restoreFileIfNeed(editorState.getPrevFilePath(), editorState.getPrevFileId());
+                fileManager.restoreFileIfNeed(editorState.getPrevFilePath(), editorState.getPrevFileId());
             }
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);

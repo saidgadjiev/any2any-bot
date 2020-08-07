@@ -36,7 +36,7 @@ public class Any2AnyBotService {
     private CurrReplyKeyboard replyKeyboardService;
 
     @Autowired
-    public Any2AnyBotService(@Qualifier("limits") MessageService messageService, CommandExecutor commandExecutor,
+    public Any2AnyBotService(@Qualifier("messagelimits") MessageService messageService, CommandExecutor commandExecutor,
                              LocalisationService localisationService, UserService userService,
                              CommandNavigator commandNavigator, CurrReplyKeyboard replyKeyboardService) {
         this.messageService = messageService;

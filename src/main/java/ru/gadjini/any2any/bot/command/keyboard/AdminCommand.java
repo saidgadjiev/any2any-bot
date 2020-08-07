@@ -16,6 +16,7 @@ import ru.gadjini.any2any.service.cleaner.GarbageFileCollector;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.conversion.ConvertionService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
+import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 
 import java.util.HashSet;
@@ -31,6 +32,8 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     private MessageService messageService;
 
+    private MediaMessageService mediaMessageService;
+
     private ReplyKeyboardService replyKeyboardService;
 
     private UserService userService;
@@ -42,8 +45,10 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
     private Set<String> names = new HashSet<>();
 
     @Autowired
-    public AdminCommand(LocalisationService localisationService, GarbageFileCollector garbageFileCollector) {
+    public AdminCommand(LocalisationService localisationService, @Qualifier("medialimits") MediaMessageService mediaMessageService,
+                        GarbageFileCollector garbageFileCollector) {
         this.localisationService = localisationService;
+        this.mediaMessageService = mediaMessageService;
         this.garbageFileCollector = garbageFileCollector;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.ADMIN_COMMAND_NAME, locale));
@@ -56,7 +61,7 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
     }
 
     @Autowired
-    public void setMessageService(@Qualifier("limits") MessageService messageService) {
+    public void setMessageService(@Qualifier("messagelimits") MessageService messageService) {
         this.messageService = messageService;
     }
 
@@ -112,7 +117,7 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
             if (StringUtils.isNotBlank(fileId)) {
                 commandStateService.deleteState(message.getChatId(), CommandNames.ADMIN);
                 messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOAD_FILE_PROCESSING, locale)));
-                messageService.sendFile(message.getChatId(), fileId);
+                mediaMessageService.sendFile(message.getChatId(), fileId);
             }
         } else if (text.equals(localisationService.getMessage(MessagesProperties.EXECUTE_CONVERSION_COMMAND_NAME, locale))) {
             String jobIdStr = commandStateService.getState(message.getChatId(), CommandNames.ADMIN, false, String.class);

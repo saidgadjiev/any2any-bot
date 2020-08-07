@@ -1,6 +1,5 @@
 package ru.gadjini.any2any.service.message;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,22 +8,22 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.botapi.TelegramApiException;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
-import ru.gadjini.any2any.model.EditMediaResult;
-import ru.gadjini.any2any.model.SendFileResult;
-import ru.gadjini.any2any.model.bot.api.MediaType;
-import ru.gadjini.any2any.model.bot.api.method.send.*;
-import ru.gadjini.any2any.model.bot.api.method.updatemessages.*;
+import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.DeleteMessage;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageReplyMarkup;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.ChatMember;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.ParseMode;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
-import ru.gadjini.any2any.service.FileService;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 
 import java.util.Locale;
+import java.util.function.Consumer;
 
 @Service
 @Qualifier("message")
@@ -34,14 +33,12 @@ public class MessageServiceImpl implements MessageService {
 
     private LocalisationService localisationService;
 
-    private FileService fileService;
-
     private TelegramService telegramService;
 
     @Autowired
-    public MessageServiceImpl(LocalisationService localisationService, FileService fileService, TelegramService telegramService) {
+    public MessageServiceImpl(LocalisationService localisationService,
+                              TelegramService telegramService) {
         this.localisationService = localisationService;
-        this.fileService = fileService;
         this.telegramService = telegramService;
     }
 
@@ -72,13 +69,13 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public Message sendMessage(SendMessage sendMessage) {
-        try {
-            return telegramService.sendMessage(sendMessage);
-        } catch (TelegramApiRequestException ex) {
-            LOGGER.error("Error send message({})", sendMessage);
-            throw ex;
-        }
+    public void sendMessage(SendMessage sendMessage) {
+        sendMessage(sendMessage, null);
+    }
+
+    @Override
+    public void sendMessage(SendMessage sendMessage, Consumer<Message> callback) {
+        sendMessage0(sendMessage, callback);
     }
 
     @Override
@@ -109,17 +106,6 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public void editReplyKeyboard(long chatId, int messageId, InlineKeyboardMarkup replyKeyboard) {
-        EditMessageReplyMarkup editMessageReplyMarkup = new EditMessageReplyMarkup(chatId, messageId);
-
-        try {
-            telegramService.editReplyMarkup(editMessageReplyMarkup);
-        } catch (TelegramApiException ex) {
-            LOGGER.error(ex.getMessage(), ex);
-        }
-    }
-
-    @Override
     public void editMessageCaption(EditMessageCaption editMessageCaption) {
         editMessageCaption.setParseMode(ParseMode.HTML);
 
@@ -128,21 +114,6 @@ public class MessageServiceImpl implements MessageService {
         } catch (TelegramApiException e) {
             LOGGER.error(e.getMessage(), e);
         }
-    }
-
-    @Override
-    public EditMediaResult editMessageMedia(EditMessageMedia editMessageMedia) {
-        if (StringUtils.isNotBlank(editMessageMedia.getMedia().getCaption())) {
-            editMessageMedia.getMedia().setParseMode(ParseMode.HTML);
-        }
-        Message message = telegramService.editMessageMedia(editMessageMedia);
-
-        return new EditMediaResult(fileService.getFileId(message));
-    }
-
-    @Override
-    public void sendSticker(SendSticker sendSticker) {
-        telegramService.sendSticker(sendSticker);
     }
 
     @Override
@@ -155,73 +126,8 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public SendFileResult sendDocument(SendDocument sendDocument) {
-        if (StringUtils.isNotBlank(sendDocument.getCaption())) {
-            sendDocument.setParseMode(ParseMode.HTML);
-        }
-
-        Message message = telegramService.sendDocument(sendDocument);
-
-        return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
-    }
-
-    @Override
-    public SendFileResult sendPhoto(SendPhoto sendPhoto) {
-        Message message = telegramService.sendPhoto(sendPhoto);
-
-        return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
-    }
-
-    @Override
-    public SendFileResult sendVideo(SendVideo sendVideo) {
-        if (StringUtils.isNotBlank(sendVideo.getCaption())) {
-            sendVideo.setParseMode(ParseMode.HTML);
-        }
-
-        Message message = telegramService.sendVideo(sendVideo);
-
-        return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
-    }
-
-    @Override
-    public SendFileResult sendAudio(SendAudio sendAudio) {
-        if (StringUtils.isNotBlank(sendAudio.getCaption())) {
-            sendAudio.setParseMode(ParseMode.HTML);
-        }
-
-        Message message = telegramService.sendAudio(sendAudio);
-
-        return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
-    }
-
-    @Override
     public void sendErrorMessage(long chatId, Locale locale) {
         sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ERROR, locale)));
-    }
-
-    @Override
-    public MediaType getMediaType(String fileId) {
-        return telegramService.getMediaType(fileId);
-    }
-
-    @Override
-    public void sendFile(long chatId, String fileId) {
-        MediaType mediaType = getMediaType(fileId);
-
-        switch (mediaType) {
-            case PHOTO:
-                sendPhoto(new SendPhoto(chatId, fileId));
-                break;
-            case VIDEO:
-                sendVideo(new SendVideo(chatId, fileId));
-                break;
-            case AUDIO:
-                sendAudio(new SendAudio(chatId, fileId));
-                break;
-            default:
-                sendDocument(new SendDocument(chatId, fileId));
-                break;
-        }
     }
 
     @Override
@@ -230,5 +136,18 @@ public class MessageServiceImpl implements MessageService {
                 new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_BOT_RESTARTED, locale))
                         .setReplyMarkup(replyKeyboard)
         );
+    }
+
+    private void sendMessage0(SendMessage sendMessage, Consumer<Message> callback) {
+        try {
+            Message message = telegramService.sendMessage(sendMessage);
+
+            if (callback != null) {
+                callback.accept(message);
+            }
+        } catch (TelegramApiRequestException ex) {
+            LOGGER.error("Error send message({})", sendMessage);
+            throw ex;
+        }
     }
 }

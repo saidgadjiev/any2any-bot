@@ -307,6 +307,10 @@ public class MessagesProperties {
 
     public static final String MESSAGE_COLLECTED_GARBAGE = "message.collected.garbage";
 
+    public static final String MESSAGE_INPUT_FILE_WAIT = "message.input.file.wait";
+
+    public static final String MESSAGE_INPUT_FILE_WAIT_TTL = "message.input.file.wait.ttl";
+
     public static final String MESSAGE_DOWNLOADING_STEP = "message.downloading.step";
 
     public static final String MESSAGE_RENAMING_STEP_TWO = "message.renaming.step";

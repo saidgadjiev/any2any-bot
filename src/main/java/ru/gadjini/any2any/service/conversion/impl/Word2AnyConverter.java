@@ -10,11 +10,11 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.domain.ConversionQueueItem;
 import ru.gadjini.any2any.exception.ConvertException;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
 import ru.gadjini.any2any.service.conversion.device.ConvertDevice;
+import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.util.Set;
@@ -27,17 +27,17 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
 
     private static final Set<Format> ACCEPT_FORMATS = Set.of(Format.DOC, Format.DOCX);
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private TempFileService fileService;
 
     private ConvertDevice convertDevice;
 
     @Autowired
-    public Word2AnyConverter(TelegramService telegramService, TempFileService fileService,
+    public Word2AnyConverter(FileManager fileManager, TempFileService fileService,
                              FormatService formatService, @Qualifier("calibre") ConvertDevice convertDevice) {
         super(ACCEPT_FORMATS, formatService);
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.fileService = fileService;
         this.convertDevice = convertDevice;
     }
@@ -62,7 +62,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
@@ -95,7 +95,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
@@ -116,7 +116,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 
@@ -151,7 +151,7 @@ public class Word2AnyConverter extends BaseAny2AnyConverter<FileResult> {
         SmartTempFile file = fileService.createTempFile(fileQueueItem.getUserId(), fileQueueItem.getFileId(), TAG, fileQueueItem.getFormat().getExt());
 
         try {
-            telegramService.downloadFileByFileId(fileQueueItem.getFileId(), file);
+            fileManager.downloadFileByFileId(fileQueueItem.getFileId(), file);
             StopWatch stopWatch = new StopWatch();
             stopWatch.start();
 

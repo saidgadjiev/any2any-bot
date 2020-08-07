@@ -81,7 +81,7 @@ public class SchedulerConfiguration {
     @Bean
     public TaskScheduler jobsThreadPoolTaskScheduler() {
         ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setPoolSize(1);
+        threadPoolTaskScheduler.setPoolSize(Runtime.getRuntime().availableProcessors());
         threadPoolTaskScheduler.setThreadNamePrefix("JobsThreadPoolTaskScheduler");
         threadPoolTaskScheduler.setErrorHandler(ex -> {
             if (userService.deadlock(ex)) {

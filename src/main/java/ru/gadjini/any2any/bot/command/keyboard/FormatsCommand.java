@@ -30,7 +30,7 @@ public class FormatsCommand implements KeyboardBotCommand, BotCommand {
     private Set<String> names = new HashSet<>();
 
     @Autowired
-    public FormatsCommand(@Qualifier("limits") MessageService messageService, LocalisationService localisationService, UserService userService) {
+    public FormatsCommand(@Qualifier("messagelimits") MessageService messageService, LocalisationService localisationService, UserService userService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;

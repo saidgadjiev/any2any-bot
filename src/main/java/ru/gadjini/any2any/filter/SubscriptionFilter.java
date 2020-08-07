@@ -30,7 +30,7 @@ public class SubscriptionFilter extends BaseBotFilter {
     private UserService userService;
 
     @Autowired
-    public SubscriptionFilter(@Qualifier("limits") MessageService messageService, LocalisationService localisationService, UserService userService) {
+    public SubscriptionFilter(@Qualifier("messagelimits") MessageService messageService, LocalisationService localisationService, UserService userService) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;

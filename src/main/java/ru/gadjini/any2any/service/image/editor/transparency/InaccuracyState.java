@@ -40,7 +40,7 @@ public class InaccuracyState implements State {
 
     @Autowired
     public InaccuracyState(CommandStateService commandStateService, InlineKeyboardService inlineKeyboardService,
-                           @Qualifier("limits") MessageService messageService, EditMessageBuilder messageBuilder, LocalisationService localisationService) {
+                           @Qualifier("messagelimits") MessageService messageService, EditMessageBuilder messageBuilder, LocalisationService localisationService) {
         this.commandStateService = commandStateService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.messageService = messageService;

@@ -34,7 +34,7 @@ public class ModeState implements State {
     private LocalisationService localisationService;
 
     @Autowired
-    public ModeState(@Qualifier("limits") MessageService messageService, InlineKeyboardService inlineKeyboardService,
+    public ModeState(@Qualifier("messagelimits") MessageService messageService, InlineKeyboardService inlineKeyboardService,
                      CommandStateService commandStateService, EditMessageBuilder messageBuilder, LocalisationService localisationService) {
         this.messageService = messageService;
         this.inlineKeyboardService = inlineKeyboardService;

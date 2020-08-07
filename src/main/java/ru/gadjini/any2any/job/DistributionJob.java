@@ -30,7 +30,7 @@ public class DistributionJob {
     private DistributionService distributionService;
 
     @Autowired
-    public DistributionJob(@Qualifier("limits") MessageService messageService, UserService userService, DistributionService distributionService) {
+    public DistributionJob(@Qualifier("messagelimits") MessageService messageService, UserService userService, DistributionService distributionService) {
         this.messageService = messageService;
         this.userService = userService;
         this.distributionService = distributionService;

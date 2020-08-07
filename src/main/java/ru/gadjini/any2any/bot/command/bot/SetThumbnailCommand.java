@@ -50,7 +50,7 @@ public class SetThumbnailCommand implements BotCommand, NavigableBotCommand {
 
     @Autowired
     public SetThumbnailCommand(CommandStateService commandStateService,
-                               @Qualifier("limits") MessageService messageService, LocalisationService localisationService,
+                               @Qualifier("messagelimits") MessageService messageService, LocalisationService localisationService,
                                UserService userService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                                FileService fileService) {
         this.commandStateService = commandStateService;

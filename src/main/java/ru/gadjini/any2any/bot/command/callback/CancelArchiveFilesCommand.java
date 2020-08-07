@@ -29,7 +29,7 @@ public class CancelArchiveFilesCommand implements CallbackBotCommand {
     private UserService userService;
 
     @Autowired
-    public CancelArchiveFilesCommand(CommandStateService commandStateService, @Qualifier("limits") MessageService messageService,
+    public CancelArchiveFilesCommand(CommandStateService commandStateService, @Qualifier("messagelimits") MessageService messageService,
                                      LocalisationService localisationService, UserService userService) {
         this.commandStateService = commandStateService;
         this.messageService = messageService;

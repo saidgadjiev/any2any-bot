@@ -23,6 +23,7 @@ import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.ImageEditorState;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 
 import java.io.File;
@@ -43,6 +44,8 @@ public class FilterState implements State {
 
     private MessageService messageService;
 
+    private MediaMessageService mediaMessageService;
+
     private InlineKeyboardService inlineKeyboardService;
 
     private LocalisationService localisationService;
@@ -51,13 +54,14 @@ public class FilterState implements State {
 
     @Autowired
     public FilterState(CommandStateService commandStateService, ImageConvertDevice imageDevice,
-                       TempFileService tempFileService, @Qualifier("limits") MessageService messageService,
-                       InlineKeyboardService inlineKeyboardService, LocalisationService localisationService,
+                       TempFileService tempFileService, @Qualifier("messagelimits") MessageService messageService,
+                       @Qualifier("medialimits") MediaMessageService mediaMessageService, InlineKeyboardService inlineKeyboardService, LocalisationService localisationService,
                        @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor) {
         this.commandStateService = commandStateService;
         this.imageDevice = imageDevice;
         this.tempFileService = tempFileService;
         this.messageService = messageService;
+        this.mediaMessageService = mediaMessageService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.localisationService = localisationService;
         this.executor = executor;
@@ -78,7 +82,7 @@ public class FilterState implements State {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         messageService.deleteMessage(chatId, editorState.getMessageId());
         Locale locale = new Locale(editorState.getLanguage());
-        SendFileResult sendFileResult = messageService.sendDocument(new SendDocument(chatId, editorState.getFileName(), new File(editorState.getCurrentFilePath()))
+        SendFileResult sendFileResult = mediaMessageService.sendDocument(new SendDocument(chatId, editorState.getFileName(), new File(editorState.getCurrentFilePath()))
                 .setReplyMarkup(inlineKeyboardService.getImageFiltersKeyboard(locale, editorState.canCancel())));
 
         editorState.setCurrentFileId(sendFileResult.getFileId());
@@ -99,7 +103,7 @@ public class FilterState implements State {
             editorState.setPrevFilePath(null);
             editorState.setPrevFileId(null);
 
-            messageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
+            mediaMessageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
                     .setReplyMarkup(inlineKeyboardService.getImageFiltersKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
 
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
@@ -113,7 +117,7 @@ public class FilterState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
-        messageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId())
+        mediaMessageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId())
                 .setReplyMarkup(inlineKeyboardService.getImageFiltersKeyboard(new Locale(state.getLanguage()), state.canCancel())));
     }
 
@@ -141,7 +145,7 @@ public class FilterState implements State {
             editorState.setPrevFileId(editorState.getCurrentFileId());
             editorState.setCurrentFilePath(result.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
-            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMessageMedia(chatId,
+            EditMediaResult editMediaResult = mediaMessageService.editMessageMedia(new EditMessageMedia(chatId,
                     editorState.getMessageId(), editorState.getFileName(), result.getFile())
                     .setReplyMarkup(inlineKeyboardService.getImageFiltersKeyboard(locale, editorState.canCancel())));
             editorState.setCurrentFileId(editMediaResult.getFileId());

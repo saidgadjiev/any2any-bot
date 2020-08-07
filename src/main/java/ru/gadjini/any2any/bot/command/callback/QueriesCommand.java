@@ -45,7 +45,7 @@ public class QueriesCommand implements KeyboardBotCommand, NavigableCallbackBotC
 
     @Autowired
     public QueriesCommand(ConversionQueueService fileQueueService, LocalisationService localisationService,
-                          @Qualifier("limits") MessageService messageService, UserService userService, InlineKeyboardService inlineKeyboardService,
+                          @Qualifier("messagelimits") MessageService messageService, UserService userService, InlineKeyboardService inlineKeyboardService,
                           ConversionQueueMessageBuilder messageBuilder) {
         this.fileQueueService = fileQueueService;
         this.userService = userService;

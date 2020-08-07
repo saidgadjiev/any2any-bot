@@ -60,7 +60,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
     private InlineKeyboardService inlineKeyboardService;
 
     @Autowired
-    public ArchiveCommand(ArchiveService archiveService, LocalisationService localisationService, @Qualifier("limits") MessageService messageService,
+    public ArchiveCommand(ArchiveService archiveService, LocalisationService localisationService, @Qualifier("messagelimits") MessageService messageService,
                           CommandStateService commandStateService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                           UserService userService, FormatService formatService, FileService fileService, InlineKeyboardService inlineKeyboardService) {
         this.archiveService = archiveService;

@@ -59,7 +59,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
 
     @Autowired
     public UnzipCommand(LocalisationService localisationService, UnzipService unzipService,
-                        @Qualifier("limits") MessageService messageService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
+                        @Qualifier("messagelimits") MessageService messageService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                         UserService userService, FormatService formatService, FileService fileService, CommandStateService commandStateService) {
         this.localisationService = localisationService;
         this.unzipService = unzipService;
@@ -117,7 +117,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
         unzipService.removeAndCancelCurrentTasks(message.getChatId());
         UnzipState unzipState = createState(file.getFormat());
         commandStateService.setState(message.getChatId(), CommandNames.UNZIP_COMMAND_NAME, unzipState);
-        unzipService.unzip(message.getFromUser().getId(), file, locale);
+        unzipService.unzip(message.getFromUser().getId(), message.getMessageId(), file, locale);
     }
 
     @Override

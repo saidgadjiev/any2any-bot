@@ -36,7 +36,7 @@ public class TransparencyState implements State {
     private EditMessageBuilder messageBuilder;
 
     @Autowired
-    public TransparencyState(@Qualifier("limits") MessageService messageService,
+    public TransparencyState(@Qualifier("messagelimits") MessageService messageService,
                              InlineKeyboardService inlineKeyboardService, CommandStateService commandStateService, EditMessageBuilder messageBuilder) {
         this.messageService = messageService;
         this.inlineKeyboardService = inlineKeyboardService;

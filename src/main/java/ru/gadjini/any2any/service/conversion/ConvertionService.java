@@ -17,14 +17,16 @@ import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendSticker;
 import ru.gadjini.any2any.model.bot.api.object.User;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Any2AnyConverter;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.result.ConvertResult;
 import ru.gadjini.any2any.service.conversion.api.result.FileResult;
+import ru.gadjini.any2any.service.file.FileManager;
+import ru.gadjini.any2any.service.file.FileWorkObject;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.conversion.ConversionQueueService;
 import ru.gadjini.any2any.utils.MemoryUtils;
@@ -47,6 +49,8 @@ public class ConvertionService {
 
     private MessageService messageService;
 
+    private MediaMessageService mediaMessageService;
+
     private ConversionQueueService queueService;
 
     private LocalisationService localisationService;
@@ -55,18 +59,19 @@ public class ConvertionService {
 
     private SmartExecutorService executor;
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     @Autowired
-    public ConvertionService(@Qualifier("limits") MessageService messageService,
-                             LocalisationService localisationService, UserService userService,InlineKeyboardService inlineKeyboardService,
-                             ConversionQueueService queueService, TelegramService telegramService) {
+    public ConvertionService(@Qualifier("messagelimits") MessageService messageService,
+                             LocalisationService localisationService, UserService userService, InlineKeyboardService inlineKeyboardService,
+                             @Qualifier("medialimits") MediaMessageService mediaMessageService, ConversionQueueService queueService, FileManager fileManager) {
         this.messageService = messageService;
         this.localisationService = localisationService;
         this.userService = userService;
         this.inlineKeyboardService = inlineKeyboardService;
+        this.mediaMessageService = mediaMessageService;
         this.queueService = queueService;
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
     }
 
     @PostConstruct
@@ -114,6 +119,7 @@ public class ConvertionService {
     public ConversionQueueItem convert(User user, ConvertState convertState, Format targetFormat) {
         ConversionQueueItem queueItem = queueService.createProcessingItem(user, convertState, targetFormat);
 
+        fileManager.setInputFilePending(user.getId(), convertState.getMessageId());
         executor.execute(new ConversionTask(queueItem));
 
         return queueItem;
@@ -169,13 +175,17 @@ public class ConvertionService {
 
         private volatile boolean canceledByUser;
 
+        private FileWorkObject fileWorkObject;
+
         private ConversionTask(ConversionQueueItem fileQueueItem) {
             this.fileQueueItem = fileQueueItem;
+            this.fileWorkObject = fileManager.fileWorkObject(fileQueueItem.getUserId());
         }
 
         @Override
         public void run() {
             try {
+                fileWorkObject.start();
                 Any2AnyConverter<ConvertResult> candidate = getCandidate(fileQueueItem);
                 if (candidate != null) {
                     String size = MemoryUtils.humanReadableByteCount(fileQueueItem.getSize());
@@ -211,6 +221,7 @@ public class ConvertionService {
             } finally {
                 if (!checker.get()) {
                     executor.complete(fileQueueItem.getId());
+                    fileWorkObject.stop();
                 }
             }
         }
@@ -222,13 +233,14 @@ public class ConvertionService {
 
         @Override
         public void cancel() {
-            telegramService.cancelDownloading(fileQueueItem.getFileId());
+            fileManager.cancelDownloading(fileQueueItem.getFileId());
             if (canceledByUser) {
                 queueService.delete(fileQueueItem.getId());
                 LOGGER.debug("Canceled({}, {}, {}, {}, {})", fileQueueItem.getUserId(), fileQueueItem.getFormat(),
                         fileQueueItem.getTargetFormat(), MemoryUtils.humanReadableByteCount(fileQueueItem.getSize()), fileQueueItem.getFileId());
             }
             executor.complete(fileQueueItem.getId());
+            fileWorkObject.stop();
         }
 
         @Override
@@ -265,12 +277,12 @@ public class ConvertionService {
                             .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                             .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                     try {
-                        messageService.sendDocument(sendDocumentContext);
+                        mediaMessageService.sendDocument(sendDocumentContext);
                     } catch (TelegramApiRequestException ex) {
                         if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
                             LOGGER.debug("Reply message not found try send without reply");
                             sendDocumentContext.setReplyToMessageId(null);
-                            messageService.sendDocument(sendDocumentContext);
+                            mediaMessageService.sendDocument(sendDocumentContext);
                         } else {
                             throw ex;
                         }
@@ -282,12 +294,12 @@ public class ConvertionService {
                             .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                             .setReplyMarkup(inlineKeyboardService.reportKeyboard(fileQueueItem.getId(), locale));
                     try {
-                        messageService.sendSticker(sendFileContext);
+                        mediaMessageService.sendSticker(sendFileContext);
                     } catch (TelegramApiRequestException ex) {
                         if (ex.getErrorCode() == 400 && ex.getMessage().contains("reply message not found")) {
                             LOGGER.debug("Reply message not found try send without reply");
                             sendFileContext.setReplyToMessageId(null);
-                            messageService.sendSticker(sendFileContext);
+                            mediaMessageService.sendSticker(sendFileContext);
                         } else {
                             throw ex;
                         }

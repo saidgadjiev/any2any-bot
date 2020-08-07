@@ -20,7 +20,6 @@ import ru.gadjini.any2any.model.bot.api.object.PhotoSize;
 import ru.gadjini.any2any.model.bot.api.object.Sticker;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
@@ -29,6 +28,7 @@ import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.api.FormatCategory;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
+import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.conversion.ConversionQueueMessageBuilder;
 
@@ -62,15 +62,15 @@ public class ConvertMaker {
 
     private FormatService formatService;
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private TempFileService fileService;
 
     @Autowired
     public ConvertMaker(CommandStateService commandStateService, UserService userService,
-                        ConvertionService conversionService, ConversionQueueMessageBuilder queueMessageBuilder, @Qualifier("limits") MessageService messageService,
+                        ConvertionService conversionService, ConversionQueueMessageBuilder queueMessageBuilder, @Qualifier("messagelimits") MessageService messageService,
                         LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
-                        FormatService formatService, TelegramService telegramService, TempFileService fileService) {
+                        FormatService formatService, FileManager fileManager, TempFileService fileService) {
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.conversionService = conversionService;
@@ -79,7 +79,7 @@ public class ConvertMaker {
         this.localisationService = localisationService;
         this.replyKeyboardService = replyKeyboardService;
         this.formatService = formatService;
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.fileService = fileService;
     }
 
@@ -153,7 +153,7 @@ public class ConvertMaker {
         SmartTempFile file = fileService.createTempFile(chatId, fileId, TAG, Format.HTML.getExt());
 
         try {
-            telegramService.downloadFileByFileId(fileId, file);
+            fileManager.downloadFileByFileId(fileId, file);
 
             Document parse = Jsoup.parse(file.getFile(), StandardCharsets.UTF_8.name());
             Elements base = parse.head().getElementsByTag("base");

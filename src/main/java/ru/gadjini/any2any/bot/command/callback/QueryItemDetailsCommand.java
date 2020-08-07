@@ -33,7 +33,7 @@ public class QueryItemDetailsCommand implements CallbackBotCommand {
 
     @Autowired
     public QueryItemDetailsCommand(ConversionQueueService fileQueueService, ConversionQueueMessageBuilder messageBuilder,
-                                   UserService userService, @Qualifier("limits") MessageService messageService,
+                                   UserService userService, @Qualifier("messagelimits") MessageService messageService,
                                    InlineKeyboardService inlineKeyboardService) {
         this.fileQueueService = fileQueueService;
         this.messageBuilder = messageBuilder;

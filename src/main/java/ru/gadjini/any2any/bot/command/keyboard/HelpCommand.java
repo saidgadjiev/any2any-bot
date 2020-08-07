@@ -32,7 +32,7 @@ public class HelpCommand implements KeyboardBotCommand, BotCommand {
     private CommandMessageBuilder commandMessageBuilder;
 
     @Autowired
-    public HelpCommand(@Qualifier("limits") MessageService messageService, LocalisationService localisationService,
+    public HelpCommand(@Qualifier("messagelimits") MessageService messageService, LocalisationService localisationService,
                        UserService userService, CommandMessageBuilder commandMessageBuilder) {
         this.messageService = messageService;
         this.localisationService = localisationService;

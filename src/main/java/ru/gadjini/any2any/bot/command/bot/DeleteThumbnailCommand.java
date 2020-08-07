@@ -34,7 +34,7 @@ public class DeleteThumbnailCommand implements BotCommand {
     private CommandNavigator commandNavigator;
 
     @Autowired
-    public DeleteThumbnailCommand(CommandStateService commandStateService, @Qualifier("limits") MessageService messageService,
+    public DeleteThumbnailCommand(CommandStateService commandStateService, @Qualifier("messagelimits") MessageService messageService,
                                   LocalisationService localisationService, UserService userService) {
         this.commandStateService = commandStateService;
         this.messageService = messageService;

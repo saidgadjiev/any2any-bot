@@ -47,7 +47,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
 
     @Autowired
     public RenameCommand(LocalisationService localisationService, CommandStateService commandStateService,
-                         @Qualifier("limits") MessageService messageService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
+                         @Qualifier("messagelimits") MessageService messageService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                          UserService userService, RenameService renameService, FileService fileService) {
         this.commandStateService = commandStateService;
         this.localisationService = localisationService;

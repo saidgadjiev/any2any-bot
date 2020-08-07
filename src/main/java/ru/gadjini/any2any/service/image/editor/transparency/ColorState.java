@@ -27,6 +27,7 @@ import ru.gadjini.any2any.service.image.editor.EditMessageBuilder;
 import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 
 import java.io.File;
@@ -49,6 +50,8 @@ public class ColorState implements State {
 
     private MessageService messageService;
 
+    private MediaMessageService mediaMessageService;
+
     private InlineKeyboardService inlineKeyboardService;
 
     private ThreadPoolTaskExecutor executor;
@@ -62,12 +65,14 @@ public class ColorState implements State {
     private LocalisationService localisationService;
 
     @Autowired
-    public ColorState(CommandStateService commandStateService, @Qualifier("limits") MessageService messageService,
-                      InlineKeyboardService inlineKeyboardService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
+    public ColorState(CommandStateService commandStateService, @Qualifier("messagelimits") MessageService messageService,
+                      @Qualifier("medialimits") MediaMessageService mediaMessageService, InlineKeyboardService inlineKeyboardService,
+                      @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
                       TempFileService fileService, ImageConvertDevice imageDevice, EditMessageBuilder messageBuilder,
                       LocalisationService localisationService) {
         this.commandStateService = commandStateService;
         this.messageService = messageService;
+        this.mediaMessageService = mediaMessageService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.executor = executor;
         this.fileService = fileService;
@@ -91,7 +96,8 @@ public class ColorState implements State {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         messageService.deleteMessage(chatId, state.getMessageId());
         Locale locale = new Locale(state.getLanguage());
-        SendFileResult sendFileResult = messageService.sendDocument(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath()))
+
+        SendFileResult sendFileResult = mediaMessageService.sendDocument(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath()))
                 .setCaption(messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, locale))
                 .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(locale, state.canCancel())));
@@ -143,7 +149,7 @@ public class ColorState implements State {
             editorState.setPrevFileId(editorState.getCurrentFileId());
             editorState.setCurrentFilePath(tempFile.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
-            EditMediaResult editMediaResult = messageService.editMessageMedia(new EditMessageMedia(chatId,
+            EditMediaResult editMediaResult = mediaMessageService.editMessageMedia(new EditMessageMedia(chatId,
                     editorState.getMessageId(), editorState.getFileName(), tempFile.getFile(), messageBuilder.getSettingsStr(editorState) + "\n\n"
                     + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_TRANSPARENT_COLOR_WELCOME, locale))
                     .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(locale, editorState.canCancel())));
@@ -168,7 +174,7 @@ public class ColorState implements State {
             editorState.setPrevFilePath(null);
             editorState.setPrevFileId(null);
 
-            messageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), editorState.getCurrentFileId(), messageBuilder.getSettingsStr(editorState))
+            mediaMessageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), editorState.getCurrentFileId(), messageBuilder.getSettingsStr(editorState))
                     .setReplyMarkup(inlineKeyboardService.getColorsKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 

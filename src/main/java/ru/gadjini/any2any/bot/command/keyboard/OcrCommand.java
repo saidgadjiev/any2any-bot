@@ -51,7 +51,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
     @Autowired
     public OcrCommand(OcrService ocrService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
                       UserService userService, LocalisationService localisationService,
-                      @Qualifier("limits") MessageService messageService, FormatService formatService) {
+                      @Qualifier("messagelimits") MessageService messageService, FormatService formatService) {
         this.ocrService = ocrService;
         this.replyKeyboardService = replyKeyboardService;
         this.userService = userService;

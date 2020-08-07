@@ -29,7 +29,7 @@ public class ConversionReportCommand implements CallbackBotCommand {
     private LocalisationService localisationService;
 
     @Autowired
-    public ConversionReportCommand(ConversinoReportService fileReportService, @Qualifier("limits") MessageService messageService,
+    public ConversionReportCommand(ConversinoReportService fileReportService, @Qualifier("messagelimits") MessageService messageService,
                                    UserService userService, LocalisationService localisationService) {
         this.fileReportService = fileReportService;
         this.messageService = messageService;

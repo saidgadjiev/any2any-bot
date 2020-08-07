@@ -30,7 +30,7 @@ public class CancelQueryCommand implements CallbackBotCommand {
     private UserService userService;
 
     @Autowired
-    public CancelQueryCommand(ConvertionService convertionService, @Qualifier("limits") MessageService messageService,
+    public CancelQueryCommand(ConvertionService convertionService, @Qualifier("messagelimits") MessageService messageService,
                               LocalisationService localisationService, UserService userService) {
         this.convertionService = convertionService;
         this.messageService = messageService;

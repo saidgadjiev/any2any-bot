@@ -19,13 +19,15 @@ import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.service.file.FileWorkObject;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.file.FileManager;
+import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.archive.ArchiveQueueService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
@@ -51,11 +53,13 @@ public class ArchiveService {
 
     private SmartExecutorService executor;
 
-    private TelegramService telegramService;
+    private FileManager fileManager;
 
     private LocalisationService localisationService;
 
     private MessageService messageService;
+
+    private MediaMessageService mediaMessageService;
 
     private UserService userService;
 
@@ -67,15 +71,17 @@ public class ArchiveService {
 
     @Autowired
     public ArchiveService(Set<ArchiveDevice> archiveDevices, TempFileService fileService,
-                          TelegramService telegramService, LocalisationService localisationService,
-                          @Qualifier("limits") MessageService messageService, UserService userService,
+                          FileManager fileManager, LocalisationService localisationService,
+                          @Qualifier("messagelimits") MessageService messageService,
+                          @Qualifier("medialimits") MediaMessageService mediaMessageService, UserService userService,
                           ArchiveQueueService archiveQueueService, CommandStateService commandStateService,
                           InlineKeyboardService inlineKeyboardService) {
         this.archiveDevices = archiveDevices;
         this.fileService = fileService;
-        this.telegramService = telegramService;
+        this.fileManager = fileManager;
         this.localisationService = localisationService;
         this.messageService = messageService;
+        this.mediaMessageService = mediaMessageService;
         this.userService = userService;
         this.archiveQueueService = archiveQueueService;
         this.commandStateService = commandStateService;
@@ -139,6 +145,7 @@ public class ArchiveService {
 
         ArchiveQueueItem item = archiveQueueService.createProcessingItem(userId, archiveState.getFiles(), format);
         startArchiveCreating(userId, item.getId());
+        fileManager.setInputFilePending(userId, null);
         executor.execute(new ArchiveTask(item));
     }
 
@@ -239,16 +246,20 @@ public class ArchiveService {
 
         private volatile boolean canceledByUser;
 
+        private FileWorkObject fileWorkObject;
+
         private ArchiveTask(ArchiveQueueItem item) {
             this.jobId = item.getId();
             this.archiveFiles = item.getFiles();
             this.totalFileSize = item.getTotalFileSize();
             this.userId = item.getUserId();
             this.type = item.getType();
+            this.fileWorkObject = fileManager.fileWorkObject(userId);
         }
 
         @Override
         public void run() {
+            fileWorkObject.start();
             String size;
             try {
                 size = MemoryUtils.humanReadableByteCount(totalFileSize);
@@ -262,7 +273,7 @@ public class ArchiveService {
                 renameFiles(archiveDevice, archive.getAbsolutePath(), downloadResult.originalFileNames, downloadResult.downloadedNames);
 
                 String fileName = Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), type.getExt());
-                messageService.sendDocument(new SendDocument((long) userId, fileName, archive.getFile()));
+                mediaMessageService.sendDocument(new SendDocument((long) userId, fileName, archive.getFile()));
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, type);
             } catch (Exception ex) {
@@ -280,6 +291,7 @@ public class ArchiveService {
                     if (archive != null) {
                         archive.smartDelete();
                     }
+                    fileWorkObject.stop();
                 }
             }
         }
@@ -291,15 +303,16 @@ public class ArchiveService {
 
         @Override
         public void cancel() {
-            archiveFiles.forEach(tgFile -> telegramService.cancelDownloading(tgFile.getFileId()));
-            if (canceledByUser) {
-                LOGGER.debug("Canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(totalFileSize));
-            }
+            archiveFiles.forEach(tgFile -> fileManager.cancelDownloading(tgFile.getFileId()));
             files.forEach(SmartTempFile::smartDelete);
             files.clear();
 
             if (archive != null) {
                 archive.smartDelete();
+            }
+            if (canceledByUser) {
+                fileWorkObject.stop();
+                LOGGER.debug("Canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(totalFileSize));
             }
         }
 
@@ -331,7 +344,7 @@ public class ArchiveService {
             int i = 1;
             for (TgFile tgFile : tgFiles) {
                 SmartTempFile file = fileService.createTempFile(userId, tgFile.getFileId(), TAG, FilenameUtils.getExtension(tgFile.getFileName()));
-                telegramService.downloadFileByFileId(tgFile.getFileId(), file);
+                fileManager.downloadFileByFileId(tgFile.getFileId(), file);
                 downloadResult.originalFileNames.put(i, tgFile.getFileName());
                 downloadResult.downloadedNames.put(i++, file.getName());
                 files.add(file);
