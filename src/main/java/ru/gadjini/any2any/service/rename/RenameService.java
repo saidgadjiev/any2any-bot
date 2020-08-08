@@ -17,18 +17,18 @@ import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
+import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.Progress;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.conversion.impl.FormatService;
+import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.file.FileWorkObject;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
-import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.progress.Lang;
@@ -39,6 +39,7 @@ import ru.gadjini.any2any.utils.MemoryUtils;
 import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @Service
@@ -123,12 +124,12 @@ public class RenameService {
 
     public void rename(int userId, RenameState renameState, String newFileName) {
         RenameQueueItem item = renameQueueService.createProcessingItem(userId, renameState, newFileName);
-        int messageId = sendStartRenamingMessage(item.getId(), userId);
-        item.setProgressMessageId(messageId);
-        renameQueueService.setProgressMessageId(item.getId(), messageId);
-
-        fileManager.setInputFilePending(userId, renameState.getReplyMessageId());
-        executor.execute(new RenameTask(item));
+        sendStartRenamingMessage(item.getId(), userId, message -> {
+            item.setProgressMessageId(message.getMessageId());
+            renameQueueService.setProgressMessageId(item.getId(), message.getMessageId());
+            fileManager.setInputFilePending(userId, renameState.getReplyMessageId());
+            executor.execute(new RenameTask(item));
+        });
     }
 
     public void removeAndCancelCurrentTasks(long chatId) {
@@ -179,12 +180,12 @@ public class RenameService {
         }
     }
 
-    private int sendStartRenamingMessage(int jobId, int userId) {
+    private void sendStartRenamingMessage(int jobId, int userId, Consumer<Message> callback) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        return messageService.sendMessage(
-                new HtmlMessage((long) userId, String.format(renameMessageBuilder.buildRenamingMessage(RenameStep.DOWNLOADING,
-                        locale, Lang.JAVA), 0, localisationService.getMessage(MessagesProperties.MESSAGE_ETA_CALCULATED, locale)))
-                        .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale))).getMessageId();
+        String message = String.format(renameMessageBuilder.buildRenamingMessage(RenameStep.DOWNLOADING,
+                locale, Lang.JAVA), 0, localisationService.getMessage(MessagesProperties.MESSAGE_ETA_CALCULATED, locale));
+        messageService.sendMessage(new HtmlMessage((long) userId, message)
+                .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale)), callback);
     }
 
     private String createNewFileName(String fileName, String ext) {
@@ -209,7 +210,7 @@ public class RenameService {
             String etaCalculated = localisationService.getMessage(MessagesProperties.MESSAGE_ETA_CALCULATED, locale);
             String completionMessage = renameMessageBuilder.buildRenamingMessage(nextStep, locale, Lang.JAVA);
             progress.setAfterProgressCompletionMessage(String.format(completionMessage, nextStep == RenameStep.RENAMING ? 50 : 0, nextStep == RenameStep.RENAMING
-                            ? "7 seconds" : etaCalculated));
+                    ? "7 seconds" : etaCalculated));
         }
         progress.setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale));
 

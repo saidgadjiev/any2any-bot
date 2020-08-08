@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
+import ru.gadjini.any2any.model.bot.api.object.Progress;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TelegramService;
 import ru.gadjini.any2any.service.UserService;
@@ -53,6 +54,10 @@ public class FileManager {
 
     public void downloadFileByFileId(String fileId, SmartTempFile outputFile) {
         telegramService.downloadFileByFileId(fileId, outputFile);
+    }
+
+    public void downloadFileByFileId(String fileId, long fileSize, Progress progress, SmartTempFile outputFile) {
+        telegramService.downloadFileByFileId(fileId, fileSize, progress, outputFile);
     }
 
     public FileWorkObject fileWorkObject(long chatId) {

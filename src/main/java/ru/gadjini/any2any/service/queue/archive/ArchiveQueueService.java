@@ -53,6 +53,10 @@ public class ArchiveQueueService {
         dao.setWaiting(id);
     }
 
+    public void setProgressMessageId(int id, int progressMessageId) {
+        dao.setProgressMessageId(id, progressMessageId);
+    }
+
     public ArchiveQueueItem poll(SmartExecutorService.JobWeight weight) {
         List<ArchiveQueueItem> poll = dao.poll(weight, 1);
 

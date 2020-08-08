@@ -18,6 +18,7 @@ import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
+import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.Progress;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.TempFileService;
@@ -25,14 +26,13 @@ import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.file.FileWorkObject;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
-import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.service.queue.archive.ArchiveQueueService;
-import ru.gadjini.any2any.service.unzip.UnzipStep;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
@@ -40,6 +40,7 @@ import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -150,9 +151,11 @@ public class ArchiveService {
         normalizeFileNames(archiveState.getFiles());
 
         ArchiveQueueItem item = archiveQueueService.createProcessingItem(userId, archiveState.getFiles(), format);
-        startArchiveCreating(userId, item.getId());
-        fileManager.setInputFilePending(userId, null);
-        executor.execute(new ArchiveTask(item));
+        startArchiveCreating(archiveState.getFiles().size(), userId, item.getId(), message -> {
+            archiveQueueService.setProgressMessageId(item.getId(), message.getMessageId());
+            fileManager.setInputFilePending(userId, null);
+            executor.execute(new ArchiveTask(item));
+        });
     }
 
     public void cancel(long chatId, int messageId, String queryId, int jobId) {
@@ -175,10 +178,12 @@ public class ArchiveService {
                 chatId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))));
     }
 
-    private void startArchiveCreating(int userId, int jobId) {
+    private void startArchiveCreating(int count, int userId, int jobId, Consumer<Message> callback) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale))
-                .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale)));
+        String etaCalculated = localisationService.getMessage(MessagesProperties.MESSAGE_ETA_CALCULATED, locale);
+        String message = String.format(archiveMessageBuilder.buildArchiveProgressMessage(count, 1, ArchiveStep.DOWNLOADING, Lang.JAVA, locale), 0, etaCalculated);
+        messageService.sendMessage(new HtmlMessage((long) userId, message)
+                .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale)), callback);
     }
 
     private void normalizeFileNames(List<Any2AnyFile> any2AnyFiles) {
@@ -226,21 +231,33 @@ public class ArchiveService {
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_TYPE_UNSUPPORTED, new Object[]{format}, locale));
     }
 
-    private Progress progress(int count, int current, long chatId, int processMessageId) {
+    private Progress progressFilesDownloading(int count, int current, long chatId, int processMessageId, int jobId) {
         Locale locale = userService.getLocaleOrDefault((int) chatId);
         Progress progress = new Progress();
         progress.setChatId(chatId);
         progress.setProgressMessageId(processMessageId);
-        if (count > current) {
-            progress.setProgressMessage(archiveMessageBuilder.buildArchiveProgressMessage(count, current, ArchiveStep.DOWNLOADING, Lang.PYTHON, locale));
+        progress.setProgressMessage(archiveMessageBuilder.buildArchiveProgressMessage(count, current, ArchiveStep.DOWNLOADING, Lang.PYTHON, locale));
 
-        } else {
-            progress.set
+        if (count == current) {
+            String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.ARCHIVE_CREATION, Lang.JAVA, locale);
+            progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 seconds"));
         }
+        progress.setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale));
 
-        String completionMessage = archiveMessageBuilder.buildUnzipProgressMessage(UnzipStep.UNZIPPING, Lang.JAVA, locale);
-        progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 seconds"));
-        progress.setReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale));
+        return progress;
+    }
+
+    private Progress progressArchiveCreation(long chatId, int processMessageId, int jobId) {
+        Locale locale = userService.getLocaleOrDefault((int) chatId);
+        Progress progress = new Progress();
+        progress.setChatId(chatId);
+        progress.setProgressMessageId(processMessageId);
+        progress.setProgressMessage(archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.UPLOADING, Lang.PYTHON, locale));
+
+        String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.COMPLETED, Lang.JAVA, locale);
+        progress.setAfterProgressCompletionMessage(completionMessage);
+
+        progress.setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale));
 
         return progress;
     }
@@ -254,6 +271,8 @@ public class ArchiveService {
         public static final String TAG = "archive";
 
         private int jobId;
+
+        private int progressMessageId;
 
         private List<TgFile> archiveFiles;
 
@@ -279,6 +298,7 @@ public class ArchiveService {
             this.totalFileSize = item.getTotalFileSize();
             this.userId = item.getUserId();
             this.type = item.getType();
+            this.progressMessageId = item.getProgressMessageId();
             this.fileWorkObject = fileManager.fileWorkObject(userId);
         }
 
@@ -289,7 +309,7 @@ public class ArchiveService {
             try {
                 size = MemoryUtils.humanReadableByteCount(totalFileSize);
                 LOGGER.debug("Start({}, {}, {})", userId, size, type);
-                DownloadResult downloadResult = downloadFiles(userId, archiveFiles);
+                DownloadResult downloadResult = downloadFiles(userId, progressMessageId, jobId, archiveFiles);
                 Locale locale = userService.getLocaleOrDefault(userId);
 
                 archive = fileService.getTempFile(userId, TAG, type.getExt());
@@ -298,7 +318,8 @@ public class ArchiveService {
                 renameFiles(archiveDevice, archive.getAbsolutePath(), downloadResult.originalFileNames, downloadResult.downloadedNames);
 
                 String fileName = Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), type.getExt());
-                mediaMessageService.sendDocument(new SendDocument((long) userId, fileName, archive.getFile()));
+                mediaMessageService.sendDocument(new SendDocument((long) userId, fileName, archive.getFile())
+                        .setProgress(progressArchiveCreation(userId, progressMessageId, jobId)));
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, type);
             } catch (Exception ex) {
@@ -358,18 +379,19 @@ public class ArchiveService {
 
         private void renameFiles(ArchiveDevice archiveDevice, String archive,
                                  Map<Integer, String> originalFileNames, Map<Integer, String> downloadedNames) {
-            for (Map.Entry<Integer, String> entry: downloadedNames.entrySet()) {
+            for (Map.Entry<Integer, String> entry : downloadedNames.entrySet()) {
                 archiveDevice.rename(archive, entry.getValue(), originalFileNames.get(entry.getKey()));
             }
         }
 
-        private DownloadResult downloadFiles(int userId, List<TgFile> tgFiles) {
+        private DownloadResult downloadFiles(int userId, int progressMessageId, int jobId, List<TgFile> tgFiles) {
             DownloadResult downloadResult = new DownloadResult();
 
             int i = 1;
             for (TgFile tgFile : tgFiles) {
                 SmartTempFile file = fileService.createTempFile(userId, tgFile.getFileId(), TAG, FilenameUtils.getExtension(tgFile.getFileName()));
-                fileManager.downloadFileByFileId(tgFile.getFileId(), file);
+                fileManager.downloadFileByFileId(tgFile.getFileId(), tgFile.getSize(),
+                        progressFilesDownloading(tgFiles.size(), i, userId, progressMessageId, jobId), file);
                 downloadResult.originalFileNames.put(i, tgFile.getFileName());
                 downloadResult.downloadedNames.put(i++, file.getName());
                 files.add(file);

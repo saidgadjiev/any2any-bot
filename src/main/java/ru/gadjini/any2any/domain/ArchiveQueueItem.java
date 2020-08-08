@@ -20,6 +20,8 @@ public class ArchiveQueueItem {
 
     public static final String STATUS = "status";
 
+    public static final String PROGRESS_MESSAGE_ID = "progress_message_id";
+
     private int id;
 
     private int userId;
@@ -31,6 +33,8 @@ public class ArchiveQueueItem {
     private Format type;
 
     private Status status;
+
+    private int progressMessageId;
 
     public int getId() {
         return id;
@@ -78,6 +82,14 @@ public class ArchiveQueueItem {
 
     public void setTotalFileSize(long totalFileSize) {
         this.totalFileSize = totalFileSize;
+    }
+
+    public int getProgressMessageId() {
+        return progressMessageId;
+    }
+
+    public void setProgressMessageId(int progressMessageId) {
+        this.progressMessageId = progressMessageId;
     }
 
     public enum Status {

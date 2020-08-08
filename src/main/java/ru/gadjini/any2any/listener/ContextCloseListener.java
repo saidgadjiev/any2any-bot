@@ -7,10 +7,10 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.service.RenameService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.conversion.ConvertionService;
 import ru.gadjini.any2any.service.file.FileManager;
+import ru.gadjini.any2any.service.rename.RenameService;
 import ru.gadjini.any2any.service.unzip.UnzipService;
 
 @Component

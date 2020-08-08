@@ -62,6 +62,14 @@ public class ArchiveQueueDao {
                 ps -> ps.setInt(1, id));
     }
 
+    public void setProgressMessageId(int id, int progressMessageId) {
+        jdbcTemplate.update("UPDATE archive_queue SET progress_message_id = ? WHERE id = ?",
+                ps -> {
+                    ps.setInt(1, progressMessageId);
+                    ps.setInt(2, id);
+                });
+    }
+
     public void resetProcessing() {
         jdbcTemplate.update("UPDATE archive_queue SET status = 0 WHERE status = 1");
     }
