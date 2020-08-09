@@ -25,7 +25,7 @@ public class TgFile {
 
     private String mimeType;
 
-    private int size;
+    private long size;
 
     private String thumb;
 
@@ -53,11 +53,11 @@ public class TgFile {
         this.mimeType = mimeType;
     }
 
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 
-    public void setSize(int size) {
+    public void setSize(long size) {
         this.size = size;
     }
 

@@ -45,7 +45,7 @@ public class ConversionQueueService {
         fileQueueItem.setFileId(convertState.getFileId());
         if (convertState.getFileSize() == null) {
             LOGGER.warn("File size null({}, {}, {})", user.getId(), targetFormat, convertState);
-            convertState.setFileSize(0);
+            convertState.setFileSize(0L);
         }
         fileQueueItem.setSize(convertState.getFileSize());
         fileQueueItem.setFormat(convertState.getFormat());

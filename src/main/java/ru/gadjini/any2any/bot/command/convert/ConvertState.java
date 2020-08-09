@@ -14,7 +14,7 @@ public class ConvertState {
 
     private String mimeType;
 
-    private Integer fileSize;
+    private Long fileSize;
 
     private int messageId;
 
@@ -57,11 +57,11 @@ public class ConvertState {
         this.fileName = fileName;
     }
 
-    public Integer getFileSize() {
+    public Long getFileSize() {
         return fileSize;
     }
 
-    public void setFileSize(Integer fileSize) {
+    public void setFileSize(Long fileSize) {
         this.fileSize = fileSize;
     }
 

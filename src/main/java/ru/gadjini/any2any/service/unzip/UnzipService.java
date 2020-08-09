@@ -601,7 +601,7 @@ public class UnzipService {
         private final int jobId;
         private final int userId;
         private final String fileId;
-        private final int fileSize;
+        private final long fileSize;
         private final Format format;
         private final int messageId;
         private UnzipDevice unzipDevice;

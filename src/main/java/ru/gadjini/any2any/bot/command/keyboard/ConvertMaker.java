@@ -140,7 +140,7 @@ public class ConvertMaker {
             convertState.setFormat(sticker.getAnimated() ? Format.TGS : Format.WEBP);
         } else if (message.hasText()) {
             convertState.setFileId(message.getText());
-            convertState.setFileSize(message.getText().length());
+            convertState.setFileSize((long) message.getText().length());
             convertState.setFormat(formatService.getFormat(message.getText()));
         } else {
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale));

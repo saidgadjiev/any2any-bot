@@ -197,7 +197,7 @@ public class RenameService {
         private final String newFileName;
         private final String mimeType;
         private final String fileId;
-        private int fileSize;
+        private long fileSize;
         private final int replyToMessageId;
         private volatile Supplier<Boolean> checker;
         private volatile boolean canceledByUser;
