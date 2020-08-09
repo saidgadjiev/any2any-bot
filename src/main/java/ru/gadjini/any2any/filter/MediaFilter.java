@@ -24,8 +24,8 @@ public class MediaFilter extends BaseBotFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MediaFilter.class);
 
-    //1.5 GB
-    private static final long LARGE_FILE_SIZE = 1610612736;
+    //2 GB
+    public static final long LARGE_FILE_SIZE = 2147483648L;
 
     private UserService userService;
 

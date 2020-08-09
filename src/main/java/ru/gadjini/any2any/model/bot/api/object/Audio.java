@@ -15,7 +15,7 @@ public class Audio {
     @JsonProperty(MIMETYPE_FIELD)
     private String mimeType;
     @JsonProperty(FILESIZE_FIELD)
-    private Integer fileSize;
+    private Long fileSize;
     @JsonProperty(FILE_NAME_FIELD)
     private String fileName;
     @JsonProperty(THUMBNAIL_FIELD)
@@ -29,7 +29,7 @@ public class Audio {
         return mimeType;
     }
 
-    public Integer getFileSize() {
+    public Long getFileSize() {
         return fileSize;
     }
 

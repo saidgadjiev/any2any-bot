@@ -15,7 +15,7 @@ public class Video {
     @JsonProperty(MIMETYPE_FIELD)
     private String mimeType;
     @JsonProperty(FILESIZE_FIELD)
-    private Integer fileSize;
+    private Long fileSize;
     @JsonProperty(FILENAME_FIELD)
     private String fileName;
     @JsonProperty(THUMBNAIL)
@@ -29,7 +29,7 @@ public class Video {
         return mimeType;
     }
 
-    public Integer getFileSize() {
+    public Long getFileSize() {
         return fileSize;
     }
 
