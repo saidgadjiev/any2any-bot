@@ -16,7 +16,7 @@ public class PhotoSize {
     @JsonProperty(HEIGHT_FIELD)
     private Integer height;
     @JsonProperty(FILESIZE_FIELD)
-    private Integer fileSize;
+    private Long fileSize;
 
     public PhotoSize() {
         super();
@@ -34,7 +34,7 @@ public class PhotoSize {
         return height;
     }
 
-    public Integer getFileSize() {
+    public Long getFileSize() {
         return fileSize;
     }
 

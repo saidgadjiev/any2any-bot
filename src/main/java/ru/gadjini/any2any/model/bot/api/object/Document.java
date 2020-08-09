@@ -17,7 +17,7 @@ public class Document {
     @JsonProperty(MIMETYPE_FIELD)
     private String mimeType;
     @JsonProperty(FILESIZE_FIELD)
-    private Integer fileSize;
+    private Long fileSize;
     @JsonProperty(THUMBNAIL)
     private Thumb thumb;
 
@@ -33,7 +33,7 @@ public class Document {
         return mimeType;
     }
 
-    public Integer getFileSize() {
+    public Long getFileSize() {
         return fileSize;
     }
 

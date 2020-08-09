@@ -13,7 +13,7 @@ public class Sticker {
     @JsonProperty(ISANIMATED_FIELD)
     private Boolean isAnimated;
     @JsonProperty(FILESIZE_FIELD)
-    private Integer fileSize;
+    private Long fileSize;
 
     public String getFileId() {
         return fileId;
@@ -23,7 +23,7 @@ public class Sticker {
         return isAnimated;
     }
 
-    public Integer getFileSize() {
+    public Long getFileSize() {
         return fileSize;
     }
 
