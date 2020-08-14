@@ -321,7 +321,7 @@ public class MessagesProperties {
 
     public static final String MESSAGE_ETA = "message.eta";
 
-    public static final String MESSAGE_ETA_CALCULATED = "message.eta.calculated";
+    public static final String MESSAGE_CALCULATED = "message.calculated";
 
     public static final String MESSAGE_UNZIPPING_STEP = "message.unzipping.step";
 
@@ -334,4 +334,6 @@ public class MessagesProperties {
     public static final String MESSAGE_ARCHIVE_CREATION_STEP = "message.archive.creation.step";
 
     public static final String MESSAGE_AWAITING_PROCESSING = "message.awaiting.processing";
+
+    public static final String MESSAGE_SPEED = "message.speed";
 }

@@ -127,6 +127,12 @@ public class RenameService {
     }
 
     public void rename(int userId, RenameState renameState, String newFileName) {
+        if (isTheSameFileName(renameState.getFile().getFileName(), renameState.getFile().getMimeType(), newFileName)
+                && renameState.getThumb() == null) {
+            mediaMessageService.sendFile(userId, renameState.getFile().getFileId());
+            LOGGER.debug("Same file name({}, {}, {})", userId, renameState.getFile().getFileId(), renameState.getFile().getFileName());
+            return;
+        }
         RenameQueueItem item = renameQueueService.createProcessingItem(userId, renameState, newFileName);
         sendStartRenamingMessage(item.getId(), userId, message -> {
             item.setProgressMessageId(message.getMessageId());
@@ -186,8 +192,9 @@ public class RenameService {
 
     private void sendStartRenamingMessage(int jobId, int userId, Consumer<Message> callback) {
         Locale locale = userService.getLocaleOrDefault(userId);
+        String calculated = localisationService.getMessage(MessagesProperties.MESSAGE_CALCULATED, locale);
         String message = String.format(renameMessageBuilder.buildRenamingMessage(RenameStep.DOWNLOADING,
-                locale, Lang.JAVA), 0, localisationService.getMessage(MessagesProperties.MESSAGE_ETA_CALCULATED, locale));
+                locale, Lang.JAVA), 0, calculated, calculated);
         messageService.sendMessage(new HtmlMessage((long) userId, message)
                 .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale)), callback);
     }
@@ -204,6 +211,17 @@ public class RenameService {
         return fileName;
     }
 
+    private boolean isTheSameFileName(String fileName, String mimeType, String newFileName) {
+        String ext = formatService.getExt(fileName, mimeType);
+
+        String finalFileName = createNewFileName(newFileName, ext);
+        if (finalFileName.equals(fileName)) {
+            return true;
+        }
+
+        return false;
+    }
+
     private Progress progress(long chatId, int jobId, int processMessageId, RenameStep renameStep, RenameStep nextStep) {
         Locale locale = userService.getLocaleOrDefault((int) chatId);
         Progress progress = new Progress();
@@ -212,11 +230,14 @@ public class RenameService {
         progress.setProgressMessageId(processMessageId);
         progress.setProgressMessage(renameMessageBuilder.buildRenamingMessage(renameStep, locale, Lang.PYTHON));
         if (nextStep != null) {
-            String etaCalculated = localisationService.getMessage(MessagesProperties.MESSAGE_ETA_CALCULATED, locale);
+            String calculated = localisationService.getMessage(MessagesProperties.MESSAGE_CALCULATED, locale);
             String completionMessage = renameMessageBuilder.buildRenamingMessage(nextStep, locale, Lang.JAVA);
             String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
-            progress.setAfterProgressCompletionMessage(String.format(completionMessage, nextStep == RenameStep.RENAMING ? 50 : 0, nextStep == RenameStep.RENAMING
-                    ? "7 " + seconds : etaCalculated));
+            if (nextStep == RenameStep.RENAMING) {
+                progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "7 " + seconds));
+            } else {
+                progress.setAfterProgressCompletionMessage(String.format(completionMessage, 0, calculated, calculated));
+            }
             if (nextStep != RenameStep.COMPLETED) {
                 progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale));
             }
@@ -272,17 +293,18 @@ public class RenameService {
 
             try {
                 String ext = formatService.getExt(fileName, mimeType);
+                String finalFileName = createNewFileName(newFileName, ext);
+
                 file = tempFileService.createTempFile(userId, fileId, TAG, ext);
                 fileManager.downloadFileByFileId(fileId, fileSize, progress(userId, jobId, progressMessageId, RenameStep.DOWNLOADING, RenameStep.RENAMING), file);
 
-                String fileName = createNewFileName(newFileName, ext);
                 if (userThumb != null) {
                     thumbFile = thumbService.convertToThumb(userId, userThumb.getFileId(), userThumb.getFileName(), userThumb.getMimeType());
                 } else if (StringUtils.isNotBlank(thumb)) {
                     thumbFile = tempFileService.createTempFile(userId, fileId, TAG, Format.JPG.getExt());
                     fileManager.downloadFileByFileId(thumb, thumbFile);
                 }
-                mediaMessageService.sendDocument(new SendDocument((long) userId, fileName, file.getFile())
+                mediaMessageService.sendDocument(new SendDocument((long) userId, finalFileName, file.getFile())
                         .setProgress(progress(userId, jobId, progressMessageId, RenameStep.UPLOADING, RenameStep.COMPLETED))
                         .setThumb(thumbFile != null ? thumbFile.getAbsolutePath() : null)
                         .setReplyToMessageId(replyToMessageId));

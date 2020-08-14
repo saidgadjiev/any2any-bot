@@ -36,13 +36,14 @@ public class UnzipMessageBuilder {
         String iconCheck = localisationService.getMessage(MessagesProperties.ICON_CHECK, locale);
 
         if (extractFileStep == ExtractFileStep.EXTRACTING) {
-            return localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTING_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
+            return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTING_STEP, locale) + " (" + formatter + percentage + ")...</b>\n" +
                     localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" +
-                    localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale);
+                    "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale) + "</b>";
         }
-        return localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTING_STEP, locale) + " " + iconCheck + "\n" +
-                localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
-                localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " " + formatter + "\n";
+        return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTING_STEP, locale) + "</b> " + iconCheck + "\n" +
+                "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale) + " (" + formatter + percentage + ")...</b>\n" +
+                localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " " + formatter + "\n" +
+                localisationService.getMessage(MessagesProperties.MESSAGE_SPEED, locale) + " <b>" + formatter + "</b>\n";
     }
 
     public String buildUnzipProgressMessage(UnzipStep unzipStep, Lang lang, Locale locale) {
@@ -51,12 +52,13 @@ public class UnzipMessageBuilder {
         String iconCheck = localisationService.getMessage(MessagesProperties.ICON_CHECK, locale);
 
         if (unzipStep == UnzipStep.DOWNLOADING) {
-            return localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
+            return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " (" + formatter + percentage + ")...</b>\n" +
                     localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" +
-                    localisationService.getMessage(MessagesProperties.MESSAGE_UNZIPPING_STEP, locale);
+                    localisationService.getMessage(MessagesProperties.MESSAGE_SPEED, locale) + " <b>" + formatter + "</b>\n" +
+                    "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_UNZIPPING_STEP, locale) + "</b>";
         }
-        return localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " " + iconCheck + "\n" +
-                localisationService.getMessage(MessagesProperties.MESSAGE_UNZIPPING_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
+        return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n" +
+                "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_UNZIPPING_STEP, locale) + " (" + formatter + percentage + ")...</b>\n" +
                 localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " " + formatter + "\n";
     }
 

@@ -31,24 +31,26 @@ public class ArchiveMessageBuilder {
 
         switch (archiveStep) {
             case DOWNLOADING:
-                return localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
+                return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " (" + formatter + percentage + ")...</b>\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" +
-                        localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CREATION_STEP, locale) + "\n" +
-                        localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale);
+                        localisationService.getMessage(MessagesProperties.MESSAGE_SPEED, locale) + " <b>" + formatter + "</b>\n" +
+                        "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CREATION_STEP, locale) + "</b>\n" +
+                        "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale) + "</b>";
             case UPLOADING:
-                return localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " " + iconCheck + "\n" +
-                        localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CREATION_STEP, locale) + " " + iconCheck + "\n" +
-                        localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
-                        localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n";
-            case ARCHIVE_CREATION:
-                return localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " " + iconCheck + "\n" +
-                        localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CREATION_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
+                return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n" +
+                        "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CREATION_STEP, locale) + "</b> " + iconCheck + "\n" +
+                        "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale) + " (" + formatter + percentage + ")...</b>\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" +
-                        localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale);
+                        localisationService.getMessage(MessagesProperties.MESSAGE_SPEED, locale) + " <b>" + formatter + "</b>\n";
+            case ARCHIVE_CREATION:
+                return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n" +
+                        "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CREATION_STEP, locale) + " (" + formatter + percentage + ")...</b>\n" +
+                        localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" +
+                        "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale) + "</b>";
             default:
-                return localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " " + iconCheck + "\n" +
-                        localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CREATION_STEP, locale) + " " + iconCheck + "\n" +
-                        localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale) + " " + iconCheck;
+                return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n" +
+                        "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CREATION_STEP, locale) + "</b> " + iconCheck + "\n" +
+                        "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale) + "</b> " + iconCheck;
         }
     }
 }

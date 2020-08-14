@@ -81,20 +81,25 @@ public class MediaMessageServiceImpl implements MediaMessageService {
 
     @Override
     public void sendFile(long chatId, String fileId) {
+        sendFile(chatId, fileId, null);
+    }
+
+    @Override
+    public void sendFile(long chatId, String fileId, String caption) {
         MediaType mediaType = getMediaType(fileId);
 
         switch (mediaType) {
             case PHOTO:
-                sendPhoto(new SendPhoto(chatId, fileId));
+                sendPhoto(new SendPhoto(chatId, fileId).setCaption(caption));
                 break;
             case VIDEO:
-                sendVideo(new SendVideo(chatId, fileId));
+                sendVideo(new SendVideo(chatId, fileId).setCaption(caption));
                 break;
             case AUDIO:
-                sendAudio(new SendAudio(chatId, fileId));
+                sendAudio(new SendAudio(chatId, fileId).setCaption(caption));
                 break;
             default:
-                sendDocument(new SendDocument(chatId, fileId));
+                sendDocument(new SendDocument(chatId, fileId).setCaption(caption));
                 break;
         }
     }

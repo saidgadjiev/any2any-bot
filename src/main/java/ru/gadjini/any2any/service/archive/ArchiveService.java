@@ -33,7 +33,6 @@ import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.service.queue.archive.ArchiveQueueService;
-import ru.gadjini.any2any.service.rename.RenameService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
@@ -186,8 +185,8 @@ public class ArchiveService {
 
     private void startArchiveCreating(int count, int userId, int jobId, Consumer<Message> callback) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        String etaCalculated = localisationService.getMessage(MessagesProperties.MESSAGE_ETA_CALCULATED, locale);
-        String message = String.format(archiveMessageBuilder.buildArchiveProgressMessage(count, 1, ArchiveStep.DOWNLOADING, Lang.JAVA, locale), 0, etaCalculated);
+        String calculated = localisationService.getMessage(MessagesProperties.MESSAGE_CALCULATED, locale);
+        String message = String.format(archiveMessageBuilder.buildArchiveProgressMessage(count, 1, ArchiveStep.DOWNLOADING, Lang.JAVA, locale), 0, calculated, calculated);
         messageService.sendMessage(new HtmlMessage((long) userId, message)
                 .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale)), callback);
     }

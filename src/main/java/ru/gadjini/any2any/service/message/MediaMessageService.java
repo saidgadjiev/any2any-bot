@@ -22,4 +22,6 @@ public interface MediaMessageService {
     MediaType getMediaType(String fileId);
 
     void sendFile(long chatId, String fileId);
+
+    void sendFile(long chatId, String fileId, String caption);
 }

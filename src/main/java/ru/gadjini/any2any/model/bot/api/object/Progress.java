@@ -3,8 +3,6 @@ package ru.gadjini.any2any.model.bot.api.object;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 
-import java.util.Locale;
-
 public class Progress {
 
     private static final String PROGRESS_MESSAGE = "progress_message";

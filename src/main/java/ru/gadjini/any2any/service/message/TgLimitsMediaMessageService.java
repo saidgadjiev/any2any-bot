@@ -95,6 +95,11 @@ public class TgLimitsMediaMessageService implements MediaMessageService {
         mediaMessageService.sendFile(chatId, fileId);
     }
 
+    @Override
+    public void sendFile(long chatId, String fileId, String caption) {
+        mediaMessageService.sendFile(chatId, fileId, caption);
+    }
+
     private boolean validate(SendDocument sendDocument) {
         InputFile document = sendDocument.getDocument();
         if (StringUtils.isNotBlank(document.getFileId())) {
