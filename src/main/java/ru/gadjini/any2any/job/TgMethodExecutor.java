@@ -19,7 +19,7 @@ public class TgMethodExecutor {
         LOGGER.debug("Tg method executor initialized");
     }
 
-    @Scheduled(fixedDelay = 50)
+    @Scheduled(fixedDelay = 100)
     public void send() {
         try {
             Runnable job = jobsQueue.take();
