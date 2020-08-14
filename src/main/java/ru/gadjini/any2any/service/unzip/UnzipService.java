@@ -38,6 +38,7 @@ import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.service.queue.unzip.UnzipQueueService;
+import ru.gadjini.any2any.service.rename.RenameService;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
@@ -112,9 +113,13 @@ public class UnzipService {
         this.executor = executor;
     }
 
-    public void rejectTask(SmartExecutorService.Job unzipTask) {
-        queueService.setWaiting(unzipTask.getId());
-        LOGGER.debug("Rejected({})", unzipTask.getWeight());
+    public void rejectTask(SmartExecutorService.Job job) {
+        queueService.setWaiting(job.getId());
+        Locale locale = userService.getLocaleOrDefault((int) ((SmartExecutorService.ProgressJob) job).getChatId());
+        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
+        messageService.editMessage(new EditMessageText(((SmartExecutorService.ProgressJob) job).getChatId(), ((SmartExecutorService.ProgressJob) job).getProgressMessageId(), message)
+                .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(job.getId(), locale)));
+        LOGGER.debug("Rejected({}, {})", job.getId(), job.getWeight());
     }
 
     public Runnable getTask(SmartExecutorService.JobWeight weight) {
@@ -345,7 +350,8 @@ public class UnzipService {
 
     private void sendStartExtractingAllMessage(int count, int userId, int messageId, int jobId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        String message = String.format(messageBuilder.buildExtractAllProgressMessage(count, 1, ExtractFileStep.EXTRACTING, Lang.JAVA, locale), 50, "7 seconds");
+        String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
+        String message = String.format(messageBuilder.buildExtractAllProgressMessage(count, 1, ExtractFileStep.EXTRACTING, Lang.JAVA, locale), 50, "7 " + seconds);
         messageService.editMessage(
                 new EditMessageText(userId, messageId, message).setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale))
         );
@@ -353,7 +359,8 @@ public class UnzipService {
 
     private void sendStartExtractingFileMessage(int userId, int messageId, int jobId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        String message = String.format(messageBuilder.buildExtractFileProgressMessage(ExtractFileStep.EXTRACTING, Lang.JAVA, locale), 50, "7 seconds");
+        String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
+        String message = String.format(messageBuilder.buildExtractFileProgressMessage(ExtractFileStep.EXTRACTING, Lang.JAVA, locale), 50, "7 " + seconds);
         messageService.editMessage(
                 new EditMessageText(userId, messageId, message).setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale))
         );
@@ -394,14 +401,16 @@ public class UnzipService {
     private Progress extractAllProgress(int count, int current, long chatId, int jobId, int processMessageId) {
         Locale locale = userService.getLocaleOrDefault((int) chatId);
         Progress progress = new Progress();
+        progress.setLocale(locale.getLanguage());
         progress.setChatId(chatId);
         progress.setProgressMessageId(processMessageId);
         progress.setProgressMessage(messageBuilder.buildExtractAllProgressMessage(count, current, ExtractFileStep.UPLOADING, Lang.PYTHON, locale));
 
         if (current + 1 < count) {
             String completionMessage = messageBuilder.buildExtractAllProgressMessage(count, current, ExtractFileStep.EXTRACTING, Lang.JAVA, locale);
-            progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 seconds"));
-            progress.setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale));
+            String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
+            progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 " + seconds));
+            progress.setProgressReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale));
         }
 
         return progress;
@@ -410,10 +419,11 @@ public class UnzipService {
     private Progress extractFileProgress(long chatId, int jobId, int processMessageId) {
         Locale locale = userService.getLocaleOrDefault((int) chatId);
         Progress progress = new Progress();
+        progress.setLocale(locale.getLanguage());
         progress.setChatId(chatId);
         progress.setProgressMessageId(processMessageId);
         progress.setProgressMessage(messageBuilder.buildExtractFileProgressMessage(ExtractFileStep.UPLOADING, Lang.PYTHON, locale));
-        progress.setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale));
+        progress.setProgressReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale));
 
         return progress;
     }
@@ -421,13 +431,15 @@ public class UnzipService {
     private Progress unzipProgress(long chatId, int jobId, int processMessageId) {
         Locale locale = userService.getLocaleOrDefault((int) chatId);
         Progress progress = new Progress();
+        progress.setLocale(locale.getLanguage());
         progress.setChatId(chatId);
         progress.setProgressMessageId(processMessageId);
         progress.setProgressMessage(messageBuilder.buildUnzipProgressMessage(UnzipStep.DOWNLOADING, Lang.PYTHON, locale));
 
         String completionMessage = messageBuilder.buildUnzipProgressMessage(UnzipStep.UNZIPPING, Lang.JAVA, locale);
-        progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 seconds"));
-        progress.setReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale));
+        String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
+        progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 " + seconds));
+        progress.setProgressReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale));
 
         return progress;
     }
@@ -436,7 +448,7 @@ public class UnzipService {
         executor.shutdown();
     }
 
-    public class ExtractAllTask implements SmartExecutorService.Job {
+    public class ExtractAllTask implements SmartExecutorService.ProgressJob {
 
         public static final String TAG = "extractall";
 
@@ -477,7 +489,8 @@ public class UnzipService {
                     if (unzipState.getFilesCache().containsKey(entry.getKey())) {
                         mediaMessageService.sendFile(item.getUserId(), unzipState.getFilesCache().get(entry.getKey()));
                         String message = messageBuilder.buildExtractAllProgressMessage(unzipState.getFiles().size(), i, ExtractFileStep.EXTRACTING, Lang.JAVA, locale);
-                        messageService.editMessage(new EditMessageText(item.getUserId(), item.getMessageId(), String.format(message, 50, "7 seconds")));
+                        String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
+                        messageService.editMessage(new EditMessageText(item.getUserId(), item.getMessageId(), String.format(message, 50, "7 " + seconds)));
                     } else {
                         SmartTempFile file = fileService.createTempFile(item.getUserId(), TAG, FilenameUtils.getExtension(entry.getValue().getPath()));
                         files.add(file);
@@ -534,9 +547,19 @@ public class UnzipService {
             }
             files.forEach(SmartTempFile::smartDelete);
         }
+
+        @Override
+        public int getProgressMessageId() {
+            return item.getMessageId();
+        }
+
+        @Override
+        public long getChatId() {
+            return item.getUserId();
+        }
     }
 
-    public class ExtractFileTask implements SmartExecutorService.Job {
+    public class ExtractFileTask implements SmartExecutorService.ProgressJob {
 
         public static final String TAG = "extractfile";
 
@@ -641,9 +664,19 @@ public class UnzipService {
         public SmartExecutorService.JobWeight getWeight() {
             return fileSize > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
         }
+
+        @Override
+        public int getProgressMessageId() {
+            return messageId;
+        }
+
+        @Override
+        public long getChatId() {
+            return userId;
+        }
     }
 
-    public class UnzipTask implements SmartExecutorService.Job {
+    public class UnzipTask implements SmartExecutorService.ProgressJob {
 
         public static final String TAG = "unzip";
 
@@ -751,6 +784,16 @@ public class UnzipService {
         @Override
         public SmartExecutorService.JobWeight getWeight() {
             return fileSize > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+        }
+
+        @Override
+        public int getProgressMessageId() {
+            return messageId;
+        }
+
+        @Override
+        public long getChatId() {
+            return userId;
         }
 
         private UnzipState initAndGetState(String zipFile) {

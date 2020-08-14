@@ -124,6 +124,13 @@ public class SmartExecutorService {
         }
     }
 
+    public interface ProgressJob extends Job {
+
+        int getProgressMessageId();
+
+        long getChatId();
+    }
+
     public enum JobWeight {
 
         LIGHT,

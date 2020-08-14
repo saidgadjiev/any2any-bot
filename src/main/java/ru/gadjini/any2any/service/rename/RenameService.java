@@ -108,7 +108,11 @@ public class RenameService {
 
     public void rejectRenameTask(SmartExecutorService.Job job) {
         renameQueueService.setWaiting(job.getId());
-        LOGGER.debug("Rejected({})", job.getWeight());
+        Locale locale = userService.getLocaleOrDefault(((RenameTask) job).userId);
+        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
+        messageService.editMessage(new EditMessageText(((RenameTask) job).userId, ((RenameTask) job).progressMessageId, message)
+                .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(job.getId(), locale)));
+        LOGGER.debug("Rejected({}, {})", job.getId(), job.getWeight());
     }
 
     public RenameTask getTask(SmartExecutorService.JobWeight weight) {
@@ -203,16 +207,21 @@ public class RenameService {
     private Progress progress(long chatId, int jobId, int processMessageId, RenameStep renameStep, RenameStep nextStep) {
         Locale locale = userService.getLocaleOrDefault((int) chatId);
         Progress progress = new Progress();
+        progress.setLocale(locale.getLanguage());
         progress.setChatId(chatId);
         progress.setProgressMessageId(processMessageId);
         progress.setProgressMessage(renameMessageBuilder.buildRenamingMessage(renameStep, locale, Lang.PYTHON));
         if (nextStep != null) {
             String etaCalculated = localisationService.getMessage(MessagesProperties.MESSAGE_ETA_CALCULATED, locale);
             String completionMessage = renameMessageBuilder.buildRenamingMessage(nextStep, locale, Lang.JAVA);
+            String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
             progress.setAfterProgressCompletionMessage(String.format(completionMessage, nextStep == RenameStep.RENAMING ? 50 : 0, nextStep == RenameStep.RENAMING
-                    ? "7 seconds" : etaCalculated));
+                    ? "7 " + seconds : etaCalculated));
+            if (nextStep != RenameStep.COMPLETED) {
+                progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale));
+            }
         }
-        progress.setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale));
+        progress.setProgressReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale));
 
         return progress;
     }

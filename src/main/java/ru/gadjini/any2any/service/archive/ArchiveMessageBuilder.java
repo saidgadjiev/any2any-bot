@@ -19,7 +19,7 @@ public class ArchiveMessageBuilder {
     }
 
     public String buildArchiveProgressMessage(int count, int current, ArchiveStep archiveStep, Lang lang, Locale locale) {
-        String message = localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_DOWNLOADING, new Object[]{count, current}, locale);
+        String message = localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_DOWNLOADING, new Object[]{current - 1, count}, locale);
 
         return message + "\n" + buildArchiveProcessMessage(archiveStep, lang, locale);
     }
@@ -40,6 +40,11 @@ public class ArchiveMessageBuilder {
                         localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CREATION_STEP, locale) + " " + iconCheck + "\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n";
+            case ARCHIVE_CREATION:
+                return localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " " + iconCheck + "\n" +
+                        localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CREATION_STEP, locale) + " <b>(" + formatter + percentage + ")...</b>\n" +
+                        localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" +
+                        localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale);
             default:
                 return localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " " + iconCheck + "\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CREATION_STEP, locale) + " " + iconCheck + "\n" +

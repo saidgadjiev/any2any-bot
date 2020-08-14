@@ -118,7 +118,8 @@ public class ArchiveQueueDao {
 
         item.setFiles(mapFiles(resultSet));
         item.setType(Format.valueOf(resultSet.getString(ArchiveQueueItem.TYPE)));
-        item.setUserId(resultSet.getInt(RenameQueueItem.USER_ID));
+        item.setUserId(resultSet.getInt(ArchiveQueueItem.USER_ID));
+        item.setProgressMessageId(resultSet.getInt(ArchiveQueueItem.PROGRESS_MESSAGE_ID));
 
         return item;
     }

@@ -332,4 +332,6 @@ public class MessagesProperties {
     public static final String MESSAGE_ARCHIVE_FILES_DOWNLOADING = "message.archive.files.downloading";
 
     public static final String MESSAGE_ARCHIVE_CREATION_STEP = "message.archive.creation.step";
+
+    public static final String MESSAGE_AWAITING_PROCESSING = "message.awaiting.processing";
 }

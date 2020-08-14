@@ -25,7 +25,7 @@ public class UnzipMessageBuilder {
     }
 
     public String buildExtractAllProgressMessage(int count, int current, ExtractFileStep extractFileStep, Lang lang, Locale locale) {
-        String msg = localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTING_ALL, new Object[] {current, count}, locale);
+        String msg = localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTING_ALL, new Object[] {current - 1, count}, locale);
 
         return msg + "\n" + buildExtractFileProgressMessage(extractFileStep, lang, locale);
     }

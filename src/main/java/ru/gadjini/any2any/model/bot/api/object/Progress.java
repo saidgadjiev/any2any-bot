@@ -3,15 +3,19 @@ package ru.gadjini.any2any.model.bot.api.object;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 
+import java.util.Locale;
+
 public class Progress {
 
     private static final String PROGRESS_MESSAGE = "progress_message";
 
     private static final String AFTER_PROGRESS_COMPLETION_MESSAGE = "after_progress_completion_message";
 
+    private static final String AFTER_PROGRESS_COMPLETION_REPLY_MARKUP = "after_progress_completion_reply_markup";
+
     private static final String PROGRESS_MESSAGE_ID = "progress_message_id";
 
-    private static final String REPLYMARKUP_FIELD = "reply_markup";
+    private static final String PROGRESS_REPLY_MARKUP = "progress_reply_markup";
 
     private static final String CHAT_ID = "chat_id";
 
@@ -27,8 +31,13 @@ public class Progress {
     @JsonProperty(PROGRESS_MESSAGE_ID)
     private int progressMessageId;
 
-    @JsonProperty(REPLYMARKUP_FIELD)
-    private InlineKeyboardMarkup replyMarkup;
+    @JsonProperty(PROGRESS_REPLY_MARKUP)
+    private InlineKeyboardMarkup progressReplyMarkup;
+
+    @JsonProperty(AFTER_PROGRESS_COMPLETION_REPLY_MARKUP)
+    private InlineKeyboardMarkup afterProgressCompletionReplyMarkup;
+
+    private String locale;
 
     public String getChatId() {
         return chatId;
@@ -62,11 +71,27 @@ public class Progress {
         this.afterProgressCompletionMessage = afterProgressCompletionMessage;
     }
 
-    public InlineKeyboardMarkup getReplyMarkup() {
-        return replyMarkup;
+    public InlineKeyboardMarkup getProgressReplyMarkup() {
+        return progressReplyMarkup;
     }
 
-    public void setReplyMarkup(InlineKeyboardMarkup replyMarkup) {
-        this.replyMarkup = replyMarkup;
+    public void setProgressReplyMarkup(InlineKeyboardMarkup progressReplyMarkup) {
+        this.progressReplyMarkup = progressReplyMarkup;
+    }
+
+    public InlineKeyboardMarkup getAfterProgressCompletionReplyMarkup() {
+        return afterProgressCompletionReplyMarkup;
+    }
+
+    public void setAfterProgressCompletionReplyMarkup(InlineKeyboardMarkup afterProgressCompletionReplyMarkup) {
+        this.afterProgressCompletionReplyMarkup = afterProgressCompletionReplyMarkup;
+    }
+
+    public String getLocale() {
+        return locale;
+    }
+
+    public void setLocale(String locale) {
+        this.locale = locale;
     }
 }

@@ -33,6 +33,7 @@ import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.service.queue.archive.ArchiveQueueService;
+import ru.gadjini.any2any.service.rename.RenameService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
@@ -109,7 +110,11 @@ public class ArchiveService {
 
     public void rejectTask(SmartExecutorService.Job job) {
         archiveQueueService.setWaiting(job.getId());
-        LOGGER.debug("Rejected({})", job.getWeight());
+        Locale locale = userService.getLocaleOrDefault(((ArchiveTask) job).userId);
+        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
+        messageService.editMessage(new EditMessageText(((ArchiveTask) job).userId, ((ArchiveTask) job).progressMessageId, message)
+                .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(job.getId(), locale)));
+        LOGGER.debug("Rejected({}, {})", job.getId(), job.getWeight());
     }
 
     public ArchiveTask getTask(SmartExecutorService.JobWeight weight) {
@@ -153,6 +158,7 @@ public class ArchiveService {
         ArchiveQueueItem item = archiveQueueService.createProcessingItem(userId, archiveState.getFiles(), format);
         startArchiveCreating(archiveState.getFiles().size(), userId, item.getId(), message -> {
             archiveQueueService.setProgressMessageId(item.getId(), message.getMessageId());
+            item.setProgressMessageId(message.getMessageId());
             fileManager.setInputFilePending(userId, null);
             executor.execute(new ArchiveTask(item));
         });
@@ -234,15 +240,18 @@ public class ArchiveService {
     private Progress progressFilesDownloading(int count, int current, long chatId, int processMessageId, int jobId) {
         Locale locale = userService.getLocaleOrDefault((int) chatId);
         Progress progress = new Progress();
+        progress.setLocale(locale.getLanguage());
         progress.setChatId(chatId);
         progress.setProgressMessageId(processMessageId);
         progress.setProgressMessage(archiveMessageBuilder.buildArchiveProgressMessage(count, current, ArchiveStep.DOWNLOADING, Lang.PYTHON, locale));
 
         if (count == current) {
             String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.ARCHIVE_CREATION, Lang.JAVA, locale);
-            progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 seconds"));
+            String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
+            progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 " + seconds));
+            progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale));
         }
-        progress.setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale));
+        progress.setProgressReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale));
 
         return progress;
     }
@@ -250,6 +259,7 @@ public class ArchiveService {
     private Progress progressArchiveCreation(long chatId, int processMessageId, int jobId) {
         Locale locale = userService.getLocaleOrDefault((int) chatId);
         Progress progress = new Progress();
+        progress.setLocale(locale.getLanguage());
         progress.setChatId(chatId);
         progress.setProgressMessageId(processMessageId);
         progress.setProgressMessage(archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.UPLOADING, Lang.PYTHON, locale));
@@ -257,7 +267,7 @@ public class ArchiveService {
         String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.COMPLETED, Lang.JAVA, locale);
         progress.setAfterProgressCompletionMessage(completionMessage);
 
-        progress.setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale));
+        progress.setProgressReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale));
 
         return progress;
     }
