@@ -13,8 +13,8 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.RenameQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.Message;
@@ -108,10 +108,6 @@ public class RenameService {
 
     public void rejectRenameTask(SmartExecutorService.Job job) {
         renameQueueService.setWaiting(job.getId());
-        Locale locale = userService.getLocaleOrDefault(((RenameTask) job).userId);
-        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
-        messageService.editMessage(new EditMessageText(((RenameTask) job).userId, ((RenameTask) job).progressMessageId, message)
-                .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(job.getId(), locale)));
         LOGGER.debug("Rejected({}, {})", job.getId(), job.getWeight());
     }
 
@@ -192,10 +188,8 @@ public class RenameService {
 
     private void sendStartRenamingMessage(int jobId, int userId, Consumer<Message> callback) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        String calculated = localisationService.getMessage(MessagesProperties.MESSAGE_CALCULATED, locale);
-        String message = String.format(renameMessageBuilder.buildRenamingMessage(RenameStep.DOWNLOADING,
-                locale, Lang.JAVA), 0, calculated, calculated);
-        messageService.sendMessage(new HtmlMessage((long) userId, message)
+        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
+        messageService.sendMessage(new SendMessage((long) userId, message)
                 .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale)), callback);
     }
 

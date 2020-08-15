@@ -14,8 +14,8 @@ import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
+import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.Message;
@@ -109,10 +109,6 @@ public class ArchiveService {
 
     public void rejectTask(SmartExecutorService.Job job) {
         archiveQueueService.setWaiting(job.getId());
-        Locale locale = userService.getLocaleOrDefault(((ArchiveTask) job).userId);
-        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
-        messageService.editMessage(new EditMessageText(((ArchiveTask) job).userId, ((ArchiveTask) job).progressMessageId, message)
-                .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(job.getId(), locale)));
         LOGGER.debug("Rejected({}, {})", job.getId(), job.getWeight());
     }
 
@@ -155,7 +151,7 @@ public class ArchiveService {
         normalizeFileNames(archiveState.getFiles());
 
         ArchiveQueueItem item = archiveQueueService.createProcessingItem(userId, archiveState.getFiles(), format);
-        startArchiveCreating(archiveState.getFiles().size(), userId, item.getId(), message -> {
+        startArchiveCreating(userId, item.getId(), message -> {
             archiveQueueService.setProgressMessageId(item.getId(), message.getMessageId());
             item.setProgressMessageId(message.getMessageId());
             fileManager.setInputFilePending(userId, null);
@@ -183,12 +179,11 @@ public class ArchiveService {
                 chatId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))));
     }
 
-    private void startArchiveCreating(int count, int userId, int jobId, Consumer<Message> callback) {
+    private void startArchiveCreating(int userId, int jobId, Consumer<Message> callback) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        String calculated = localisationService.getMessage(MessagesProperties.MESSAGE_CALCULATED, locale);
-        String message = String.format(archiveMessageBuilder.buildArchiveProgressMessage(count, 1, ArchiveStep.DOWNLOADING, Lang.JAVA, locale), 0, calculated, calculated);
-        messageService.sendMessage(new HtmlMessage((long) userId, message)
-                .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale)), callback);
+        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
+        messageService.sendMessage(new SendMessage((long) userId, message)
+                .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale)), callback);
     }
 
     private void normalizeFileNames(List<Any2AnyFile> any2AnyFiles) {

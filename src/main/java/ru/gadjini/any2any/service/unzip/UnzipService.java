@@ -17,7 +17,6 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.Any2AnyFile;
 import ru.gadjini.any2any.model.SendFileResult;
 import ru.gadjini.any2any.model.ZipFileHeader;
-import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
@@ -114,10 +113,6 @@ public class UnzipService {
 
     public void rejectTask(SmartExecutorService.Job job) {
         queueService.setWaiting(job.getId());
-        Locale locale = userService.getLocaleOrDefault((int) ((SmartExecutorService.ProgressJob) job).getChatId());
-        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
-        messageService.editMessage(new EditMessageText(((SmartExecutorService.ProgressJob) job).getChatId(), ((SmartExecutorService.ProgressJob) job).getProgressMessageId(), message)
-                .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(job.getId(), locale)));
         LOGGER.debug("Rejected({}, {})", job.getId(), job.getWeight());
     }
 
@@ -167,7 +162,7 @@ public class UnzipService {
                     mediaMessageService.sendFile(userId, unzipState.getFilesCache().get(entry.getKey()));
                 }
             } else {
-                sendStartExtractingAllMessage(unzipState.getFiles().size(), userId, messageId, unzipJobId);
+                sendStartExtractingAllMessage(userId, messageId, unzipJobId);
                 UnzipQueueItem item = queueService.createProcessingExtractAllItem(userId, messageId,
                         unzipState.getFiles().values().stream().map(ZipFileHeader::getSize).mapToLong(i -> i).sum());
                 executor.execute(new ExtractAllTask(item));
@@ -342,10 +337,8 @@ public class UnzipService {
     }
 
     private void sendStartUnzippingMessage(int userId, int jobId, Locale locale, Consumer<Message> callback) {
-        String calculated = localisationService.getMessage(MessagesProperties.MESSAGE_CALCULATED, locale);
-        String message = String.format(messageBuilder.buildUnzipProgressMessage(UnzipStep.DOWNLOADING, Lang.JAVA, locale),
-                0, calculated, calculated);
-        messageService.sendMessage(new HtmlMessage((long) userId, message)
+        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
+        messageService.sendMessage(new SendMessage((long) userId, message)
                 .setReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale)), callback);
     }
 
@@ -360,22 +353,18 @@ public class UnzipService {
         }
     }
 
-    private void sendStartExtractingAllMessage(int count, int userId, int messageId, int jobId) {
+    private void sendStartExtractingAllMessage(int userId, int messageId, int jobId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
-        String message = String.format(messageBuilder.buildExtractAllProgressMessage(count, 1, ExtractFileStep.EXTRACTING, Lang.JAVA, locale), 50, "7 " + seconds);
-        messageService.editMessage(
-                new EditMessageText(userId, messageId, message).setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale))
-        );
+        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
+        messageService.editMessage(new EditMessageText((long) userId, messageId, message)
+                .setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale)));
     }
 
     private void sendStartExtractingFileMessage(int userId, int messageId, int jobId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
-        String message = String.format(messageBuilder.buildExtractFileProgressMessage(ExtractFileStep.EXTRACTING, Lang.JAVA, locale), 50, "7 " + seconds);
-        messageService.editMessage(
-                new EditMessageText(userId, messageId, message).setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale))
-        );
+        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
+        messageService.editMessage(new EditMessageText((long) userId, messageId, message)
+                .setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale)));
     }
 
     private void finishExtracting(int userId, int messageId, UnzipState unzipState) {
