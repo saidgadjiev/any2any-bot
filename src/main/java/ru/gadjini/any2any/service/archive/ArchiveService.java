@@ -196,6 +196,7 @@ public class ArchiveService {
         List<ArchiveQueueItem> tasks = archiveQueueService.poll(jobWeight, 1);
         for (ArchiveQueueItem item : tasks) {
             executor.execute(new ArchiveTask(item));
+            LOGGER.debug("Push task");
         }
     }
 

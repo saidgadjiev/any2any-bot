@@ -333,6 +333,7 @@ public class UnzipService {
             } else {
                 executor.execute(new ExtractAllTask(item));
             }
+            LOGGER.debug("Push " + item.getItemType() + " task");
         }
     }
 
