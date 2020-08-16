@@ -29,9 +29,9 @@ import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.file.FileWorkObject;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
-import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.queue.unzip.UnzipQueueService;
@@ -640,17 +640,8 @@ public class UnzipService {
                 Locale locale = userService.getLocaleOrDefault(userId);
                 UnzipMessageBuilder.FilesMessage filesList = messageBuilder.getFilesList(unzipState.getFiles(), 0, 0, locale);
 
-                try {
-                    messageService.editMessage(new EditMessageText((long) userId, messageId, filesList.getMessage())
-                            .setThrowEx(true)
-                            .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), filesList.getLimit(), 0, filesList.getOffset(), jobId, locale)));
-                } catch (Exception e) {
-                    messageService.sendMessage(new SendMessage((long) userId, filesList.getMessage())
-                            .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), filesList.getLimit(), 0, filesList.getOffset(), jobId, locale)));
-                    if (!(e instanceof TelegramApiException)) {
-                        LOGGER.error(e.getMessage(), e);
-                    }
-                }
+                messageService.editMessage(new EditMessageText((long) userId, messageId, filesList.getMessage())
+                        .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), filesList.getLimit(), 0, filesList.getOffset(), jobId, locale)));
                 commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, format);
@@ -669,7 +660,7 @@ public class UnzipService {
                     }
                 }
             } finally {
-                if (checker == null || checker.get()) {
+                if (checker == null || !checker.get()) {
                     executor.complete(jobId);
                     queueService.delete(jobId);
                     fileWorkObject.stop();
