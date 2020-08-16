@@ -18,7 +18,7 @@ public class CommandStateService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommandStateService.class);
 
-    private static final long TTL = 1;
+    private static final long TTL_HOURS = 10;
 
     private CommandStateDao commandStateDao;
 
@@ -35,7 +35,7 @@ public class CommandStateService {
     }
 
     public void setState(long chatId, String command, Object state) {
-        commandStateDao.setState(chatId, command, state, TTL, TimeUnit.HOURS);
+        commandStateDao.setState(chatId, command, state, TTL_HOURS, TimeUnit.HOURS);
     }
 
     public <T> T getState(long chatId, String command, boolean expiredCheck, Class<T> tClass) {
