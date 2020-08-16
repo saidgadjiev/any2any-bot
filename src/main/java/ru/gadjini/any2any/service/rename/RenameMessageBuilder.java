@@ -24,24 +24,24 @@ public class RenameMessageBuilder {
         String iconCheck = localisationService.getMessage(MessagesProperties.ICON_CHECK, locale);
         switch (renameStep) {
             case DOWNLOADING:
-                return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + " (" + formatter + percentage + ")...</b>\n" +
+                return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_PROCESSING_STEP, locale) + " (" + formatter + percentage + ")...</b>\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_SPEED, locale) + " <b>" + formatter + "</b>\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_RENAMING_STEP_TWO, locale) + "</b>\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale) + "</b>";
             case RENAMING:
-                return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n" +
+                return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_PROCESSING_STEP, locale) + "</b> " + iconCheck + "\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_RENAMING_STEP_TWO, locale) + " (" + formatter + percentage + ")...</b>\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale) + "</b>";
             case UPLOADING:
-                return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n" +
+                return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_PROCESSING_STEP, locale) + "</b> " + iconCheck + "\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_RENAMING_STEP_TWO, locale) + "</b> " + iconCheck + "\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale) + " (" + formatter + percentage + ")...</b>\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_ETA, locale) + " <b>" + formatter + "</b>\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_SPEED, locale) + " <b>" + formatter + "</b>\n";
             default:
-                return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOADING_STEP, locale) + "</b> " + iconCheck + "\n" +
+                return "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_PROCESSING_STEP, locale) + "</b> " + iconCheck + "\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_RENAMING_STEP_TWO, locale) + "</b> " + iconCheck + "\n" +
                         "<b>" + localisationService.getMessage(MessagesProperties.MESSAGE_UPLOADING_STEP, locale) + "</b> " + iconCheck;
         }

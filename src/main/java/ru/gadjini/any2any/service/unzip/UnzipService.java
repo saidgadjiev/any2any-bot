@@ -406,8 +406,8 @@ public class UnzipService {
         progress.setProgressMessageId(processMessageId);
         progress.setProgressMessage(messageBuilder.buildExtractAllProgressMessage(count, current, ExtractFileStep.UPLOADING, Lang.PYTHON, locale));
 
-        if (current + 1 < count) {
-            String completionMessage = messageBuilder.buildExtractAllProgressMessage(count, current, ExtractFileStep.EXTRACTING, Lang.JAVA, locale);
+        if (current < count) {
+            String completionMessage = messageBuilder.buildExtractAllProgressMessage(count, current + 1, ExtractFileStep.EXTRACTING, Lang.JAVA, locale);
             String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
             progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 " + seconds));
             progress.setProgressReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale));
@@ -488,31 +488,31 @@ public class UnzipService {
 
                 try {
                     Locale locale = userService.getLocaleOrDefault(item.getUserId());
-                UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
+                    UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
 
                     int i = 1;
-                for (Map.Entry<Integer, ZipFileHeader> entry : unzipState.getFiles().entrySet()) {
-                    if (unzipState.getFilesCache().containsKey(entry.getKey())) {
-                        String fileName = FilenameUtils.getName(entry.getValue().getPath());
+                    for (Map.Entry<Integer, ZipFileHeader> entry : unzipState.getFiles().entrySet()) {
+                        if (unzipState.getFilesCache().containsKey(entry.getKey())) {
+                            String fileName = FilenameUtils.getName(entry.getValue().getPath());
                             mediaMessageService.sendFile(item.getUserId(), unzipState.getFilesCache().get(entry.getKey()), fileName);
-                        String message = messageBuilder.buildExtractAllProgressMessage(unzipState.getFiles().size(), i, ExtractFileStep.EXTRACTING, Lang.JAVA, locale);
-                        String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
-                        messageService.editMessage(new EditMessageText(item.getUserId(), item.getMessageId(), String.format(message, 50, "7 " + seconds)));
+                            String message = messageBuilder.buildExtractAllProgressMessage(unzipState.getFiles().size(), i, ExtractFileStep.EXTRACTING, Lang.JAVA, locale);
+                            String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
+                            messageService.editMessage(new EditMessageText(item.getUserId(), item.getMessageId(), String.format(message, 50, "7 " + seconds)));
                         } else {
                             SmartTempFile file = fileService.createTempFile(item.getUserId(), TAG, FilenameUtils.getExtension(entry.getValue().getPath()));
                             files.add(file);
                             unzipDevice.unzip(entry.getValue().getPath(), unzipState.getArchivePath(), file.getAbsolutePath());
 
-                        String fileName = FilenameUtils.getName(entry.getValue().getPath());
-                        SendFileResult result = mediaMessageService.sendDocument(new SendDocument((long) item.getUserId(), fileName, file.getFile())
-                                .setProgress(extractAllProgress(unzipState.getFiles().size(), i, item.getUserId(), item.getId(), item.getMessageId()))
-                                .setCaption(fileName));
-                        if (result != null) {
-                            unzipState.getFilesCache().put(entry.getKey(), result.getFileId());
-                            commandStateService.setState(item.getUserId(), CommandNames.UNZIP_COMMAND_NAME, unzipState);
+                            String fileName = FilenameUtils.getName(entry.getValue().getPath());
+                            SendFileResult result = mediaMessageService.sendDocument(new SendDocument((long) item.getUserId(), fileName, file.getFile())
+                                    .setProgress(extractAllProgress(unzipState.getFiles().size(), i, item.getUserId(), item.getId(), item.getMessageId()))
+                                    .setCaption(fileName));
+                            if (result != null) {
+                                unzipState.getFilesCache().put(entry.getKey(), result.getFileId());
+                                commandStateService.setState(item.getUserId(), CommandNames.UNZIP_COMMAND_NAME, unzipState);
+                            }
                         }
-                    }
-                    ++i;
+                        ++i;
                     }
                     LOGGER.debug("Finish extract all({}, {})", item.getUserId(), size);
                 } finally {
@@ -620,7 +620,7 @@ public class UnzipService {
                     String fileName = FilenameUtils.getName(fileHeader.getPath());
                     SendFileResult result = mediaMessageService.sendDocument(new SendDocument((long) userId, fileName, out.getFile())
                             .setProgress(extractFileProgress(userId, jobId, messageId))
-                        .setCaption(fileName));
+                            .setCaption(fileName));
                     if (result != null) {
                         unzipState.getFilesCache().put(id, result.getFileId());
                         commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
@@ -733,7 +733,7 @@ public class UnzipService {
 
             try {
                 in = fileService.createTempFile(userId, fileId, TAG, format.getExt());
-                fileManager.downloadFileByFileId(fileId, in);
+                fileManager.downloadFileByFileId(fileId, fileSize, unzipProgress(userId, jobId, messageId), in);
                 UnzipState unzipState = initAndGetState(in.getAbsolutePath());
                 if (unzipState == null) {
                     return;

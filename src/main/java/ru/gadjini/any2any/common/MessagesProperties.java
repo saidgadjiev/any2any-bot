@@ -313,6 +313,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_DOWNLOADING_STEP = "message.downloading.step";
 
+    public static final String MESSAGE_PROCESSING_STEP = "message.processing.step";
+
     public static final String MESSAGE_RENAMING_STEP_TWO = "message.renaming.step";
 
     public static final String MESSAGE_UPLOADING_STEP = "message.uploading.step";
