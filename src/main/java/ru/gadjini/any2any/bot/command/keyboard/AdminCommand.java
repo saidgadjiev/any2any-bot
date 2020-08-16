@@ -15,6 +15,7 @@ import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.cleaner.GarbageFileCollector;
 import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.conversion.ConvertionService;
+import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 import ru.gadjini.any2any.service.message.MediaMessageService;
 import ru.gadjini.any2any.service.message.MessageService;
@@ -42,14 +43,17 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     private GarbageFileCollector garbageFileCollector;
 
+    private FileManager fileManager;
+
     private Set<String> names = new HashSet<>();
 
     @Autowired
     public AdminCommand(LocalisationService localisationService, @Qualifier("medialimits") MediaMessageService mediaMessageService,
-                        GarbageFileCollector garbageFileCollector) {
+                        GarbageFileCollector garbageFileCollector, FileManager fileManager) {
         this.localisationService = localisationService;
         this.mediaMessageService = mediaMessageService;
         this.garbageFileCollector = garbageFileCollector;
+        this.fileManager = fileManager;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.ADMIN_COMMAND_NAME, locale));
         }
@@ -131,6 +135,8 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
         } else if (text.equals(localisationService.getMessage(MessagesProperties.REMOVE_GARBAGE_FILES_COMMAND_NAME, locale))) {
             int deleted = garbageFileCollector.clean();
             messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_COLLECTED_GARBAGE, new Object[]{deleted}, locale)));
+        } else if (text.equals(localisationService.getMessage(MessagesProperties.RESET_FILE_LIMIT_COMMAND_NAME, locale))) {
+            fileManager.resetLimits(message.getChatId());
         } else {
             commandStateService.setState(message.getChatId(), CommandNames.ADMIN, text);
         }

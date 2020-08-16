@@ -338,4 +338,6 @@ public class MessagesProperties {
     public static final String MESSAGE_AWAITING_PROCESSING = "message.awaiting.processing";
 
     public static final String MESSAGE_SPEED = "message.speed";
+
+    public static final String RESET_FILE_LIMIT_COMMAND_NAME = "reset.file.limit.command.name";
 }

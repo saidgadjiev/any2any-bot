@@ -36,6 +36,10 @@ public class FileManager {
         fileLimitsDao.setInputFile(chatId, new InputFileState(replyToMessageId));
     }
 
+    public void resetLimits(long chatId) {
+        fileLimitsDao.deleteInputFile(chatId);
+    }
+
     public void inputFile(long chatId) {
         InputFileState inputFileState = fileLimitsDao.getInputFile(chatId);
         if (inputFileState != null) {

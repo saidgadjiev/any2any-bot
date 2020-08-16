@@ -43,6 +43,10 @@ public class FileLimitsDao {
         return redisTemplate.getExpire(key(chatId));
     }
 
+    public void deleteInputFile(long chatId) {
+        redisTemplate.delete(key(chatId));
+    }
+
     public InputFileState getInputFile(long chatId) {
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(key(chatId));
 
