@@ -160,7 +160,7 @@ public class RenameService {
     }
 
     private void pushTasks(SmartExecutorService.JobWeight jobWeight) {
-        List<RenameQueueItem> tasks = renameQueueService.poll(jobWeight, executor.getCorePoolSize(jobWeight));
+        List<RenameQueueItem> tasks = renameQueueService.poll(jobWeight, 1);
         for (RenameQueueItem item : tasks) {
             executor.execute(new RenameTask(item));
         }

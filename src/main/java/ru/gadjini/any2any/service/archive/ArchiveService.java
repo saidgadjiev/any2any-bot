@@ -193,7 +193,7 @@ public class ArchiveService {
     }
 
     private void pushTasks(SmartExecutorService.JobWeight jobWeight) {
-        List<ArchiveQueueItem> tasks = archiveQueueService.poll(jobWeight, executor.getCorePoolSize(jobWeight));
+        List<ArchiveQueueItem> tasks = archiveQueueService.poll(jobWeight, 1);
         for (ArchiveQueueItem item : tasks) {
             executor.execute(new ArchiveTask(item));
         }

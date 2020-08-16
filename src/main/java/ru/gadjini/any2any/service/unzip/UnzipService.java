@@ -324,12 +324,14 @@ public class UnzipService {
     }
 
     private void pushTasks(SmartExecutorService.JobWeight jobWeight) {
-        List<UnzipQueueItem> tasks = queueService.poll(jobWeight, executor.getCorePoolSize(jobWeight));
+        List<UnzipQueueItem> tasks = queueService.poll(jobWeight, 1);
         for (UnzipQueueItem item : tasks) {
             if (item.getItemType() == UnzipQueueItem.ItemType.UNZIP) {
                 executor.execute(new UnzipTask(item));
-            } else {
+            } else if (item.getItemType() == UnzipQueueItem.ItemType.EXTRACT_FILE) {
                 executor.execute(new ExtractFileTask(item));
+            } else {
+                executor.execute(new ExtractAllTask(item));
             }
         }
     }
