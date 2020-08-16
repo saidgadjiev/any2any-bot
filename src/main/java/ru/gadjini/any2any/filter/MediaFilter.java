@@ -20,7 +20,6 @@ import java.util.Locale;
 
 @Component
 @Qualifier("messagelimits")
-@SuppressWarnings("PMD")
 public class MediaFilter extends BaseBotFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MediaFilter.class);
@@ -50,7 +49,7 @@ public class MediaFilter extends BaseBotFilter {
             Any2AnyFile file = fileService.getFile(update.getMessage(), Locale.getDefault());
             if (file != null) {
                 checkInMediaSize(update.getMessage(), file);
-                //fileManager.inputFile(update.getMessage().getChatId());
+                fileManager.inputFile(update.getMessage().getChatId());
             }
         }
 
