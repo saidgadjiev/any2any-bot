@@ -20,6 +20,7 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.ApiResponse;
 import ru.gadjini.any2any.model.bot.api.MediaType;
 import ru.gadjini.any2any.model.bot.api.method.CancelDownloading;
+import ru.gadjini.any2any.model.bot.api.method.CancelUploading;
 import ru.gadjini.any2any.model.bot.api.method.IsChatMember;
 import ru.gadjini.any2any.model.bot.api.method.send.*;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.*;
@@ -42,6 +43,8 @@ public class TelegramService {
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramService.class);
 
     private final Map<String, SmartTempFile> downloading = new ConcurrentHashMap<>();
+
+    private final Map<String, SmartTempFile> uploading = new ConcurrentHashMap<>();
 
     private final TelegramProperties telegramProperties;
 
@@ -218,6 +221,9 @@ public class TelegramService {
     }
 
     public Message sendDocument(SendDocument sendDocument) {
+        if (StringUtils.isNotBlank(sendDocument.getDocument().getFilePath())) {
+            uploading.put(sendDocument.getDocument().getFilePath(), new SmartTempFile(new File(sendDocument.getDocument().getFilePath())));
+        }
         try {
             HttpEntity<SendDocument> request = new HttpEntity<>(sendDocument);
             String response = restTemplate.postForObject(getUrl(SendDocument.METHOD), request, String.class);
@@ -234,6 +240,8 @@ public class TelegramService {
             }
         } catch (RestClientException e) {
             throw new TelegramApiRequestException(sendDocument.getChatId(), e.getMessage(), e);
+        } finally {
+            uploading.remove(sendDocument.getDocument().getFilePath());
         }
     }
 
@@ -381,6 +389,33 @@ public class TelegramService {
             throw new TelegramApiException(e);
         } finally {
             downloading.remove(fileId);
+        }
+    }
+
+    public boolean cancelUploading(String filePath) {
+        if (StringUtils.isBlank(filePath)) {
+            return false;
+        }
+        try {
+            SmartTempFile tempFile = uploading.get(filePath);
+            if (tempFile != null) {
+                try {
+                    HttpEntity<CancelUploading> request = new HttpEntity<>(new CancelUploading(filePath));
+                    restTemplate.postForObject(getUrl(CancelUploading.METHOD), request, Void.class);
+                } finally {
+                    try {
+                        tempFile.smartDelete();
+                    } catch (Exception e) {
+                        LOGGER.error(e.getMessage(), e);
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        } finally {
+            uploading.remove(filePath);
         }
     }
 

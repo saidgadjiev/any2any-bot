@@ -558,7 +558,11 @@ public class UnzipService {
                 queueService.delete(item.getId());
                 LOGGER.debug("Extracting canceled by user({}, {})", item.getUserId(), MemoryUtils.humanReadableByteCount(item.getExtractFileSize()));
             }
-            files.forEach(SmartTempFile::smartDelete);
+            files.forEach(smartTempFile -> {
+                if (!fileManager.cancelUploading(smartTempFile.getAbsolutePath())) {
+                    smartTempFile.smartDelete();
+                }
+            });
         }
 
         @Override
@@ -675,7 +679,7 @@ public class UnzipService {
                 queueService.delete(jobId);
                 LOGGER.debug("Extracting canceled by user({}, {})", userId, MemoryUtils.humanReadableByteCount(fileSize));
             }
-            if (out != null) {
+            if (out != null && !fileManager.cancelUploading(out.getAbsolutePath())) {
                 out.smartDelete();
             }
         }

@@ -72,6 +72,10 @@ public class FileManager {
         return telegramService.cancelDownloading(fileId);
     }
 
+    public boolean cancelUploading(String filePath) {
+        return telegramService.cancelUploading(filePath);
+    }
+
     public void cancelDownloads() {
         telegramService.cancelDownloads();
     }

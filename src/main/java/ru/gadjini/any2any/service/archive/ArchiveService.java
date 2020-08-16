@@ -355,10 +355,13 @@ public class ArchiveService {
         @Override
         public void cancel() {
             archiveFiles.forEach(tgFile -> fileManager.cancelDownloading(tgFile.getFileId()));
-            files.forEach(SmartTempFile::smartDelete);
-            files.clear();
+            files.forEach(smartTempFile -> {
+                if (!fileManager.cancelUploading(smartTempFile.getAbsolutePath())) {
+                    smartTempFile.smartDelete();
+                }
+            });
 
-            if (archive != null) {
+            if (archive != null && !fileManager.cancelUploading(archive.getAbsolutePath())) {
                 archive.smartDelete();
             }
             if (canceledByUser) {

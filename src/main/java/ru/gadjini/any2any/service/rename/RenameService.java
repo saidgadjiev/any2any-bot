@@ -334,6 +334,9 @@ public class RenameService {
             if (!fileManager.cancelDownloading(fileId) && file != null) {
                 file.smartDelete();
             }
+            if (file != null && !fileManager.cancelUploading(file.getAbsolutePath())) {
+                file.smartDelete();
+            }
             if (!fileManager.cancelDownloading(thumb) && thumbFile != null) {
                 thumbFile.smartDelete();
             }
