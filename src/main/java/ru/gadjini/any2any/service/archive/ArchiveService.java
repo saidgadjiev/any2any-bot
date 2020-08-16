@@ -204,9 +204,10 @@ public class ArchiveService {
     }
 
     private void pushTasks(SmartExecutorService.JobWeight jobWeight) {
-        List<ArchiveQueueItem> tasks = archiveQueueService.poll(jobWeight, executor.getCorePoolSize(jobWeight));
+        List<ArchiveQueueItem> tasks = archiveQueueService.poll(jobWeight, 1);
         for (ArchiveQueueItem item : tasks) {
             executor.execute(new ArchiveTask(item));
+            LOGGER.debug("Push task");
         }
     }
 
@@ -327,12 +328,12 @@ public class ArchiveService {
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, type);
             } catch (Exception ex) {
-                if (!checker.get()) {
+                if (checker == null || !checker.get()) {
                     LOGGER.error(ex.getMessage(), ex);
                     messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
                 }
             } finally {
-                if (!checker.get()) {
+                if (checker == null || !checker.get()) {
                     executor.complete(jobId);
                     archiveQueueService.delete(jobId);
                     files.forEach(SmartTempFile::smartDelete);
