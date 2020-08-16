@@ -61,8 +61,6 @@ public class MessageServiceImpl implements MessageService {
         try {
             return BooleanUtils.toBoolean(telegramService.isChatMember(isChatMember));
         } catch (Exception ex) {
-            LOGGER.error(ex.getMessage());
-
             return false;
         }
     }
