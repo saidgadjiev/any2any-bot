@@ -425,31 +425,40 @@ public class UnzipService {
         public void run() {
             String size = MemoryUtils.humanReadableByteCount(item.getExtractFileSize());
             LOGGER.debug("Start extract all({}, {})", item.getUserId(), size);
-            UnzipState unzipState = commandStateService.getState(item.getUserId(), CommandNames.UNZIP_COMMAND_NAME, true, UnzipState.class);
 
             try {
-                UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
+                UnzipState unzipState = commandStateService.getState(item.getUserId(), CommandNames.UNZIP_COMMAND_NAME, true, UnzipState.class);
 
-                for (Map.Entry<Integer, ZipFileHeader> entry : unzipState.getFiles().entrySet()) {
-                    if (unzipState.getFilesCache().containsKey(entry.getKey())) {
-                        mediaMessageService.sendFile(item.getUserId(), unzipState.getFilesCache().get(entry.getKey()));
-                    } else {
-                        SmartTempFile file = fileService.createTempFile(item.getUserId(), TAG, FilenameUtils.getExtension(entry.getValue().getPath()));
-                        files.add(file);
-                        unzipDevice.unzip(entry.getValue().getPath(), unzipState.getArchivePath(), file.getAbsolutePath());
+                try {
+                    UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
 
-                        String fileName = FilenameUtils.getName(entry.getValue().getPath());
-                        SendFileResult result = mediaMessageService.sendDocument(new SendDocument((long) item.getUserId(),
-                                fileName, file.getFile()).setCaption(fileName));
-                        if (result != null) {
-                            unzipState.getFilesCache().put(entry.getKey(), result.getFileId());
-                            commandStateService.setState(item.getUserId(), CommandNames.UNZIP_COMMAND_NAME, unzipState);
+                    for (Map.Entry<Integer, ZipFileHeader> entry : unzipState.getFiles().entrySet()) {
+                        if (unzipState.getFilesCache().containsKey(entry.getKey())) {
+                            mediaMessageService.sendFile(item.getUserId(), unzipState.getFilesCache().get(entry.getKey()));
+                        } else {
+                            SmartTempFile file = fileService.createTempFile(item.getUserId(), TAG, FilenameUtils.getExtension(entry.getValue().getPath()));
+                            files.add(file);
+                            unzipDevice.unzip(entry.getValue().getPath(), unzipState.getArchivePath(), file.getAbsolutePath());
+
+                            String fileName = FilenameUtils.getName(entry.getValue().getPath());
+                            SendFileResult result = mediaMessageService.sendDocument(new SendDocument((long) item.getUserId(),
+                                    fileName, file.getFile()).setCaption(fileName));
+                            if (result != null) {
+                                unzipState.getFilesCache().put(entry.getKey(), result.getFileId());
+                                commandStateService.setState(item.getUserId(), CommandNames.UNZIP_COMMAND_NAME, unzipState);
+                            }
                         }
                     }
+                    LOGGER.debug("Finish extract all({}, {})", item.getUserId(), size);
+                } finally {
+                    if (checker == null || !checker.get()) {
+                        finishExtracting(item.getUserId(), item.getMessageId(), unzipState);
+                    }
                 }
-                LOGGER.debug("Finish extract all({}, {})", item.getUserId(), size);
+            } catch (UserException ex) {
+                throw ex;
             } catch (Exception ex) {
-                if (!checker.get()) {
+                if (checker == null || !checker.get()) {
                     LOGGER.error(ex.getMessage(), ex);
 
                     Locale locale = userService.getLocaleOrDefault(item.getUserId());
@@ -460,8 +469,7 @@ public class UnzipService {
                     }
                 }
             } finally {
-                if (!checker.get()) {
-                    finishExtracting(item.getUserId(), item.getMessageId(), unzipState);
+                if (checker == null || !checker.get()) {
                     executor.complete(item.getId());
                     queueService.delete(item.getId());
                     files.forEach(SmartTempFile::smartDelete);
@@ -523,26 +531,34 @@ public class UnzipService {
         public void run() {
             String size;
 
-            UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true, UnzipState.class);
             try {
-                ZipFileHeader fileHeader = unzipState.getFiles().get(id);
-                size = MemoryUtils.humanReadableByteCount(fileHeader.getSize());
-                LOGGER.debug("Start({}, {})", userId, size);
+                UnzipState unzipState = commandStateService.getState(userId, CommandNames.UNZIP_COMMAND_NAME, true, UnzipState.class);
+                try {
+                    ZipFileHeader fileHeader = unzipState.getFiles().get(id);
+                    size = MemoryUtils.humanReadableByteCount(fileHeader.getSize());
+                    LOGGER.debug("Start({}, {})", userId, size);
 
-                UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
-                out = fileService.createTempFile(userId, TAG, FilenameUtils.getExtension(fileHeader.getPath()));
-                unzipDevice.unzip(fileHeader.getPath(), unzipState.getArchivePath(), out.getAbsolutePath());
+                    UnzipDevice unzipDevice = getCandidate(unzipState.getArchiveType());
+                    out = fileService.createTempFile(userId, TAG, FilenameUtils.getExtension(fileHeader.getPath()));
+                    unzipDevice.unzip(fileHeader.getPath(), unzipState.getArchivePath(), out.getAbsolutePath());
 
-                String fileName = FilenameUtils.getName(fileHeader.getPath());
-                SendFileResult result = mediaMessageService.sendDocument(new SendDocument((long) userId, fileName, out.getFile())
-                        .setCaption(fileName));
-                if (result != null) {
-                    unzipState.getFilesCache().put(id, result.getFileId());
-                    commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
+                    String fileName = FilenameUtils.getName(fileHeader.getPath());
+                    SendFileResult result = mediaMessageService.sendDocument(new SendDocument((long) userId, fileName, out.getFile())
+                            .setCaption(fileName));
+                    if (result != null) {
+                        unzipState.getFilesCache().put(id, result.getFileId());
+                        commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
+                    }
+                    LOGGER.debug("Finish({}, {})", userId, size);
+                } finally {
+                    if (checker == null || !checker.get()) {
+                        finishExtracting(userId, messageId, unzipState);
+                    }
                 }
-                LOGGER.debug("Finish({}, {})", userId, size);
+            } catch (UserException ex) {
+                throw ex;
             } catch (Exception ex) {
-                if (!checker.get()) {
+                if (checker == null || !checker.get()) {
                     LOGGER.error(ex.getMessage(), ex);
                     Locale locale = userService.getLocaleOrDefault(userId);
                     if (ex instanceof ProcessException) {
@@ -552,8 +568,7 @@ public class UnzipService {
                     }
                 }
             } finally {
-                if (!checker.get()) {
-                    finishExtracting(userId, messageId, unzipState);
+                if (checker == null || !checker.get()) {
                     executor.complete(jobId);
                     queueService.delete(jobId);
                     if (out != null) {
