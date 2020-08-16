@@ -20,6 +20,7 @@ import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.ApiResponse;
 import ru.gadjini.any2any.model.bot.api.MediaType;
 import ru.gadjini.any2any.model.bot.api.method.CancelDownloading;
+import ru.gadjini.any2any.model.bot.api.method.IsChatMember;
 import ru.gadjini.any2any.model.bot.api.method.send.*;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.*;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
@@ -293,6 +294,27 @@ public class TelegramService {
             }
         } catch (RestClientException e) {
             throw new TelegramApiRequestException(sendPhoto.getChatId(), e.getMessage(), e);
+        }
+    }
+
+    public Boolean isChatMember(IsChatMember isChatMember) {
+        try {
+            HttpEntity<IsChatMember> request = new HttpEntity<>(isChatMember);
+            String result = restTemplate.postForObject(getUrl(IsChatMember.METHOD), request, String.class);
+            try {
+                ApiResponse<Boolean> apiResponse = objectMapper.readValue(result, new TypeReference<>() {
+                });
+
+                if (apiResponse.getOk()) {
+                    return apiResponse.getResult();
+                } else {
+                    throw new TelegramApiRequestException(String.valueOf(isChatMember.getUserId()), "Error is chat member", apiResponse);
+                }
+            } catch (IOException e) {
+                throw new TelegramApiException("Unable to deserialize response(" + result + ")\n" + e.getMessage(), e);
+            }
+        } catch (RestClientException e) {
+            throw new TelegramApiRequestException(String.valueOf(isChatMember.getUserId()), e.getMessage(), e);
         }
     }
 

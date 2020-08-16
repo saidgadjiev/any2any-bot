@@ -26,7 +26,7 @@ public class SendMessage {
     @JsonProperty(PARSEMODE_FIELD)
     private String parseMode;
     @JsonProperty(DISABLEWEBPAGEPREVIEW_FIELD)
-    private Boolean disableWebPagePreview;
+    private Boolean disableWebPagePreview = true;
     @JsonProperty(DISABLENOTIFICATION_FIELD)
     private Boolean disableNotification;
     @JsonProperty(REPLYTOMESSAGEID_FIELD)

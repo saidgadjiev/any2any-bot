@@ -29,10 +29,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_MAIN_MENU = "message.main.menu";
 
-    public static final String MESSAGE_UNZIP_PROCESSING = "message.unzip.processing";
-
-    public static final String MESSAGE_ZIP_PROCESSING = "message.zip.processing";
-
     public static final String MESSAGE_SUPPORTED_ZIP_FORMATS = "message.supported.zip.formats";
 
     public static final String MESSAGE_UNSUPPORTED_FORMAT = "message.unsupported.format";
@@ -93,8 +89,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_NEW_FILE_NAME = "message.new.file.name";
 
-    public static final String MESSAGE_RENAME_FORBIDDEN = "message.rename.forbidden";
-
     public static final String UNZIP_COMMAND_NAME = "unzip.command.name";
 
     public static final String MESSAGE_ZIP_FILE = "message.unzip.welcome";
@@ -110,8 +104,6 @@ public class MessagesProperties {
     public static final String MESSAGE_TOO_LARGE_IN_FILE = "message.too.large.in.file";
 
     public static final String CONVERT_COMMAND_NAME = "convert.command.name";
-
-    public static final String MESSAGE_RENAMING = "message.renaming";
 
     public static final String MESSAGE_CONVERT_FILE = "message.convert.file";
 
@@ -259,8 +251,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_ARCHIVE_FILES_LIST = "message.archive.files.list";
 
-    public static final String MESSAGE_ARCHIVE_PROCESSING = "message.archive.processing";
-
     public static final String MESSAGE_UNZIP_PROCESSING_ANSWER = "message.unzip.processing.answer";
 
     public static final String MESSAGE_ARCHIVE_FILES_DELETED = "message.archive.files.deleted";
@@ -276,12 +266,6 @@ public class MessagesProperties {
     public static final String MESSAGE_CONVERSION_EXECUTED = "message.conversion.executed";
 
     public static final String EXTRACT_ALL_COMMAND_DESCRIPTION = "extract.all.command.description";
-
-    public static final String MESSAGE_EXTRACT_ALL_PROCESSING = "message.extract.all.processing";
-
-    public static final String ENABLE_DISTRIBUTIONS_COMMAND_NAME = "enable.distributions.command.name";
-
-    public static final String MESSAGE_DISTRIBUTIONS_ENABLED = "message.distributions.enabled";
 
     public static final String MESSAGE_EXTRACT_FILE_ERROR = "message.extract.file.error";
 

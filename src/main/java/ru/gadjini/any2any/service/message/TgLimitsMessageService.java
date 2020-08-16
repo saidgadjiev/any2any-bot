@@ -8,7 +8,6 @@ import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
-import ru.gadjini.any2any.model.bot.api.object.ChatMember;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 
@@ -36,8 +35,8 @@ public class TgLimitsMessageService implements MessageService {
     }
 
     @Override
-    public ChatMember getChatMember(String chatId, int userId) {
-        return messageService.getChatMember(chatId, userId);
+    public boolean isChatMember(String chatId, int userId) {
+        return messageService.isChatMember(chatId, userId);
     }
 
     @Override

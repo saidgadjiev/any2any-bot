@@ -67,4 +67,6 @@ public class CommandNames {
     public static final String DEL_THUMBNAIL_COMMAND = "delthumb";
 
     public static final String VIEW_THUMBNAIL_COMMAND = "viewthumb";
+
+    public static final String SUBSCRIBED_COMMAND = "aa";
 }

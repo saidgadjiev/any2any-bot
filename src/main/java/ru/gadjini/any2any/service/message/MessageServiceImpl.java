@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service.message;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.botapi.TelegramApiException;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
+import ru.gadjini.any2any.model.bot.api.method.IsChatMember;
 import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.DeleteMessage;
@@ -15,7 +17,6 @@ import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageCaption
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageReplyMarkup;
 import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
-import ru.gadjini.any2any.model.bot.api.object.ChatMember;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.ParseMode;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
@@ -52,20 +53,18 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public ChatMember getChatMember(String chatId, int userId) {
-        /*GetChatMember getChatMember = new GetChatMember();
-        getChatMember.setChatId(chatId);
-        getChatMember.setUserId(userId);
+    public boolean isChatMember(String chatId, int userId) {
+        IsChatMember isChatMember = new IsChatMember();
+        isChatMember.setChatId(chatId);
+        isChatMember.setUserId(userId);
 
         try {
-            return telegramService.execute(getChatMember);
-        } catch (TelegramApiRequestException ex) {
-            throw new TelegramRequestException(ex, chatId);
-        } catch (TelegramApiException e) {
-            throw new TelegramException(e);
-        }*/
+            return BooleanUtils.toBoolean(telegramService.isChatMember(isChatMember));
+        } catch (Exception ex) {
+            LOGGER.error(ex.getMessage(), ex);
 
-        return null;
+            return false;
+        }
     }
 
     @Override

@@ -15,9 +15,9 @@ public class BotConfiguration implements Jackson2ObjectMapperBuilderCustomizer {
     public BotFilter botFilter(Any2AnyBotFilter any2AnyBotFilter,
                                UpdateFilter updateFilter, StartCommandFilter startCommandFilter,
                                MediaFilter mediaFilter, LastActivityFilter activityFilter,
-                               DistributionFilter distributionFilter) {
-        updateFilter.setNext(mediaFilter).setNext(startCommandFilter).setNext(activityFilter)
-                .setNext(distributionFilter).setNext(any2AnyBotFilter);
+                               SubscriptionFilter subscriptionFilter) {
+        updateFilter.setNext(mediaFilter).setNext(startCommandFilter).setNext(subscriptionFilter)
+                .setNext(activityFilter).setNext(any2AnyBotFilter);
         return updateFilter;
     }
 
