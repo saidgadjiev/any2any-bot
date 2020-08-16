@@ -655,7 +655,7 @@ public class UnzipService {
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, format);
             } catch (Exception e) {
-                if (!checker.get()) {
+                if (checker == null || !checker.get()) {
                     LOGGER.error(e.getMessage(), e);
                     if (in != null) {
                         in.smartDelete();
@@ -669,7 +669,7 @@ public class UnzipService {
                     }
                 }
             } finally {
-                if (!checker.get()) {
+                if (checker == null || checker.get()) {
                     executor.complete(jobId);
                     queueService.delete(jobId);
                     fileWorkObject.stop();

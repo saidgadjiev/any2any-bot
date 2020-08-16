@@ -204,7 +204,7 @@ public class ConvertionService {
                                         .setReplyToMessageId(fileQueueItem.getReplyToMessageId())
                         );
                     } catch (Exception ex) {
-                        if (!checker.get()) {
+                        if (checker == null || !checker.get()) {
                             queueService.exception(fileQueueItem.getId(), ex);
                             LOGGER.error(ex.getMessage(), ex);
                             Locale locale = userService.getLocaleOrDefault(fileQueueItem.getUserId());
@@ -219,7 +219,7 @@ public class ConvertionService {
                     LOGGER.debug("Candidate not found({}, {})", fileQueueItem.getUserId(), fileQueueItem.getFormat());
                 }
             } finally {
-                if (!checker.get()) {
+                if (checker == null || !checker.get()) {
                     executor.complete(fileQueueItem.getId());
                     fileWorkObject.stop();
                 }

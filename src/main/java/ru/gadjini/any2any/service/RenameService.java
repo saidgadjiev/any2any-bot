@@ -245,12 +245,12 @@ public class RenameService {
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, newFileName);
             } catch (Exception ex) {
-                if (!checker.get()) {
+                if (checker == null || !checker.get()) {
                     LOGGER.error(ex.getMessage(), ex);
                     messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
                 }
             } finally {
-                if (!checker.get()) {
+                if (checker == null || !checker.get()) {
                     executor.complete(jobId);
                     renameQueueService.delete(jobId);
                     if (file != null) {
