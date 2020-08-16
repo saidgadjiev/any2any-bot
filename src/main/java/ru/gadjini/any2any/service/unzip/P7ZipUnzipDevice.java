@@ -33,6 +33,9 @@ public class P7ZipUnzipDevice extends BaseUnzipDevice {
         String[] fileHeaders = mainContent.split("\n\n");
         List<ZipFileHeader> result = new ArrayList<>();
         for (String fileHeader : fileHeaders) {
+            if (!fileHeader.startsWith("Path")) {
+                continue;
+            }
             int indexOfFolder = fileHeader.indexOf("Folder = ") + "Folder = ".length();
             String folder = fileHeader.substring(indexOfFolder, indexOfFolder + 1);
             if (folder.equals("+")) {
