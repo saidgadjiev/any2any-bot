@@ -118,7 +118,9 @@ public class TelegramMTProtoService {
         } catch (RestClientException e) {
             throw new TelegramApiRequestException(sendDocument.getChatId(), e.getMessage(), e);
         } finally {
-            uploading.remove(sendDocument.getDocument().getFilePath());
+            if (StringUtils.isNotBlank(sendDocument.getDocument().getFilePath())) {
+                uploading.remove(sendDocument.getDocument().getFilePath());
+            }
         }
     }
 

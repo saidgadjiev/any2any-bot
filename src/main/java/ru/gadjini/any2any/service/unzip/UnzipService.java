@@ -373,7 +373,8 @@ public class UnzipService {
                 new Object[]{messageBuilder.getFilesList(unzipState.getFiles().values())},
                 locale
         );
-        messageService.editMessage(new EditMessageText(userId, messageId, message)
+        messageService.editMessage(new EditMessageText(userId, messageId, messageBuilder.buildExtractFileProgressMessage(ExtractFileStep.COMPLETED, Lang.JAVA, locale)));
+        messageService.sendMessage(new SendMessage((long) userId, message)
                 .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), unzipState.getUnzipJobId(), locale)));
     }
 
@@ -410,8 +411,9 @@ public class UnzipService {
             String completionMessage = messageBuilder.buildExtractAllProgressMessage(count, current + 1, ExtractFileStep.EXTRACTING, Lang.JAVA, locale);
             String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
             progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 " + seconds));
-            progress.setProgressReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale));
+            progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale));
         }
+        progress.setProgressReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale));
 
         return progress;
     }
@@ -449,7 +451,7 @@ public class UnzipService {
         executor.shutdown();
     }
 
-    public boolean isAllInCache(UnzipState unzipState) {
+    private boolean isAllInCache(UnzipState unzipState) {
         return unzipState.getFilesCache().keySet().containsAll(unzipState.getFiles().keySet());
     }
 
@@ -746,7 +748,8 @@ public class UnzipService {
                 Locale locale = userService.getLocaleOrDefault(userId);
                 UnzipMessageBuilder.FilesMessage filesList = messageBuilder.getFilesList(unzipState.getFiles(), 0, 0, locale);
 
-                messageService.editMessage(new EditMessageText((long) userId, messageId, filesList.getMessage())
+                messageService.editMessage(new EditMessageText(userId, messageId, messageBuilder.buildUnzipProgressMessage(UnzipStep.COMPLETED, Lang.JAVA, locale)));
+                messageService.sendMessage(new SendMessage((long) userId, filesList.getMessage())
                         .setReplyMarkup(inlineKeyboardService.getFilesListKeyboard(unzipState.filesIds(), filesList.getLimit(), 0, filesList.getOffset(), jobId, locale)));
                 commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
 
