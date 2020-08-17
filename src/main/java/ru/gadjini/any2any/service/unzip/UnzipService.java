@@ -439,6 +439,7 @@ public class UnzipService {
         String completionMessage = messageBuilder.buildUnzipProgressMessage(UnzipStep.UNZIPPING, Lang.JAVA, locale);
         String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
         progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 " + seconds));
+        progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale));
         progress.setProgressReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale));
 
         return progress;
