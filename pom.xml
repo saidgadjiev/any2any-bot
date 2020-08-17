@@ -215,11 +215,5 @@
             <artifactId>commons-io</artifactId>
             <version>2.7</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.telegram</groupId>
-            <artifactId>telegrambots-meta</artifactId>
-            <version>4.9.1</version>
-        </dependency>
     </dependencies>
 </project>
