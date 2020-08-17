@@ -59,6 +59,10 @@ public class TempFileService {
         return createTempFile(chatId, null, tag, ext);
     }
 
+    public SmartTempFile createTempFile(String tag, String ext) {
+        return createTempFile(0, null, tag, ext);
+    }
+
     public String generateName(long chatId, String fileId, String tag, String ext) {
         tag = StringUtils.defaultIfBlank(tag, "-");
         ext = StringUtils.defaultIfBlank(ext, "tmp");

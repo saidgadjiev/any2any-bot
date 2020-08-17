@@ -1,12 +1,18 @@
 package ru.gadjini.any2any.service.unzip;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.condition.LinuxMacCondition;
+import ru.gadjini.any2any.exception.ProcessException;
+import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.ZipFileHeader;
 import ru.gadjini.any2any.service.ProcessExecutor;
+import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -15,8 +21,14 @@ import java.util.Set;
 @Conditional({LinuxMacCondition.class})
 public class P7ZipUnzipDevice extends BaseUnzipDevice {
 
-    protected P7ZipUnzipDevice() {
+    private static final String TAG = "p7unzip";
+
+    private TempFileService tempFileService;
+
+    @Autowired
+    public P7ZipUnzipDevice(TempFileService tempFileService) {
         super(Set.of(Format.ZIP, Format.RAR));
+        this.tempFileService = tempFileService;
     }
 
     @Override
@@ -26,37 +38,46 @@ public class P7ZipUnzipDevice extends BaseUnzipDevice {
 
     @Override
     public List<ZipFileHeader> getZipFiles(String zipFile) {
-        String contents = new ProcessExecutor().executeWithResult(buildContentsCommand(zipFile));
+        SmartTempFile txt = tempFileService.createTempFile(TAG, "txt");
 
-        int mainContentStartIndex = contents.indexOf("----------\n") + "----------\n".length();
-        String mainContent = contents.substring(mainContentStartIndex);
-        String[] fileHeaders = mainContent.split("\n\n");
-        List<ZipFileHeader> result = new ArrayList<>();
-        for (String fileHeader : fileHeaders) {
-            if (!fileHeader.startsWith("Path")) {
-                continue;
+        try {
+            new ProcessExecutor().executeWithFile(buildContentsCommand(zipFile), txt.getFile().getAbsolutePath());
+
+            String contents = Files.readString(txt.toPath());
+            int mainContentStartIndex = contents.indexOf("----------\n") + "----------\n".length();
+            String mainContent = contents.substring(mainContentStartIndex);
+            String[] fileHeaders = mainContent.split("\n\n");
+            List<ZipFileHeader> result = new ArrayList<>();
+            for (String fileHeader : fileHeaders) {
+                if (!fileHeader.startsWith("Path")) {
+                    continue;
+                }
+                int indexOfFolder = fileHeader.indexOf("Folder = ") + "Folder = ".length();
+                String folder = fileHeader.substring(indexOfFolder, indexOfFolder + 1);
+                if (folder.equals("+")) {
+                    continue;
+                }
+                int indexOfPath = fileHeader.indexOf("Path = ");
+                int endLine = fileHeader.indexOf("\n");
+                String path = fileHeader.substring(indexOfPath + "Path = ".length(), endLine);
+                ZipFileHeader header = new ZipFileHeader();
+                header.setPath(path);
+
+                int indexOfSize = fileHeader.indexOf("Size = ");
+                fileHeader = fileHeader.substring(indexOfSize);
+                endLine = fileHeader.indexOf("\n");
+                String size = fileHeader.substring("Size = ".length(), endLine);
+                header.setSize(Long.parseLong(size));
+
+                result.add(header);
             }
-            int indexOfFolder = fileHeader.indexOf("Folder = ") + "Folder = ".length();
-            String folder = fileHeader.substring(indexOfFolder, indexOfFolder + 1);
-            if (folder.equals("+")) {
-                continue;
-            }
-            int indexOfPath = fileHeader.indexOf("Path = ");
-            int endLine = fileHeader.indexOf("\n");
-            String path = fileHeader.substring(indexOfPath + "Path = ".length(), endLine);
-            ZipFileHeader header = new ZipFileHeader();
-            header.setPath(path);
 
-            int indexOfSize = fileHeader.indexOf("Size = ");
-            fileHeader = fileHeader.substring(indexOfSize);
-            endLine = fileHeader.indexOf("\n");
-            String size = fileHeader.substring("Size = ".length(), endLine);
-            header.setSize(Long.parseLong(size));
-
-            result.add(header);
+            return result;
+        } catch (IOException ex) {
+            throw new ProcessException(ex);
+        } finally {
+            txt.smartDelete();
         }
-
-        return result;
     }
 
     @Override
