@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.model.bot.api.object;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class CallbackQuery {
@@ -8,11 +9,13 @@ public class CallbackQuery {
     private static final String FROM_FIELD = "from_user";
     private static final String MESSAGE_FIELD = "message";
     private static final String DATA_FIELD = "data";
+    private static final String FROM = "from";
 
     @JsonProperty(ID_FIELD)
     private String id;
     @JsonProperty(FROM_FIELD)
-    private User fromUser;
+    @JsonAlias(FROM)
+    private User from;
     @JsonProperty(MESSAGE_FIELD)
     private Message message;
     @JsonProperty(DATA_FIELD)
@@ -26,8 +29,8 @@ public class CallbackQuery {
         return this.id;
     }
 
-    public User getFromUser() {
-        return this.fromUser;
+    public User getFrom() {
+        return this.from;
     }
 
     public Message getMessage() {
@@ -42,7 +45,7 @@ public class CallbackQuery {
     public String toString() {
         return "CallbackQuery{" +
                 "id='" + id + '\'' +
-                ", from=" + fromUser +
+                ", from=" + from +
                 ", message=" + message +
                 ", data='" + data + '\'' +
                 '}';

@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.model.bot.api.object;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 
@@ -8,6 +9,7 @@ import java.util.List;
 public class Message {
     private static final String MESSAGEID_FIELD = "message_id";
     private static final String FROM_FIELD = "from_user";
+    private static final String FROM = "from";
     private static final String CHAT_FIELD = "chat";
     private static final String TEXT_FIELD = "text";
     private static final String ENTITIES_FIELD = "entities";
@@ -21,7 +23,8 @@ public class Message {
     @JsonProperty(MESSAGEID_FIELD)
     private Integer messageId;
     @JsonProperty(FROM_FIELD)
-    private User fromUser;
+    @JsonAlias(FROM)
+    private User from;
     @JsonProperty(CHAT_FIELD)
     private Chat chat;
     @JsonProperty(TEXT_FIELD)
@@ -49,8 +52,8 @@ public class Message {
         return messageId;
     }
 
-    public User getFromUser() {
-        return fromUser;
+    public User getFrom() {
+        return from;
     }
 
     public Chat getChat() {
@@ -137,7 +140,7 @@ public class Message {
     public String toString() {
         return "Message{" +
                 "messageId=" + messageId +
-                ", from=" + fromUser +
+                ", from=" + from +
                 ", chat=" + chat +
                 ", text='" + text + '\'' +
                 ", entities=" + entities +

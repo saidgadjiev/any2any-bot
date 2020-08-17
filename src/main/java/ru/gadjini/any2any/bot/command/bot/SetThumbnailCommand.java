@@ -73,7 +73,7 @@ public class SetThumbnailCommand implements BotCommand, NavigableBotCommand {
 
     @Override
     public void processMessage(Message message) {
-        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         checkParentCommand(message.getChatId(), locale);
         messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_SEND_THUMB, locale))
                 .setReplyMarkup(replyKeyboardService.cancel(message.getChatId(), locale)));
@@ -81,11 +81,11 @@ public class SetThumbnailCommand implements BotCommand, NavigableBotCommand {
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         Any2AnyFile any2AnyFile = fileService.getFile(message, locale);
 
         if (any2AnyFile != null) {
-            validate(message.getFromUser().getId(), any2AnyFile, locale);
+            validate(message.getFrom().getId(), any2AnyFile, locale);
             setThumb(message.getChatId(), any2AnyFile, locale);
             CommandNavigator.SilentPop silentPop = commandNavigator.silentPop(message.getChatId());
             messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_ADDED, locale) +

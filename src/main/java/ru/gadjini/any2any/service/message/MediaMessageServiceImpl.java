@@ -12,7 +12,7 @@ import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.ParseMode;
 import ru.gadjini.any2any.service.FileService;
-import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.telegram.TelegramMTProtoService;
 
 @Service
 @Qualifier("media")
@@ -20,11 +20,11 @@ public class MediaMessageServiceImpl implements MediaMessageService {
 
     private FileService fileService;
 
-    private TelegramService telegramService;
+    private TelegramMTProtoService telegramService;
 
     @Autowired
     public MediaMessageServiceImpl(FileService fileService,
-                                   TelegramService telegramService) {
+                                   TelegramMTProtoService telegramService) {
         this.fileService = fileService;
         this.telegramService = telegramService;
     }

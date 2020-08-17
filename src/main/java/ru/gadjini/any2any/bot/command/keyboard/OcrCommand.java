@@ -80,7 +80,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFromUser().getId());
+        processMessage0(message.getChatId(), message.getFrom().getId());
 
         return true;
     }
@@ -109,15 +109,15 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        ocrService.extractText(message.getFromUser().getId(), getFile(message));
+        ocrService.extractText(message.getFrom().getId(), getFile(message));
         messageService.sendMessage(new HtmlMessage(message.getChatId(),
-                localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_PROCESSING, userService.getLocaleOrDefault(message.getFromUser().getId()))));
+                localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_PROCESSING, userService.getLocaleOrDefault(message.getFrom().getId()))));
     }
 
     private Any2AnyFile getFile(Message message) {
         if (message.hasDocument()) {
             Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-            checkFormat(message.getFromUser().getId(), format, message.getDocument().getFileId(), message.getDocument().getFileName(), message.getDocument().getMimeType());
+            checkFormat(message.getFrom().getId(), format, message.getDocument().getFileId(), message.getDocument().getFileName(), message.getDocument().getMimeType());
 
             Any2AnyFile any2AnyFile = new Any2AnyFile();
             any2AnyFile.setFileId(message.getDocument().getFileId());

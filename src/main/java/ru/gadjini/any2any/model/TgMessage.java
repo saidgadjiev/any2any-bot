@@ -76,7 +76,7 @@ public class TgMessage {
         tgMessage.chatId = callbackQuery.getMessage().getChatId();
         tgMessage.messageId = callbackQuery.getMessage().getMessageId();
         tgMessage.callbackQueryId = callbackQuery.getId();
-        tgMessage.user = callbackQuery.getFromUser();
+        tgMessage.user = callbackQuery.getFrom();
         tgMessage.text = callbackQuery.getData();
 
         return tgMessage;
@@ -87,7 +87,7 @@ public class TgMessage {
 
         tgMessage.chatId = message.getChatId();
         tgMessage.messageId = message.getMessageId();
-        tgMessage.user = message.getFromUser();
+        tgMessage.user = message.getFrom();
         tgMessage.text = message.hasText() ? message.getText().trim() : "";
         tgMessage.setMetaTypes(getMetaTypes(message));
 
@@ -112,18 +112,18 @@ public class TgMessage {
 
     public static int getUserId(Update update) {
         if (update.hasCallbackQuery()) {
-            return update.getCallbackQuery().getFromUser().getId();
+            return update.getCallbackQuery().getFrom().getId();
         }
 
-        return update.getMessage().getFromUser().getId();
+        return update.getMessage().getFrom().getId();
     }
 
     public static User getUser(Update update) {
         if (update.hasCallbackQuery()) {
-            return update.getCallbackQuery().getFromUser();
+            return update.getCallbackQuery().getFrom();
         }
 
-        return update.getMessage().getFromUser();
+        return update.getMessage().getFrom();
     }
 
     public static List<MetaType> getMetaTypes(Message message) {

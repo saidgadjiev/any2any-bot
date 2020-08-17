@@ -96,7 +96,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFromUser().getId());
+        processMessage0(message.getChatId(), message.getFrom().getId());
 
         return true;
     }
@@ -110,14 +110,14 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         Any2AnyFile file = fileService.getFile(message, locale);
-        file.setFormat(checkFormat(message.getFromUser().getId(), format, message.getDocument().getMimeType(), message.getDocument().getFileName(), locale));
+        file.setFormat(checkFormat(message.getFrom().getId(), format, message.getDocument().getMimeType(), message.getDocument().getFileName(), locale));
 
         unzipService.removeAndCancelCurrentTasks(message.getChatId());
         UnzipState unzipState = createState(file.getFormat());
         commandStateService.setState(message.getChatId(), CommandNames.UNZIP_COMMAND_NAME, unzipState);
-        unzipService.unzip(message.getFromUser().getId(), message.getMessageId(), file, locale);
+        unzipService.unzip(message.getFrom().getId(), message.getMessageId(), file, locale);
     }
 
     @Override
@@ -139,7 +139,7 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
     @Override
     public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
         if (requestParams.contains(Arg.PAGINATION.getKey())) {
-            unzipService.nextOrPrev(callbackQuery.getId(), callbackQuery.getMessage().getChatId(), callbackQuery.getFromUser().getId(),
+            unzipService.nextOrPrev(callbackQuery.getId(), callbackQuery.getMessage().getChatId(), callbackQuery.getFrom().getId(),
                     callbackQuery.getMessage().getMessageId(), requestParams.getInt(Arg.PREV_LIMIT.getKey()), requestParams.getInt(Arg.OFFSET.getKey()));
         }
     }

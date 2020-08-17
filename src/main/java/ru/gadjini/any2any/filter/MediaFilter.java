@@ -20,6 +20,7 @@ import java.util.Locale;
 
 @Component
 @Qualifier("messagelimits")
+@SuppressWarnings("PMD")
 public class MediaFilter extends BaseBotFilter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MediaFilter.class);
@@ -49,7 +50,7 @@ public class MediaFilter extends BaseBotFilter {
             Any2AnyFile file = fileService.getFile(update.getMessage(), Locale.getDefault());
             if (file != null) {
                 checkInMediaSize(update.getMessage(), file);
-                fileManager.inputFile(update.getMessage().getChatId());
+                //fileManager.inputFile(update.getMessage().getChatId());
             }
         }
 
@@ -58,13 +59,13 @@ public class MediaFilter extends BaseBotFilter {
 
     private void checkInMediaSize(Message message, Any2AnyFile file) {
         if (file.getFileSize() > LARGE_FILE_SIZE) {
-            LOGGER.warn("Large in file({}, {})", message.getFromUser().getId(), MemoryUtils.humanReadableByteCount(file.getFileSize()));
+            LOGGER.warn("Large in file({}, {})", message.getFrom().getId(), MemoryUtils.humanReadableByteCount(file.getFileSize()));
             throw new UserException(localisationService.getMessage(
                     MessagesProperties.MESSAGE_TOO_LARGE_IN_FILE,
                     new Object[]{MemoryUtils.humanReadableByteCount(message.getDocument().getFileSize())},
-                    userService.getLocaleOrDefault(message.getFromUser().getId())));
+                    userService.getLocaleOrDefault(message.getFrom().getId())));
         } else if (file.getFileSize() > MemoryUtils.MB_100) {
-            LOGGER.warn("Heavy file({}, {}, {}, {})", message.getFromUser().getId(), MemoryUtils.humanReadableByteCount(file.getFileSize()), file.getMimeType(), file.getFileName());
+            LOGGER.warn("Heavy file({}, {}, {}, {})", message.getFrom().getId(), MemoryUtils.humanReadableByteCount(file.getFileSize()), file.getMimeType(), file.getFileName());
         }
     }
 }

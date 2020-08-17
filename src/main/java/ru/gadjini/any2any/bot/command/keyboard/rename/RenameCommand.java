@@ -83,7 +83,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFromUser().getId());
+        processMessage0(message.getChatId(), message.getFrom().getId());
         commandStateService.setState(message.getChatId(), CommandNames.RENAME_COMMAND_NAME, new RenameState());
 
         return true;
@@ -107,7 +107,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         Any2AnyFile any2AnyFile = fileService.getFile(message, locale);
 
         if (any2AnyFile != null) {
@@ -121,7 +121,7 @@ public class RenameCommand implements KeyboardBotCommand, NavigableBotCommand, B
             if (renameState.getFile() == null) {
                 throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FILE, locale));
             }
-            renameService.rename(message.getFromUser().getId(), renameState, text);
+            renameService.rename(message.getFrom().getId(), renameState, text);
         }
     }
 

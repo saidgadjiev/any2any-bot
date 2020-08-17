@@ -28,6 +28,6 @@ public class ExtractAllCommand implements CallbackBotCommand {
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
         int unzipJobId = requestParams.getInt(Arg.JOB_ID.getKey());
 
-        unzipService.extractAll(callbackQuery.getFromUser().getId(), callbackQuery.getMessage().getMessageId(), unzipJobId, callbackQuery.getId());
+        unzipService.extractAll(callbackQuery.getFrom().getId(), callbackQuery.getMessage().getMessageId(), unzipJobId, callbackQuery.getId());
     }
 }

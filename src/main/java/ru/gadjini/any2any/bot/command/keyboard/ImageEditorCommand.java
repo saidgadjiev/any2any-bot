@@ -98,7 +98,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFromUser().getId());
+        processMessage0(message.getChatId(), message.getFrom().getId());
 
         return true;
     }
@@ -115,7 +115,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         if (isMediaMessage(message)) {
             stateFather.initializeState(this, message.getChatId(), getEditFile(message, locale), locale);
         } else if (message.hasText()) {
@@ -183,7 +183,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
             any2AnyFile.setFileId(message.getDocument().getFileId());
             any2AnyFile.setFileName(message.getDocument().getFileName());
             Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-            any2AnyFile.setFormat(checkFormat(message.getFromUser().getId(), format, message.getDocument().getMimeType(), message.getDocument().getFileName(), locale));
+            any2AnyFile.setFormat(checkFormat(message.getFrom().getId(), format, message.getDocument().getMimeType(), message.getDocument().getFileName(), locale));
         } else if (message.hasPhoto()) {
             PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
             any2AnyFile.setFileId(photoSize.getFileId());
@@ -191,7 +191,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
             any2AnyFile.setFormat(formatService.getImageFormat(message.getChatId(), photoSize.getFileId()));
         } else {
             LOGGER.debug("No image({}, {})", message.getChatId(), TgMessage.getMetaTypes(message));
-            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MAIN_WELCOME, userService.getLocaleOrDefault(message.getFromUser().getId())));
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MAIN_WELCOME, userService.getLocaleOrDefault(message.getFrom().getId())));
         }
 
         return any2AnyFile;

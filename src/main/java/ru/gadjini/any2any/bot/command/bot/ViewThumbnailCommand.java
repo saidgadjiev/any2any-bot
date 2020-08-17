@@ -105,7 +105,7 @@ public class ViewThumbnailCommand implements BotCommand {
     }
 
     private void thumbNotFound(Message message) {
-        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_THUMB_NOT_FOUND, locale)));
     }
 

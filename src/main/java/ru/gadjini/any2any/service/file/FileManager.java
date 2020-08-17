@@ -7,7 +7,7 @@ import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.bot.api.object.Progress;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.telegram.TelegramMTProtoService;
 import ru.gadjini.any2any.service.UserService;
 
 import java.util.Locale;
@@ -15,7 +15,7 @@ import java.util.Locale;
 @Service
 public class FileManager {
 
-    private TelegramService telegramService;
+    private TelegramMTProtoService telegramService;
 
     private FileLimitsDao fileLimitsDao;
 
@@ -24,7 +24,7 @@ public class FileManager {
     private UserService userService;
 
     @Autowired
-    public FileManager(TelegramService telegramService, FileLimitsDao fileLimitsDao,
+    public FileManager(TelegramMTProtoService telegramService, FileLimitsDao fileLimitsDao,
                        LocalisationService localisationService, UserService userService) {
         this.telegramService = telegramService;
         this.fileLimitsDao = fileLimitsDao;

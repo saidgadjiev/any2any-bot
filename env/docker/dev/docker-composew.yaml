@@ -15,7 +15,8 @@ services:
       - db
       - redis
       - url2api
-      - rest
+      - mtproto
+      - botapi
   db:
     container_name: db
     image: postgres:alpine
@@ -41,8 +42,8 @@ services:
     container_name: url2api
     restart: always
     build: ../../../../url-to-pdf-api/
-  rest:
-    container_name: rest
+  mtproto:
+    container_name: mtproto
     restart: always
     build: ../../../../fileutils-rest/
     env_file:
@@ -50,6 +51,8 @@ services:
     volumes:
       - ../../../data/gram:/home/bot/app/gram
       - ../../../data/shr:/tmp/shr
+    depends_on:
+      - botapi
   bot:
     container_name: bot
     restart: always
@@ -60,6 +63,14 @@ services:
       - ../../../data/gram:/home/bot/app/gram
     depends_on:
       - app
+  botapi:
+    container_name: botapi
+    restart: always
+    build: ../../../../fileutils-bot-api/
+    env_file:
+      - ../../../../fileutils-bot-api/.env
+    volumes:
+      - ../../../data/logs:/app/logs
 volumes:
   pgdata:
     external: true

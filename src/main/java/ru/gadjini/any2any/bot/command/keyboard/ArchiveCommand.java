@@ -99,7 +99,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFromUser().getId());
+        processMessage0(message.getChatId(), message.getFrom().getId());
 
         return true;
     }
@@ -116,7 +116,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         if (message.hasText()) {
             ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false, ArchiveState.class);
             if (archiveState == null || archiveState.getFiles().isEmpty()) {
@@ -125,7 +125,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
             } else {
                 Format associatedFormat = checkFormat(text, formatService.getAssociatedFormat(text), locale);
                 archiveService.removeAndCancelCurrentTasks(message.getChatId());
-                archiveService.createArchive(message.getFromUser().getId(), archiveState, associatedFormat);
+                archiveService.createArchive(message.getFrom().getId(), archiveState, associatedFormat);
                 commandStateService.deleteState(message.getChatId(), CommandNames.ARCHIVE_COMMAND_NAME);
             }
         } else {
@@ -155,7 +155,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
         if (any2AnyFile != null) {
             return any2AnyFile;
         } else {
-            LOGGER.warn("No file message({}, {})", message.getFromUser().getId(), TgMessage.getMetaTypes(message));
+            LOGGER.warn("No file message({}, {})", message.getFrom().getId(), TgMessage.getMetaTypes(message));
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_CANT_BE_ADDED_TO_ARCHIVE, locale));
         }
     }

@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service;
+package ru.gadjini.any2any.service.telegram;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,14 +21,12 @@ import ru.gadjini.any2any.model.ApiResponse;
 import ru.gadjini.any2any.model.bot.api.MediaType;
 import ru.gadjini.any2any.model.bot.api.method.CancelDownloading;
 import ru.gadjini.any2any.model.bot.api.method.CancelUploading;
-import ru.gadjini.any2any.model.bot.api.method.IsChatMember;
 import ru.gadjini.any2any.model.bot.api.method.send.*;
-import ru.gadjini.any2any.model.bot.api.method.updatemessages.*;
-import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
+import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
 import ru.gadjini.any2any.model.bot.api.object.GetFile;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.Progress;
-import ru.gadjini.any2any.property.TelegramProperties;
+import ru.gadjini.any2any.property.MTProtoProperties;
 import ru.gadjini.any2any.utils.MemoryUtils;
 
 import java.io.File;
@@ -38,126 +36,25 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class TelegramService {
+public class TelegramMTProtoService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TelegramMTProtoService.class);
 
     private final Map<String, SmartTempFile> downloading = new ConcurrentHashMap<>();
 
     private final Map<String, SmartTempFile> uploading = new ConcurrentHashMap<>();
 
-    private final TelegramProperties telegramProperties;
+    private final MTProtoProperties telegramProperties;
 
     private RestTemplate restTemplate;
 
     private ObjectMapper objectMapper;
 
     @Autowired
-    public TelegramService(TelegramProperties telegramProperties, ObjectMapper objectMapper) {
+    public TelegramMTProtoService(MTProtoProperties telegramProperties, ObjectMapper objectMapper) {
         this.telegramProperties = telegramProperties;
         this.objectMapper = objectMapper;
         this.restTemplate = new RestTemplate();
-    }
-
-    public Boolean sendAnswerCallbackQuery(AnswerCallbackQuery answerCallbackQuery) {
-        try {
-            HttpEntity<AnswerCallbackQuery> request = new HttpEntity<>(answerCallbackQuery);
-            String response = restTemplate.postForObject(getUrl(AnswerCallbackQuery.METHOD), request, String.class);
-            try {
-                ApiResponse<Boolean> result = objectMapper.readValue(response, new TypeReference<>() {
-                });
-
-                if (result.getOk()) {
-                    return result.getResult();
-                } else {
-                    throw new TelegramApiRequestException(null, "Error answering callback query", result);
-                }
-            } catch (IOException e) {
-                throw new TelegramApiRequestException(null, "Unable to deserialize response(" + response + ")\n" + e.getMessage(), e);
-            }
-        } catch (RestClientException e) {
-            throw new TelegramApiException(e);
-        }
-    }
-
-    public Message sendMessage(SendMessage sendMessage) {
-        try {
-            HttpEntity<SendMessage> request = new HttpEntity<>(sendMessage);
-            String response = restTemplate.postForObject(getUrl(HtmlMessage.METHOD), request, String.class);
-            try {
-                ApiResponse<Message> result = objectMapper.readValue(response, new TypeReference<>() {
-                });
-                if (result.getOk()) {
-                    return result.getResult();
-                } else {
-                    throw new TelegramApiRequestException(sendMessage.getChatId(), "Error sending message", result);
-                }
-            } catch (IOException e) {
-                throw new TelegramApiRequestException(sendMessage.getChatId(), "Unable to deserialize response(" + response + ")\n" + e.getMessage(), e);
-            }
-        } catch (RestClientException e) {
-            throw new TelegramApiRequestException(sendMessage.getChatId(), e.getMessage(), e);
-        }
-    }
-
-    public Message editReplyMarkup(EditMessageReplyMarkup editMessageReplyMarkup) {
-        try {
-            HttpEntity<EditMessageReplyMarkup> request = new HttpEntity<>(editMessageReplyMarkup);
-            String response = restTemplate.postForObject(getUrl(EditMessageReplyMarkup.METHOD), request, String.class);
-            try {
-                ApiResponse<Message> result = objectMapper.readValue(response, new TypeReference<>() {
-                });
-                if (result.getOk()) {
-                    return result.getResult();
-                } else {
-                    throw new TelegramApiRequestException(editMessageReplyMarkup.getChatId(), "Error editing message reply markup", result);
-                }
-            } catch (IOException e) {
-                throw new TelegramApiRequestException(editMessageReplyMarkup.getChatId(), "Unable to deserialize response(" + response + ")\n" + e.getMessage(), e);
-            }
-        } catch (RestClientException e) {
-            throw new TelegramApiRequestException(editMessageReplyMarkup.getChatId(), e.getMessage(), e);
-        }
-    }
-
-    public Message editMessageText(EditMessageText editMessageText) {
-        try {
-            HttpEntity<EditMessageText> request = new HttpEntity<>(editMessageText);
-            String response = restTemplate.postForObject(getUrl(EditMessageText.METHOD), request, String.class);
-            try {
-                ApiResponse<Message> result = objectMapper.readValue(response, new TypeReference<>() {
-                });
-                if (result.getOk()) {
-                    return result.getResult();
-                } else {
-                    throw new TelegramApiRequestException(editMessageText.getChatId(), "Error editing message text", result);
-                }
-            } catch (IOException e) {
-                throw new TelegramApiRequestException(editMessageText.getChatId(), "Unable to deserialize response(" + response + ")\n" + e.getMessage(), e);
-            }
-        } catch (RestClientException e) {
-            throw new TelegramApiRequestException(editMessageText.getChatId(), e.getMessage(), e);
-        }
-    }
-
-    public Message editMessageCaption(EditMessageCaption editMessageCaption) {
-        try {
-            HttpEntity<EditMessageCaption> request = new HttpEntity<>(editMessageCaption);
-            String response = restTemplate.postForObject(getUrl(EditMessageCaption.METHOD), request, String.class);
-            try {
-                ApiResponse<Message> result = objectMapper.readValue(response, new TypeReference<>() {
-                });
-                if (result.getOk()) {
-                    return result.getResult();
-                } else {
-                    throw new TelegramApiRequestException(editMessageCaption.getChatId(), "Error editing message caption", result);
-                }
-            } catch (IOException e) {
-                throw new TelegramApiRequestException(editMessageCaption.getChatId(), "Unable to deserialize response(" + response + ")\n" + e.getMessage(), e);
-            }
-        } catch (RestClientException e) {
-            throw new TelegramApiRequestException(editMessageCaption.getChatId(), e.getMessage(), e);
-        }
     }
 
     public Message editMessageMedia(EditMessageMedia editMessageMedia) {
@@ -197,26 +94,6 @@ public class TelegramService {
             }
         } catch (RestClientException e) {
             throw new TelegramApiRequestException(sendSticker.getChatId(), e.getMessage(), e);
-        }
-    }
-
-    public Boolean deleteMessage(DeleteMessage deleteMessage) {
-        try {
-            HttpEntity<DeleteMessage> request = new HttpEntity<>(deleteMessage);
-            String response = restTemplate.postForObject(getUrl(DeleteMessage.METHOD), request, String.class);
-            try {
-                ApiResponse<Boolean> result = objectMapper.readValue(response, new TypeReference<>() {
-                });
-                if (result.getOk()) {
-                    return result.getResult();
-                } else {
-                    throw new TelegramApiRequestException(deleteMessage.getChatId(), "Error deleting message", result);
-                }
-            } catch (IOException e) {
-                throw new TelegramApiRequestException(deleteMessage.getChatId(), "Unable to deserialize response(" + response + ")\n" + e.getMessage(), e);
-            }
-        } catch (RestClientException e) {
-            throw new TelegramApiRequestException(deleteMessage.getChatId(), e.getMessage(), e);
         }
     }
 
@@ -302,27 +179,6 @@ public class TelegramService {
             }
         } catch (RestClientException e) {
             throw new TelegramApiRequestException(sendPhoto.getChatId(), e.getMessage(), e);
-        }
-    }
-
-    public Boolean isChatMember(IsChatMember isChatMember) {
-        try {
-            HttpEntity<IsChatMember> request = new HttpEntity<>(isChatMember);
-            String result = restTemplate.postForObject(getUrl(IsChatMember.METHOD), request, String.class);
-            try {
-                ApiResponse<Boolean> apiResponse = objectMapper.readValue(result, new TypeReference<>() {
-                });
-
-                if (apiResponse.getOk()) {
-                    return apiResponse.getResult();
-                } else {
-                    throw new TelegramApiRequestException(String.valueOf(isChatMember.getUserId()), "Error is chat member", apiResponse);
-                }
-            } catch (IOException e) {
-                throw new TelegramApiException("Unable to deserialize response(" + result + ")\n" + e.getMessage(), e);
-            }
-        } catch (RestClientException e) {
-            throw new TelegramApiRequestException(String.valueOf(isChatMember.getUserId()), e.getMessage(), e);
         }
     }
 

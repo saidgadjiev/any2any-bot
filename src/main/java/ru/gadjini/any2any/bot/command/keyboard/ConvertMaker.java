@@ -84,7 +84,7 @@ public class ConvertMaker {
     }
 
     public void processNonCommandUpdate(String controllerName, Message message, String text, Supplier<ReplyKeyboard> replyKeyboard) {
-        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
 
         if (!commandStateService.hasState(message.getChatId(), controllerName)) {
             check(message, locale);
@@ -101,11 +101,11 @@ public class ConvertMaker {
             commandStateService.setState(message.getChatId(), controllerName, convertState);
         } else if (message.hasText()) {
             ConvertState convertState = commandStateService.getState(message.getChatId(), controllerName, true, ConvertState.class);
-            Format targetFormat = checkTargetFormat(message.getFromUser().getId(), convertState.getFormat(), formatService.getAssociatedFormat(text), text, locale);
+            Format targetFormat = checkTargetFormat(message.getFrom().getId(), convertState.getFormat(), formatService.getAssociatedFormat(text), text, locale);
             if (targetFormat == Format.GIF) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_GIF_WARN, locale));
             }
-            ConversionQueueItem queueItem = conversionService.convert(message.getFromUser(), convertState, targetFormat);
+            ConversionQueueItem queueItem = conversionService.convert(message.getFrom(), convertState, targetFormat);
             String queuedMessage = queueMessageBuilder.getQueuedMessage(queueItem, convertState.getWarnings(), new Locale(convertState.getUserLanguage()));
             messageService.sendMessage(new HtmlMessage(message.getChatId(), queuedMessage).setReplyMarkup(replyKeyboard.get()));
             commandStateService.deleteState(message.getChatId(), controllerName);
@@ -124,7 +124,7 @@ public class ConvertMaker {
             convertState.setFileName(message.getDocument().getFileName());
             convertState.setMimeType(message.getDocument().getMimeType());
             Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-            convertState.setFormat(checkFormat(message.getFromUser().getId(), format, message.getDocument().getMimeType(), message.getDocument().getFileName(), locale));
+            convertState.setFormat(checkFormat(message.getFrom().getId(), format, message.getDocument().getMimeType(), message.getDocument().getFileName(), locale));
             if (convertState.getFormat() == Format.HTML && isBaseUrlMissed(message.getChatId(), message.getDocument().getFileId())) {
                 convertState.addWarn(localisationService.getMessage(MessagesProperties.MESSAGE_NO_BASE_URL_IN_HTML, locale));
             }

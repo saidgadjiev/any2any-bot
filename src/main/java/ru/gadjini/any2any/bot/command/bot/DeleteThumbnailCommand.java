@@ -51,7 +51,7 @@ public class DeleteThumbnailCommand implements BotCommand {
     public void processMessage(Message message) {
         String currentCommandName = getCurrentCommandName(message.getChatId());
         if (StringUtils.isNotBlank(currentCommandName)) {
-            Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+            Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
             HasThumb state = getState(message.getChatId(), currentCommandName);
 
             if (state != null && state.getThumb() != null) {

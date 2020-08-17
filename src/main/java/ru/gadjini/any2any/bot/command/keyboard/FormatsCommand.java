@@ -56,7 +56,7 @@ public class FormatsCommand implements KeyboardBotCommand, BotCommand {
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getFromUser().getId(), userService.getLocaleOrDefault(message.getFromUser().getId()));
+        processMessage0(message.getFrom().getId(), userService.getLocaleOrDefault(message.getFrom().getId()));
 
         return false;
     }

@@ -2,8 +2,8 @@ package ru.gadjini.any2any.property;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("tg")
-public class TelegramProperties {
+@ConfigurationProperties("mtproto")
+public class MTProtoProperties {
 
     private String api;
 

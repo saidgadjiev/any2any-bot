@@ -94,7 +94,7 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Override
     public boolean processMessage(Message message, String text) {
-        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
                 new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.ADMIN_COMMAND_NAME, locale))
                         .setReplyMarkup(replyKeyboardService.getAdminKeyboard(message.getChatId(), locale))
@@ -115,7 +115,7 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        Locale locale = userService.getLocaleOrDefault(message.getFromUser().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         if (text.equals(localisationService.getMessage(MessagesProperties.DOWNLOAD_FILE_COMMAND_NAME, locale))) {
             String fileId = commandStateService.getState(message.getChatId(), CommandNames.ADMIN, false, String.class);
             if (StringUtils.isNotBlank(fileId)) {

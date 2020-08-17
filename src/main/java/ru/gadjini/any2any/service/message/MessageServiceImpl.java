@@ -21,7 +21,7 @@ import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.ParseMode;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.TelegramService;
+import ru.gadjini.any2any.service.telegram.TelegramBotApiService;
 
 import java.util.Locale;
 import java.util.function.Consumer;
@@ -34,11 +34,11 @@ public class MessageServiceImpl implements MessageService {
 
     private LocalisationService localisationService;
 
-    private TelegramService telegramService;
+    private TelegramBotApiService telegramService;
 
     @Autowired
     public MessageServiceImpl(LocalisationService localisationService,
-                              TelegramService telegramService) {
+                              TelegramBotApiService telegramService) {
         this.localisationService = localisationService;
         this.telegramService = telegramService;
     }
