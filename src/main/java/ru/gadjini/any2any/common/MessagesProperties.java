@@ -87,8 +87,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_RENAME_FILE = "message.rename.file";
 
-    public static final String MESSAGE_NEW_FILE_NAME = "message.new.file.name";
-
     public static final String UNZIP_COMMAND_NAME = "unzip.command.name";
 
     public static final String MESSAGE_ZIP_FILE = "message.unzip.welcome";
@@ -104,6 +102,10 @@ public class MessagesProperties {
     public static final String MESSAGE_TOO_LARGE_IN_FILE = "message.too.large.in.file";
 
     public static final String CONVERT_COMMAND_NAME = "convert.command.name";
+
+    public static final String MESSAGE_RENAMING = "message.renaming";
+
+    public static final String MESSAGE_ZIP_PROCESSING = "message.zip.processing";
 
     public static final String MESSAGE_CONVERT_FILE = "message.convert.file";
 
@@ -320,6 +322,10 @@ public class MessagesProperties {
     public static final String MESSAGE_ARCHIVE_CREATION_STEP = "message.archive.creation.step";
 
     public static final String MESSAGE_AWAITING_PROCESSING = "message.awaiting.processing";
+
+    public static final String MESSAGE_ARCHIVE_PROCESSING = "message.archive.processing";
+
+    public static final String MESSAGE_UNZIP_PROCESSING = "message.unzip.processing";
 
     public static final String MESSAGE_SPEED = "message.speed";
 

@@ -36,7 +36,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class TelegramMTProtoService {
+@SuppressWarnings("CPD-START")
+public class TelegramMTProtoService implements TelegramMediaService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TelegramMTProtoService.class);
 
@@ -57,6 +58,7 @@ public class TelegramMTProtoService {
         this.restTemplate = new RestTemplate();
     }
 
+    @Override
     public Message editMessageMedia(EditMessageMedia editMessageMedia) {
         try {
             HttpEntity<EditMessageMedia> request = new HttpEntity<>(editMessageMedia);
@@ -77,6 +79,7 @@ public class TelegramMTProtoService {
         }
     }
 
+    @Override
     public Message sendSticker(SendSticker sendSticker) {
         try {
             HttpEntity<SendSticker> request = new HttpEntity<>(sendSticker);
@@ -97,6 +100,7 @@ public class TelegramMTProtoService {
         }
     }
 
+    @Override
     public Message sendDocument(SendDocument sendDocument) {
         if (StringUtils.isNotBlank(sendDocument.getDocument().getFilePath())) {
             uploading.put(sendDocument.getDocument().getFilePath(), new SmartTempFile(new File(sendDocument.getDocument().getFilePath())));
@@ -124,6 +128,7 @@ public class TelegramMTProtoService {
         }
     }
 
+    @Override
     public Message sendVideo(SendVideo sendVideo) {
         try {
             HttpEntity<SendVideo> request = new HttpEntity<>(sendVideo);
@@ -144,6 +149,7 @@ public class TelegramMTProtoService {
         }
     }
 
+    @Override
     public Message sendAudio(SendAudio sendAudio) {
         try {
             HttpEntity<SendAudio> request = new HttpEntity<>(sendAudio);
@@ -164,6 +170,7 @@ public class TelegramMTProtoService {
         }
     }
 
+    @Override
     public Message sendPhoto(SendPhoto sendPhoto) {
         try {
             HttpEntity<SendPhoto> request = new HttpEntity<>(sendPhoto);
@@ -211,10 +218,12 @@ public class TelegramMTProtoService {
         }
     }
 
+    @Override
     public void downloadFileByFileId(String fileId, SmartTempFile outputFile) {
         downloadFileByFileId(fileId, 0, null, outputFile);
     }
 
+    @Override
     public void downloadFileByFileId(String fileId, long fileSize, Progress progress, SmartTempFile outputFile) {
         downloading.put(fileId, outputFile);
         try {
@@ -231,7 +240,7 @@ public class TelegramMTProtoService {
             HttpEntity<GetFile> request = new HttpEntity<>(getFile);
             String result = restTemplate.postForObject(getUrl(GetFile.METHOD), request, String.class);
             try {
-                ApiResponse<String> apiResponse = objectMapper.readValue(result, new TypeReference<>() {
+                ApiResponse<Void> apiResponse = objectMapper.readValue(result, new TypeReference<>() {
                 });
 
                 if (!apiResponse.getOk()) {
@@ -250,6 +259,7 @@ public class TelegramMTProtoService {
         }
     }
 
+    @Override
     public boolean cancelUploading(String filePath) {
         if (StringUtils.isBlank(filePath)) {
             return false;
@@ -277,6 +287,7 @@ public class TelegramMTProtoService {
         }
     }
 
+    @Override
     public boolean cancelDownloading(String fileId) {
         if (StringUtils.isBlank(fileId)) {
             return false;
@@ -304,6 +315,7 @@ public class TelegramMTProtoService {
         }
     }
 
+    @Override
     public void cancelDownloads() {
         try {
             for (Map.Entry<String, SmartTempFile> entry : downloading.entrySet()) {

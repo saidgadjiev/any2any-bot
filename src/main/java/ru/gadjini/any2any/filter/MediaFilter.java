@@ -49,7 +49,7 @@ public class MediaFilter extends BaseBotFilter {
             Any2AnyFile file = fileService.getFile(update.getMessage(), Locale.getDefault());
             if (file != null) {
                 checkInMediaSize(update.getMessage(), file);
-                fileManager.inputFile(update.getMessage().getChatId());
+                fileManager.inputFile(update.getMessage().getChatId(), file.getFileId(), file.getFileSize());
             }
         }
 

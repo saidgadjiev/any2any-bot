@@ -22,19 +22,23 @@ public class MediaMessageServiceImpl implements MediaMessageService {
 
     private TelegramMTProtoService telegramService;
 
+    private TelegramMediaServiceProvider mediaServiceProvider;
+
     @Autowired
     public MediaMessageServiceImpl(FileService fileService,
-                                   TelegramMTProtoService telegramService) {
+                                   TelegramMTProtoService telegramService, TelegramMediaServiceProvider mediaServiceProvider) {
         this.fileService = fileService;
         this.telegramService = telegramService;
+        this.mediaServiceProvider = mediaServiceProvider;
     }
+
 
     @Override
     public EditMediaResult editMessageMedia(EditMessageMedia editMessageMedia) {
         if (StringUtils.isNotBlank(editMessageMedia.getMedia().getCaption())) {
             editMessageMedia.getMedia().setParseMode(ParseMode.HTML);
         }
-        Message message = telegramService.editMessageMedia(editMessageMedia);
+        Message message = mediaServiceProvider.getMediaService(editMessageMedia.getMedia()).editMessageMedia(editMessageMedia);
 
         return new EditMediaResult(fileService.getFileId(message));
     }
@@ -45,14 +49,14 @@ public class MediaMessageServiceImpl implements MediaMessageService {
             sendDocument.setParseMode(ParseMode.HTML);
         }
 
-        Message message = telegramService.sendDocument(sendDocument);
+        Message message = mediaServiceProvider.getMediaService(sendDocument.getDocument()).sendDocument(sendDocument);
 
         return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
     }
 
     @Override
     public SendFileResult sendPhoto(SendPhoto sendPhoto) {
-        Message message = telegramService.sendPhoto(sendPhoto);
+        Message message = mediaServiceProvider.getMediaService(sendPhoto.getPhoto()).sendPhoto(sendPhoto);
 
         return new SendFileResult(message.getMessageId(), fileService.getFileId(message));
     }
@@ -62,7 +66,7 @@ public class MediaMessageServiceImpl implements MediaMessageService {
         if (StringUtils.isNotBlank(sendVideo.getCaption())) {
             sendVideo.setParseMode(ParseMode.HTML);
         }
-        telegramService.sendVideo(sendVideo);
+        mediaServiceProvider.getMediaService(sendVideo.getVideo()).sendVideo(sendVideo);
     }
 
     @Override
@@ -71,7 +75,7 @@ public class MediaMessageServiceImpl implements MediaMessageService {
             sendAudio.setParseMode(ParseMode.HTML);
         }
 
-        telegramService.sendAudio(sendAudio);
+        mediaServiceProvider.getMediaService(sendAudio.getAudio()).sendAudio(sendAudio);
     }
 
     @Override
@@ -106,6 +110,6 @@ public class MediaMessageServiceImpl implements MediaMessageService {
 
     @Override
     public void sendSticker(SendSticker sendSticker) {
-        telegramService.sendSticker(sendSticker);
+        mediaServiceProvider.getStickerMediaService().sendSticker(sendSticker);
     }
 }

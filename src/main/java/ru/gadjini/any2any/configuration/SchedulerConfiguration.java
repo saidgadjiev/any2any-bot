@@ -10,7 +10,6 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
-import ru.gadjini.any2any.service.rename.RenameService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
@@ -49,8 +48,6 @@ public class SchedulerConfiguration {
 
     private ArchiveService archiveService;
 
-    private RenameService renameService;
-
     private UserService userService;
 
     @Autowired
@@ -66,11 +63,6 @@ public class SchedulerConfiguration {
     @Autowired
     public void setArchiveService(ArchiveService archiveService) {
         this.archiveService = archiveService;
-    }
-
-    @Autowired
-    public void setRenameService(RenameService renameService) {
-        this.renameService = renameService;
     }
 
     @Autowired
@@ -148,47 +140,6 @@ public class SchedulerConfiguration {
 
         LOGGER.debug("Conversion light thread pool({})", lightTaskExecutor.getCorePoolSize());
         LOGGER.debug("Conversion heavy thread pool({})", heavyTaskExecutor.getCorePoolSize());
-
-        return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor, HEAVY, heavyTaskExecutor));
-    }
-
-    @Bean
-    @Qualifier("renameTaskExecutor")
-    public SmartExecutorService renameTaskExecutor() {
-        SmartExecutorService executorService = new SmartExecutorService();
-        ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(LIGHT_THREADS_COUNT, LIGHT_THREADS_COUNT,
-                THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
-                new LinkedBlockingQueue<>(LIGHT_QUEUE_SIZE),
-                (r, executor) -> {
-                    executorService.complete(((Job) r).getId());
-                    renameService.rejectRenameTask((Job) r);
-                }) {
-            @Override
-            protected void afterExecute(Runnable r, Throwable t) {
-                Job poll = renameService.getTask(LIGHT);
-                if (poll != null) {
-                    executorService.execute(poll);
-                }
-            }
-        };
-        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(HEAVY_THREADS_COUNT, HEAVY_THREADS_COUNT,
-                THREADS_KEEP_ALIVE, KEEP_ALIVE_TIME_UNIT,
-                new LinkedBlockingQueue<>(HEAVY_QUEUE_SIZE),
-                (r, executor) -> {
-                    executorService.complete(((Job) r).getId());
-                    renameService.rejectRenameTask((Job) r);
-                }) {
-            @Override
-            protected void afterExecute(Runnable r, Throwable t) {
-                Job poll = renameService.getTask(HEAVY);
-                if (poll != null) {
-                    executorService.execute(poll);
-                }
-            }
-        };
-
-        LOGGER.debug("Rename light thread pool({})", lightTaskExecutor.getCorePoolSize());
-        LOGGER.debug("Rename heavy thread pool({})", heavyTaskExecutor.getCorePoolSize());
 
         return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor, HEAVY, heavyTaskExecutor));
     }

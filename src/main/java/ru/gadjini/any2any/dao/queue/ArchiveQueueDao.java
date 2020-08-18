@@ -8,7 +8,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
-import ru.gadjini.any2any.domain.RenameQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.conversion.api.Format;
@@ -54,7 +53,7 @@ public class ArchiveQueueDao {
                 keyHolder
         );
 
-        return ((Number) keyHolder.getKeys().get(RenameQueueItem.ID)).intValue();
+        return ((Number) keyHolder.getKeys().get(ArchiveQueueItem.ID)).intValue();
     }
 
     public void setWaiting(int id) {

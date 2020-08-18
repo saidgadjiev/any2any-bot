@@ -25,6 +25,7 @@ import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.Progress;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.ProgressManager;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
@@ -77,13 +78,15 @@ public class UnzipService {
 
     private UnzipMessageBuilder messageBuilder;
 
+    private ProgressManager progressManager;
+
     @Autowired
     public UnzipService(Set<UnzipDevice> unzipDevices, LocalisationService localisationService,
                         @Qualifier("messagelimits") MessageService messageService,
                         @Qualifier("medialimits") MediaMessageService mediaMessageService, FileManager fileManager, TempFileService fileService,
                         UnzipQueueService queueService, UserService userService,
                         CommandStateService commandStateService, InlineKeyboardService inlineKeyboardService,
-                        UnzipMessageBuilder messageBuilder) {
+                        UnzipMessageBuilder messageBuilder, ProgressManager progressManager) {
         this.unzipDevices = unzipDevices;
         this.localisationService = localisationService;
         this.messageService = messageService;
@@ -95,6 +98,7 @@ public class UnzipService {
         this.commandStateService = commandStateService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.messageBuilder = messageBuilder;
+        this.progressManager = progressManager;
     }
 
     @PostConstruct
@@ -197,7 +201,7 @@ public class UnzipService {
             } else {
                 UnzipQueueItem item = queueService.createProcessingExtractFileItem(userId, messageId,
                         extractFileId, unzipState.getFiles().get(extractFileId).getSize());
-                sendStartExtractingFileMessage(userId, messageId, item.getId());
+                sendStartExtractingFileMessage(userId, messageId, unzipState.getFiles().get(extractFileId).getSize(), item.getId());
                 executor.execute(new ExtractFileTask(item));
             }
         }
@@ -239,10 +243,10 @@ public class UnzipService {
         unzipState.setUnzipJobId(queueItem.getId());
         commandStateService.setState(userId, CommandNames.UNZIP_COMMAND_NAME, unzipState);
 
-        sendStartUnzippingMessage(userId, queueItem.getId(), locale, message -> {
+        sendStartUnzippingMessage(userId, queueItem.getId(), file.getFileSize(), locale, message -> {
             queueItem.setMessageId(message.getMessageId());
             queueService.setMessageId(queueItem.getId(), message.getMessageId());
-            fileManager.setInputFilePending(userId, replyToMessageId, file.getFileId(), TAG);
+            fileManager.setInputFilePending(userId, replyToMessageId, file.getFileId(), file.getFileSize(), TAG);
             executor.execute(new UnzipTask(queueItem));
         });
     }
@@ -334,10 +338,16 @@ public class UnzipService {
         }
     }
 
-    private void sendStartUnzippingMessage(int userId, int jobId, Locale locale, Consumer<Message> callback) {
-        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
-        messageService.sendMessage(new SendMessage((long) userId, message)
-                .setReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale)), callback);
+    private void sendStartUnzippingMessage(int userId, int jobId, long fileSize, Locale locale, Consumer<Message> callback) {
+        if (progressManager.isShowingProgress(fileSize)) {
+            String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
+            messageService.sendMessage(new SendMessage((long) userId, message)
+                    .setReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale)), callback);
+        } else {
+            String message = localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_PROCESSING, locale);
+            messageService.sendMessage(new SendMessage((long) userId, message)
+                    .setReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale)), callback);
+        }
     }
 
     private void pushTasks(SmartExecutorService.JobWeight jobWeight) {
@@ -361,11 +371,17 @@ public class UnzipService {
                 .setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale)));
     }
 
-    private void sendStartExtractingFileMessage(int userId, int messageId, int jobId) {
+    private void sendStartExtractingFileMessage(int userId, int messageId, long fileSize, int jobId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
-        messageService.editMessage(new EditMessageText((long) userId, messageId, message)
-                .setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale)));
+        if (progressManager.isShowingProgress(fileSize)) {
+            String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
+            messageService.editMessage(new EditMessageText((long) userId, messageId, message)
+                    .setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale)));
+        } else {
+            String message = localisationService.getMessage(MessagesProperties.MESSAGE_UNZIP_PROCESSING, locale);
+            messageService.editMessage(new EditMessageText((long) userId, messageId, message)
+                    .setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale)));
+        }
     }
 
     private void finishExtracting(int userId, int messageId, UnzipState unzipState) {
@@ -731,7 +747,7 @@ public class UnzipService {
             this.format = item.getType();
             this.unzipDevice = getCandidate(item.getType());
             this.messageId = item.getMessageId();
-            this.fileWorkObject = fileManager.fileWorkObject(userId);
+            this.fileWorkObject = fileManager.fileWorkObject(userId, fileSize);
         }
 
         @Override

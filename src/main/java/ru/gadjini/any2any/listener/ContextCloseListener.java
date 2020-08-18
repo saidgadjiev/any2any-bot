@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.conversion.ConvertionService;
 import ru.gadjini.any2any.service.file.FileManager;
-import ru.gadjini.any2any.service.rename.RenameService;
 import ru.gadjini.any2any.service.unzip.UnzipService;
 
 @Component
@@ -20,8 +19,6 @@ public class ContextCloseListener implements ApplicationListener<ContextClosedEv
 
     private ConvertionService conversionService;
 
-    private RenameService renameService;
-
     private ArchiveService archiveService;
 
     private UnzipService unzipService;
@@ -30,11 +27,10 @@ public class ContextCloseListener implements ApplicationListener<ContextClosedEv
 
     private ThreadPoolTaskExecutor commonThreadPool;
 
-    public ContextCloseListener(ConvertionService conversionService, RenameService renameService,
+    public ContextCloseListener(ConvertionService conversionService,
                                 ArchiveService archiveService, UnzipService unzipService,
                                 FileManager fileManager, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor commonThreadPool) {
         this.conversionService = conversionService;
-        this.renameService = renameService;
         this.archiveService = archiveService;
         this.unzipService = unzipService;
         this.fileManager = fileManager;
@@ -47,11 +43,6 @@ public class ContextCloseListener implements ApplicationListener<ContextClosedEv
             conversionService.shutdown();
         } catch (Throwable e) {
             LOGGER.error("Error shutdown conversionService. " + e.getMessage(), e);
-        }
-        try {
-            renameService.shutdown();
-        } catch (Throwable e) {
-            LOGGER.error("Error shutdown renameService. " + e.getMessage(), e);
         }
         try {
             archiveService.shutdown();

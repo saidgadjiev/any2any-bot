@@ -121,7 +121,7 @@ public class ConvertionService {
     public ConversionQueueItem convert(User user, ConvertState convertState, Format targetFormat) {
         ConversionQueueItem queueItem = queueService.createProcessingItem(user, convertState, targetFormat);
 
-        fileManager.setInputFilePending(user.getId(), convertState.getMessageId(), convertState.getFileId(), TAG);
+        fileManager.setInputFilePending(user.getId(), convertState.getMessageId(), convertState.getFileId(), convertState.getFileSize(), TAG);
         executor.execute(new ConversionTask(queueItem));
 
         return queueItem;
@@ -181,7 +181,7 @@ public class ConvertionService {
 
         private ConversionTask(ConversionQueueItem fileQueueItem) {
             this.fileQueueItem = fileQueueItem;
-            this.fileWorkObject = fileManager.fileWorkObject(fileQueueItem.getUserId());
+            this.fileWorkObject = fileManager.fileWorkObject(fileQueueItem.getUserId(), fileQueueItem.getSize());
         }
 
         @Override

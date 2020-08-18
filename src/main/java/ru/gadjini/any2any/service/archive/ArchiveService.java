@@ -21,6 +21,7 @@ import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.Message;
 import ru.gadjini.any2any.model.bot.api.object.Progress;
 import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.ProgressManager;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.command.CommandStateService;
@@ -75,13 +76,15 @@ public class ArchiveService {
 
     private ArchiveMessageBuilder archiveMessageBuilder;
 
+    private ProgressManager progressManager;
+
     @Autowired
     public ArchiveService(Set<ArchiveDevice> archiveDevices, TempFileService fileService,
                           FileManager fileManager, LocalisationService localisationService,
                           @Qualifier("messagelimits") MessageService messageService,
                           @Qualifier("medialimits") MediaMessageService mediaMessageService, UserService userService,
                           ArchiveQueueService archiveQueueService, CommandStateService commandStateService,
-                          InlineKeyboardService inlineKeyboardService, ArchiveMessageBuilder archiveMessageBuilder) {
+                          InlineKeyboardService inlineKeyboardService, ArchiveMessageBuilder archiveMessageBuilder, ProgressManager progressManager) {
         this.archiveDevices = archiveDevices;
         this.fileService = fileService;
         this.fileManager = fileManager;
@@ -93,6 +96,7 @@ public class ArchiveService {
         this.commandStateService = commandStateService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.archiveMessageBuilder = archiveMessageBuilder;
+        this.progressManager = progressManager;
     }
 
     @PostConstruct
@@ -151,10 +155,10 @@ public class ArchiveService {
         normalizeFileNames(archiveState.getFiles());
 
         ArchiveQueueItem item = archiveQueueService.createProcessingItem(userId, archiveState.getFiles(), format);
-        startArchiveCreating(userId, item.getId(), message -> {
+        startArchiveCreating(userId, item.getId(), item.getTotalFileSize(), message -> {
             archiveQueueService.setProgressMessageId(item.getId(), message.getMessageId());
             item.setProgressMessageId(message.getMessageId());
-            fileManager.setInputFilePending(userId, null, null, TAG);
+            fileManager.setInputFilePending(userId, null, null, item.getTotalFileSize(), TAG);
             executor.execute(new ArchiveTask(item));
         });
     }
@@ -179,11 +183,17 @@ public class ArchiveService {
                 chatId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))));
     }
 
-    private void startArchiveCreating(int userId, int jobId, Consumer<Message> callback) {
+    private void startArchiveCreating(int userId, int jobId, long fileSize, Consumer<Message> callback) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
-        messageService.sendMessage(new SendMessage((long) userId, message)
-                .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale)), callback);
+        if (progressManager.isShowingProgress(fileSize)) {
+            String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
+            messageService.sendMessage(new SendMessage((long) userId, message)
+                    .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale)), callback);
+        } else {
+            String message = localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale);
+            messageService.sendMessage(new SendMessage((long) userId, message)
+                    .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale)), callback);
+        }
     }
 
     private void normalizeFileNames(List<Any2AnyFile> any2AnyFiles) {
@@ -304,7 +314,7 @@ public class ArchiveService {
             this.userId = item.getUserId();
             this.type = item.getType();
             this.progressMessageId = item.getProgressMessageId();
-            this.fileWorkObject = fileManager.fileWorkObject(userId);
+            this.fileWorkObject = fileManager.fileWorkObject(userId, totalFileSize);
         }
 
         @Override

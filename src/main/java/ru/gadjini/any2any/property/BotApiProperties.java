@@ -2,16 +2,16 @@ package ru.gadjini.any2any.property;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties("bot")
+@ConfigurationProperties("bot.api")
 public class BotApiProperties {
 
-    private String api;
+    private String endpoint;
 
-    public String getApi() {
-        return api;
+    public String getEndpoint() {
+        return endpoint;
     }
 
-    public void setApi(String api) {
-        this.api = api;
+    public void setEndpoint(String endpoint) {
+        this.endpoint = endpoint;
     }
 }

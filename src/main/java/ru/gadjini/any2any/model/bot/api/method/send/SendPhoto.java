@@ -1,6 +1,9 @@
 package ru.gadjini.any2any.model.bot.api.method.send;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import ru.gadjini.any2any.model.bot.api.object.InputFile;
+
+import java.io.File;
 
 public class SendPhoto {
 
@@ -16,21 +19,28 @@ public class SendPhoto {
     private String chatId;
 
     @JsonProperty(PHOTO)
-    private String photo;
+    private InputFile photo;
 
     @JsonProperty(CAPTION)
     private String caption;
 
-    public SendPhoto(long chatId, String photo) {
+    public SendPhoto(long chatId, String photoFileId) {
         this.chatId = String.valueOf(chatId);
-        this.photo = photo;
+        this.photo = new InputFile();
+        this.photo.setFileId(photoFileId);
+    }
+
+    public SendPhoto(long chatId, File file) {
+        this.chatId = String.valueOf(chatId);
+        this.photo = new InputFile();
+        this.photo.setFilePath(file.getAbsolutePath());
     }
 
     public String getChatId() {
         return chatId;
     }
 
-    public String getPhoto() {
+    public InputFile getPhoto() {
         return photo;
     }
 

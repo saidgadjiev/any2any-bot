@@ -1,5 +1,7 @@
 package ru.gadjini.any2any.service.file;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
@@ -7,6 +9,7 @@ import ru.gadjini.any2any.exception.UserException;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.model.bot.api.object.Progress;
 import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.any2any.service.message.TelegramMediaServiceProvider;
 import ru.gadjini.any2any.service.telegram.TelegramMTProtoService;
 import ru.gadjini.any2any.service.UserService;
 
@@ -15,7 +18,11 @@ import java.util.Locale;
 @Service
 public class FileManager {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileManager.class);
+
     private TelegramMTProtoService telegramService;
+
+    private TelegramMediaServiceProvider mediaServiceProvider;
 
     private FileLimitsDao fileLimitsDao;
 
@@ -24,15 +31,19 @@ public class FileManager {
     private UserService userService;
 
     @Autowired
-    public FileManager(TelegramMTProtoService telegramService, FileLimitsDao fileLimitsDao,
-                       LocalisationService localisationService, UserService userService) {
+    public FileManager(TelegramMTProtoService telegramService, TelegramMediaServiceProvider mediaServiceProvider,
+                       FileLimitsDao fileLimitsDao, LocalisationService localisationService, UserService userService) {
         this.telegramService = telegramService;
+        this.mediaServiceProvider = mediaServiceProvider;
         this.fileLimitsDao = fileLimitsDao;
         this.localisationService = localisationService;
         this.userService = userService;
     }
 
-    public void setInputFilePending(long chatId, Integer replyToMessageId, String fileId, String command) {
+    public void setInputFilePending(long chatId, Integer replyToMessageId, String fileId, long fileSize, String command) {
+        if (fileSize > 0 && TelegramMediaServiceProvider.BOT_API_DOWNLOAD_FILE_LIMIT > fileSize) {
+            return;
+        }
         fileLimitsDao.setInputFile(chatId, new InputFileState(replyToMessageId, fileId, command));
     }
 
@@ -40,7 +51,13 @@ public class FileManager {
         fileLimitsDao.deleteInputFile(chatId);
     }
 
-    public void inputFile(long chatId) {
+    public void inputFile(long chatId, String fileId, long fileSize) {
+        if (fileSize == 0) {
+            LOGGER.debug("File size 0({}, {}, {})", chatId, fileId, fileId);
+        }
+        if (fileSize > 0 && TelegramMediaServiceProvider.BOT_API_DOWNLOAD_FILE_LIMIT > fileSize) {
+            return;
+        }
         InputFileState inputFileState = fileLimitsDao.getInputFile(chatId);
         if (inputFileState != null) {
             Long ttl = fileLimitsDao.getInputFileTtl(chatId);
@@ -61,11 +78,11 @@ public class FileManager {
     }
 
     public void downloadFileByFileId(String fileId, long fileSize, Progress progress, SmartTempFile outputFile) {
-        telegramService.downloadFileByFileId(fileId, fileSize, progress, outputFile);
+        mediaServiceProvider.getDownloadMediaService(fileSize).downloadFileByFileId(fileId, fileSize, progress, outputFile);
     }
 
-    public FileWorkObject fileWorkObject(long chatId) {
-        return new FileWorkObject(chatId, fileLimitsDao);
+    public FileWorkObject fileWorkObject(long chatId, long fileSize) {
+        return new FileWorkObject(chatId, fileSize, fileLimitsDao);
     }
 
     public boolean cancelDownloading(String fileId) {

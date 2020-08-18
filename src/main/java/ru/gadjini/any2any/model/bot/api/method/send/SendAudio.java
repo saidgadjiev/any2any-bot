@@ -101,12 +101,6 @@ public class SendAudio {
         return this;
     }
 
-    public SendAudio setVideo(InputFile video) {
-        Objects.requireNonNull(video, "video cannot be null!");
-        this.audio = video;
-        return this;
-    }
-
     public String getParseMode() {
         return parseMode;
     }
