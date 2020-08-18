@@ -60,6 +60,8 @@ public class TelegramMTProtoService implements TelegramMediaService {
         this.objectMapper = objectMapper;
         this.restTemplate = new RestTemplate();
         this.mediaWorkers = mediaWorkers();
+
+        LOGGER.debug("MTProto: " + telegramProperties.getApi());
     }
 
     @Override

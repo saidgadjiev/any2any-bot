@@ -44,6 +44,8 @@ public class TelegramBotApiService implements TelegramMediaService {
         this.botApiProperties = botApiProperties;
         this.objectMapper = objectMapper;
         this.restTemplate = new RestTemplate();
+
+        LOGGER.debug("Bot api: " + botApiProperties.getEndpoint());
     }
 
 
