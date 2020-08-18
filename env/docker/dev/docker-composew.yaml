@@ -76,7 +76,7 @@ services:
   renamerapp:
     container_name: renamerapp
     restart: always
-    build: ../../../
+    build: ../../../../renamer/
     volumes:
       - ../../../data/renamer/logs:/home/bot/app/logs
       - ../../../data/shr:/tmp/shr
