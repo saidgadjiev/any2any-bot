@@ -32,8 +32,7 @@ import ru.gadjini.any2any.utils.MemoryUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Service
 @SuppressWarnings("CPD-START")
@@ -43,6 +42,8 @@ public class TelegramMTProtoService implements TelegramMediaService {
 
     private final Map<String, SmartTempFile> downloading = new ConcurrentHashMap<>();
 
+    private final Map<String, Future<?>> downloadingFuture = new ConcurrentHashMap<>();
+
     private final Map<String, SmartTempFile> uploading = new ConcurrentHashMap<>();
 
     private final MTProtoProperties telegramProperties;
@@ -51,11 +52,14 @@ public class TelegramMTProtoService implements TelegramMediaService {
 
     private ObjectMapper objectMapper;
 
+    private ThreadPoolExecutor mediaWorkers;
+
     @Autowired
     public TelegramMTProtoService(MTProtoProperties telegramProperties, ObjectMapper objectMapper) {
         this.telegramProperties = telegramProperties;
         this.objectMapper = objectMapper;
         this.restTemplate = new RestTemplate();
+        this.mediaWorkers = mediaWorkers();
     }
 
     @Override
@@ -223,38 +227,52 @@ public class TelegramMTProtoService implements TelegramMediaService {
         downloadFileByFileId(fileId, 0, null, outputFile);
     }
 
+
     @Override
     public void downloadFileByFileId(String fileId, long fileSize, Progress progress, SmartTempFile outputFile) {
         downloading.put(fileId, outputFile);
         try {
-            StopWatch stopWatch = new StopWatch();
-            stopWatch.start();
-            LOGGER.debug("Start downloadFileByFileId({})", fileId);
+            Future<?> submit = mediaWorkers.submit(() -> {
+                try {
+                    StopWatch stopWatch = new StopWatch();
+                    stopWatch.start();
+                    LOGGER.debug("Start downloadFileByFileId({})", fileId);
 
-            GetFile getFile = new GetFile();
-            getFile.setFileId(fileId);
-            getFile.setFileSize(fileSize);
-            getFile.setPath(outputFile.getAbsolutePath());
-            getFile.setRemoveParentDirOnCancel(false);
-            getFile.setProgress(progress);
-            HttpEntity<GetFile> request = new HttpEntity<>(getFile);
-            String result = restTemplate.postForObject(getUrl(GetFile.METHOD), request, String.class);
-            try {
-                ApiResponse<Void> apiResponse = objectMapper.readValue(result, new TypeReference<>() {
-                });
+                    GetFile getFile = new GetFile();
+                    getFile.setFileId(fileId);
+                    getFile.setFileSize(fileSize);
+                    getFile.setPath(outputFile.getAbsolutePath());
+                    getFile.setRemoveParentDirOnCancel(false);
+                    getFile.setProgress(progress);
+                    HttpEntity<GetFile> request = new HttpEntity<>(getFile);
+                    String result = restTemplate.postForObject(getUrl(GetFile.METHOD), request, String.class);
+                    try {
+                        ApiResponse<Void> apiResponse = objectMapper.readValue(result, new TypeReference<>() {
+                        });
 
-                if (!apiResponse.getOk()) {
-                    throw new DownloadCanceledException();
+                        if (!apiResponse.getOk()) {
+                            throw new DownloadCanceledException();
+                        }
+                    } catch (IOException e) {
+                        throw new TelegramApiException("Unable to deserialize response(" + result + ", " + fileId + ")\n" + e.getMessage(), e);
+                    }
+
+                    stopWatch.stop();
+                    LOGGER.debug("Finish downloadFileByFileId({}, {}, {})", fileId, MemoryUtils.humanReadableByteCount(outputFile.length()), stopWatch.getTime(TimeUnit.SECONDS));
+                } catch (RestClientException e) {
+                    throw new TelegramApiException(e);
                 }
-            } catch (IOException e) {
-                throw new TelegramApiException("Unable to deserialize response(" + result + ", " + fileId + ")\n" + e.getMessage(), e);
-            }
+            });
 
-            stopWatch.stop();
-            LOGGER.debug("Finish downloadFileByFileId({}, {}, {})", fileId, MemoryUtils.humanReadableByteCount(outputFile.length()), stopWatch.getTime(TimeUnit.SECONDS));
-        } catch (RestClientException e) {
-            throw new TelegramApiException(e);
+            try {
+                downloadingFuture.put(fileId, submit);
+                submit.get();
+            } catch (Exception e) {
+                LOGGER.error(e.getMessage());
+                throw new DownloadCanceledException();
+            }
         } finally {
+            downloadingFuture.remove(fileId);
             downloading.remove(fileId);
         }
     }
@@ -308,10 +326,15 @@ public class TelegramMTProtoService implements TelegramMediaService {
 
                 return true;
             }
+            Future<?> future = downloadingFuture.get(fileId);
+            if (!future.isDone()) {
+                future.cancel(true);
+            }
 
             return false;
         } finally {
             downloading.remove(fileId);
+            downloadingFuture.remove(fileId);
         }
     }
 
@@ -330,8 +353,14 @@ public class TelegramMTProtoService implements TelegramMediaService {
                     }
                 }
             }
+            for (Map.Entry<String, Future<?>> entry : downloadingFuture.entrySet()) {
+                if (entry.getValue().isDone()) {
+                    entry.getValue().cancel(true);
+                }
+            }
         } finally {
             downloading.clear();
+            downloadingFuture.clear();
         }
         LOGGER.debug("Downloads canceled");
     }
@@ -341,6 +370,17 @@ public class TelegramMTProtoService implements TelegramMediaService {
             downloadFileByFileId(fileId, new SmartTempFile(new File(filePath)));
             LOGGER.debug("File restored({}, {})", fileId, filePath);
         }
+    }
+
+    private ThreadPoolExecutor mediaWorkers() {
+        ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(3, 3,
+                0, TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>()
+        );
+
+        LOGGER.debug("Media workers thread pool({})", taskExecutor.getCorePoolSize());
+
+        return taskExecutor;
     }
 
     private String getUrl(String method) {
