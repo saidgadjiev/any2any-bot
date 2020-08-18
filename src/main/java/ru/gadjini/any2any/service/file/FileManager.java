@@ -32,8 +32,8 @@ public class FileManager {
         this.userService = userService;
     }
 
-    public void setInputFilePending(long chatId, Integer replyToMessageId) {
-        fileLimitsDao.setInputFile(chatId, new InputFileState(replyToMessageId));
+    public void setInputFilePending(long chatId, Integer replyToMessageId, String fileId, String command) {
+        fileLimitsDao.setInputFile(chatId, new InputFileState(replyToMessageId, fileId, command));
     }
 
     public void resetLimits(long chatId) {

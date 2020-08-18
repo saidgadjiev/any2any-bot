@@ -49,6 +49,8 @@ import java.util.function.Supplier;
 @Service
 public class UnzipService {
 
+    private static final String TAG = "unz";
+
     private final Logger LOGGER = LoggerFactory.getLogger(UnzipService.class);
 
     private Set<UnzipDevice> unzipDevices;
@@ -240,7 +242,7 @@ public class UnzipService {
         sendStartUnzippingMessage(userId, queueItem.getId(), locale, message -> {
             queueItem.setMessageId(message.getMessageId());
             queueService.setMessageId(queueItem.getId(), message.getMessageId());
-            fileManager.setInputFilePending(userId, replyToMessageId);
+            fileManager.setInputFilePending(userId, replyToMessageId, file.getFileId(), TAG);
             executor.execute(new UnzipTask(queueItem));
         });
     }

@@ -154,7 +154,7 @@ public class ArchiveService {
         startArchiveCreating(userId, item.getId(), message -> {
             archiveQueueService.setProgressMessageId(item.getId(), message.getMessageId());
             item.setProgressMessageId(message.getMessageId());
-            fileManager.setInputFilePending(userId, null);
+            fileManager.setInputFilePending(userId, null, null, TAG);
             executor.execute(new ArchiveTask(item));
         });
     }

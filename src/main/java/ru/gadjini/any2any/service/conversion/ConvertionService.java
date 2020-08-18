@@ -41,6 +41,8 @@ import java.util.function.Supplier;
 @Service
 public class ConvertionService {
 
+    private static final String TAG = "cnvs";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ConvertionService.class);
 
     private Set<Any2AnyConverter<ConvertResult>> any2AnyConverters = new LinkedHashSet<>();
@@ -119,7 +121,7 @@ public class ConvertionService {
     public ConversionQueueItem convert(User user, ConvertState convertState, Format targetFormat) {
         ConversionQueueItem queueItem = queueService.createProcessingItem(user, convertState, targetFormat);
 
-        fileManager.setInputFilePending(user.getId(), convertState.getMessageId());
+        fileManager.setInputFilePending(user.getId(), convertState.getMessageId(), convertState.getFileId(), TAG);
         executor.execute(new ConversionTask(queueItem));
 
         return queueItem;

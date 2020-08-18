@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -13,6 +14,8 @@ import java.util.concurrent.TimeUnit;
 public class FileLimitsDao {
 
     private static final String KEY = "flim";
+
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
 
     private StringRedisTemplate redisTemplate;
 
@@ -28,6 +31,12 @@ public class FileLimitsDao {
         if (inputFileState.getReplyToMessageId() != null) {
             values.put("replyToMessageId", inputFileState.getReplyToMessageId().toString());
         }
+        if (inputFileState.getFileId() != null) {
+            values.put("fileId", inputFileState.getFileId());
+        }
+        values.put("command", inputFileState.getCommand());
+        values.put("createdAt", DATE_TIME_FORMATTER.format(inputFileState.getCreatedAt()));
+
         redisTemplate.opsForHash().putAll(key(chatId), values);
     }
 

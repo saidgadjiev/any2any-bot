@@ -45,6 +45,8 @@ import java.util.function.Supplier;
 @Service
 public class RenameService {
 
+    private static final String TAG = "rn";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(RenameService.class);
 
     private FileManager fileManager;
@@ -133,7 +135,7 @@ public class RenameService {
         sendStartRenamingMessage(item.getId(), userId, message -> {
             item.setProgressMessageId(message.getMessageId());
             renameQueueService.setProgressMessageId(item.getId(), message.getMessageId());
-            fileManager.setInputFilePending(userId, renameState.getReplyMessageId());
+            fileManager.setInputFilePending(userId, renameState.getReplyMessageId(), renameState.getFile().getFileId(), TAG);
             executor.execute(new RenameTask(item));
         });
     }
