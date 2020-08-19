@@ -1,6 +1,5 @@
 package ru.gadjini.any2any.service.keyboard;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -8,14 +7,11 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.buttons.KeyboardRow;
 import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.conversion.api.Format;
-import ru.gadjini.any2any.service.conversion.impl.FormatService;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -23,15 +19,12 @@ import java.util.Locale;
 @Qualifier("keyboard")
 public class ReplyKeyboardServiceImpl implements ReplyKeyboardService {
 
-    private FormatService formatMapService;
-
     private LocalisationService localisationService;
 
     private UserService userService;
 
     @Autowired
-    public ReplyKeyboardServiceImpl(FormatService formatMapService, LocalisationService localisationService, UserService userService) {
-        this.formatMapService = formatMapService;
+    public ReplyKeyboardServiceImpl(LocalisationService localisationService, UserService userService) {
         this.localisationService = localisationService;
         this.userService = userService;
     }
@@ -105,22 +98,6 @@ public class ReplyKeyboardServiceImpl implements ReplyKeyboardService {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale)));
-
-        return replyKeyboardMarkup;
-    }
-
-    @Override
-    public ReplyKeyboardMarkup getFormatsKeyboard(long chatId, Format format, Locale locale) {
-        List<Format> targetFormats = new ArrayList<>(formatMapService.getTargetFormats(format));
-        targetFormats.sort(Comparator.comparing(Enum::name));
-        ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
-
-        List<KeyboardRow> keyboard = replyKeyboardMarkup.getKeyboard();
-        List<List<Format>> lists = Lists.partition(targetFormats, 3);
-        for (List<Format> list : lists) {
-            keyboard.add(keyboardRow(list.stream().map(Enum::name).toArray(String[]::new)));
-        }
-        keyboard.add(keyboardRow(localisationService.getMessage(MessagesProperties.GO_BACK_COMMAND_NAME, locale)));
 
         return replyKeyboardMarkup;
     }

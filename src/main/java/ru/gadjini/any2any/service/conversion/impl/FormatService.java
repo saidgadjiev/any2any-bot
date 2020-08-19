@@ -11,53 +11,17 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.io.SmartTempFile;
 import ru.gadjini.any2any.service.TempFileService;
 import ru.gadjini.any2any.service.conversion.api.Format;
-import ru.gadjini.any2any.service.conversion.api.FormatCategory;
 import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.utils.MimeTypeUtils;
-import ru.gadjini.any2any.utils.UrlUtils;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 import static ru.gadjini.any2any.service.conversion.api.Format.*;
 
 @Service
 public class FormatService {
 
-    public static final String TAG = "format";
-
-    private static final Map<FormatCategory, Map<List<Format>, List<Format>>> FORMATS = new LinkedHashMap<>();
-
-    static {
-        Map<List<Format>, List<Format>> documents = new LinkedHashMap<>();
-        documents.put(List.of(DOC), List.of(PDF, DOCX, TXT, EPUB, RTF, TIFF));
-        documents.put(List.of(DOCX), List.of(PDF, DOC, TXT, EPUB, RTF, TIFF));
-        documents.put(List.of(PDF), List.of(DOC, DOCX, EPUB, TIFF));
-        documents.put(List.of(TEXT), List.of(PDF, DOC, DOCX, TXT));
-        documents.put(List.of(TXT), List.of(PDF, DOC, DOCX));
-        documents.put(List.of(EPUB), List.of(PDF, DOC, DOCX, RTF));
-        documents.put(List.of(URL, HTML), List.of(PDF));
-        documents.put(List.of(XLS, XLSX), List.of(PDF));
-        documents.put(List.of(PPTX, PPT, PPTM, POTX, POT, POTM, PPS, PPSX, PPSM), List.of(PDF));
-        FORMATS.put(FormatCategory.DOCUMENTS, documents);
-
-        Map<List<Format>, List<Format>> images = new LinkedHashMap<>();
-        images.put(List.of(PNG), List.of(PDF, DOC, DOCX, JPG, JP2, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
-        images.put(List.of(PHOTO), List.of(PDF, DOC, DOCX, PNG, JPG, JP2, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
-        images.put(List.of(JPG), List.of(PDF, DOC, DOCX, PNG, JP2, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
-        images.put(List.of(TIFF), List.of(PDF, DOCX, DOC));
-        images.put(List.of(BMP), List.of(PDF, PNG, JPG, JP2, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
-        images.put(List.of(WEBP), List.of(PDF, PNG, JPG, JP2, BMP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
-        images.put(List.of(SVG), List.of(PDF, PNG, JPG, JP2, BMP, WEBP, TIFF, ICO, HEIC, HEIF, STICKER));
-        images.put(List.of(HEIC, HEIF), List.of(PDF, PNG, JPG, JP2, BMP, WEBP, TIFF, ICO, SVG, STICKER));
-        images.put(List.of(ICO), List.of(PDF, PNG, JPG, JP2, BMP, WEBP, TIFF, HEIC, HEIF, SVG, STICKER));
-        images.put(List.of(JP2), List.of(PDF, PNG, JPG, BMP, WEBP, TIFF, ICO, HEIC, HEIF, SVG, STICKER));
-        images.put(List.of(TGS), List.of(GIF));
-        FORMATS.put(FormatCategory.IMAGES, images);
-    }
+    private static final String TAG = "format";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FormatService.class);
 
@@ -69,18 +33,6 @@ public class FormatService {
     public FormatService(FileManager fileManager, TempFileService tempFileService) {
         this.fileManager = fileManager;
         this.tempFileService = tempFileService;
-    }
-
-    public List<Format> getTargetFormats(Format srcFormat) {
-        for (Map.Entry<FormatCategory, Map<List<Format>, List<Format>>> categoryEntry : FORMATS.entrySet()) {
-            for (Map.Entry<List<Format>, List<Format>> entry : categoryEntry.getValue().entrySet()) {
-                if (entry.getKey().contains(srcFormat)) {
-                    return entry.getValue();
-                }
-            }
-        }
-
-        return Collections.emptyList();
     }
 
     public Format getAssociatedFormat(String format) {
@@ -95,18 +47,6 @@ public class FormatService {
         }
 
         return null;
-    }
-
-    public Format getFormat(String text) {
-        if (UrlUtils.isUrl(text)) {
-            return URL;
-        }
-
-        return TEXT;
-    }
-
-    public String getExt(String mimeType) {
-        return getExt(null, mimeType);
     }
 
     public String getExt(String fileName, String mimeType) {
@@ -163,10 +103,6 @@ public class FormatService {
             LOGGER.error("Error format detect " + photoFileId + "\n" + ex.getMessage(), ex);
             return null;
         }
-    }
-
-    public boolean isConvertAvailable(Format src, Format target) {
-        return getTargetFormats(src).contains(target);
     }
 
     private Format getImageFormat(long format) {

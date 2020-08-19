@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.dao.command.keyboard.ReplyKeyboardDao;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
-import ru.gadjini.any2any.service.conversion.api.Format;
 
 import java.util.Locale;
 
@@ -50,11 +49,6 @@ public class CurrReplyKeyboard implements ReplyKeyboardService {
     @Override
     public ReplyKeyboardMarkup cancel(long chatId, Locale locale) {
         return setCurrentKeyboard(chatId, keyboardService.cancel(chatId, locale));
-    }
-
-    @Override
-    public ReplyKeyboardMarkup getFormatsKeyboard(long chatId, Format format, Locale locale) {
-        return setCurrentKeyboard(chatId, keyboardService.getFormatsKeyboard(chatId, format, locale));
     }
 
     @Override

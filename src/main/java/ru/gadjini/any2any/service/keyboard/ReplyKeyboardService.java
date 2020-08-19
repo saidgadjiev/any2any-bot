@@ -3,7 +3,6 @@ package ru.gadjini.any2any.service.keyboard;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
 import ru.gadjini.any2any.model.bot.api.object.replykeyboard.buttons.KeyboardRow;
-import ru.gadjini.any2any.service.conversion.api.Format;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,8 +21,6 @@ public interface ReplyKeyboardService {
     ReplyKeyboardMarkup goBack(long chatId, Locale locale);
 
     ReplyKeyboardMarkup cancel(long chatId, Locale locale);
-
-    ReplyKeyboardMarkup getFormatsKeyboard(long chatId, Format format, Locale locale);
 
     ReplyKeyboardRemove removeKeyboard(long chatId);
 

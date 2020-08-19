@@ -11,12 +11,11 @@ import ru.gadjini.any2any.service.telegram.TelegramMediaService;
 
 import java.io.File;
 
+import static ru.gadjini.any2any.common.TgConstants.BOT_API_DOWNLOAD_FILE_LIMIT;
+import static ru.gadjini.any2any.common.TgConstants.BOT_API_UPLOAD_FILE_LIMIT;
+
 @Component
 public class TelegramMediaServiceProvider {
-
-    private static final int BOT_API_UPLOAD_FILE_LIMIT = 49 * 1024 * 1024;
-
-    private static final int BOT_API_DOWNLOAD_FILE_LIMIT = 19 * 1024 * 1024;
 
     private TelegramBotApiService telegramBotApiService;
 
