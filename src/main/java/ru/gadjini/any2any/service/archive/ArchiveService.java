@@ -185,7 +185,7 @@ public class ArchiveService {
 
     private void startArchiveCreating(int userId, int jobId, long fileSize, Consumer<Message> callback) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        if (progressManager.isShowingProgress(fileSize)) {
+        if (progressManager.isShowingDownloadingProgress(fileSize)) {
             String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
             messageService.sendMessage(new SendMessage((long) userId, message)
                     .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale)), callback);

@@ -339,7 +339,7 @@ public class UnzipService {
     }
 
     private void sendStartUnzippingMessage(int userId, int jobId, long fileSize, Locale locale, Consumer<Message> callback) {
-        if (progressManager.isShowingProgress(fileSize)) {
+        if (progressManager.isShowingDownloadingProgress(fileSize)) {
             String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
             messageService.sendMessage(new SendMessage((long) userId, message)
                     .setReplyMarkup(inlineKeyboardService.getUnzipProcessingKeyboard(jobId, locale)), callback);
@@ -373,7 +373,7 @@ public class UnzipService {
 
     private void sendStartExtractingFileMessage(int userId, int messageId, long fileSize, int jobId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        if (progressManager.isShowingProgress(fileSize)) {
+        if (progressManager.isShowingDownloadingProgress(fileSize)) {
             String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
             messageService.editMessage(new EditMessageText((long) userId, messageId, message)
                     .setReplyMarkup(inlineKeyboardService.getExtractFileProcessingKeyboard(jobId, locale)));

@@ -14,9 +14,9 @@ import java.io.File;
 @Component
 public class TelegramMediaServiceProvider {
 
-    public static final int BOT_API_UPLOAD_FILE_LIMIT = 49 * 1024 * 1024;
+    private static final int BOT_API_UPLOAD_FILE_LIMIT = 49 * 1024 * 1024;
 
-    public static final int BOT_API_DOWNLOAD_FILE_LIMIT = 19 * 1024 * 1024;
+    private static final int BOT_API_DOWNLOAD_FILE_LIMIT = 19 * 1024 * 1024;
 
     private TelegramBotApiService telegramBotApiService;
 
@@ -26,6 +26,14 @@ public class TelegramMediaServiceProvider {
     public TelegramMediaServiceProvider(TelegramBotApiService telegramBotApiService, TelegramMTProtoService telegramMTProtoService) {
         this.telegramBotApiService = telegramBotApiService;
         this.telegramMTProtoService = telegramMTProtoService;
+    }
+
+    public boolean isBotApiDownloadFile(long fileSize) {
+        return fileSize > 0 && fileSize <= BOT_API_DOWNLOAD_FILE_LIMIT;
+    }
+
+    public boolean isBotApiUploadFile(long fileSize) {
+        return fileSize > 0 && fileSize <= BOT_API_UPLOAD_FILE_LIMIT;
     }
 
     public TelegramMediaService getMediaService(InputMedia media) {
@@ -46,7 +54,7 @@ public class TelegramMediaServiceProvider {
         }
         File file = new File(filePath);
 
-        if (file.length() < BOT_API_UPLOAD_FILE_LIMIT) {
+        if (isBotApiUploadFile(file.length())) {
             return telegramBotApiService;
         }
 
@@ -54,7 +62,7 @@ public class TelegramMediaServiceProvider {
     }
 
     public TelegramMediaService getDownloadMediaService(long fileSize) {
-        if (fileSize > 0 && fileSize < BOT_API_DOWNLOAD_FILE_LIMIT) {
+        if (isBotApiDownloadFile(fileSize)) {
             return telegramBotApiService;
         }
 

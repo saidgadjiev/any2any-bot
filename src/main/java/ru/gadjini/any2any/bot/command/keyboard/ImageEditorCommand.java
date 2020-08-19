@@ -188,7 +188,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
             PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
             any2AnyFile.setFileId(photoSize.getFileId());
             any2AnyFile.setFileName(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale));
-            any2AnyFile.setFormat(formatService.getImageFormat(message.getChatId(), photoSize.getFileId()));
+            any2AnyFile.setFormat(formatService.getImageFormat(message.getChatId(), photoSize.getFileId(), photoSize.getFileSize()));
         } else {
             LOGGER.debug("No image({}, {})", message.getChatId(), TgMessage.getMetaTypes(message));
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MAIN_WELCOME, userService.getLocaleOrDefault(message.getFrom().getId())));

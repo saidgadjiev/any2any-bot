@@ -4,10 +4,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.gadjini.any2any.bot.command.api.*;
+import ru.gadjini.any2any.bot.command.api.BotCommand;
+import ru.gadjini.any2any.bot.command.api.CallbackBotCommand;
+import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
+import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.service.command.navigator.CallbackCommandNavigator;
 import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
 
 import java.util.Collection;
@@ -29,8 +31,6 @@ public class CommandExecutor {
     private CommandParser commandParser;
 
     private CommandNavigator commandNavigator;
-
-    private CallbackCommandNavigator callbackCommandNavigator;
 
     @Autowired
     public CommandExecutor(CommandParser commandParser) {
@@ -55,11 +55,6 @@ public class CommandExecutor {
     @Autowired
     public void setCallbackBotCommands(Collection<CallbackBotCommand> commands) {
         commands.forEach(callbackBotCommand -> callbackBotCommands.put(callbackBotCommand.getName(), callbackBotCommand));
-    }
-
-    @Autowired
-    public void setCallbackCommandNavigator(CallbackCommandNavigator callbackCommandNavigator) {
-        this.callbackCommandNavigator = callbackCommandNavigator;
     }
 
     public CallbackBotCommand getCallbackCommand(String commandName) {
@@ -133,16 +128,6 @@ public class CommandExecutor {
         CallbackBotCommand botCommand = callbackBotCommands.get(parseResult.getCommandName());
 
         LOGGER.debug("Callback({}, {})", callbackQuery.getFrom().getId(), botCommand.getClass().getSimpleName());
-        try {
-            if (botCommand instanceof NavigableCallbackBotCommand) {
-                callbackCommandNavigator.push(callbackQuery.getMessage().getChatId(), (NavigableCallbackBotCommand) botCommand);
-            }
-            botCommand.processMessage(callbackQuery, parseResult.getRequestParams());
-        } catch (Exception ex) {
-            if (botCommand instanceof NavigableCallbackBotCommand) {
-                callbackCommandNavigator.silentPop(callbackQuery.getMessage().getChatId());
-            }
-            throw ex;
-        }
+        botCommand.processMessage(callbackQuery, parseResult.getRequestParams());
     }
 }

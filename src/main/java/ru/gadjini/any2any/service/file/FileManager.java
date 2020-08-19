@@ -41,7 +41,7 @@ public class FileManager {
     }
 
     public void setInputFilePending(long chatId, Integer replyToMessageId, String fileId, long fileSize, String command) {
-        if (fileSize > 0 && TelegramMediaServiceProvider.BOT_API_DOWNLOAD_FILE_LIMIT > fileSize) {
+        if (mediaServiceProvider.isBotApiDownloadFile(fileSize)) {
             return;
         }
         fileLimitsDao.setInputFile(chatId, new InputFileState(replyToMessageId, fileId, command));
@@ -53,9 +53,9 @@ public class FileManager {
 
     public void inputFile(long chatId, String fileId, long fileSize) {
         if (fileSize == 0) {
-            LOGGER.debug("File size 0({}, {}, {})", chatId, fileId, fileId);
+            LOGGER.debug("File size ({}, {}, {})", chatId, fileId, fileId);
         }
-        if (fileSize > 0 && TelegramMediaServiceProvider.BOT_API_DOWNLOAD_FILE_LIMIT > fileSize) {
+        if (mediaServiceProvider.isBotApiDownloadFile(fileSize)) {
             return;
         }
         InputFileState inputFileState = fileLimitsDao.getInputFile(chatId);
@@ -73,8 +73,8 @@ public class FileManager {
         }
     }
 
-    public void downloadFileByFileId(String fileId, SmartTempFile outputFile) {
-        telegramService.downloadFileByFileId(fileId, outputFile);
+    public void downloadFileByFileId(String fileId, long fileSize, SmartTempFile outputFile) {
+        mediaServiceProvider.getDownloadMediaService(fileSize).downloadFileByFileId(fileId, fileSize, outputFile);
     }
 
     public void downloadFileByFileId(String fileId, long fileSize, Progress progress, SmartTempFile outputFile) {
@@ -82,7 +82,7 @@ public class FileManager {
     }
 
     public FileWorkObject fileWorkObject(long chatId, long fileSize) {
-        return new FileWorkObject(chatId, fileSize, fileLimitsDao);
+        return new FileWorkObject(chatId, fileSize, fileLimitsDao, mediaServiceProvider);
     }
 
     public boolean cancelDownloading(String fileId) {

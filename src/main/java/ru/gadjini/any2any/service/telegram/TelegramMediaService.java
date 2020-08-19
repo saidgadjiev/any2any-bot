@@ -19,7 +19,7 @@ public interface TelegramMediaService {
 
     Message sendPhoto(SendPhoto sendPhoto);
 
-    void downloadFileByFileId(String fileId, SmartTempFile outputFile);
+    void downloadFileByFileId(String fileId, long fileSize, SmartTempFile outputFile);
 
     void downloadFileByFileId(String fileId, long fileSize, Progress progress, SmartTempFile outputFile);
 

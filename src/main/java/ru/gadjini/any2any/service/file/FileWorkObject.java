@@ -14,10 +14,13 @@ public class FileWorkObject {
 
     private FileLimitsDao fileLimitsDao;
 
-    public FileWorkObject(long chatId, long fileSize, FileLimitsDao fileLimitsDao) {
+    private TelegramMediaServiceProvider mediaServiceProvider;
+
+    public FileWorkObject(long chatId, long fileSize, FileLimitsDao fileLimitsDao, TelegramMediaServiceProvider mediaServiceProvider) {
         this.chatId = chatId;
         this.fileSize = fileSize;
         this.fileLimitsDao = fileLimitsDao;
+        this.mediaServiceProvider = mediaServiceProvider;
     }
 
     public long getChatId() {
@@ -25,14 +28,14 @@ public class FileWorkObject {
     }
 
     public void start() {
-        if (fileSize > 0 && fileSize < TelegramMediaServiceProvider.BOT_API_DOWNLOAD_FILE_LIMIT) {
+        if (mediaServiceProvider.isBotApiDownloadFile(fileSize)) {
             return;
         }
         fileLimitsDao.setState(chatId, InputFileState.State.PROCESSING);
     }
 
     public void stop() {
-        if (fileSize > 0 && fileSize < TelegramMediaServiceProvider.BOT_API_DOWNLOAD_FILE_LIMIT) {
+        if (mediaServiceProvider.isBotApiDownloadFile(fileSize)) {
             return;
         }
         fileLimitsDao.setState(chatId, InputFileState.State.COMPLETED);

@@ -143,11 +143,11 @@ public class FormatService {
         return null;
     }
 
-    public Format getImageFormat(long chatId, String photoFileId) {
+    public Format getImageFormat(long chatId, String photoFileId, long fileSize) {
         SmartTempFile file = tempFileService.createTempFile(chatId, photoFileId, TAG, "tmp");
 
         try {
-            fileManager.downloadFileByFileId(photoFileId, file);
+            fileManager.downloadFileByFileId(photoFileId, fileSize, file);
             return getImageFormat(file.getFile(), photoFileId);
         } finally {
             file.smartDelete();

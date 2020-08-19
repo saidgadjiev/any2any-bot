@@ -225,8 +225,8 @@ public class TelegramMTProtoService implements TelegramMediaService {
     }
 
     @Override
-    public void downloadFileByFileId(String fileId, SmartTempFile outputFile) {
-        downloadFileByFileId(fileId, 0, null, outputFile);
+    public void downloadFileByFileId(String fileId, long fileSize, SmartTempFile outputFile) {
+        downloadFileByFileId(fileId, fileSize, null, outputFile);
     }
 
 
@@ -369,13 +369,13 @@ public class TelegramMTProtoService implements TelegramMediaService {
 
     public void restoreFileIfNeed(String filePath, String fileId) {
         if (!new File(filePath).exists()) {
-            downloadFileByFileId(fileId, new SmartTempFile(new File(filePath)));
+            downloadFileByFileId(fileId, 0, new SmartTempFile(new File(filePath)));
             LOGGER.debug("File restored({}, {})", fileId, filePath);
         }
     }
 
     private ThreadPoolExecutor mediaWorkers() {
-        ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(3, 3,
+        ThreadPoolExecutor taskExecutor = new ThreadPoolExecutor(2, 2,
                 0, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>()
         );

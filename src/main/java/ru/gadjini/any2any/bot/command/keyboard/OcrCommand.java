@@ -129,7 +129,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
 
             Any2AnyFile any2AnyFile = new Any2AnyFile();
             any2AnyFile.setFileId(photoSize.getFileId());
-            any2AnyFile.setFormat(formatService.getImageFormat(message.getChatId(), photoSize.getFileId()));
+            any2AnyFile.setFormat(formatService.getImageFormat(message.getChatId(), photoSize.getFileId(), photoSize.getFileSize()));
 
             return any2AnyFile;
         }

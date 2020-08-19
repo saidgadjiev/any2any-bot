@@ -34,14 +34,6 @@ public class InlineKeyboardService {
         return inlineKeyboardMarkup;
     }
 
-    public InlineKeyboardMarkup getThumbProcessingKeyboard(int jobId, Locale locale) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelRenameQuery(jobId, locale)));
-
-        return inlineKeyboardMarkup;
-    }
-
     public InlineKeyboardMarkup getRenameProcessingKeyboard(int jobId, Locale locale) {
         InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
 
@@ -319,42 +311,6 @@ public class InlineKeyboardService {
                         CommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale
                 )));
 
-        return inlineKeyboardMarkup;
-    }
-
-    public InlineKeyboardMarkup getQueryDetailsKeyboard(int queryItemId, Locale locale) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelQueryItem(queryItemId, CommandNames.QUERY_ITEM_DETAILS_COMMAND, locale)));
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.goBackCallbackButton(CommandNames.QUERIES_COMMAND, locale)));
-
-        return inlineKeyboardMarkup;
-    }
-
-    public InlineKeyboardMarkup getQueriesKeyboard(List<Integer> queryItemsIds) {
-        if (queryItemsIds.isEmpty()) {
-            return null;
-        }
-        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
-
-        int i = 1;
-        List<List<Integer>> lists = Lists.partition(queryItemsIds, 4);
-        for (List<Integer> list : lists) {
-            List<InlineKeyboardButton> row = new ArrayList<>();
-
-            for (int queryItemId : list) {
-                row.add(buttonFactory.queryItemDetails(String.valueOf(i++), queryItemId));
-            }
-
-            inlineKeyboardMarkup.getKeyboard().add(row);
-        }
-
-        return inlineKeyboardMarkup;
-    }
-
-    public InlineKeyboardMarkup reportKeyboard(int queueItemId, Locale locale) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.report(queueItemId, locale)));
         return inlineKeyboardMarkup;
     }
 
