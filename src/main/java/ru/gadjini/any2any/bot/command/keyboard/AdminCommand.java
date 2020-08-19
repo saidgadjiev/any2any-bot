@@ -14,7 +14,6 @@ import ru.gadjini.any2any.service.LocalisationService;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.cleaner.GarbageFileCollector;
 import ru.gadjini.any2any.service.command.CommandStateService;
-import ru.gadjini.any2any.service.conversion.ConvertionService;
 import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
 import ru.gadjini.any2any.service.message.MediaMessageService;
@@ -38,8 +37,6 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
     private ReplyKeyboardService replyKeyboardService;
 
     private UserService userService;
-
-    private ConvertionService convertionService;
 
     private GarbageFileCollector garbageFileCollector;
 
@@ -77,11 +74,6 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
     @Autowired
     public void setUserService(UserService userService) {
         this.userService = userService;
-    }
-
-    @Autowired
-    public void setConvertionService(ConvertionService convertionService) {
-        this.convertionService = convertionService;
     }
 
     @Override
@@ -127,8 +119,6 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
             String jobIdStr = commandStateService.getState(message.getChatId(), CommandNames.ADMIN, false, String.class);
             if (StringUtils.isNotBlank(jobIdStr)) {
                 commandStateService.deleteState(message.getChatId(), CommandNames.ADMIN);
-                int jobId = Integer.parseInt(jobIdStr);
-                convertionService.executeTask(jobId);
 
                 messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_EXECUTED, locale)));
             }

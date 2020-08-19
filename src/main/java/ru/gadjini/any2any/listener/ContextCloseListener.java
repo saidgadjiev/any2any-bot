@@ -8,7 +8,6 @@ import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.service.archive.ArchiveService;
-import ru.gadjini.any2any.service.conversion.ConvertionService;
 import ru.gadjini.any2any.service.file.FileManager;
 import ru.gadjini.any2any.service.unzip.UnzipService;
 
@@ -16,8 +15,6 @@ import ru.gadjini.any2any.service.unzip.UnzipService;
 public class ContextCloseListener implements ApplicationListener<ContextClosedEvent> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ContextCloseListener.class);
-
-    private ConvertionService conversionService;
 
     private ArchiveService archiveService;
 
@@ -27,10 +24,8 @@ public class ContextCloseListener implements ApplicationListener<ContextClosedEv
 
     private ThreadPoolTaskExecutor commonThreadPool;
 
-    public ContextCloseListener(ConvertionService conversionService,
-                                ArchiveService archiveService, UnzipService unzipService,
+    public ContextCloseListener(ArchiveService archiveService, UnzipService unzipService,
                                 FileManager fileManager, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor commonThreadPool) {
-        this.conversionService = conversionService;
         this.archiveService = archiveService;
         this.unzipService = unzipService;
         this.fileManager = fileManager;
@@ -39,11 +34,6 @@ public class ContextCloseListener implements ApplicationListener<ContextClosedEv
 
     @Override
     public void onApplicationEvent(ContextClosedEvent event) {
-        try {
-            conversionService.shutdown();
-        } catch (Throwable e) {
-            LOGGER.error("Error shutdown conversionService. " + e.getMessage(), e);
-        }
         try {
             archiveService.shutdown();
         } catch (Throwable e) {
