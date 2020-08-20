@@ -1,6 +1,7 @@
 package ru.gadjini.any2any.model;
 
 import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.any2any.utils.MemoryUtils;
 
 public class Any2AnyFile {
 
@@ -81,6 +82,9 @@ public class Any2AnyFile {
                 ", fileName='" + fileName + '\'' +
                 ", mimeType='" + mimeType + '\'' +
                 ", format=" + format +
+                ", fileSize=" + MemoryUtils.humanReadableByteCount(fileSize) +
+                ", thumb='" + thumb + '\'' +
+                ", cachedFileId='" + cachedFileId + '\'' +
                 '}';
     }
 }
