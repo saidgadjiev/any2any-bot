@@ -88,8 +88,8 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
     }
 
     @Override
-    public void processMessage(Message message) {
-        processMessage(message, null);
+    public void processMessage(Message message, String[] params) {
+        processMessage(message, (String) null);
     }
 
     @Override

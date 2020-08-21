@@ -85,8 +85,8 @@ public class UnzipCommand implements KeyboardBotCommand, NavigableBotCommand, Bo
     }
 
     @Override
-    public void processMessage(Message message) {
-        processMessage(message, null);
+    public void processMessage(Message message, String[] params) {
+        processMessage(message, (String) null);
     }
 
     @Override

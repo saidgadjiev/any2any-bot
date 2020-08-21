@@ -52,7 +52,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     }
 
     @Override
-    public void processMessage(Message message) {
+    public void processMessage(Message message, String[] params) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
                 new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))

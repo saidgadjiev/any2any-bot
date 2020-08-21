@@ -28,23 +28,13 @@ public class CommandNames {
 
     public static final String LANGUAGE_COMMAND_NAME = "language";
 
-    public static final String QUERY_ITEM_DETAILS_COMMAND = "b";
-
-    public static final String CANCEL_QUERY_COMMAND_NAME = "c";
-
-    public static final String GO_BACK_CALLBACK_COMMAND_NAME = "d";
-
     public static final String FORMATS_COMMAND = "formats";
-
-    public static final String REPORT_COMMAND_NAME = "e";
 
     public static final String CALLBACK_DELEGATE_COMMAND_NAME = "n";
 
     public static final String CANCEL_COMMAND_NAME = "o";
 
     public static final String EXTRACT_FILE_COMMAND_NAME = "p";
-
-    public static final String UPDATE_EXTRACT_FILE_STATUS = "r";
 
     public static final String CANCEL_EXTRACT_FILE = "s";
 
@@ -59,14 +49,4 @@ public class CommandNames {
     public static final String ADMIN = "x";
 
     public static final String EXTRACT_ALL = "y";
-
-    public static final String THUMB_COMMAND = "z";
-
-    public static final String SET_THUMBNAIL_COMMAND = "sethumb";
-
-    public static final String DEL_THUMBNAIL_COMMAND = "delthumb";
-
-    public static final String VIEW_THUMBNAIL_COMMAND = "viewthumb";
-
-    public static final String SUBSCRIBED_COMMAND = "aa";
 }

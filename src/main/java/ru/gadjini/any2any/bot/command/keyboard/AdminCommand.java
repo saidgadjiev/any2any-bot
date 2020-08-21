@@ -115,13 +115,6 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
                 messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOAD_FILE_PROCESSING, locale)));
                 mediaMessageService.sendFile(message.getChatId(), fileId);
             }
-        } else if (text.equals(localisationService.getMessage(MessagesProperties.EXECUTE_CONVERSION_COMMAND_NAME, locale))) {
-            String jobIdStr = commandStateService.getState(message.getChatId(), CommandNames.ADMIN, false, String.class);
-            if (StringUtils.isNotBlank(jobIdStr)) {
-                commandStateService.deleteState(message.getChatId(), CommandNames.ADMIN);
-
-                messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CONVERSION_EXECUTED, locale)));
-            }
         } else if (text.equals(localisationService.getMessage(MessagesProperties.REMOVE_GARBAGE_FILES_COMMAND_NAME, locale))) {
             int deleted = garbageFileCollector.clean();
             messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_COLLECTED_GARBAGE, new Object[]{deleted}, locale)));
