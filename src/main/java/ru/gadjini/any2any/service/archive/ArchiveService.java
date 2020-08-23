@@ -188,11 +188,11 @@ public class ArchiveService {
         if (progressManager.isShowingDownloadingProgress(fileSize)) {
             String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
             messageService.sendMessage(new SendMessage((long) userId, message)
-                    .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale)), callback);
+                    .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale)), callback);
         } else {
             String message = localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale);
             messageService.sendMessage(new SendMessage((long) userId, message)
-                    .setReplyMarkup(inlineKeyboardService.getRenameProcessingKeyboard(jobId, locale)), callback);
+                    .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale)), callback);
         }
     }
 

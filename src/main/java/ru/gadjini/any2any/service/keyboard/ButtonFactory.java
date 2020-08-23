@@ -72,14 +72,6 @@ public class ButtonFactory {
         return button;
     }
 
-    public InlineKeyboardButton cancelRenameQuery(int jobId, Locale locale) {
-        InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale));
-        button.setCallbackData(CommandNames.CANCEL_RENAME_QUERY + CommandParser.COMMAND_NAME_SEPARATOR +
-                new RequestParams().add(Arg.JOB_ID.getKey(), jobId).serialize(CommandParser.COMMAND_ARG_SEPARATOR));
-
-        return button;
-    }
-
     public InlineKeyboardButton cancelArchiveFiles(Locale locale) {
         InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale));
         button.setCallbackData(CommandNames.CANCEL_ARCHIVE_FILES + CommandParser.COMMAND_NAME_SEPARATOR);
