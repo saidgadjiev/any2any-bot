@@ -1,0 +1,68 @@
+version: '3'
+services:
+  converterapp:
+    container_name: converterapp
+    restart: always
+    build: ../../../../converter
+    volumes:
+      - ../../../data/converter/logs:/home/bot/app/logs
+      - ../../../data/shr:/tmp/shr
+    ports:
+      - 5003:5005
+    env_file:
+      - .env.converter
+    depends_on:
+      - converterredis
+      - url2api
+      - convertermtproto
+      - converterbotapi
+  converterredis:
+    container_name: converterredis
+    image: redis:alpine
+    restart: always
+    command:
+      - 'redis-server'
+      - '--save 900 1'
+      - '--save 300 10'
+      - '--save 60 10000'
+    volumes:
+      - ../../../data/converter/redis:/data
+  convertermtproto:
+    container_name: convertermtproto
+    restart: always
+    build: ../../../../fileutils-rest/
+    env_file:
+      - .env.converter
+    volumes:
+      - ../../../data/converter/gram:/home/bot/app/gram
+      - ../../../data/shr:/tmp/shr
+    depends_on:
+      - converterbotapi
+  converterbot:
+    container_name: converterbot
+    restart: always
+    build: ../../../../fileutils-bot/
+    env_file:
+      - .env.converter
+    volumes:
+      - ../../../data/converter/gram:/home/bot/app/gram
+    depends_on:
+      - converterapp
+  converterbotapi:
+    container_name: converterbotapi
+    restart: always
+    build: ../../../../fileutils-bot-api/
+    env_file:
+      - .env.converter
+    volumes:
+      - ../../../data/converter/logs:/app/logs
+      - ../../../data/shr:/tmp/shr
+  url2api:
+    container_name: url2api
+    restart: always
+    build: ../../../../url-to-pdf-api/
+
+networks:
+  default:
+    external:
+      name: fileutils

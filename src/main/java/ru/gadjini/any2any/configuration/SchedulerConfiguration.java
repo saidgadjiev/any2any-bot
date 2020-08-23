@@ -13,7 +13,6 @@ import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
-import ru.gadjini.any2any.service.unzip.UnzipService;
 
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -29,16 +28,9 @@ public class SchedulerConfiguration {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerConfiguration.class);
 
-    private UnzipService unzipService;
-
     private ArchiveService archiveService;
 
     private UserService userService;
-
-    @Autowired
-    public void setUnzipService(UnzipService unzipService) {
-        this.unzipService = unzipService;
-    }
 
     @Autowired
     public void setArchiveService(ArchiveService archiveService) {
@@ -121,47 +113,6 @@ public class SchedulerConfiguration {
 
         LOGGER.debug("Archive light thread pool({})", lightTaskExecutor.getCorePoolSize());
         LOGGER.debug("Archive heavy thread pool({})", heavyTaskExecutor.getCorePoolSize());
-
-        return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor, HEAVY, heavyTaskExecutor));
-    }
-
-    @Bean
-    @Qualifier("unzipTaskExecutor")
-    public SmartExecutorService unzipTaskExecutor() {
-        SmartExecutorService executorService = new SmartExecutorService();
-        ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(2, 2,
-                0, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(10),
-                (r, executor) -> {
-                    executorService.complete(((Job) r).getId());
-                    unzipService.rejectTask((Job) r);
-                }) {
-            @Override
-            protected void afterExecute(Runnable r, Throwable t) {
-                Runnable poll = unzipService.getTask(LIGHT);
-                if (poll != null) {
-                    execute(poll);
-                }
-            }
-        };
-        ThreadPoolExecutor heavyTaskExecutor = new ThreadPoolExecutor(3, 3,
-                0, TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(10),
-                (r, executor) -> {
-                    executorService.complete(((Job) r).getId());
-                    unzipService.rejectTask((Job) r);
-                }) {
-            @Override
-            protected void afterExecute(Runnable r, Throwable t) {
-                Runnable poll = unzipService.getTask(HEAVY);
-                if (poll != null) {
-                    execute(poll);
-                }
-            }
-        };
-
-        LOGGER.debug("Unzip light thread pool({})", lightTaskExecutor.getCorePoolSize());
-        LOGGER.debug("Unzip heavy thread pool({})", heavyTaskExecutor.getCorePoolSize());
 
         return executorService.setExecutors(Map.of(LIGHT, lightTaskExecutor, HEAVY, heavyTaskExecutor));
     }

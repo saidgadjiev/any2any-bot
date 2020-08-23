@@ -9,7 +9,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.file.FileManager;
-import ru.gadjini.any2any.service.unzip.UnzipService;
 
 @Component
 public class ContextCloseListener implements ApplicationListener<ContextClosedEvent> {
@@ -18,16 +17,13 @@ public class ContextCloseListener implements ApplicationListener<ContextClosedEv
 
     private ArchiveService archiveService;
 
-    private UnzipService unzipService;
-
     private FileManager fileManager;
 
     private ThreadPoolTaskExecutor commonThreadPool;
 
-    public ContextCloseListener(ArchiveService archiveService, UnzipService unzipService,
+    public ContextCloseListener(ArchiveService archiveService,
                                 FileManager fileManager, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor commonThreadPool) {
         this.archiveService = archiveService;
-        this.unzipService = unzipService;
         this.fileManager = fileManager;
         this.commonThreadPool = commonThreadPool;
     }
@@ -38,11 +34,6 @@ public class ContextCloseListener implements ApplicationListener<ContextClosedEv
             archiveService.shutdown();
         } catch (Throwable e) {
             LOGGER.error("Error shutdown archiveService. " + e.getMessage(), e);
-        }
-        try {
-            unzipService.shutdown();
-        } catch (Throwable e) {
-            LOGGER.error("Error shutdown unzipService. " + e.getMessage(), e);
         }
         try {
             commonThreadPool.shutdown();

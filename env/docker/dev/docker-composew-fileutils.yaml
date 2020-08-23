@@ -1,0 +1,78 @@
+version: '3'
+services:
+  fileutilsapp:
+    container_name: fileutilsapp
+    restart: always
+    build: ../../../
+    volumes:
+      - ../../../data/fileutils/logs:/home/bot/app/logs
+      - ../../../data/shr:/tmp/shr
+    ports:
+      - 5005:5005
+    env_file:
+      - .env.fileutils
+    depends_on:
+      - db
+      - fileutilsredis
+      - fileutilsmtproto
+      - fileutilsbotapi
+  db:
+    container_name: db
+    image: postgres:alpine
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - 5431:5432
+    env_file:
+      - .db.env
+  fileutilsredis:
+    container_name: fileutilsredis
+    image: redis:alpine
+    restart: always
+    command:
+      - 'redis-server'
+      - '--save 900 1'
+      - '--save 300 10'
+      - '--save 60 10000'
+    volumes:
+      - ../../../data/fileutils/redis:/data
+  fileutilsmtproto:
+    container_name: fileutilsmtproto
+    restart: always
+    build: ../../../../fileutils-rest/
+    env_file:
+      - .env.fileutils
+    volumes:
+      - ../../../data/fileutils/gram:/home/bot/app/gram
+      - ../../../data/shr:/tmp/shr
+    depends_on:
+      - fileutilsbotapi
+  fileutilsbot:
+    container_name: fileutilsbot
+    restart: always
+    build: ../../../../fileutils-bot/
+    env_file:
+      - .env.fileutils
+    volumes:
+      - ../../../data/fileutils/gram:/home/bot/app/gram
+    depends_on:
+      - fileutilsapp
+  fileutilsbotapi:
+    container_name: fileutilsbotapi
+    restart: always
+    build: ../../../../fileutils-bot-api/
+    env_file:
+      - .env.fileutils
+    volumes:
+      - ../../../data/logs:/app/logs
+      - ../../../data/shr:/tmp/shr
+
+volumes:
+  pgdata:
+    external: true
+
+networks:
+  default:
+    external:
+      name: fileutils
