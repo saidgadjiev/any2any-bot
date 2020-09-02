@@ -143,7 +143,16 @@ public class ArchiveService {
     }
 
     public void leave(long chatId) {
-        cancel(chatId);
+        List<Integer> ids = archiveQueueService.deleteByUserId((int) chatId);
+
+        if (!ids.isEmpty()) {
+            LOGGER.debug("Cancel by chat id({}, {})", chatId, ids.size());
+        }
+        try {
+            executor.cancelAndComplete(ids, true);
+        } finally {
+            fileManager.fileWorkObject(chatId, -1).stop();
+        }
         commandStateService.deleteState(chatId, CommandNames.ARCHIVE_COMMAND_NAME);
     }
 
@@ -171,32 +180,13 @@ public class ArchiveService {
                     queryId,
                     localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))
             ));
-            cancel(chatId, jobId);
+            if (!executor.cancelAndComplete(jobId, true)) {
+                archiveQueueService.delete(jobId);
+                fileManager.fileWorkObject(chatId, -1).stop();
+            }
         }
         messageService.editMessage(new EditMessageText(
                 chatId, messageId, localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))));
-    }
-
-    private void cancel(long chatId, int jobId) {
-        try {
-            executor.cancelAndComplete(jobId, true);
-        } finally {
-            ArchiveQueueItem archiveQueueItem = archiveQueueService.deleteWithReturning(jobId);
-            fileManager.fileWorkObject(chatId, archiveQueueItem == null ? 0 : archiveQueueItem.getTotalFileSize());
-        }
-    }
-
-    private void cancel(long chatId) {
-        List<Integer> ids = archiveQueueService.deleteByUserId((int) chatId);
-
-        if (!ids.isEmpty()) {
-            LOGGER.debug("Cancel by chat id({}, {})", chatId, ids.size());
-        }
-        try {
-            executor.cancelAndComplete(ids, true);
-        } finally {
-            fileManager.fileWorkObject(chatId, -1);
-        }
     }
 
     private void startArchiveCreating(int userId, int jobId, long fileSize, Consumer<Message> callback) {
