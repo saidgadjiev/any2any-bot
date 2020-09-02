@@ -10,7 +10,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import ru.gadjini.any2any.exception.DownloadCanceledException;
 import ru.gadjini.any2any.exception.botapi.TelegramApiException;
 import ru.gadjini.any2any.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.any2any.io.SmartTempFile;
@@ -39,10 +38,13 @@ public class TelegramBotApiService implements TelegramMediaService {
 
     private ObjectMapper objectMapper;
 
+    private TelegramMTProtoService mtProtoService;
+
     @Autowired
-    public TelegramBotApiService(BotApiProperties botApiProperties, ObjectMapper objectMapper) {
+    public TelegramBotApiService(BotApiProperties botApiProperties, ObjectMapper objectMapper, TelegramMTProtoService mtProtoService) {
         this.botApiProperties = botApiProperties;
         this.objectMapper = objectMapper;
+        this.mtProtoService = mtProtoService;
         this.restTemplate = new RestTemplate();
 
         LOGGER.debug("Bot api: " + botApiProperties.getEndpoint());
@@ -336,7 +338,8 @@ public class TelegramBotApiService implements TelegramMediaService {
                 });
 
                 if (!apiResponse.getOk()) {
-                    throw new DownloadCanceledException("Download canceled");
+                    LOGGER.error("Error download file over bot api({})", fileId);
+                    mtProtoService.downloadFileOverBackupChannel(fileId, fileSize, outputFile);
                 }
             } catch (IOException e) {
                 throw new TelegramApiException("Unable to deserialize response(" + result + ", " + fileId + ")\n" + e.getMessage(), e);
