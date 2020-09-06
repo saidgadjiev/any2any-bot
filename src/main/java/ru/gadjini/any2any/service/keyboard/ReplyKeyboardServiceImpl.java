@@ -5,11 +5,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.Locale;
 
 @Service
 @Qualifier("keyboard")
-public class ReplyKeyboardServiceImpl implements ReplyKeyboardService {
+public class ReplyKeyboardServiceImpl implements Any2AnyReplyKeyboardService {
 
     private LocalisationService localisationService;
 

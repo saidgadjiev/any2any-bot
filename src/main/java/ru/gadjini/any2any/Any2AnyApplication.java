@@ -5,10 +5,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import ru.gadjini.any2any.property.BotApiProperties;
-import ru.gadjini.any2any.property.MTProtoProperties;
-import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.property.BotApiProperties;
+import ru.gadjini.telegram.smart.bot.commons.property.MTProtoProperties;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 
 import java.time.ZoneOffset;
 import java.util.Locale;
@@ -20,6 +21,7 @@ import java.util.TimeZone;
 })
 @EnableScheduling
 @SpringBootApplication
+@ComponentScan("ru")
 public class Any2AnyApplication {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Any2AnyApplication.class);

@@ -2,21 +2,21 @@ package ru.gadjini.any2any.service.keyboard;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.gadjini.any2any.dao.command.keyboard.ReplyKeyboardDao;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
+import ru.gadjini.telegram.smart.bot.commons.dao.command.keyboard.ReplyKeyboardDao;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
 
 import java.util.Locale;
 
 @Service
 @Qualifier("curr")
-public class CurrReplyKeyboard implements ReplyKeyboardService {
+public class CurrReplyKeyboard implements Any2AnyReplyKeyboardService {
 
     private ReplyKeyboardDao replyKeyboardDao;
 
-    private ReplyKeyboardService keyboardService;
+    private Any2AnyReplyKeyboardService keyboardService;
 
-    public CurrReplyKeyboard(@Qualifier("inMemory") ReplyKeyboardDao replyKeyboardDao, @Qualifier("keyboard") ReplyKeyboardService keyboardService) {
+    public CurrReplyKeyboard(@Qualifier("inMemory") ReplyKeyboardDao replyKeyboardDao, @Qualifier("keyboard") Any2AnyReplyKeyboardService keyboardService) {
         this.replyKeyboardDao = replyKeyboardDao;
         this.keyboardService = keyboardService;
     }
@@ -33,12 +33,12 @@ public class CurrReplyKeyboard implements ReplyKeyboardService {
 
     @Override
     public ReplyKeyboardMarkup languageKeyboard(long chatId, Locale locale) {
-        return setCurrentKeyboard(chatId, keyboardService.languageKeyboard(chatId, locale));
+        return setCurrentKeyboard(chatId, (ReplyKeyboardMarkup) keyboardService.languageKeyboard(chatId, locale));
     }
 
     @Override
     public ReplyKeyboardMarkup getMainMenu(long chatId, Locale locale) {
-        return setCurrentKeyboard(chatId, keyboardService.getMainMenu(chatId, locale));
+        return setCurrentKeyboard(chatId, (ReplyKeyboardMarkup) keyboardService.getMainMenu(chatId, locale));
     }
 
     @Override

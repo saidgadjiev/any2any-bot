@@ -3,7 +3,7 @@ package ru.gadjini.any2any.service.image.editor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 
 import java.util.Locale;

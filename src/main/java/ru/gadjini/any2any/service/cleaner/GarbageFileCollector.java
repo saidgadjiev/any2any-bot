@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.gadjini.any2any.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 
 import java.io.File;
 import java.io.IOException;

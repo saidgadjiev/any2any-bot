@@ -4,19 +4,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.telegram.smart.bot.commons.service.CommandMessageBuilder;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 
 import java.util.Locale;
 
 @Service
-public class CommandMessageBuilder {
+public class Any2AnyCommandMessageBuilder implements CommandMessageBuilder {
 
     private LocalisationService localisationService;
 
     @Autowired
-    public CommandMessageBuilder(LocalisationService localisationService) {
+    public Any2AnyCommandMessageBuilder(LocalisationService localisationService) {
         this.localisationService = localisationService;
     }
 
+    @Override
     public String getCommandsInfo(Locale locale) {
         StringBuilder info = new StringBuilder();
 

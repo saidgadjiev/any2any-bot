@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.condition.LinuxMacCondition;
-import ru.gadjini.any2any.service.ProcessExecutor;
-import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
 
 import java.util.ArrayList;
 import java.util.List;

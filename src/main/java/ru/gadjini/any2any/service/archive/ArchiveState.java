@@ -1,6 +1,6 @@
 package ru.gadjini.any2any.service.archive;
 
-import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.telegram.smart.bot.commons.model.Any2AnyFile;
 
 import java.util.ArrayList;
 import java.util.List;

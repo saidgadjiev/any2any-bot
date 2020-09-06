@@ -1,13 +1,13 @@
-package ru.gadjini.any2any.service.queue.archive;
+package ru.gadjini.any2any.service.queue;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.dao.queue.ArchiveQueueDao;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
-import ru.gadjini.any2any.model.Any2AnyFile;
+import ru.gadjini.telegram.smart.bot.commons.model.Any2AnyFile;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
-import ru.gadjini.any2any.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
 
 import java.util.ArrayList;
 import java.util.List;

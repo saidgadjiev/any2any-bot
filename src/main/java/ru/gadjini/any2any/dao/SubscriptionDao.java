@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
-import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.concurrent.TimeUnit;
 

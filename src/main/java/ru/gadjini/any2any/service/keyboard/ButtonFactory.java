@@ -4,12 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.buttons.InlineKeyboardButton;
 import ru.gadjini.any2any.request.Arg;
-import ru.gadjini.any2any.request.RequestParams;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.command.CommandParser;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.any2any.service.image.editor.State;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.buttons.InlineKeyboardButton;
+import ru.gadjini.telegram.smart.bot.commons.service.command.CommandParser;
+import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 import java.util.Locale;
 

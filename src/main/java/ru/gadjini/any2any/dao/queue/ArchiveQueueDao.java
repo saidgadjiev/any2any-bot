@@ -10,8 +10,8 @@ import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
-import ru.gadjini.any2any.service.conversion.api.Format;
-import ru.gadjini.any2any.utils.MemoryUtils;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.sql.*;
 import java.util.ArrayList;

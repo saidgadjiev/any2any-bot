@@ -2,11 +2,11 @@ package ru.gadjini.any2any.bot.command.callback;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.bot.command.api.CallbackBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
-import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.request.Arg;
-import ru.gadjini.any2any.request.RequestParams;
+import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 
 @Component

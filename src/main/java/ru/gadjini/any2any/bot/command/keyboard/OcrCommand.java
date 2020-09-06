@@ -5,24 +5,25 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.bot.command.api.BotCommand;
-import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
-import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.model.bot.api.object.PhotoSize;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.service.conversion.api.Format;
-import ru.gadjini.any2any.service.conversion.api.FormatCategory;
-import ru.gadjini.any2any.service.conversion.impl.FormatService;
-import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
-import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.any2any.service.conversion.impl.ImageFormatService;
+import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
 import ru.gadjini.any2any.service.ocr.OcrService;
+import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
+import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
+import ru.gadjini.telegram.smart.bot.commons.model.Any2AnyFile;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.PhotoSize;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.FormatCategory;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.impl.FormatService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Comparator;
 import java.util.HashSet;
@@ -38,7 +39,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
 
     private OcrService ocrService;
 
-    private ReplyKeyboardService replyKeyboardService;
+    private Any2AnyReplyKeyboardService replyKeyboardService;
 
     private UserService userService;
 
@@ -48,16 +49,19 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
 
     private FormatService formatService;
 
+    private ImageFormatService imageFormatService;
+
     @Autowired
-    public OcrCommand(OcrService ocrService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
+    public OcrCommand(OcrService ocrService, @Qualifier("curr") Any2AnyReplyKeyboardService replyKeyboardService,
                       UserService userService, LocalisationService localisationService,
-                      @Qualifier("messagelimits") MessageService messageService, FormatService formatService) {
+                      @Qualifier("messageLimits") MessageService messageService, FormatService formatService, ImageFormatService imageFormatService) {
         this.ocrService = ocrService;
         this.replyKeyboardService = replyKeyboardService;
         this.userService = userService;
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.formatService = formatService;
+        this.imageFormatService = imageFormatService;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.EXTRACT_TEXT_COMMAND_NAME, locale));
         }
@@ -129,7 +133,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
 
             Any2AnyFile any2AnyFile = new Any2AnyFile();
             any2AnyFile.setFileId(photoSize.getFileId());
-            any2AnyFile.setFormat(formatService.getImageFormat(message.getChatId(), photoSize.getFileId(), photoSize.getFileSize()));
+            any2AnyFile.setFormat(imageFormatService.getImageFormat(message.getChatId(), photoSize.getFileId(), photoSize.getFileSize()));
 
             return any2AnyFile;
         }

@@ -1,9 +1,11 @@
 package ru.gadjini.any2any.request;
 
+import ru.gadjini.telegram.smart.bot.commons.command.impl.CallbackDelegate;
+
 public enum Arg {
 
     PREV_HISTORY_NAME("b"),
-    CALLBACK_DELEGATE("d"),
+    CALLBACK_DELEGATE(CallbackDelegate.ARG_NAME),
     TRANSPARENT_MODE("e"),
     TRANSPARENT_COLOR("f"),
     GO_BACK("g"),

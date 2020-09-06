@@ -5,29 +5,29 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.bot.command.api.BotCommand;
-import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
-import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.TgMessage;
-import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
-import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.service.FileService;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.UserService;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.archive.ArchiveState;
-import ru.gadjini.any2any.service.command.CommandStateService;
-import ru.gadjini.any2any.service.conversion.api.Format;
-import ru.gadjini.any2any.service.conversion.api.FormatCategory;
-import ru.gadjini.any2any.service.conversion.impl.FormatService;
+import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
-import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
-import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
+import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
+import ru.gadjini.telegram.smart.bot.commons.model.Any2AnyFile;
+import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
+import ru.gadjini.telegram.smart.bot.commons.service.FileService;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.FormatCategory;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.impl.FormatService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.HashSet;
 import java.util.List;
@@ -47,7 +47,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     private CommandStateService commandStateService;
 
-    private ReplyKeyboardService replyKeyboardService;
+    private Any2AnyReplyKeyboardService replyKeyboardService;
 
     private UserService userService;
 
@@ -60,9 +60,10 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
     private InlineKeyboardService inlineKeyboardService;
 
     @Autowired
-    public ArchiveCommand(ArchiveService archiveService, LocalisationService localisationService, @Qualifier("messagelimits") MessageService messageService,
-                          CommandStateService commandStateService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService,
-                          UserService userService, FormatService formatService, FileService fileService, InlineKeyboardService inlineKeyboardService) {
+    public ArchiveCommand(ArchiveService archiveService, LocalisationService localisationService, @Qualifier("messageLimits") MessageService messageService,
+                          CommandStateService commandStateService, @Qualifier("curr") Any2AnyReplyKeyboardService replyKeyboardService,
+                          UserService userService, FormatService formatService, FileService fileService,
+                          InlineKeyboardService inlineKeyboardService) {
         this.archiveService = archiveService;
         this.localisationService = localisationService;
         this.messageService = messageService;

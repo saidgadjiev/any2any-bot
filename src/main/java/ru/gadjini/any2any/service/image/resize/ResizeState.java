@@ -9,26 +9,26 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.model.EditMediaResult;
-import ru.gadjini.any2any.model.SendFileResult;
-import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
-import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageMedia;
-import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
-import ru.gadjini.any2any.model.bot.api.object.CallbackQuery;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.TempFileService;
-import ru.gadjini.any2any.service.command.CommandStateService;
-import ru.gadjini.any2any.service.conversion.api.Format;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.device.ImageIdentifyDevice;
 import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.ImageEditorState;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
-import ru.gadjini.any2any.service.message.MediaMessageService;
-import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
+import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.model.EditMediaResult;
+import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageMedia;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallbackQuery;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.io.File;
 import java.util.Locale;
@@ -67,8 +67,8 @@ public class ResizeState implements State {
     @Autowired
     public ResizeState(CommandStateService commandStateService, ImageConvertDevice imageDevice,
                        ImageIdentifyDevice identifyDevice, TempFileService tempFileService,
-                       @Qualifier("messagelimits") MessageService messageService,
-                       @Qualifier("medialimits") MediaMessageService mediaMessageService, InlineKeyboardService inlineKeyboardService, LocalisationService localisationService,
+                       @Qualifier("messageLimits") MessageService messageService,
+                       @Qualifier("mediaLimits") MediaMessageService mediaMessageService, InlineKeyboardService inlineKeyboardService, LocalisationService localisationService,
                        @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor) {
         this.commandStateService = commandStateService;
         this.imageDevice = imageDevice;

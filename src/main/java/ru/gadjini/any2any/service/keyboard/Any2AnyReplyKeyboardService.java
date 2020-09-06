@@ -1,22 +1,19 @@
 package ru.gadjini.any2any.service.keyboard;
 
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.buttons.KeyboardRow;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.buttons.KeyboardRow;
+import ru.gadjini.telegram.smart.bot.commons.service.keyboard.ReplyKeyboardService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
 
-public interface ReplyKeyboardService {
+public interface Any2AnyReplyKeyboardService extends ReplyKeyboardService {
 
     ReplyKeyboardMarkup getAdminKeyboard(long chatId, Locale locale);
 
     ReplyKeyboardMarkup archiveTypesKeyboard(long chatId, Locale locale);
-
-    ReplyKeyboardMarkup languageKeyboard(long chatId, Locale locale);
-
-    ReplyKeyboardMarkup getMainMenu(long chatId, Locale locale);
 
     ReplyKeyboardMarkup goBack(long chatId, Locale locale);
 

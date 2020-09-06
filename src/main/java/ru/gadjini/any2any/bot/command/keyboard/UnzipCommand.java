@@ -3,15 +3,15 @@ package ru.gadjini.any2any.bot.command.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.bot.command.api.BotCommand;
-import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
+import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -30,7 +30,7 @@ public class UnzipCommand implements KeyboardBotCommand, BotCommand {
 
     @Autowired
     public UnzipCommand(LocalisationService localisationService,
-                        @Qualifier("messagelimits") MessageService messageService,
+                        @Qualifier("messageLimits") MessageService messageService,
                         UserService userService) {
         this.localisationService = localisationService;
         this.messageService = messageService;

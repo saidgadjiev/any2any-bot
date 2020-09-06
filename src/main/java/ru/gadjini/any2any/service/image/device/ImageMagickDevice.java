@@ -1,7 +1,7 @@
 package ru.gadjini.any2any.service.image.device;
 
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.service.ProcessExecutor;
+import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
 import java.util.ArrayList;
 import java.util.Arrays;

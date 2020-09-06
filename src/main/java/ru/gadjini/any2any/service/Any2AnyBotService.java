@@ -4,19 +4,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.gadjini.any2any.bot.command.api.BotCommand;
-import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.model.bot.api.object.Update;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.buttons.KeyboardRow;
-import ru.gadjini.any2any.service.command.CommandExecutor;
-import ru.gadjini.any2any.service.command.navigator.CommandNavigator;
 import ru.gadjini.any2any.service.keyboard.CurrReplyKeyboard;
-import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
+import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Update;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.buttons.KeyboardRow;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.command.CommandExecutor;
+import ru.gadjini.telegram.smart.bot.commons.service.command.navigator.CommandNavigator;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Locale;
 
@@ -36,7 +38,7 @@ public class Any2AnyBotService {
     private CurrReplyKeyboard replyKeyboardService;
 
     @Autowired
-    public Any2AnyBotService(@Qualifier("messagelimits") MessageService messageService, CommandExecutor commandExecutor,
+    public Any2AnyBotService(@Qualifier("messageLimits") MessageService messageService, CommandExecutor commandExecutor,
                              LocalisationService localisationService, UserService userService,
                              CommandNavigator commandNavigator, CurrReplyKeyboard replyKeyboardService) {
         this.messageService = messageService;

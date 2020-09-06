@@ -4,20 +4,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.bot.command.api.KeyboardBotCommand;
-import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
-import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.any2any.service.cleaner.GarbageFileCollector;
-import ru.gadjini.any2any.service.command.CommandStateService;
-import ru.gadjini.any2any.service.file.FileManager;
-import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
-import ru.gadjini.any2any.service.message.MediaMessageService;
-import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
+import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -34,7 +34,7 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     private MediaMessageService mediaMessageService;
 
-    private ReplyKeyboardService replyKeyboardService;
+    private Any2AnyReplyKeyboardService replyKeyboardService;
 
     private UserService userService;
 
@@ -45,7 +45,7 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
     private Set<String> names = new HashSet<>();
 
     @Autowired
-    public AdminCommand(LocalisationService localisationService, @Qualifier("medialimits") MediaMessageService mediaMessageService,
+    public AdminCommand(LocalisationService localisationService, @Qualifier("mediaLimits") MediaMessageService mediaMessageService,
                         GarbageFileCollector garbageFileCollector, FileManager fileManager) {
         this.localisationService = localisationService;
         this.mediaMessageService = mediaMessageService;
@@ -57,12 +57,12 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
     }
 
     @Autowired
-    public void setReplyKeyboardService(@Qualifier("curr") ReplyKeyboardService replyKeyboardService) {
+    public void setReplyKeyboardService(@Qualifier("curr") Any2AnyReplyKeyboardService replyKeyboardService) {
         this.replyKeyboardService = replyKeyboardService;
     }
 
     @Autowired
-    public void setMessageService(@Qualifier("messagelimits") MessageService messageService) {
+    public void setMessageService(@Qualifier("messageLimits") MessageService messageService) {
         this.messageService = messageService;
     }
 

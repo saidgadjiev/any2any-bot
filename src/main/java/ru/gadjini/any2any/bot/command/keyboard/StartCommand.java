@@ -3,20 +3,20 @@ package ru.gadjini.any2any.bot.command.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.bot.command.api.BotCommand;
-import ru.gadjini.any2any.bot.command.api.NavigableBotCommand;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.model.TgMessage;
-import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
-import ru.gadjini.any2any.service.CommandMessageBuilder;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.service.command.CommandStateService;
-import ru.gadjini.any2any.service.keyboard.ReplyKeyboardService;
-import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.any2any.service.Any2AnyCommandMessageBuilder;
+import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
+import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboard;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Locale;
 
@@ -31,13 +31,13 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     private LocalisationService localisationService;
 
-    private ReplyKeyboardService replyKeyboardService;
+    private Any2AnyReplyKeyboardService replyKeyboardService;
 
-    private CommandMessageBuilder commandMessageBuilder;
+    private Any2AnyCommandMessageBuilder commandMessageBuilder;
 
     @Autowired
-    public StartCommand(CommandStateService commandStateService, UserService userService, @Qualifier("messagelimits") MessageService messageService,
-                        LocalisationService localisationService, @Qualifier("curr") ReplyKeyboardService replyKeyboardService, CommandMessageBuilder commandMessageBuilder) {
+    public StartCommand(CommandStateService commandStateService, UserService userService, @Qualifier("messageLimits") MessageService messageService,
+                        LocalisationService localisationService, @Qualifier("curr") Any2AnyReplyKeyboardService replyKeyboardService, Any2AnyCommandMessageBuilder commandMessageBuilder) {
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.messageService = messageService;
@@ -92,7 +92,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     }
 
     @Override
-    public ReplyKeyboardMarkup getKeyboard(long chatId) {
+    public ReplyKeyboard getKeyboard(long chatId) {
         return replyKeyboardService.getMainMenu(chatId, userService.getLocaleOrDefault((int) chatId));
     }
 

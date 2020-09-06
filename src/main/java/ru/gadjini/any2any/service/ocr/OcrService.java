@@ -9,15 +9,15 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.OcrException;
-import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.TempFileService;
-import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.service.file.FileManager;
-import ru.gadjini.any2any.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.model.Any2AnyFile;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Locale;
 
@@ -44,7 +44,7 @@ public class OcrService {
 
     @Autowired
     public OcrService(FileManager fileManager, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
-                      @Qualifier("messagelimits") MessageService messageService,
+                      @Qualifier("messageLimits") MessageService messageService,
                       UserService userService, LocalisationService localisationService, TempFileService fileService, OcrDevice ocrDevice) {
         this.fileManager = fileManager;
         this.executor = executor;

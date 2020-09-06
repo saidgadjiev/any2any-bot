@@ -11,31 +11,31 @@ import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
-import ru.gadjini.any2any.exception.UserException;
-import ru.gadjini.any2any.io.SmartTempFile;
-import ru.gadjini.any2any.model.Any2AnyFile;
-import ru.gadjini.any2any.model.bot.api.method.send.SendDocument;
-import ru.gadjini.any2any.model.bot.api.method.send.SendMessage;
-import ru.gadjini.any2any.model.bot.api.method.updatemessages.EditMessageText;
-import ru.gadjini.any2any.model.bot.api.object.AnswerCallbackQuery;
-import ru.gadjini.any2any.model.bot.api.object.Message;
-import ru.gadjini.any2any.model.bot.api.object.Progress;
-import ru.gadjini.any2any.service.LocalisationService;
-import ru.gadjini.any2any.service.ProgressManager;
-import ru.gadjini.any2any.service.TempFileService;
-import ru.gadjini.any2any.service.UserService;
-import ru.gadjini.any2any.service.command.CommandStateService;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
-import ru.gadjini.any2any.service.conversion.api.Format;
-import ru.gadjini.any2any.service.file.FileManager;
-import ru.gadjini.any2any.service.file.FileWorkObject;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
-import ru.gadjini.any2any.service.message.MediaMessageService;
-import ru.gadjini.any2any.service.message.MessageService;
 import ru.gadjini.any2any.service.progress.Lang;
-import ru.gadjini.any2any.service.queue.archive.ArchiveQueueService;
+import ru.gadjini.any2any.service.queue.ArchiveQueueService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
-import ru.gadjini.any2any.utils.MemoryUtils;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
+import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.model.Any2AnyFile;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageText;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallbackQuery;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.ProgressManager;
+import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
+import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileWorkObject;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -81,8 +81,8 @@ public class ArchiveService {
     @Autowired
     public ArchiveService(Set<ArchiveDevice> archiveDevices, TempFileService fileService,
                           FileManager fileManager, LocalisationService localisationService,
-                          @Qualifier("messagelimits") MessageService messageService,
-                          @Qualifier("medialimits") MediaMessageService mediaMessageService, UserService userService,
+                          @Qualifier("messageLimits") MessageService messageService,
+                          @Qualifier("mediaLimits") MediaMessageService mediaMessageService, UserService userService,
                           ArchiveQueueService archiveQueueService, CommandStateService commandStateService,
                           InlineKeyboardService inlineKeyboardService, ArchiveMessageBuilder archiveMessageBuilder, ProgressManager progressManager) {
         this.archiveDevices = archiveDevices;
