@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.service.conversion.impl;
+package ru.gadjini.any2any.service.format;
 
 import com.aspose.imaging.FileFormat;
 import com.aspose.imaging.Image;

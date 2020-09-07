@@ -10,7 +10,7 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import ru.gadjini.any2any.service.archive.ArchiveService;
-import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
+import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.exception.botapi.TelegramApiRequestException;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 
@@ -19,9 +19,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static ru.gadjini.any2any.service.concurrent.SmartExecutorService.Job;
-import static ru.gadjini.any2any.service.concurrent.SmartExecutorService.JobWeight.HEAVY;
-import static ru.gadjini.any2any.service.concurrent.SmartExecutorService.JobWeight.LIGHT;
+import static ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService.Job;
+import static ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService.JobWeight.HEAVY;
+import static ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService.JobWeight.LIGHT;
 
 @Configuration
 public class SchedulerConfiguration {

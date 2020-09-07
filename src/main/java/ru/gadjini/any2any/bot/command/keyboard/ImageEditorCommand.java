@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.request.Arg;
-import ru.gadjini.any2any.service.conversion.impl.ImageFormatService;
+import ru.gadjini.any2any.service.format.ImageFormatService;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.image.editor.StateFather;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;

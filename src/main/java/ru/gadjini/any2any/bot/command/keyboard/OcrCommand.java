@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.service.conversion.impl.ImageFormatService;
+import ru.gadjini.any2any.service.format.ImageFormatService;
 import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
 import ru.gadjini.any2any.service.ocr.OcrService;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
