@@ -18,7 +18,7 @@ import ru.gadjini.any2any.service.queue.ArchiveQueueService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Any2AnyFile;
+import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageText;
@@ -30,7 +30,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.ProgressManager;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileWorkObject;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
@@ -202,10 +202,10 @@ public class ArchiveService {
         }
     }
 
-    private void normalizeFileNames(List<Any2AnyFile> any2AnyFiles) {
+    private void normalizeFileNames(List<MessageMedia> any2AnyFiles) {
         Set<String> uniqueFileNames = new HashSet<>();
 
-        for (Any2AnyFile any2AnyFile : any2AnyFiles) {
+        for (MessageMedia any2AnyFile : any2AnyFiles) {
             if (!uniqueFileNames.add(any2AnyFile.getFileName())) {
                 int index = 1;
                 while (true) {

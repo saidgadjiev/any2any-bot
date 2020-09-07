@@ -11,7 +11,7 @@ import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Any2AnyFile;
+import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageMedia;
@@ -20,7 +20,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
@@ -64,7 +64,7 @@ public class StateFather implements State {
 
     @Autowired
     public StateFather(CommandStateService commandStateService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
-                       @Qualifier("messagelimits") MessageService messageService, @Qualifier("medialimits") MediaMessageService mediaMessageService, TempFileService tempFileService,
+                       @Qualifier("messageLimits") MessageService messageService, @Qualifier("mediaLimits") MediaMessageService mediaMessageService, TempFileService tempFileService,
                        InlineKeyboardService inlineKeyboardService, FileManager fileManager, ImageConvertDevice imageDevice, LocalisationService localisationService, UserService userService) {
         this.commandStateService = commandStateService;
         this.executor = executor;
@@ -168,7 +168,7 @@ public class StateFather implements State {
         state.userText(command, chatId, text);
     }
 
-    public void initializeState(ImageEditorCommand command, long chatId, Any2AnyFile any2AnyFile, Locale locale) {
+    public void initializeState(ImageEditorCommand command, long chatId, MessageMedia any2AnyFile, Locale locale) {
         executor.execute(() -> {
             deleteCurrentState(chatId, command.getHistoryName());
 

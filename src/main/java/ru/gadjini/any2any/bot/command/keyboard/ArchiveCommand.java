@@ -15,18 +15,18 @@ import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
-import ru.gadjini.telegram.smart.bot.commons.model.Any2AnyFile;
+import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
-import ru.gadjini.telegram.smart.bot.commons.service.FileService;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.FormatCategory;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.impl.FormatService;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.HashSet;
@@ -55,14 +55,14 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     private Set<String> names = new HashSet<>();
 
-    private FileService fileService;
+    private MessageMediaService fileService;
 
     private InlineKeyboardService inlineKeyboardService;
 
     @Autowired
     public ArchiveCommand(ArchiveService archiveService, LocalisationService localisationService, @Qualifier("messageLimits") MessageService messageService,
                           CommandStateService commandStateService, @Qualifier("curr") Any2AnyReplyKeyboardService replyKeyboardService,
-                          UserService userService, FormatService formatService, FileService fileService,
+                          UserService userService, FormatService formatService, MessageMediaService fileService,
                           InlineKeyboardService inlineKeyboardService) {
         this.archiveService = archiveService;
         this.localisationService = localisationService;
@@ -151,8 +151,8 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
         archiveService.leave(chatId);
     }
 
-    private Any2AnyFile createFile(Message message, Locale locale) {
-        Any2AnyFile any2AnyFile = fileService.getFile(message, locale);
+    private MessageMedia createFile(Message message, Locale locale) {
+        MessageMedia any2AnyFile = fileService.getMedia(message, locale);
         if (any2AnyFile != null) {
             return any2AnyFile;
         } else {
@@ -161,10 +161,10 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
         }
     }
 
-    private String toString(List<Any2AnyFile> any2AnyFiles) {
+    private String toString(List<MessageMedia> any2AnyFiles) {
         StringBuilder files = new StringBuilder();
         int i = 1;
-        for (Any2AnyFile any2AnyFile : any2AnyFiles) {
+        for (MessageMedia any2AnyFile : any2AnyFiles) {
             if (files.length() > 0) {
                 files.append(", ");
             }

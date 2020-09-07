@@ -2,12 +2,12 @@ package ru.gadjini.any2any.service.queue;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.gadjini.any2any.dao.queue.ArchiveQueueDao;
+import ru.gadjini.any2any.dao.ArchiveQueueDao;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Any2AnyFile;
+import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,14 +22,14 @@ public class ArchiveQueueService {
         this.dao = archiveQueueDao;
     }
 
-    public ArchiveQueueItem createProcessingItem(int userId, List<Any2AnyFile> any2AnyFiles, Format format) {
+    public ArchiveQueueItem createProcessingItem(int userId, List<MessageMedia> any2AnyFiles, Format format) {
         ArchiveQueueItem archiveQueueItem = new ArchiveQueueItem();
         archiveQueueItem.setStatus(ArchiveQueueItem.Status.PROCESSING);
         archiveQueueItem.setUserId(userId);
         archiveQueueItem.setType(format);
         archiveQueueItem.setFiles(new ArrayList<>());
 
-        for (Any2AnyFile any2AnyFile: any2AnyFiles) {
+        for (MessageMedia any2AnyFile: any2AnyFiles) {
             TgFile tgFile = new TgFile();
             tgFile.setFileId(any2AnyFile.getFileId());
             tgFile.setFileName(any2AnyFile.getFileName());

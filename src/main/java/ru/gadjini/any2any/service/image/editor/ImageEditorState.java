@@ -45,8 +45,8 @@ public class ImageEditorState implements State {
 
     @Autowired
     public ImageEditorState(CommandStateService commandStateService,
-                            LocalisationService localisationService, @Qualifier("messagelimits") MessageService messageService,
-                            @Qualifier("medialimits") MediaMessageService mediaMessageService, InlineKeyboardService inlineKeyboardService) {
+                            LocalisationService localisationService, @Qualifier("messageLimits") MessageService messageService,
+                            @Qualifier("mediaLimits") MediaMessageService mediaMessageService, InlineKeyboardService inlineKeyboardService) {
         this.commandStateService = commandStateService;
         this.localisationService = localisationService;
         this.messageService = messageService;

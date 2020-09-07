@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.exception.OcrException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.Any2AnyFile;
+import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -55,7 +55,7 @@ public class OcrService {
         this.ocrDevice = ocrDevice;
     }
 
-    public void extractText(int userId, Any2AnyFile any2AnyFile) {
+    public void extractText(int userId, MessageMedia any2AnyFile) {
         executor.execute(() -> {
             LOGGER.debug("Start({}, {})", userId, any2AnyFile.getFileId());
 

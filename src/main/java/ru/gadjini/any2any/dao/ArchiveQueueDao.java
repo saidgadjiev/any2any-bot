@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.dao.queue;
+package ru.gadjini.any2any.dao;
 
 import org.apache.commons.lang3.StringUtils;
 import org.postgresql.jdbc.PgArray;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
 import ru.gadjini.any2any.service.concurrent.SmartExecutorService;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.sql.*;

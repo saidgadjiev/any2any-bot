@@ -30,7 +30,7 @@ public class ConvertCommand implements KeyboardBotCommand, BotCommand {
 
     @Autowired
     public ConvertCommand(UserService userService,
-                          @Qualifier("messagelimits") MessageService messageService, LocalisationService localisationService) {
+                          @Qualifier("messageLimits") MessageService messageService, LocalisationService localisationService) {
         this.userService = userService;
         this.messageService = messageService;
         this.localisationService = localisationService;

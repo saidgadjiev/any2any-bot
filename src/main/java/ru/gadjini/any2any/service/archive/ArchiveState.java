@@ -1,6 +1,6 @@
 package ru.gadjini.any2any.service.archive;
 
-import ru.gadjini.telegram.smart.bot.commons.model.Any2AnyFile;
+import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,9 +9,9 @@ public class ArchiveState {
 
     private String language;
 
-    private List<Any2AnyFile> files = new ArrayList<>();
+    private List<MessageMedia> files = new ArrayList<>();
 
-    public List<Any2AnyFile> getFiles() {
+    public List<MessageMedia> getFiles() {
         return files;
     }
 

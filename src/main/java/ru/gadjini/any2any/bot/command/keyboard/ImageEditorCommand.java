@@ -18,7 +18,7 @@ import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
-import ru.gadjini.telegram.smart.bot.commons.model.Any2AnyFile;
+import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
@@ -26,9 +26,9 @@ import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.PhotoSize;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.FormatCategory;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.impl.FormatService;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
@@ -180,8 +180,8 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
         );
     }
 
-    private Any2AnyFile getEditFile(Message message, Locale locale) {
-        Any2AnyFile any2AnyFile = new Any2AnyFile();
+    private MessageMedia getEditFile(Message message, Locale locale) {
+        MessageMedia any2AnyFile = new MessageMedia ();
 
         if (message.hasDocument()) {
             any2AnyFile.setFileId(message.getDocument().getFileId());

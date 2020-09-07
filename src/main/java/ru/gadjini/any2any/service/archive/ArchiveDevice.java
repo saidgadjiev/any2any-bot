@@ -1,6 +1,6 @@
 package ru.gadjini.any2any.service.archive;
 
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 

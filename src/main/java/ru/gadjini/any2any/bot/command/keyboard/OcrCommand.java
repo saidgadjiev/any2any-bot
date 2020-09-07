@@ -14,15 +14,15 @@ import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
-import ru.gadjini.telegram.smart.bot.commons.model.Any2AnyFile;
+import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.PhotoSize;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.Format;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.api.FormatCategory;
-import ru.gadjini.telegram.smart.bot.commons.service.conversion.impl.FormatService;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
+import ru.gadjini.telegram.smart.bot.commons.service.format.FormatService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Comparator;
@@ -118,12 +118,12 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
                 localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_PROCESSING, userService.getLocaleOrDefault(message.getFrom().getId()))));
     }
 
-    private Any2AnyFile getFile(Message message) {
+    private MessageMedia getFile(Message message) {
         if (message.hasDocument()) {
             Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
             checkFormat(message.getFrom().getId(), format, message.getDocument().getFileId(), message.getDocument().getFileName(), message.getDocument().getMimeType());
 
-            Any2AnyFile any2AnyFile = new Any2AnyFile();
+            MessageMedia any2AnyFile = new MessageMedia ();
             any2AnyFile.setFileId(message.getDocument().getFileId());
             any2AnyFile.setFormat(format);
 
@@ -131,7 +131,7 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
         } else {
             PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
 
-            Any2AnyFile any2AnyFile = new Any2AnyFile();
+            MessageMedia any2AnyFile = new MessageMedia ();
             any2AnyFile.setFileId(photoSize.getFileId());
             any2AnyFile.setFormat(imageFormatService.getImageFormat(message.getChatId(), photoSize.getFileId(), photoSize.getFileSize()));
 
