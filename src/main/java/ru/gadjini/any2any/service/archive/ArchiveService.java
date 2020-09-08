@@ -11,7 +11,6 @@ import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
-import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.service.queue.ArchiveQueueService;
@@ -30,15 +29,15 @@ import ru.gadjini.telegram.smart.bot.commons.service.ProgressManager;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
-import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileWorkObject;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
@@ -128,30 +127,18 @@ public class ArchiveService {
         }
     }
 
-    public SmartTempFile createArchive(int userId, List<File> files, Format archiveFormat) {
-        Locale locale = userService.getLocaleOrDefault(userId);
-        SmartTempFile archive = fileService.createTempFile(userId, TAG, archiveFormat.getExt());
-        ArchiveDevice archiveDevice = getCandidate(archiveFormat, locale);
-        archiveDevice.zip(files.stream().map(File::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
-
-        return archive;
-    }
-
-    public void removeAndCancelCurrentTasks(long chatId) {
-        List<Integer> ids = archiveQueueService.deleteByUserId((int) chatId);
-        executor.cancelAndComplete(ids, false);
+    public void removeAndCancelCurrentTask(long chatId) {
+        ArchiveQueueItem item = archiveQueueService.deleteByUserId((int) chatId);
+        if (item != null && !executor.cancelAndComplete(item.getId(), true)) {
+            fileManager.fileWorkObject(chatId, item.getTotalFileSize()).stop();
+        }
     }
 
     public void leave(long chatId) {
-        List<Integer> ids = archiveQueueService.deleteByUserId((int) chatId);
+        ArchiveQueueItem queueItem = archiveQueueService.deleteByUserId((int) chatId);
 
-        if (!ids.isEmpty()) {
-            LOGGER.debug("Cancel by chat id({}, {})", chatId, ids.size());
-        }
-        try {
-            executor.cancelAndComplete(ids, true);
-        } finally {
-            fileManager.fileWorkObject(chatId, -1).stop();
+        if (queueItem != null && !executor.cancelAndComplete(queueItem.getId(), true)) {
+            fileManager.fileWorkObject(chatId, queueItem.getTotalFileSize()).stop();
         }
         commandStateService.deleteState(chatId, CommandNames.ARCHIVE_COMMAND_NAME);
     }
@@ -181,8 +168,10 @@ public class ArchiveService {
                     localisationService.getMessage(MessagesProperties.MESSAGE_QUERY_CANCELED, userService.getLocaleOrDefault((int) chatId))
             ));
             if (!executor.cancelAndComplete(jobId, true)) {
-                archiveQueueService.delete(jobId);
-                fileManager.fileWorkObject(chatId, -1).stop();
+                ArchiveQueueItem archiveQueueItem = archiveQueueService.deleteWithReturning(jobId);
+                if (archiveQueueItem != null) {
+                    fileManager.fileWorkObject(chatId, archiveQueueItem.getTotalFileSize()).stop();
+                }
             }
         }
         messageService.editMessage(new EditMessageText(

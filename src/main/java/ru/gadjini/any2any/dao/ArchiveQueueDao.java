@@ -101,9 +101,10 @@ public class ArchiveQueueDao {
         jdbcTemplate.update("DELETE FROM archive_queue WHERE id = ?", ps -> ps.setInt(1, id));
     }
 
-    public List<Integer> deleteByUserId(int userId) {
-        return jdbcTemplate.query("WITH r as(DELETE FROM archive_queue WHERE user_id = ? RETURNING id) SELECT * FROM r", ps -> ps.setInt(1, userId),
-                (rs, rowNum) -> rs.getInt("id"));
+    public ArchiveQueueItem deleteByUserId(int userId) {
+        return jdbcTemplate.query("WITH r as(DELETE FROM archive_queue WHERE user_id = ? RETURNING *) SELECT * FROM r",
+                ps -> ps.setInt(1, userId),
+                rs -> rs.next() ? map(rs) : null);
     }
 
     public Boolean exists(int jobId) {

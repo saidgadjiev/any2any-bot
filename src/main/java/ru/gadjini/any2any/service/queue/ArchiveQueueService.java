@@ -75,7 +75,7 @@ public class ArchiveQueueService {
         dao.delete(id);
     }
 
-    public List<Integer> deleteByUserId(int userId) {
+    public ArchiveQueueItem deleteByUserId(int userId) {
         return dao.deleteByUserId(userId);
     }
 
