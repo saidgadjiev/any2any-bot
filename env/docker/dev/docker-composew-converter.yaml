@@ -3,7 +3,7 @@ services:
   converterapp:
     container_name: converterapp
     restart: always
-    build: ../../../../converter
+    build: ../../../
     volumes:
       - ../../../data/converter/logs:/home/bot/app/logs
       - ../../../data/shr:/tmp/shr
@@ -12,21 +12,9 @@ services:
     env_file:
       - .env.converter
     depends_on:
-      - converterredis
       - url2api
       - convertermtproto
       - converterbotapi
-  converterredis:
-    container_name: converterredis
-    image: redis:alpine
-    restart: always
-    command:
-      - 'redis-server'
-      - '--save 900 1'
-      - '--save 300 10'
-      - '--save 60 10000'
-    volumes:
-      - ../../../data/converter/redis:/data
   convertermtproto:
     container_name: convertermtproto
     restart: always

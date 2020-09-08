@@ -12,31 +12,8 @@ services:
     env_file:
       - .env.fileutils
     depends_on:
-      - db
-      - fileutilsredis
       - fileutilsmtproto
       - fileutilsbotapi
-  db:
-    container_name: db
-    image: postgres:alpine
-    restart: always
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - 5431:5432
-    env_file:
-      - .db.env
-  fileutilsredis:
-    container_name: fileutilsredis
-    image: redis:alpine
-    restart: always
-    command:
-      - 'redis-server'
-      - '--save 900 1'
-      - '--save 300 10'
-      - '--save 60 10000'
-    volumes:
-      - ../../../data/fileutils/redis:/data
   fileutilsmtproto:
     container_name: fileutilsmtproto
     restart: always
@@ -65,12 +42,8 @@ services:
     env_file:
       - .env.fileutils
     volumes:
-      - ../../../data/logs:/app/logs
+      - ../../../data/fileutils/logs:/app/logs
       - ../../../data/shr:/tmp/shr
-
-volumes:
-  pgdata:
-    external: true
 
 networks:
   default:

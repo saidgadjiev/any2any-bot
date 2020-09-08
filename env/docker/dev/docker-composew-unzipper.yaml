@@ -3,7 +3,7 @@ services:
   unzipperapp:
     container_name: unzipperapp
     restart: always
-    build: ../../../../unzipper/
+    build: ../../../
     volumes:
       - ../../../data/unzipper/logs:/home/bot/app/logs
       - ../../../data/shr:/tmp/shr
@@ -12,20 +12,8 @@ services:
     env_file:
       - .env.unzipper
     depends_on:
-      - unzipperredis
       - unzippermtproto
       - unzipperbotapi
-  unzipperredis:
-    container_name: unzipperredis
-    image: redis:alpine
-    restart: always
-    command:
-      - 'redis-server'
-      - '--save 900 1'
-      - '--save 300 10'
-      - '--save 60 10000'
-    volumes:
-      - ../../../data/unzipper/redis:/data
   unzippermtproto:
     container_name: unzippermtproto
     restart: always
@@ -54,7 +42,7 @@ services:
     env_file:
       - .env.unzipper
     volumes:
-      - ../../../data/logs:/app/logs
+      - ../../../data/unzipper/logs:/app/logs
       - ../../../data/shr:/tmp/shr
 networks:
   default:

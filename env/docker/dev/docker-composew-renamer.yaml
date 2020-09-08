@@ -3,7 +3,7 @@ services:
   renamerapp:
     container_name: renamerapp
     restart: always
-    build: ../../../../renamer/
+    build: ../../../
     volumes:
       - ../../../data/renamer/logs:/home/bot/app/logs
       - ../../../data/shr:/tmp/shr
@@ -12,20 +12,8 @@ services:
     env_file:
       - .env.renamer
     depends_on:
-      - renamerredis
       - renamermtproto
       - renamerbotapi
-  renamerredis:
-    container_name: renamerredis
-    image: redis:alpine
-    restart: always
-    command:
-      - 'redis-server'
-      - '--save 900 1'
-      - '--save 300 10'
-      - '--save 60 10000'
-    volumes:
-      - ../../../data/renamer/redis:/data
   renamermtproto:
     container_name: renamermtproto
     restart: always
