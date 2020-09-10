@@ -278,7 +278,7 @@ public class ArchiveService {
 
     public class ArchiveTask implements SmartExecutorService.Job {
 
-        public static final String TAG = "archive";
+        private static final String TAG = "archive";
 
         private int jobId;
 
@@ -313,7 +313,7 @@ public class ArchiveService {
         }
 
         @Override
-        public void run() {
+        public void execute() {
             fileWorkObject.start();
             String size;
             try {
@@ -332,11 +332,6 @@ public class ArchiveService {
                         .setProgress(progressArchiveCreation(userId, progressMessageId, jobId)));
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, type);
-            } catch (Exception ex) {
-                if (checker == null || !checker.get()) {
-                    LOGGER.error(ex.getMessage(), ex);
-                    messageService.sendErrorMessage(userId, userService.getLocaleOrDefault(userId));
-                }
             } finally {
                 if (checker == null || !checker.get()) {
                     executor.complete(jobId);
@@ -381,6 +376,11 @@ public class ArchiveService {
         }
 
         @Override
+        public Supplier<Boolean> getCancelChecker() {
+            return checker;
+        }
+
+        @Override
         public void setCanceledByUser(boolean canceledByUser) {
             this.canceledByUser = !canceledByUser;
         }
@@ -388,6 +388,16 @@ public class ArchiveService {
         @Override
         public SmartExecutorService.JobWeight getWeight() {
             return totalFileSize > MemoryUtils.MB_100 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT;
+        }
+
+        @Override
+        public long getChatId() {
+            return userId;
+        }
+
+        @Override
+        public int getProgressMessageId() {
+            return progressMessageId;
         }
 
         private void renameFiles(ArchiveDevice archiveDevice, String archive,

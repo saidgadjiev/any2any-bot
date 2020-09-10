@@ -10,9 +10,12 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import ru.gadjini.any2any.service.archive.ArchiveService;
-import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.exception.botapi.TelegramApiRequestException;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Map;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -77,8 +80,9 @@ public class SchedulerConfiguration {
 
     @Bean
     @Qualifier("archiveTaskExecutor")
-    public SmartExecutorService archiveTaskExecutor() {
-        SmartExecutorService executorService = new SmartExecutorService();
+    public SmartExecutorService archiveTaskExecutor(UserService userService, FileManager fileManager,
+                                                  @Qualifier("messageLimits") MessageService messageService, LocalisationService localisationService) {
+        SmartExecutorService executorService = new SmartExecutorService(messageService, localisationService, fileManager, userService);
         ThreadPoolExecutor lightTaskExecutor = new ThreadPoolExecutor(4, 4,
                 0, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(10),
@@ -88,9 +92,9 @@ public class SchedulerConfiguration {
                 }) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
-                Runnable poll = archiveService.getTask(LIGHT);
+                Job poll = archiveService.getTask(LIGHT);
                 if (poll != null) {
-                    execute(poll);
+                    executorService.execute(poll);
                 }
             }
         };
@@ -104,9 +108,9 @@ public class SchedulerConfiguration {
                 }) {
             @Override
             protected void afterExecute(Runnable r, Throwable t) {
-                Runnable poll = archiveService.getTask(HEAVY);
+                Job poll = archiveService.getTask(HEAVY);
                 if (poll != null) {
-                    execute(poll);
+                    executorService.execute(poll);
                 }
             }
         };
