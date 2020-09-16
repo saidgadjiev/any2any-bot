@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
-import ru.gadjini.any2any.common.CommandNames;
+import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
@@ -51,7 +51,7 @@ public class ConvertCommand implements KeyboardBotCommand, BotCommand {
 
     @Override
     public String getCommandIdentifier() {
-        return CommandNames.CONVERT_COMMAND_NAME;
+        return FileUtilsCommandNames.CONVERT_COMMAND_NAME;
     }
 
     @Override

@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
-import ru.gadjini.any2any.common.CommandNames;
+import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageText;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallbackQuery;
@@ -39,12 +39,12 @@ public class CancelArchiveFilesCommand implements CallbackBotCommand {
 
     @Override
     public String getName() {
-        return CommandNames.CANCEL_ARCHIVE_FILES;
+        return FileUtilsCommandNames.CANCEL_ARCHIVE_FILES;
     }
 
     @Override
     public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
-        commandStateService.deleteState(callbackQuery.getMessage().getChatId(), CommandNames.ARCHIVE_COMMAND_NAME);
+        commandStateService.deleteState(callbackQuery.getMessage().getChatId(), FileUtilsCommandNames.ARCHIVE_COMMAND_NAME);
         Locale locale = userService.getLocaleOrDefault(callbackQuery.getFrom().getId());
         messageService.editMessage(new EditMessageText(
                 callbackQuery.getMessage().getChatId(), callbackQuery.getMessage().getMessageId(),

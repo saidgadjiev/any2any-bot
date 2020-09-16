@@ -6,8 +6,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
-import ru.gadjini.any2any.common.CommandNames;
+import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -97,21 +98,21 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
 
     @Override
     public String getParentCommandName(long chatId) {
-        return CommandNames.START_COMMAND;
+        return CommandNames.START_COMMAND_NAME;
     }
 
     @Override
     public String getHistoryName() {
-        return CommandNames.ADMIN;
+        return FileUtilsCommandNames.ADMIN;
     }
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         if (text.equals(localisationService.getMessage(MessagesProperties.DOWNLOAD_FILE_COMMAND_NAME, locale))) {
-            String fileId = commandStateService.getState(message.getChatId(), CommandNames.ADMIN, false, String.class);
+            String fileId = commandStateService.getState(message.getChatId(), FileUtilsCommandNames.ADMIN, false, String.class);
             if (StringUtils.isNotBlank(fileId)) {
-                commandStateService.deleteState(message.getChatId(), CommandNames.ADMIN);
+                commandStateService.deleteState(message.getChatId(), FileUtilsCommandNames.ADMIN);
                 messageService.sendMessage(new SendMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_DOWNLOAD_FILE_PROCESSING, locale)));
                 mediaMessageService.sendFile(message.getChatId(), fileId);
             }
@@ -121,12 +122,12 @@ public class AdminCommand implements KeyboardBotCommand, NavigableBotCommand {
         } else if (text.equals(localisationService.getMessage(MessagesProperties.RESET_FILE_LIMIT_COMMAND_NAME, locale))) {
             fileManager.resetLimits(message.getChatId());
         } else {
-            commandStateService.setState(message.getChatId(), CommandNames.ADMIN, text);
+            commandStateService.setState(message.getChatId(), FileUtilsCommandNames.ADMIN, text);
         }
     }
 
     @Override
     public void leave(long chatId) {
-        commandStateService.deleteState(chatId, CommandNames.ADMIN);
+        commandStateService.deleteState(chatId, FileUtilsCommandNames.ADMIN);
     }
 }

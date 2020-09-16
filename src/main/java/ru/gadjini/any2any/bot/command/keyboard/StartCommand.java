@@ -3,12 +3,12 @@ package ru.gadjini.any2any.bot.command.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.common.CommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.Any2AnyCommandMessageBuilder;
 import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
@@ -62,7 +62,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     @Override
     public String getCommandIdentifier() {
-        return CommandNames.START_COMMAND;
+        return CommandNames.START_COMMAND_NAME;
     }
 
     @Override
@@ -75,12 +75,12 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
 
     @Override
     public String getParentCommandName(long chatId) {
-        return CommandNames.START_COMMAND;
+        return CommandNames.START_COMMAND_NAME;
     }
 
     @Override
     public String getHistoryName() {
-        return CommandNames.START_COMMAND;
+        return CommandNames.START_COMMAND_NAME;
     }
 
     @Override

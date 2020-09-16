@@ -3,7 +3,7 @@ package ru.gadjini.any2any.bot.command.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.common.CommandNames;
+import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
@@ -57,7 +57,7 @@ public class RenameCommand implements KeyboardBotCommand, BotCommand {
 
     @Override
     public String getCommandIdentifier() {
-        return CommandNames.RENAME_COMMAND_NAME;
+        return FileUtilsCommandNames.RENAME_COMMAND_NAME;
     }
 
     @Override

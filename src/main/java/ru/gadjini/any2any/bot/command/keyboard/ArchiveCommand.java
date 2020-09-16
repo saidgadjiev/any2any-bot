@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.common.CommandNames;
+import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.archive.ArchiveState;
@@ -14,6 +14,7 @@ import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
@@ -95,7 +96,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     @Override
     public String getCommandIdentifier() {
-        return CommandNames.ARCHIVE_COMMAND_NAME;
+        return FileUtilsCommandNames.ARCHIVE_COMMAND_NAME;
     }
 
     @Override
@@ -107,12 +108,12 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     @Override
     public String getParentCommandName(long chatId) {
-        return CommandNames.START_COMMAND;
+        return CommandNames.START_COMMAND_NAME;
     }
 
     @Override
     public String getHistoryName() {
-        return CommandNames.ARCHIVE_COMMAND_NAME;
+        return FileUtilsCommandNames.ARCHIVE_COMMAND_NAME;
     }
 
     @Override
@@ -127,7 +128,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
                 Format associatedFormat = checkFormat(text, formatService.getAssociatedFormat(text), locale);
                 archiveService.removeAndCancelCurrentTask(message.getChatId());
                 archiveService.createArchive(message.getFrom().getId(), archiveState, associatedFormat);
-                commandStateService.deleteState(message.getChatId(), CommandNames.ARCHIVE_COMMAND_NAME);
+                commandStateService.deleteState(message.getChatId(), FileUtilsCommandNames.ARCHIVE_COMMAND_NAME);
             }
         } else {
             ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false, ArchiveState.class);

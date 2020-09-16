@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.gadjini.any2any.common.CommandNames;
+import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.domain.TgFile;
@@ -140,7 +140,7 @@ public class ArchiveService {
         if (queueItem != null && !executor.cancelAndComplete(queueItem.getId(), true)) {
             fileManager.fileWorkObject(chatId, queueItem.getTotalFileSize()).stop();
         }
-        commandStateService.deleteState(chatId, CommandNames.ARCHIVE_COMMAND_NAME);
+        commandStateService.deleteState(chatId, FileUtilsCommandNames.ARCHIVE_COMMAND_NAME);
     }
 
     public void createArchive(int userId, ArchiveState archiveState, Format format) {

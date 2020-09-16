@@ -3,7 +3,7 @@ package ru.gadjini.any2any.bot.command.callback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
-import ru.gadjini.any2any.common.CommandNames;
+import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
@@ -21,7 +21,7 @@ public class CancelArchiveQueryCommand implements CallbackBotCommand {
 
     @Override
     public String getName() {
-        return CommandNames.CANCEL_ARCHIVE_QUERY;
+        return FileUtilsCommandNames.CANCEL_ARCHIVE_QUERY;
     }
 
     @Override

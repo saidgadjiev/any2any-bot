@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.common.CommandNames;
+import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.service.format.ImageFormatService;
@@ -17,6 +17,7 @@ import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
@@ -97,7 +98,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     @Override
     public String getCommandIdentifier() {
-        return CommandNames.IMAGE_EDITOR_COMMAND_NAME;
+        return FileUtilsCommandNames.IMAGE_EDITOR_COMMAND_NAME;
     }
 
     @Override
@@ -109,12 +110,12 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     @Override
     public String getParentCommandName(long chatId) {
-        return CommandNames.START_COMMAND;
+        return CommandNames.START_COMMAND_NAME;
     }
 
     @Override
     public String getHistoryName() {
-        return CommandNames.IMAGE_EDITOR_COMMAND_NAME;
+        return FileUtilsCommandNames.IMAGE_EDITOR_COMMAND_NAME;
     }
 
     @Override
@@ -129,7 +130,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     @Override
     public String getName() {
-        return CommandNames.IMAGE_EDITOR_COMMAND_NAME;
+        return FileUtilsCommandNames.IMAGE_EDITOR_COMMAND_NAME;
     }
 
     @Override
