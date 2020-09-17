@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.domain;
 
+import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;

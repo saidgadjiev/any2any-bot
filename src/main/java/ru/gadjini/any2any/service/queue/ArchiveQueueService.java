@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.dao.ArchiveQueueDao;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
-import ru.gadjini.any2any.domain.TgFile;
+import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -30,12 +30,7 @@ public class ArchiveQueueService {
         archiveQueueItem.setFiles(new ArrayList<>());
 
         for (MessageMedia any2AnyFile: any2AnyFiles) {
-            TgFile tgFile = new TgFile();
-            tgFile.setFileId(any2AnyFile.getFileId());
-            tgFile.setFileName(any2AnyFile.getFileName());
-            tgFile.setMimeType(any2AnyFile.getMimeType());
-            tgFile.setSize(any2AnyFile.getFileSize());
-            archiveQueueItem.getFiles().add(tgFile);
+            archiveQueueItem.getFiles().add(any2AnyFile.toTgFile());
         }
         archiveQueueItem.setTotalFileSize(archiveQueueItem.getFiles().stream().map(TgFile::getSize).mapToLong(i -> i).sum());
 
