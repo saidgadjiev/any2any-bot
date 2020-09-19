@@ -2,6 +2,8 @@ ALTER TABLE unzip_queue ALTER COLUMN file SET DATA TYPE TEXT;
 ALTER TABLE rename_queue ALTER COLUMN file SET DATA TYPE TEXT;
 ALTER TABLE rename_queue ALTER COLUMN thumb SET DATA TYPE text;
 ALTER TABLE archive_queue ALTER COLUMN files SET DATA TYPE TEXT[];
+ALTER TABLE meta_queue ALTER COLUMN file SET DATA TYPE TEXT;
+ALTER TABLE meta_queue ALTER COLUMN thumb SET DATA TYPE text;
 
 ALTER TYPE tg_file ALTER ATTRIBUTE file_id SET DATA TYPE text;
 
@@ -9,6 +11,8 @@ ALTER TABLE unzip_queue ALTER COLUMN file SET DATA TYPE tg_file USING file::tg_f
 ALTER TABLE rename_queue ALTER COLUMN file SET DATA TYPE tg_file USING file::tg_file;
 ALTER TABLE rename_queue ALTER COLUMN thumb SET DATA TYPE tg_file USING file::tg_file;
 ALTER TABLE archive_queue ALTER COLUMN files SET DATA TYPE tg_file[] USING files::tg_file[];
+ALTER TABLE meta_queue ALTER COLUMN file SET DATA TYPE tg_file USING file::tg_file;
+ALTER TABLE meta_queue ALTER COLUMN thumb SET DATA TYPE tg_file USING file::tg_file;
 
 ALTER TYPE tg_file ADD ATTRIBUTE format VARCHAR(32);
 
