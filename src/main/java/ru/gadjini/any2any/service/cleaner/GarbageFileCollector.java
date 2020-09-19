@@ -33,7 +33,7 @@ public class GarbageFileCollector {
     public int clean() {
         try {
             AtomicInteger counter = new AtomicInteger();
-            Files.list(Path.of(tempFileService.getTempDir()))
+            Files.list(Path.of(tempFileService.getRootDir()))
                     .sorted(Comparator.reverseOrder())
                     .map(Path::toFile)
                     .forEach(file -> {
