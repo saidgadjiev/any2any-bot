@@ -77,11 +77,6 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     }
 
     @Override
-    public boolean accept(Message message) {
-        return true;
-    }
-
-    @Override
     public void cancel(long chatId, String queryId) {
         stateFather.cancel(this, chatId, queryId);
     }

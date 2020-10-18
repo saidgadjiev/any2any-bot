@@ -41,11 +41,6 @@ public class UnzipCommand implements KeyboardBotCommand, BotCommand {
     }
 
     @Override
-    public boolean accept(Message message) {
-        return message.hasDocument();
-    }
-
-    @Override
     public boolean canHandle(long chatId, String command) {
         return names.contains(command);
     }

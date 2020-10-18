@@ -47,11 +47,6 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     }
 
     @Override
-    public boolean accept(Message message) {
-        return true;
-    }
-
-    @Override
     public void processMessage(Message message, String[] params) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(

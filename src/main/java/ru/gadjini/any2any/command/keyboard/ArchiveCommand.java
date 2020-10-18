@@ -83,11 +83,6 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
     }
 
     @Override
-    public boolean accept(Message message) {
-        return true;
-    }
-
-    @Override
     public boolean canHandle(long chatId, String command) {
         return names.contains(command);
     }
