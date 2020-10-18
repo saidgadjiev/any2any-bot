@@ -169,6 +169,8 @@ public class MessagesProperties {
 
     public static final String MESSAGE_ARCHIVE_FILES_DELETED = "message.archive.files.deleted";
 
+    public static final String MESSAGE_ARCHIVE_FILES_NOT_FOUND = "message.archive.files.not.found";
+
     public static final String ADMIN_COMMAND_NAME = "admin.command.name";
 
     public static final String DOWNLOAD_FILE_COMMAND_NAME = "download.file.command.name";
@@ -198,4 +200,6 @@ public class MessagesProperties {
     public static final String MESSAGE_SPEED = "message.speed";
 
     public static final String RESET_FILE_LIMIT_COMMAND_NAME = "reset.file.limit.command.name";
+
+    public static final String CANCEL_ARCHIVE_COMMAND_NAME = "cancel.archive.command.name";
 }
