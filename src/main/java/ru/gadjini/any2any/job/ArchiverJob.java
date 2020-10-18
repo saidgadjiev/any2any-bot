@@ -30,6 +30,7 @@ import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallback
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.ProgressManager;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
@@ -79,13 +80,16 @@ public class ArchiverJob {
 
     private FileLimitProperties fileLimitProperties;
 
+    private ProgressManager progressManager;
+
     @Autowired
     public ArchiverJob(Set<ArchiveDevice> archiveDevices, TempFileService fileService,
                        FileManager fileManager, LocalisationService localisationService,
                        @Qualifier("messageLimits") MessageService messageService,
                        @Qualifier("forceMedia") MediaMessageService mediaMessageService, UserService userService,
                        ArchiveQueueService queueService, CommandStateService commandStateService,
-                       InlineKeyboardService inlineKeyboardService, ArchiveMessageBuilder archiveMessageBuilder, FileLimitProperties fileLimitProperties) {
+                       InlineKeyboardService inlineKeyboardService, ArchiveMessageBuilder archiveMessageBuilder,
+                       FileLimitProperties fileLimitProperties, ProgressManager progressManager) {
         this.archiveDevices = archiveDevices;
         this.fileService = fileService;
         this.fileManager = fileManager;
@@ -98,6 +102,7 @@ public class ArchiverJob {
         this.inlineKeyboardService = inlineKeyboardService;
         this.archiveMessageBuilder = archiveMessageBuilder;
         this.fileLimitProperties = fileLimitProperties;
+        this.progressManager = progressManager;
     }
 
     @Autowired
@@ -216,20 +221,24 @@ public class ArchiverJob {
         return progress;
     }
 
-    private Progress progressArchiveCreation(long chatId, int processMessageId, int jobId) {
-        Locale locale = userService.getLocaleOrDefault((int) chatId);
-        Progress progress = new Progress();
-        progress.setLocale(locale.getLanguage());
-        progress.setChatId(chatId);
-        progress.setProgressMessageId(processMessageId);
-        progress.setProgressMessage(archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.UPLOADING, Lang.PYTHON, locale));
+    private Progress progressArchiveUploading(long chatId, int processMessageId, int jobId, long fileSize) {
+        if (progressManager.isShowingUploadingProgress(fileSize)) {
+            Locale locale = userService.getLocaleOrDefault((int) chatId);
+            Progress progress = new Progress();
+            progress.setLocale(locale.getLanguage());
+            progress.setChatId(chatId);
+            progress.setProgressMessageId(processMessageId);
+            progress.setProgressMessage(archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.UPLOADING, Lang.PYTHON, locale));
 
-        String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.COMPLETED, Lang.JAVA, locale);
-        progress.setAfterProgressCompletionMessage(completionMessage);
+            String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.COMPLETED, Lang.JAVA, locale);
+            progress.setAfterProgressCompletionMessage(completionMessage);
 
-        progress.setProgressReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale));
+            progress.setProgressReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale));
 
-        return progress;
+            return progress;
+        } else {
+            return null;
+        }
     }
 
     public void shutdown() {
@@ -290,7 +299,7 @@ public class ArchiverJob {
 
                 String fileName = Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), type.getExt());
                 mediaMessageService.sendDocument(new SendDocument((long) userId, fileName, archive.getFile())
-                        .setProgress(progressArchiveCreation(userId, progressMessageId, jobId)));
+                        .setProgress(progressArchiveUploading(userId, progressMessageId, jobId, archive.length())));
 
                 LOGGER.debug("Finish({}, {}, {})", userId, size, type);
                 success = true;
