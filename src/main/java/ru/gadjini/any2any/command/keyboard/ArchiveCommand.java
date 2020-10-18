@@ -20,7 +20,6 @@ import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
@@ -142,7 +141,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
             archiveState.getFiles().add(createFile(message, locale));
             commandStateService.setState(message.getChatId(), getHistoryName(), archiveState);
             messageService.sendMessage(
-                    new SendMessage(
+                    new HtmlMessage(
                             message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CURRENT_FILES,
                             new Object[]{archiveState.getFiles().size()}, locale)
                     )
