@@ -1,12 +1,12 @@
-package ru.gadjini.any2any.bot.command.keyboard;
+package ru.gadjini.any2any.command.keyboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
-import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
 import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
+import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -18,25 +18,31 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class ConvertCommand implements KeyboardBotCommand, BotCommand {
+public class UnzipCommand implements KeyboardBotCommand, BotCommand {
 
     private Set<String> names = new HashSet<>();
 
-    private UserService userService;
+    private LocalisationService localisationService;
 
     private MessageService messageService;
 
-    private LocalisationService localisationService;
+    private UserService userService;
 
     @Autowired
-    public ConvertCommand(UserService userService,
-                          @Qualifier("messageLimits") MessageService messageService, LocalisationService localisationService) {
-        this.userService = userService;
-        this.messageService = messageService;
+    public UnzipCommand(LocalisationService localisationService,
+                        @Qualifier("messageLimits") MessageService messageService,
+                        UserService userService) {
         this.localisationService = localisationService;
+        this.messageService = messageService;
+        this.userService = userService;
         for (Locale locale : localisationService.getSupportedLocales()) {
-            this.names.add(localisationService.getMessage(MessagesProperties.CONVERT_COMMAND_NAME, locale));
+            this.names.add(localisationService.getMessage(MessagesProperties.UNZIP_COMMAND_NAME, locale));
         }
+    }
+
+    @Override
+    public boolean accept(Message message) {
+        return message.hasDocument();
     }
 
     @Override
@@ -51,7 +57,7 @@ public class ConvertCommand implements KeyboardBotCommand, BotCommand {
 
     @Override
     public String getCommandIdentifier() {
-        return FileUtilsCommandNames.CONVERT_COMMAND_NAME;
+        return FileUtilsCommandNames.UNZIP_COMMAND_NAME;
     }
 
     @Override
@@ -63,8 +69,6 @@ public class ConvertCommand implements KeyboardBotCommand, BotCommand {
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(
-                new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_CONVERT_FILE, locale))
-        );
+        messageService.sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_FILE, locale)));
     }
 }

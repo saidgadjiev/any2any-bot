@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.bot.command.keyboard;
+package ru.gadjini.any2any.command.keyboard;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

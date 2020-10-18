@@ -3,7 +3,7 @@ package ru.gadjini.any2any.service.image.editor.transparency;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
+import ru.gadjini.any2any.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallbackQuery;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;

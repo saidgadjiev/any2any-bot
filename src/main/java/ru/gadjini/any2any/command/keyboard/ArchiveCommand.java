@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.bot.command.keyboard;
+package ru.gadjini.any2any.command.keyboard;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.job.ArchiverJob;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.archive.ArchiveState;
 import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
@@ -31,7 +32,6 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.FormatService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -41,6 +41,8 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
     private static final Logger LOGGER = LoggerFactory.getLogger(ArchiveCommand.class);
 
     private ArchiveService archiveService;
+
+    private ArchiverJob archiverJob;
 
     private final LocalisationService localisationService;
 
@@ -61,11 +63,13 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
     private InlineKeyboardService inlineKeyboardService;
 
     @Autowired
-    public ArchiveCommand(ArchiveService archiveService, LocalisationService localisationService, @Qualifier("messageLimits") MessageService messageService,
+    public ArchiveCommand(ArchiveService archiveService, ArchiverJob archiverJob, LocalisationService localisationService,
+                          @Qualifier("messageLimits") MessageService messageService,
                           CommandStateService commandStateService, @Qualifier("curr") Any2AnyReplyKeyboardService replyKeyboardService,
                           UserService userService, FormatService formatService, MessageMediaService fileService,
                           InlineKeyboardService inlineKeyboardService) {
         this.archiveService = archiveService;
+        this.archiverJob = archiverJob;
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.commandStateService = commandStateService;
@@ -126,7 +130,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
                         localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale)));
             } else {
                 Format associatedFormat = checkFormat(text, formatService.getAssociatedFormat(text), locale);
-                archiveService.removeAndCancelCurrentTask(message.getChatId());
+                archiverJob.removeAndCancelCurrentTask(message.getChatId());
                 archiveService.createArchive(message.getFrom().getId(), archiveState, associatedFormat);
                 commandStateService.deleteState(message.getChatId(), FileUtilsCommandNames.ARCHIVE_COMMAND_NAME);
             }
@@ -140,7 +144,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
             messageService.sendMessage(
                     new SendMessage(
                             message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CURRENT_FILES,
-                            new Object[]{toString(archiveState.getFiles()), archiveState.getFiles().size()}, locale)
+                            new Object[]{archiveState.getFiles().size()}, locale)
                     )
                             .setReplyMarkup(inlineKeyboardService.getArchiveFilesKeyboard(locale))
             );
@@ -149,7 +153,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     @Override
     public void leave(long chatId) {
-        archiveService.leave(chatId);
+        archiverJob.leave(chatId);
     }
 
     private MessageMedia createFile(Message message, Locale locale) {
@@ -160,20 +164,6 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
             LOGGER.warn("No file message({}, {})", message.getFrom().getId(), TgMessage.getMetaTypes(message));
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_CANT_BE_ADDED_TO_ARCHIVE, locale));
         }
-    }
-
-    private String toString(List<MessageMedia> any2AnyFiles) {
-        StringBuilder files = new StringBuilder();
-        int i = 1;
-        for (MessageMedia any2AnyFile : any2AnyFiles) {
-            if (files.length() > 0) {
-                files.append(", ");
-            }
-
-            files.append(i++).append(") ").append(any2AnyFile.getFileName());
-        }
-
-        return files.toString();
     }
 
     private Format checkFormat(String text, Format format, Locale locale) {

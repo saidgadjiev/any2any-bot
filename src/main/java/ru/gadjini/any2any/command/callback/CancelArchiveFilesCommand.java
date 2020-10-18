@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.bot.command.callback;
+package ru.gadjini.any2any.command.callback;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
+import ru.gadjini.any2any.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallbackQuery;

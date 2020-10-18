@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.bot.command.keyboard;
+package ru.gadjini.any2any.command.keyboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,36 +18,36 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
-public class UnzipCommand implements KeyboardBotCommand, BotCommand {
+public class RenameCommand implements KeyboardBotCommand, BotCommand {
 
     private Set<String> names = new HashSet<>();
 
-    private LocalisationService localisationService;
-
     private MessageService messageService;
+
+    private LocalisationService localisationService;
 
     private UserService userService;
 
     @Autowired
-    public UnzipCommand(LocalisationService localisationService,
-                        @Qualifier("messageLimits") MessageService messageService,
-                        UserService userService) {
+    public RenameCommand(LocalisationService localisationService,
+                         @Qualifier("messageLimits") MessageService messageService,
+                         UserService userService) {
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.userService = userService;
         for (Locale locale : localisationService.getSupportedLocales()) {
-            this.names.add(localisationService.getMessage(MessagesProperties.UNZIP_COMMAND_NAME, locale));
+            this.names.add(localisationService.getMessage(MessagesProperties.RENAME_COMMAND_NAME, locale));
         }
-    }
-
-    @Override
-    public boolean accept(Message message) {
-        return message.hasDocument();
     }
 
     @Override
     public boolean canHandle(long chatId, String command) {
         return names.contains(command);
+    }
+
+    @Override
+    public boolean accept(Message message) {
+        return true;
     }
 
     @Override
@@ -57,7 +57,7 @@ public class UnzipCommand implements KeyboardBotCommand, BotCommand {
 
     @Override
     public String getCommandIdentifier() {
-        return FileUtilsCommandNames.UNZIP_COMMAND_NAME;
+        return FileUtilsCommandNames.RENAME_COMMAND_NAME;
     }
 
     @Override
@@ -69,6 +69,6 @@ public class UnzipCommand implements KeyboardBotCommand, BotCommand {
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_FILE, locale)));
+        messageService.sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_RENAME_FILE, locale)));
     }
 }

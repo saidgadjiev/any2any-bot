@@ -1,4 +1,4 @@
-package ru.gadjini.any2any.bot.command.keyboard;
+package ru.gadjini.any2any.command.keyboard;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

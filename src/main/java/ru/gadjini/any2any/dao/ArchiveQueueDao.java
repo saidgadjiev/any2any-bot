@@ -9,9 +9,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
+import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
-import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -26,9 +26,12 @@ public class ArchiveQueueDao {
 
     private JdbcTemplate jdbcTemplate;
 
+    private FileLimitProperties fileLimitProperties;
+
     @Autowired
-    public ArchiveQueueDao(JdbcTemplate jdbcTemplate) {
+    public ArchiveQueueDao(JdbcTemplate jdbcTemplate, FileLimitProperties fileLimitProperties) {
         this.jdbcTemplate = jdbcTemplate;
+        this.fileLimitProperties = fileLimitProperties;
     }
 
     public int create(ArchiveQueueItem archiveQueueItem) {
@@ -82,7 +85,7 @@ public class ArchiveQueueDao {
                         "SELECT *\n" +
                         "FROM r",
                 ps -> {
-                    ps.setLong(1, MemoryUtils.MB_100);
+                    ps.setLong(1, fileLimitProperties.getLightFileMaxWeight());
                     ps.setInt(2, limit);
                 },
                 (rs, rowNum) -> map(rs)

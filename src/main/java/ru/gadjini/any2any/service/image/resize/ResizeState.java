@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.bot.command.keyboard.ImageEditorCommand;
+import ru.gadjini.any2any.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.device.ImageIdentifyDevice;

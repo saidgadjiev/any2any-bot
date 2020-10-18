@@ -22,9 +22,9 @@ public class ArchiveQueueService {
         this.dao = archiveQueueDao;
     }
 
-    public ArchiveQueueItem createProcessingItem(int userId, List<MessageMedia> any2AnyFiles, Format format) {
+    public ArchiveQueueItem createItem(int userId, List<MessageMedia> any2AnyFiles, Format format) {
         ArchiveQueueItem archiveQueueItem = new ArchiveQueueItem();
-        archiveQueueItem.setStatus(ArchiveQueueItem.Status.PROCESSING);
+        archiveQueueItem.setStatus(ArchiveQueueItem.Status.WAITING);
         archiveQueueItem.setUserId(userId);
         archiveQueueItem.setType(format);
         archiveQueueItem.setFiles(new ArrayList<>());
