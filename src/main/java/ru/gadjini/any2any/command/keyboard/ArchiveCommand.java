@@ -11,7 +11,6 @@ import ru.gadjini.any2any.job.ArchiverJob;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.archive.ArchiveState;
 import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
-import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
@@ -59,14 +58,11 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     private MessageMediaService fileService;
 
-    private InlineKeyboardService inlineKeyboardService;
-
     @Autowired
     public ArchiveCommand(ArchiveService archiveService, ArchiverJob archiverJob, LocalisationService localisationService,
                           @Qualifier("messageLimits") MessageService messageService,
                           CommandStateService commandStateService, @Qualifier("curr") Any2AnyReplyKeyboardService replyKeyboardService,
-                          UserService userService, FormatService formatService, MessageMediaService fileService,
-                          InlineKeyboardService inlineKeyboardService) {
+                          UserService userService, FormatService formatService, MessageMediaService fileService) {
         this.archiveService = archiveService;
         this.archiverJob = archiverJob;
         this.localisationService = localisationService;
@@ -76,7 +72,6 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
         this.userService = userService;
         this.formatService = formatService;
         this.fileService = fileService;
-        this.inlineKeyboardService = inlineKeyboardService;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.ARCHIVE_COMMAND_NAME, locale));
         }
@@ -99,7 +94,9 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     @Override
     public boolean processMessage(Message message, String text) {
-        processMessage0(message.getChatId(), message.getFrom().getId());
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
+        messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES, locale))
+                .setReplyMarkup(replyKeyboardService.archiveTypesKeyboard(message.getChatId(), locale)));
 
         return true;
     }
@@ -135,13 +132,6 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
             }
             archiveState.getFiles().add(createFile(message, locale));
             commandStateService.setState(message.getChatId(), getHistoryName(), archiveState);
-            messageService.sendMessage(
-                    new HtmlMessage(
-                            message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_CURRENT_FILES,
-                            new Object[]{archiveState.getFiles().size()}, locale)
-                    )
-                            .setReplyMarkup(inlineKeyboardService.getArchiveFilesKeyboard(locale))
-            );
         }
     }
 
@@ -167,11 +157,5 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
         }
 
         return format;
-    }
-
-    private void processMessage0(long chatId, int userId) {
-        Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(new HtmlMessage(chatId, localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES, locale))
-                .setReplyMarkup(replyKeyboardService.archiveTypesKeyboard(chatId, locale)));
     }
 }

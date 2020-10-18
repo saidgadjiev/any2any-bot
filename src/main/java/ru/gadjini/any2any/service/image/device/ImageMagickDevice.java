@@ -1,5 +1,6 @@
 package ru.gadjini.any2any.service.image.device;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
@@ -10,49 +11,56 @@ import java.util.List;
 @Component
 public class ImageMagickDevice implements ImageConvertDevice, ImageIdentifyDevice {
 
+    private ProcessExecutor processExecutor;
+
+    @Autowired
+    public ImageMagickDevice(ProcessExecutor processExecutor) {
+        this.processExecutor = processExecutor;
+    }
+
     @Override
     public void convert(String in, String out, String... options) {
-        new ProcessExecutor().execute(getCommand(in, out, options));
+        processExecutor.execute(getCommand(in, out, options));
     }
 
     @Override
     public void negativeTransparent(String in, String out, String inaccuracy, String... colors) {
-        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, true, inaccuracy, colors));
+        processExecutor.execute(getTransparentRemoveCommand(in, out, true, inaccuracy, colors));
     }
 
     @Override
     public void positiveTransparent(String in, String out, String inaccuracy, String color) {
-        new ProcessExecutor().execute(getTransparentRemoveCommand(in, out, false, inaccuracy, color));
+        processExecutor.execute(getTransparentRemoveCommand(in, out, false, inaccuracy, color));
     }
 
     @Override
     public void applyBlackAndWhiteFilter(String in, String out) {
-        new ProcessExecutor().execute(getBlackAndWhiteFilterCommand(in, out));
+        processExecutor.execute(getBlackAndWhiteFilterCommand(in, out));
     }
 
     @Override
     public void applyNegativeFilter(String in, String out) {
-        new ProcessExecutor().execute(getNegativeFilterCommand(in, out));
+        processExecutor.execute(getNegativeFilterCommand(in, out));
     }
 
     @Override
     public void applySketchFilter(String in, String out) {
-        new ProcessExecutor().execute(getSketchFilterCommand(in, out));
+        processExecutor.execute(getSketchFilterCommand(in, out));
     }
 
     @Override
     public void resize(String in, String out, String size) {
-        new ProcessExecutor().execute(getResizeCommand(in, out, size));
+        processExecutor.execute(getResizeCommand(in, out, size));
     }
 
     @Override
     public void convertToThumb(String in, String out) {
-        new ProcessExecutor().execute(getThumbCommand(in, out));
+        processExecutor.execute(getThumbCommand(in, out));
     }
 
     @Override
     public String getSize(String in) {
-        return new ProcessExecutor().executeWithResult(getSizeCommand(in));
+        return processExecutor.executeWithResult(getSizeCommand(in));
     }
 
     private String[] getThumbCommand(String in, String out) {
