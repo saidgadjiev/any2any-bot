@@ -62,7 +62,7 @@ public class OcrService {
             Locale locale = userService.getLocaleOrDefault(userId);
             SmartTempFile file = fileService.createTempFile(userId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
             try {
-                fileManager.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFileSize(), file);
+                fileManager.forceDownloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFileSize(), file);
 
                 String result = ocrDevice.getText(file.getAbsolutePath());
                 if (StringUtils.isBlank(result)) {

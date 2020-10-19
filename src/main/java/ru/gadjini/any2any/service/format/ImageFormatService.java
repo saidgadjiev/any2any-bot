@@ -36,7 +36,7 @@ public class ImageFormatService {
         SmartTempFile file = tempFileService.createTempFile(chatId, photoFileId, TAG, "tmp");
 
         try {
-            fileManager.downloadFileByFileId(photoFileId, fileSize, file);
+            fileManager.forceDownloadFileByFileId(photoFileId, fileSize, file);
             return getImageFormat(file.getFile(), photoFileId);
         } finally {
             file.smartDelete();

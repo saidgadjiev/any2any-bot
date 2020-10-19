@@ -302,8 +302,8 @@ public class ArchiverJob {
                 success = true;
             } catch (Throwable ex) {
                 if (checker == null || !checker.get()) {
-                    if (FileManager.isSomethingWentWrongWithDownloadingUploading(ex)) {
-                        handleDownloadingUploadingFailed(ex);
+                    if (FileManager.isFloodWaitException(ex)) {
+                        handleFloodWaitException(ex);
                     } else {
                         throw ex;
                     }
@@ -386,13 +386,13 @@ public class ArchiverJob {
             }
         }
 
-        private void handleDownloadingUploadingFailed(Throwable ex) {
+        private void handleFloodWaitException(Throwable ex) {
             LOGGER.error(ex.getMessage());
             queueService.setWaiting(jobId);
-            updateProgressMessageAfterDownloadingFailed(jobId);
+            updateProgressMessageAfterFloodWait(jobId);
         }
 
-        private void updateProgressMessageAfterDownloadingFailed(int id) {
+        private void updateProgressMessageAfterFloodWait(int id) {
             Locale locale = userService.getLocaleOrDefault(id);
             String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
 
