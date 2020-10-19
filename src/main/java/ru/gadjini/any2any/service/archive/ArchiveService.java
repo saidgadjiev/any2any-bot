@@ -13,7 +13,6 @@ import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
-import ru.gadjini.telegram.smart.bot.commons.service.ProgressManager;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
@@ -42,44 +41,35 @@ public class ArchiveService {
 
     private InlineKeyboardService inlineKeyboardService;
 
-    private ProgressManager progressManager;
-
     @Autowired
     public ArchiveService(FileManager fileManager, LocalisationService localisationService,
                           @Qualifier("messageLimits") MessageService messageService, UserService userService,
                           ArchiveQueueService archiveQueueService,
-                          InlineKeyboardService inlineKeyboardService, ProgressManager progressManager) {
+                          InlineKeyboardService inlineKeyboardService) {
         this.fileManager = fileManager;
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.userService = userService;
         this.archiveQueueService = archiveQueueService;
         this.inlineKeyboardService = inlineKeyboardService;
-        this.progressManager = progressManager;
     }
 
     public void createArchive(int userId, ArchiveState archiveState, Format format) {
         normalizeFileNames(archiveState.getFiles());
 
         ArchiveQueueItem item = archiveQueueService.createItem(userId, archiveState.getFiles(), format);
-        startArchiveCreating(userId, item.getId(), item.getTotalFileSize(), message -> {
+        startArchiveCreating(userId, item.getId(), message -> {
             archiveQueueService.setProgressMessageId(item.getId(), message.getMessageId());
             item.setProgressMessageId(message.getMessageId());
             fileManager.setInputFilePending(userId, null, null, item.getTotalFileSize(), TAG);
         });
     }
 
-    private void startArchiveCreating(int userId, int jobId, long fileSize, Consumer<Message> callback) {
+    private void startArchiveCreating(int userId, int jobId, Consumer<Message> callback) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        if (progressManager.isShowingDownloadingProgress(fileSize)) {
-            String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
-            messageService.sendMessage(new SendMessage((long) userId, message)
-                    .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale)), callback);
-        } else {
-            String message = localisationService.getMessage(MessagesProperties.MESSAGE_ZIP_PROCESSING, locale);
-            messageService.sendMessage(new SendMessage((long) userId, message)
-                    .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale)), callback);
-        }
+        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
+        messageService.sendMessage(new SendMessage((long) userId, message)
+                .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale)), callback);
     }
 
     private void normalizeFileNames(List<MessageMedia> any2AnyFiles) {
