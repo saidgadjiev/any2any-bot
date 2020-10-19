@@ -1,7 +1,8 @@
 package ru.gadjini.any2any.dao;
 
-import org.apache.commons.lang3.StringUtils;
-import org.postgresql.jdbc.PgArray;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -14,24 +15,22 @@ import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorSer
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @Repository
 public class ArchiveQueueDao {
-
-    private static final Pattern PG_TYPE_PATTERN = Pattern.compile("[^,]*,?");
 
     private JdbcTemplate jdbcTemplate;
 
     private FileLimitProperties fileLimitProperties;
 
+    private ObjectMapper objectMapper;
+
     @Autowired
-    public ArchiveQueueDao(JdbcTemplate jdbcTemplate, FileLimitProperties fileLimitProperties) {
+    public ArchiveQueueDao(JdbcTemplate jdbcTemplate, FileLimitProperties fileLimitProperties, ObjectMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
         this.fileLimitProperties = fileLimitProperties;
+        this.objectMapper = objectMapper;
     }
 
     public int create(ArchiveQueueItem archiveQueueItem) {
@@ -83,7 +82,7 @@ public class ArchiveQueueDao {
                         "AND total_file_size " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ? ORDER BY created_at LIMIT ?) RETURNING *\n" +
                         ")\n" +
                         "SELECT *\n" +
-                        "FROM r",
+                        "FROM r cv INNER JOIN (SELECT id, json_agg(files) as files_json FROM archive_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id\n",
                 ps -> {
                     ps.setLong(1, fileLimitProperties.getLightFileMaxWeight());
                     ps.setInt(2, limit);
@@ -94,9 +93,19 @@ public class ArchiveQueueDao {
 
     public ArchiveQueueItem deleteWithReturning(int id) {
         return jdbcTemplate.query(
-                "WITH del AS (DELETE FROM archive_queue WHERE id = ? RETURNING *) SELECT * FROM del",
+                "WITH del AS (DELETE FROM archive_queue WHERE id = ? RETURNING total_file_size) SELECT total_file_size FROM del",
                 ps -> ps.setInt(1, id),
-                rs -> rs.next() ? map(rs) : null
+                rs -> {
+                    if (rs.next()) {
+                        ArchiveQueueItem queueItem = new ArchiveQueueItem();
+                        queueItem.setId(rs.getInt(ArchiveQueueItem.ID));
+                        queueItem.setTotalFileSize(rs.getLong(ArchiveQueueItem.TOTAL_FILE_SIZE));
+
+                        return queueItem;
+                    }
+
+                    return null;
+                }
         );
     }
 
@@ -105,9 +114,19 @@ public class ArchiveQueueDao {
     }
 
     public ArchiveQueueItem deleteByUserId(int userId) {
-        return jdbcTemplate.query("WITH r as(DELETE FROM archive_queue WHERE user_id = ? RETURNING *) SELECT * FROM r",
+        return jdbcTemplate.query("WITH r as(DELETE FROM archive_queue WHERE user_id = ? RETURNING id, total_file_size) SELECT * FROM r",
                 ps -> ps.setInt(1, userId),
-                rs -> rs.next() ? map(rs) : null);
+                rs -> {
+                    if (rs.next()) {
+                        ArchiveQueueItem queueItem = new ArchiveQueueItem();
+                        queueItem.setId(rs.getInt(ArchiveQueueItem.ID));
+                        queueItem.setTotalFileSize(rs.getLong(ArchiveQueueItem.TOTAL_FILE_SIZE));
+
+                        return queueItem;
+                    }
+
+                    return null;
+                });
     }
 
     public Boolean exists(int jobId) {
@@ -128,46 +147,18 @@ public class ArchiveQueueDao {
     }
 
     private List<TgFile> mapFiles(ResultSet rs) throws SQLException {
-        List<TgFile> repeatTimes = new ArrayList<>();
-        PgArray arr = (PgArray) rs.getArray(ArchiveQueueItem.FILES);
-        Object[] unparsedRepeatTimes = (Object[]) arr.getArray();
+        PGobject jsonArr = (PGobject) rs.getObject("files_json");
+        if (jsonArr != null) {
+            try {
+                List<List<TgFile>> lists = objectMapper.readValue(jsonArr.getValue(), new TypeReference<>() {
+                });
 
-        for (Object object : unparsedRepeatTimes) {
-            if (object == null) {
-                continue;
+                return lists.iterator().next();
+            } catch (JsonProcessingException e) {
+                throw new SQLException(e);
             }
-            String t = ((PGobject) object).getValue().replace("\"", "");
-            t = t.substring(1, t.length() - 1);
-            Matcher argMatcher = PG_TYPE_PATTERN.matcher(t);
-
-            TgFile file = new TgFile();
-            if (argMatcher.find()) {
-                String fileId = t.substring(argMatcher.start(), argMatcher.end() - 1);
-                if (StringUtils.isNotBlank(fileId)) {
-                    file.setFileId(fileId);
-                }
-            }
-            if (argMatcher.find()) {
-                String mimeType = t.substring(argMatcher.start(), argMatcher.end() - 1);
-                if (StringUtils.isNotBlank(mimeType)) {
-                    file.setMimeType(mimeType);
-                }
-            }
-            if (argMatcher.find()) {
-                String fileName = t.substring(argMatcher.start(), argMatcher.end() - 1);
-                if (StringUtils.isNotBlank(fileName)) {
-                    file.setFileName(fileName);
-                }
-            }
-            if (argMatcher.find()) {
-                String size = t.substring(argMatcher.start(), argMatcher.end() - 1);
-                if (StringUtils.isNotBlank(size)) {
-                    file.setSize(Long.parseLong(size));
-                }
-            }
-            repeatTimes.add(file);
         }
 
-        return repeatTimes;
+        return null;
     }
 }
