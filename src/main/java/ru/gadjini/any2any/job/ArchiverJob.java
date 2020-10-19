@@ -1,7 +1,6 @@
 package ru.gadjini.any2any.job;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +19,6 @@ import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.service.queue.ArchiveQueueService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
-import ru.gadjini.telegram.smart.bot.commons.exception.DownloadingException;
-import ru.gadjini.telegram.smart.bot.commons.exception.FloodWaitException;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
@@ -305,12 +302,8 @@ public class ArchiverJob {
                 success = true;
             } catch (Throwable ex) {
                 if (checker == null || !checker.get()) {
-                    int downloadingExceptionIndexOf = ExceptionUtils.indexOfThrowable(ex, DownloadingException.class);
-                    int floodWaitExceptionIndexOf = ExceptionUtils.indexOfThrowable(ex, FloodWaitException.class);
-                    if (downloadingExceptionIndexOf != -1 || floodWaitExceptionIndexOf != -1) {
-                        LOGGER.error(ex.getMessage());
-                        queueService.setWaiting(jobId);
-                        updateProgressMessageAfterFloodWait(jobId);
+                    if (FileManager.isSomethingWentWrongWithDownloadingUploading(ex)) {
+                        handleDownloadingUploadingFailed(ex);
                     } else {
                         throw ex;
                     }
@@ -393,7 +386,13 @@ public class ArchiverJob {
             }
         }
 
-        private void updateProgressMessageAfterFloodWait(int id) {
+        private void handleDownloadingUploadingFailed(Throwable ex) {
+            LOGGER.error(ex.getMessage());
+            queueService.setWaiting(jobId);
+            updateProgressMessageAfterDownloadingFailed(jobId);
+        }
+
+        private void updateProgressMessageAfterDownloadingFailed(int id) {
             Locale locale = userService.getLocaleOrDefault(id);
             String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
 
