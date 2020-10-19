@@ -27,7 +27,6 @@ import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallback
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
-import ru.gadjini.telegram.smart.bot.commons.service.ProgressManager;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
@@ -77,8 +76,6 @@ public class ArchiverJob {
 
     private FileLimitProperties fileLimitProperties;
 
-    private ProgressManager progressManager;
-
     @Autowired
     public ArchiverJob(Set<ArchiveDevice> archiveDevices, TempFileService fileService,
                        FileManager fileManager, LocalisationService localisationService,
@@ -86,7 +83,7 @@ public class ArchiverJob {
                        @Qualifier("forceMedia") MediaMessageService mediaMessageService, UserService userService,
                        ArchiveQueueService queueService, CommandStateService commandStateService,
                        InlineKeyboardService inlineKeyboardService, ArchiveMessageBuilder archiveMessageBuilder,
-                       FileLimitProperties fileLimitProperties, ProgressManager progressManager) {
+                       FileLimitProperties fileLimitProperties) {
         this.archiveDevices = archiveDevices;
         this.fileService = fileService;
         this.fileManager = fileManager;
@@ -99,7 +96,6 @@ public class ArchiverJob {
         this.inlineKeyboardService = inlineKeyboardService;
         this.archiveMessageBuilder = archiveMessageBuilder;
         this.fileLimitProperties = fileLimitProperties;
-        this.progressManager = progressManager;
     }
 
     @Autowired
@@ -199,16 +195,16 @@ public class ArchiverJob {
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_TYPE_UNSUPPORTED, new Object[]{format}, locale));
     }
 
-    private Progress progressFilesDownloading(int count, int current, long chatId, int processMessageId, int jobId) {
+    private Progress progressFilesDownloading(int count, int current, long fileSize, long chatId, int processMessageId, int jobId) {
         Locale locale = userService.getLocaleOrDefault((int) chatId);
         Progress progress = new Progress();
         progress.setLocale(locale.getLanguage());
         progress.setChatId(chatId);
         progress.setProgressMessageId(processMessageId);
-        progress.setProgressMessage(archiveMessageBuilder.buildArchiveProgressMessage(count, current, ArchiveStep.DOWNLOADING, Lang.PYTHON, locale));
+        progress.setProgressMessage(archiveMessageBuilder.buildArchiveProgressMessage(count, current, ArchiveStep.DOWNLOADING, fileSize, Lang.PYTHON, locale));
 
         if (count == current) {
-            String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.ARCHIVE_CREATION, Lang.JAVA, locale);
+            String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.ARCHIVE_CREATION, fileSize, Lang.JAVA, locale);
             String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
             progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 " + seconds));
             progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale));
@@ -219,23 +215,19 @@ public class ArchiverJob {
     }
 
     private Progress progressArchiveUploading(long chatId, int processMessageId, int jobId, long fileSize) {
-        if (progressManager.isShowingUploadingProgress(fileSize)) {
-            Locale locale = userService.getLocaleOrDefault((int) chatId);
-            Progress progress = new Progress();
-            progress.setLocale(locale.getLanguage());
-            progress.setChatId(chatId);
-            progress.setProgressMessageId(processMessageId);
-            progress.setProgressMessage(archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.UPLOADING, Lang.PYTHON, locale));
+        Locale locale = userService.getLocaleOrDefault((int) chatId);
+        Progress progress = new Progress();
+        progress.setLocale(locale.getLanguage());
+        progress.setChatId(chatId);
+        progress.setProgressMessageId(processMessageId);
+        progress.setProgressMessage(archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.UPLOADING, fileSize, Lang.PYTHON, locale));
 
-            String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.COMPLETED, Lang.JAVA, locale);
-            progress.setAfterProgressCompletionMessage(completionMessage);
+        String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(ArchiveStep.COMPLETED, fileSize, Lang.JAVA, locale);
+        progress.setAfterProgressCompletionMessage(completionMessage);
 
-            progress.setProgressReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale));
+        progress.setProgressReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale));
 
-            return progress;
-        } else {
-            return null;
-        }
+        return progress;
     }
 
     public void shutdown() {
@@ -408,7 +400,7 @@ public class ArchiverJob {
             for (TgFile tgFile : tgFiles) {
                 SmartTempFile file = fileService.createTempFile(userId, tgFile.getFileId(), TAG, FilenameUtils.getExtension(tgFile.getFileName()));
                 fileManager.forceDownloadFileByFileId(tgFile.getFileId(), tgFile.getSize(),
-                        progressFilesDownloading(tgFiles.size(), i, userId, progressMessageId, jobId), file);
+                        progressFilesDownloading(tgFiles.size(), i, tgFile.getSize(), userId, progressMessageId, jobId), file);
                 downloadResult.originalFileNames.put(i, tgFile.getFileName());
                 downloadResult.downloadedNames.put(i++, file.getName());
                 files.add(file);
