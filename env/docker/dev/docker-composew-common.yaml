@@ -1,0 +1,32 @@
+version: '3'
+services:
+  db:
+    container_name: db
+    image: postgres:alpine
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - 5431:5432
+    env_file:
+      - .db.env
+  redis:
+    container_name: redis
+    image: redis:alpine
+    restart: always
+    command:
+      - 'redis-server'
+      - '--save 900 1'
+      - '--save 300 10'
+      - '--save 60 10000'
+    volumes:
+      - ../../../data/redis:/data
+
+volumes:
+  pgdata:
+    external: true
+
+networks:
+  default:
+    external:
+      name: fileutils
