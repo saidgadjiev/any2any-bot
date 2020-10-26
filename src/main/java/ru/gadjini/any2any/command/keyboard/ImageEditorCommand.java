@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.request.Arg;
-import ru.gadjini.any2any.service.format.ImageFormatService;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.image.editor.StateFather;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
@@ -24,16 +23,14 @@ import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.PhotoSize;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
-import ru.gadjini.telegram.smart.bot.commons.service.format.FormatService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -55,22 +52,19 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     private StateFather stateFather;
 
-    private FormatService formatService;
-
-    private ImageFormatService imageFormatService;
+    private MessageMediaService messageMediaService;
 
     @Autowired
     public ImageEditorCommand(LocalisationService localisationService,
                               @Qualifier("messageLimits") MessageService messageService, UserService userService,
                               @Qualifier("curr") Any2AnyReplyKeyboardService replyKeyboardService,
-                              StateFather stateFather, FormatService formatService, ImageFormatService imageFormatService) {
+                              StateFather stateFather, MessageMediaService messageMediaService) {
         this.localisationService = localisationService;
         this.messageService = messageService;
         this.userService = userService;
         this.replyKeyboardService = replyKeyboardService;
         this.stateFather = stateFather;
-        this.formatService = formatService;
-        this.imageFormatService = imageFormatService;
+        this.messageMediaService = messageMediaService;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.IMAGE_EDITOR_COMMAND_NAME, locale));
         }
@@ -177,19 +171,11 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     }
 
     private MessageMedia getEditFile(Message message, Locale locale) {
-        MessageMedia any2AnyFile = new MessageMedia ();
+        MessageMedia any2AnyFile = messageMediaService.getMedia(message, locale);
 
         if (message.hasDocument()) {
-            any2AnyFile.setFileId(message.getDocument().getFileId());
-            any2AnyFile.setFileName(message.getDocument().getFileName());
-            Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-            any2AnyFile.setFormat(checkFormat(message.getFrom().getId(), format, message.getDocument().getMimeType(), message.getDocument().getFileName(), locale));
-        } else if (message.hasPhoto()) {
-            PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
-            any2AnyFile.setFileId(photoSize.getFileId());
-            any2AnyFile.setFileName(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_FILE_NAME, locale));
-            any2AnyFile.setFormat(imageFormatService.getImageFormat(message.getChatId(), photoSize.getFileId(), photoSize.getFileSize()));
-        } else {
+            checkFormat(message.getFrom().getId(), any2AnyFile.getFormat(), any2AnyFile.getMimeType(), any2AnyFile.getFileName(), locale);
+        } else if (any2AnyFile == null || any2AnyFile.getFormat().getCategory() != FormatCategory.IMAGES) {
             LOGGER.debug("No image({}, {})", message.getChatId(), TgMessage.getMetaTypes(message));
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MAIN_WELCOME, userService.getLocaleOrDefault(message.getFrom().getId())));
         }
@@ -197,7 +183,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
         return any2AnyFile;
     }
 
-    private Format checkFormat(int userId, Format format, String mimeType, String fileName, Locale locale) {
+    private void checkFormat(int userId, Format format, String mimeType, String fileName, Locale locale) {
         if (format == null) {
             LOGGER.warn("Format is null({}, {}, {})", userId, mimeType, fileName);
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_IMAGE, locale));
@@ -206,7 +192,5 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
             LOGGER.warn("No image({}, {})", userId, format.getCategory());
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_BAD_IMAGE, locale));
         }
-
-        return format;
     }
 }

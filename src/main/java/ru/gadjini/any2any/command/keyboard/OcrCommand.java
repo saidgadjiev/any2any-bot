@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.service.format.ImageFormatService;
 import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
 import ru.gadjini.any2any.service.ocr.OcrService;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
@@ -18,15 +17,13 @@ import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.PhotoSize;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
-import ru.gadjini.telegram.smart.bot.commons.service.format.FormatService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -48,21 +45,18 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
 
     private MessageService messageService;
 
-    private FormatService formatService;
-
-    private ImageFormatService imageFormatService;
+    private MessageMediaService messageMediaService;
 
     @Autowired
     public OcrCommand(OcrService ocrService, @Qualifier("curr") Any2AnyReplyKeyboardService replyKeyboardService,
                       UserService userService, LocalisationService localisationService,
-                      @Qualifier("messageLimits") MessageService messageService, FormatService formatService, ImageFormatService imageFormatService) {
+                      @Qualifier("messageLimits") MessageService messageService, MessageMediaService messageMediaService) {
         this.ocrService = ocrService;
         this.replyKeyboardService = replyKeyboardService;
         this.userService = userService;
         this.localisationService = localisationService;
         this.messageService = messageService;
-        this.formatService = formatService;
-        this.imageFormatService = imageFormatService;
+        this.messageMediaService = messageMediaService;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.EXTRACT_TEXT_COMMAND_NAME, locale));
         }
@@ -120,24 +114,13 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
     }
 
     private MessageMedia getFile(Message message) {
+        MessageMedia media = messageMediaService.getMedia(message, Locale.getDefault());
+
         if (message.hasDocument()) {
-            Format format = formatService.getFormat(message.getDocument().getFileName(), message.getDocument().getMimeType());
-            checkFormat(message.getFrom().getId(), format, message.getDocument().getFileId(), message.getDocument().getFileName(), message.getDocument().getMimeType());
-
-            MessageMedia any2AnyFile = new MessageMedia ();
-            any2AnyFile.setFileId(message.getDocument().getFileId());
-            any2AnyFile.setFormat(format);
-
-            return any2AnyFile;
-        } else {
-            PhotoSize photoSize = message.getPhoto().stream().max(Comparator.comparing(PhotoSize::getWidth)).orElseThrow();
-
-            MessageMedia any2AnyFile = new MessageMedia ();
-            any2AnyFile.setFileId(photoSize.getFileId());
-            any2AnyFile.setFormat(imageFormatService.getImageFormat(message.getChatId(), photoSize.getFileId(), photoSize.getFileSize()));
-
-            return any2AnyFile;
+            checkFormat(message.getFrom().getId(), media.getFormat(), media.getFileId(), media.getFileName(), media.getMimeType());
         }
+
+        return media;
     }
 
     private void checkFormat(int userId, Format format, String fileId, String fileName, String mimeType) {
