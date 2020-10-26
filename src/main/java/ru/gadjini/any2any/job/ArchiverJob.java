@@ -294,8 +294,8 @@ public class ArchiverJob {
                 success = true;
             } catch (Throwable ex) {
                 if (checker == null || !checker.get()) {
-                    if (FileManager.isFloodWaitException(ex)) {
-                        handleFloodWaitException(ex);
+                    if (FileManager.isNoneCriticalDownloadingException(ex)) {
+                        handleNoneCriticalDownloadingException();
                     } else {
                         throw ex;
                     }
@@ -378,8 +378,7 @@ public class ArchiverJob {
             }
         }
 
-        private void handleFloodWaitException(Throwable ex) {
-            LOGGER.error(ex.getMessage());
+        private void handleNoneCriticalDownloadingException() {
             queueService.setWaiting(jobId);
             updateProgressMessageAfterFloodWait(jobId);
         }
