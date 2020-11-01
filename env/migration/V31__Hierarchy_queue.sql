@@ -13,12 +13,16 @@ CREATE TABLE queue
     exception                TEXT
 );
 
+ALTER TABLE conversion_queue ALTER COLUMN created_at SET NOT NULL;
 ALTER TABLE conversion_queue INHERIT queue;
 
 DELETE FROM rename_queue;
 ALTER TABLE rename_queue ALTER COLUMN created_at TYPE TIMESTAMP(0);
+ALTER TABLE rename_queue ADD COLUMN started_at TIMESTAMP(0);
 ALTER TABLE rename_queue ADD COLUMN last_run_at TIMESTAMP(0);
 ALTER TABLE rename_queue ADD COLUMN completed_at TIMESTAMP(0);
+ALTER TABLE rename_queue ADD COLUMN exception TEXT;
+ALTER TABLE rename_queue ADD COLUMN suppress_user_exceptions BOOLEAN      DEFAULT FALSE NOT NULL;
 ALTER TABLE rename_queue INHERIT queue;
 
 DELETE FROM unzip_queue;
