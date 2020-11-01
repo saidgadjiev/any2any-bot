@@ -27,7 +27,8 @@ public class ArchiveMessageBuilder {
         StringBuilder message = new StringBuilder();
         message.append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale)).append("\n\n");
         message.append(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_DOWNLOADING, new Object[]{current - 1, count}, locale)).append("\n");
-        message.append(buildArchiveProcessMessage(archiveStep, fileSize, lang, locale));
+        message.append(buildArchiveProcessMessage(archiveStep, fileSize, lang, locale)).append("\n\n");
+        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale));
 
         return message.toString();
     }
@@ -35,7 +36,8 @@ public class ArchiveMessageBuilder {
     public String buildArchiveProcessMessage(ArchiveQueueItem queueItem, ArchiveStep archiveStep, long fileSize, Lang lang, Locale locale) {
         StringBuilder message = new StringBuilder();
         message.append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale)).append("\n\n");
-        message.append(buildArchiveProcessMessage(archiveStep, fileSize, lang, locale));
+        message.append(buildArchiveProcessMessage(archiveStep, fileSize, lang, locale)).append("\n\n");
+        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale));
 
         return message.toString();
     }

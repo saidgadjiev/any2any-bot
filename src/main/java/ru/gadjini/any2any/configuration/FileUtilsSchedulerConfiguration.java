@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 @Configuration
-public class SchedulerConfiguration {
+public class FileUtilsSchedulerConfiguration {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerConfiguration.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileUtilsSchedulerConfiguration.class);
 
     @Bean
     @Qualifier("commonTaskExecutor")

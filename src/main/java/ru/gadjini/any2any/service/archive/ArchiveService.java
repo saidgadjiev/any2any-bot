@@ -10,6 +10,7 @@ import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.service.queue.ArchiveQueueService;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
+import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -71,7 +72,7 @@ public class ArchiveService {
     private void startArchiveCreating(ArchiveQueueItem queueItem, Consumer<Message> callback) {
         Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
         String message = messageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.WAITING, queueItem.getTotalFileSize(), Lang.JAVA, locale);
-        messageService.sendMessage(new SendMessage((long) queueItem.getUserId(), message)
+        messageService.sendMessage(new HtmlMessage((long) queueItem.getUserId(), message)
                 .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(queueItem.getId(), locale)), callback);
     }
 

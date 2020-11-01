@@ -194,4 +194,6 @@ public class MessagesProperties {
     public static final String MESSAGE_FILE_QUEUED = "message.file.queued";
 
     public static final String WAITING_STEP = "waiting.step";
+
+    public static final String MESSAGE_DONT_SEND_NEW_REQUEST = "message.dont.send.new.request";
 }
