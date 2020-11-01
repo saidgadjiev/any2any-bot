@@ -7,17 +7,11 @@ public class MessagesProperties {
 
     public static final String MESSAGE_UNKNOWN_COMMAND = "message.unknown.command";
 
-    public static final String MESSAGE_EMPTY_FILE_NAME = "message.empty.file.name";
-
     public static final String GO_BACK_COMMAND_NAME = "go.back.command.name";
 
     public static final String MESSAGE_MAIN_MENU = "message.main.menu";
 
     public static final String GO_BACK_CALLBACK_COMMAND_DESCRIPTION = "go.back.callback.command.description";
-
-    public static final String MESSAGE_QUERY_CANCELED = "message.query.canceled";
-
-    public static final String MESSAGE_QUERY_ITEM_NOT_FOUND = "message.query.item.not.found";
 
     public static final String SECOND_PART = "second.part";
 
@@ -32,8 +26,6 @@ public class MessagesProperties {
     public static final String MESSAGE_ZIP_FILE = "message.unzip.welcome";
 
     public static final String CONVERT_COMMAND_NAME = "convert.command.name";
-
-    public static final String MESSAGE_ZIP_PROCESSING = "message.zip.processing";
 
     public static final String MESSAGE_CONVERT_FILE = "message.convert.file";
 
@@ -62,8 +54,6 @@ public class MessagesProperties {
     public static final String MESSAGE_ARCHIVE_FILES_EMPTY = "message.archive.files.empty";
 
     public static final String MESSAGE_FILE_CANT_BE_ADDED_TO_ARCHIVE = "message.file.cant.be.added.to.archive";
-
-    public static final String MESSAGE_ARCHIVE_CURRENT_FILES = "message.archive.current.files";
 
     public static final String IMAGE_EDITOR_COMMAND_NAME = "image.editor.command.name";
 
@@ -183,9 +173,9 @@ public class MessagesProperties {
 
     public static final String MESSAGE_COLLECTED_GARBAGE = "message.collected.garbage";
 
-    public static final String MESSAGE_DOWNLOADING_STEP = "message.downloading.step";
+    public static final String DOWNLOADING_STEP = "downloading.step";
 
-    public static final String MESSAGE_UPLOADING_STEP = "message.uploading.step";
+    public static final String UPLOADING_STEP = "uploading.step";
 
     public static final String ICON_CHECK = "icon.check";
 
@@ -193,13 +183,15 @@ public class MessagesProperties {
 
     public static final String MESSAGE_ARCHIVE_FILES_DOWNLOADING = "message.archive.files.downloading";
 
-    public static final String MESSAGE_ARCHIVE_CREATION_STEP = "message.archive.creation.step";
-
-    public static final String MESSAGE_AWAITING_PROCESSING = "message.awaiting.processing";
+    public static final String ARCHIVE_CREATION_STEP = "archive.creation.step";
 
     public static final String MESSAGE_SPEED = "message.speed";
 
     public static final String RESET_FILE_LIMIT_COMMAND_NAME = "reset.file.limit.command.name";
 
     public static final String CANCEL_ARCHIVE_COMMAND_NAME = "cancel.archive.command.name";
+
+    public static final String MESSAGE_FILE_QUEUED = "message.file.queued";
+
+    public static final String WAITING_STEP = "waiting.step";
 }

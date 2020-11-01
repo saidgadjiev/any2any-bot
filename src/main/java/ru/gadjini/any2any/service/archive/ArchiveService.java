@@ -5,18 +5,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.service.queue.ArchiveQueueService;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
-import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueService;
 
 import java.util.HashSet;
 import java.util.List;
@@ -31,45 +31,48 @@ public class ArchiveService {
 
     private FileManager fileManager;
 
-    private LocalisationService localisationService;
-
     private MessageService messageService;
 
     private UserService userService;
 
     private ArchiveQueueService archiveQueueService;
 
+    private QueueService queueService;
+
     private InlineKeyboardService inlineKeyboardService;
 
+    private ArchiveMessageBuilder messageBuilder;
+
     @Autowired
-    public ArchiveService(FileManager fileManager, LocalisationService localisationService,
+    public ArchiveService(FileManager fileManager,
                           @Qualifier("messageLimits") MessageService messageService, UserService userService,
                           ArchiveQueueService archiveQueueService,
-                          InlineKeyboardService inlineKeyboardService) {
+                          QueueService queueService, InlineKeyboardService inlineKeyboardService, ArchiveMessageBuilder messageBuilder) {
         this.fileManager = fileManager;
-        this.localisationService = localisationService;
         this.messageService = messageService;
         this.userService = userService;
         this.archiveQueueService = archiveQueueService;
+        this.queueService = queueService;
         this.inlineKeyboardService = inlineKeyboardService;
+        this.messageBuilder = messageBuilder;
     }
 
     public void createArchive(int userId, ArchiveState archiveState, Format format) {
         normalizeFileNames(archiveState.getFiles());
 
         ArchiveQueueItem item = archiveQueueService.createItem(userId, archiveState.getFiles(), format);
-        startArchiveCreating(userId, item.getId(), message -> {
-            archiveQueueService.setProgressMessageId(item.getId(), message.getMessageId());
+        startArchiveCreating(item, message -> {
+            queueService.setProgressMessageId(item.getId(), message.getMessageId());
             item.setProgressMessageId(message.getMessageId());
             fileManager.setInputFilePending(userId, null, null, item.getTotalFileSize(), TAG);
         });
     }
 
-    private void startArchiveCreating(int userId, int jobId, Consumer<Message> callback) {
-        Locale locale = userService.getLocaleOrDefault(userId);
-        String message = localisationService.getMessage(MessagesProperties.MESSAGE_AWAITING_PROCESSING, locale);
-        messageService.sendMessage(new SendMessage((long) userId, message)
-                .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(jobId, locale)), callback);
+    private void startArchiveCreating(ArchiveQueueItem queueItem, Consumer<Message> callback) {
+        Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
+        String message = messageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.WAITING, queueItem.getTotalFileSize(), Lang.JAVA, locale);
+        messageService.sendMessage(new SendMessage((long) queueItem.getUserId(), message)
+                .setReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(queueItem.getId(), locale)), callback);
     }
 
     private void normalizeFileNames(List<MessageMedia> any2AnyFiles) {

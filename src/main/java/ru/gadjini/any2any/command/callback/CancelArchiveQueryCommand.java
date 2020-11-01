@@ -3,19 +3,19 @@ package ru.gadjini.any2any.command.callback;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.FileUtilsCommandNames;
-import ru.gadjini.any2any.job.ArchiverJob;
 import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
+import ru.gadjini.telegram.smart.bot.commons.job.QueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 @Component
 public class CancelArchiveQueryCommand implements CallbackBotCommand {
 
-    private ArchiverJob archiverJob;
+    private QueueJob archiverJob;
 
     @Autowired
-    public CancelArchiveQueryCommand(ArchiverJob archiverJob) {
+    public CancelArchiveQueryCommand(QueueJob archiverJob) {
         this.archiverJob = archiverJob;
     }
 

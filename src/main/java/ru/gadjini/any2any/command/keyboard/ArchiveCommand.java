@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.job.ArchiverJob;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.archive.ArchiveState;
 import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
@@ -17,6 +16,7 @@ import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
+import ru.gadjini.telegram.smart.bot.commons.job.QueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
@@ -41,7 +41,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     private ArchiveService archiveService;
 
-    private ArchiverJob archiverJob;
+    private QueueJob archiverJob;
 
     private final LocalisationService localisationService;
 
@@ -62,7 +62,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
     private XSync<Long> longXSync;
 
     @Autowired
-    public ArchiveCommand(ArchiveService archiveService, ArchiverJob archiverJob, LocalisationService localisationService,
+    public ArchiveCommand(ArchiveService archiveService, QueueJob archiverJob, LocalisationService localisationService,
                           @Qualifier("messageLimits") MessageService messageService,
                           CommandStateService commandStateService, @Qualifier("curr") Any2AnyReplyKeyboardService replyKeyboardService,
                           UserService userService, FormatService formatService, MessageMediaService fileService, XSync<Long> longXSync) {
@@ -126,7 +126,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
                             localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale)));
                 } else {
                     Format associatedFormat = checkFormat(text, formatService.getAssociatedFormat(text), locale);
-                    archiverJob.removeAndCancelCurrentTask(message.getChatId());
+                    archiverJob.removeAndCancelCurrentTasks(message.getChatId());
                     archiveService.createArchive(message.getFrom().getId(), archiveState, associatedFormat);
                     commandStateService.deleteState(message.getChatId(), FileUtilsCommandNames.ARCHIVE_COMMAND_NAME);
                 }
@@ -143,7 +143,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     @Override
     public void leave(long chatId) {
-        archiverJob.leave(chatId);
+        archiverJob.removeAndCancelCurrentTasks(chatId);
     }
 
     private MessageMedia createFile(Message message, Locale locale) {

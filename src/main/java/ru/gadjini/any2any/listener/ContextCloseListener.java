@@ -7,7 +7,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.job.ArchiverJob;
+import ru.gadjini.any2any.job.ArchiverJobDelegate;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 
 @Component
@@ -15,13 +15,13 @@ public class ContextCloseListener implements ApplicationListener<ContextClosedEv
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ContextCloseListener.class);
 
-    private ArchiverJob archiverJob;
+    private ArchiverJobDelegate archiverJob;
 
     private FileManager fileManager;
 
     private ThreadPoolTaskExecutor commonThreadPool;
 
-    public ContextCloseListener(ArchiverJob archiverJob,
+    public ContextCloseListener(ArchiverJobDelegate archiverJob,
                                 FileManager fileManager, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor commonThreadPool) {
         this.archiverJob = archiverJob;
         this.fileManager = fileManager;
