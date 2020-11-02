@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.service.archive.ArchiveDevice;
@@ -16,21 +15,19 @@ import ru.gadjini.any2any.service.archive.ArchiveStep;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
-import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
 import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.InlineKeyboardMarkup;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
-import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
-import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueJobDelegate;
+import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueWorker;
+import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueWorkerFactory;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.util.*;
@@ -38,7 +35,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.stream.Collectors;
 
 @Component
-public class ArchiverJobDelegate implements QueueJobDelegate {
+public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueueItem> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ArchiveService.class);
 
@@ -54,37 +51,23 @@ public class ArchiverJobDelegate implements QueueJobDelegate {
 
     private UserService userService;
 
-    private CommandStateService commandStateService;
-
     private InlineKeyboardService inlineKeyboardService;
 
     private ArchiveMessageBuilder archiveMessageBuilder;
 
     @Autowired
-    public ArchiverJobDelegate(Set<ArchiveDevice> archiveDevices, TempFileService fileService,
-                               FileManager fileManager, LocalisationService localisationService,
-                               @Qualifier("forceMedia") MediaMessageService mediaMessageService, UserService userService,
-                               CommandStateService commandStateService,
-                               InlineKeyboardService inlineKeyboardService, ArchiveMessageBuilder archiveMessageBuilder) {
+    public ArchiveQueueWorkerFactory(Set<ArchiveDevice> archiveDevices, TempFileService fileService,
+                                     FileManager fileManager, LocalisationService localisationService,
+                                     @Qualifier("forceMedia") MediaMessageService mediaMessageService, UserService userService,
+                                     InlineKeyboardService inlineKeyboardService, ArchiveMessageBuilder archiveMessageBuilder) {
         this.archiveDevices = archiveDevices;
         this.fileService = fileService;
         this.fileManager = fileManager;
         this.localisationService = localisationService;
         this.mediaMessageService = mediaMessageService;
         this.userService = userService;
-        this.commandStateService = commandStateService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.archiveMessageBuilder = archiveMessageBuilder;
-    }
-
-    @Override
-    public WorkerTaskDelegate mapWorker(QueueItem queueItem) {
-        return new ArchiveTask((ArchiveQueueItem) queueItem);
-    }
-
-    @Override
-    public void currentTasksRemoved(int userId) {
-        commandStateService.deleteState(userId, FileUtilsCommandNames.ARCHIVE_COMMAND_NAME);
     }
 
     private ArchiveDevice getCandidate(Format format, Locale locale) {
@@ -133,7 +116,12 @@ public class ArchiverJobDelegate implements QueueJobDelegate {
         return progress;
     }
 
-    public class ArchiveTask implements WorkerTaskDelegate {
+    @Override
+    public QueueWorker createWorker(ArchiveQueueItem item) {
+        return new ArchiveQueueWorker(item);
+    }
+
+    public class ArchiveQueueWorker implements QueueWorker {
 
         private static final String TAG = "archive";
 
@@ -143,7 +131,7 @@ public class ArchiverJobDelegate implements QueueJobDelegate {
 
         private volatile SmartTempFile archive;
 
-        private ArchiveTask(ArchiveQueueItem item) {
+        private ArchiveQueueWorker(ArchiveQueueItem item) {
             this.item = item;
         }
 
@@ -181,16 +169,6 @@ public class ArchiverJobDelegate implements QueueJobDelegate {
         }
 
         @Override
-        public String getWaitingMessage(QueueItem queueItem, Locale locale) {
-            return archiveMessageBuilder.buildArchiveProcessMessage((ArchiveQueueItem) queueItem, ArchiveStep.WAITING, queueItem.getSize(), Lang.JAVA, locale);
-        }
-
-        @Override
-        public InlineKeyboardMarkup getWaitingKeyboard(QueueItem queueItem, Locale locale) {
-            return inlineKeyboardService.getArchiveCreatingKeyboard(queueItem.getId(), locale);
-        }
-
-        @Override
         public void finish() {
             files.forEach(SmartTempFile::smartDelete);
             files.clear();
@@ -198,11 +176,6 @@ public class ArchiverJobDelegate implements QueueJobDelegate {
             if (archive != null) {
                 archive.smartDelete();
             }
-        }
-
-        @Override
-        public boolean shouldBeDeletedAfterCompleted() {
-            return true;
         }
 
         private void renameFiles(ArchiveDevice archiveDevice, String archive,
