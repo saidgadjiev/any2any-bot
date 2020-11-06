@@ -18,4 +18,7 @@ export CXXFLAGS="-stdlib=libc++" && \
 CC=/usr/bin/clang-10 CXX=/usr/bin/clang++-10 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr/local .. && \
 cmake --build . --target install
 
-ENTRYPOINT ["telegram-bot-api", "--http-stat-port=8082", "--log=/home/bot/logs/botapi.log", "--local"]
+USER bot
+RUN mkdir -p /home/bot/workdir
+RUN mkdir -p /home/bot/logs
+ENTRYPOINT ["telegram-bot-api", "--http-stat-port=8082", "--log=/home/bot/logs/botapi.log", "--dir=/home/bot/workdir", "--local"]

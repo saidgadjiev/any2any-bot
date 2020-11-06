@@ -1,4 +1,4 @@
-version: '3'
+version: '3.5'
 services:
   db:
     container_name: db
@@ -29,7 +29,12 @@ services:
       - 8081:8081
       - 8082:8082
     volumes:
-      - ../../../data/botapi/logs:/home/bot/logs
+      - type: bind
+        source: ../../../data/botapi/logs
+        target: /home/bot/logs
+      - type: bind
+        source: ../../../data/botapi/workdir
+        target: /home/bot/workdir/1119541928:AAFiil_pWtM2YevKfifi-p8XxR0delkEeuw
     env_file:
       - .env.fileutils
 

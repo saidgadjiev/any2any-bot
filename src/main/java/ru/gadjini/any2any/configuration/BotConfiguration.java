@@ -2,7 +2,7 @@ package ru.gadjini.any2any.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.gadjini.any2any.filter.*;
+import ru.gadjini.any2any.filter.Any2AnyBotFilter;
 import ru.gadjini.telegram.smart.bot.commons.filter.*;
 
 @Configuration

@@ -7,9 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import ru.gadjini.telegram.smart.bot.commons.property.BotApiProperties;
-import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
-import ru.gadjini.telegram.smart.bot.commons.property.MTProtoProperties;
+import ru.gadjini.telegram.smart.bot.commons.property.*;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 
 import java.time.ZoneOffset;
@@ -19,7 +17,9 @@ import java.util.TimeZone;
 @EnableConfigurationProperties(value = {
         MTProtoProperties.class,
         BotApiProperties.class,
-        FileLimitProperties.class
+        FileLimitProperties.class,
+        BotProperties.class,
+        LocalBotApiProperties.class
 })
 @EnableScheduling
 @SpringBootApplication
