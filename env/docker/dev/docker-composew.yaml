@@ -10,7 +10,7 @@ services:
     ports:
       - 5005:5005
     env_file:
-      - .env.fileutils
+      - .env
     depends_on:
       - fileutilsmtproto
       - fileutilsbotapi
@@ -19,7 +19,7 @@ services:
     restart: always
     build: ../../../../fileutils-rest/
     env_file:
-      - .env.fileutils
+      - .env
     volumes:
       - ../../../data/fileutils/gram:/home/bot/app/gram
       - ../../../data/shr:/tmp/shr
@@ -30,7 +30,7 @@ services:
     restart: always
     build: ../../../../fileutils-bot/
     env_file:
-      - .env.fileutils
+      - .env
     volumes:
       - ../../../data/fileutils/gram:/home/bot/app/gram
     depends_on:
@@ -40,7 +40,7 @@ services:
     restart: always
     build: ../../../../fileutils-bot-api/
     env_file:
-      - .env.fileutils
+      - .env
     volumes:
       - ../../../data/fileutils/logs:/app/logs
       - ../../../data/shr:/tmp/shr
