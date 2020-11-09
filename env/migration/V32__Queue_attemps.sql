@@ -1,0 +1,1 @@
+ALTER TABLE queue ADD attempts INT NOT NULL DEFAULT 0;
