@@ -1,1 +1,1 @@
-ALTER TABLE queue ADD max_attempts INT NOT NULL DEFAULT 0;
+ALTER TABLE queue ADD attempts INT NOT NULL DEFAULT 0;
