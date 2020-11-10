@@ -39,21 +39,6 @@ public class ButtonFactory {
                 new RequestParams().add(Arg.IMAGE_FILTER.getKey(), State.Filter.SKETCH.name()), locale);
     }
 
-    public InlineKeyboardButton cancelArchiveCreatingQuery(int jobId, Locale locale) {
-        InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale));
-        button.setCallbackData(FileUtilsCommandNames.CANCEL_ARCHIVE_QUERY + CommandParser.COMMAND_NAME_SEPARATOR +
-                new RequestParams().add(Arg.JOB_ID.getKey(), jobId).serialize(CommandParser.COMMAND_ARG_SEPARATOR));
-
-        return button;
-    }
-
-    public InlineKeyboardButton cancelArchiveFiles(Locale locale) {
-        InlineKeyboardButton button = new InlineKeyboardButton(localisationService.getMessage(MessagesProperties.CANCEL_COMMAND_DESCRIPTION, locale));
-        button.setCallbackData(FileUtilsCommandNames.CANCEL_ARCHIVE_FILES + CommandParser.COMMAND_NAME_SEPARATOR);
-
-        return button;
-    }
-
     public InlineKeyboardButton updateButton(Locale locale) {
         return delegateButton(MessagesProperties.UPDATE_COMMAND_DESCRIPTION, FileUtilsCommandNames.IMAGE_EDITOR_COMMAND_NAME,
                 new RequestParams().add(Arg.UPDATE_EDITED_IMAGE.getKey(), "u"), locale);

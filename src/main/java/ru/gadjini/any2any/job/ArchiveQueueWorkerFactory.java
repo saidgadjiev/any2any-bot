@@ -14,7 +14,6 @@ import ru.gadjini.any2any.service.archive.ArchiveDevice;
 import ru.gadjini.any2any.service.archive.ArchiveMessageBuilder;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.archive.ArchiveStep;
-import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
@@ -26,6 +25,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueWorker;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueWorkerFactory;
@@ -52,7 +52,7 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
 
     private UserService userService;
 
-    private InlineKeyboardService inlineKeyboardService;
+    private SmartInlineKeyboardService inlineKeyboardService;
 
     private ArchiveMessageBuilder archiveMessageBuilder;
 
@@ -60,7 +60,7 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
     public ArchiveQueueWorkerFactory(Set<ArchiveDevice> archiveDevices, TempFileService fileService,
                                      FileManager fileManager, LocalisationService localisationService,
                                      @Qualifier("forceMedia") MediaMessageService mediaMessageService, UserService userService,
-                                     InlineKeyboardService inlineKeyboardService, ArchiveMessageBuilder archiveMessageBuilder) {
+                                     SmartInlineKeyboardService inlineKeyboardService, ArchiveMessageBuilder archiveMessageBuilder) {
         this.archiveDevices = archiveDevices;
         this.fileService = fileService;
         this.fileManager = fileManager;
@@ -94,9 +94,9 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
             String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.ARCHIVE_CREATION, Lang.JAVA, locale);
             String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
             progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 " + seconds));
-            progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(queueItem.getId(), locale));
+            progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
         }
-        progress.setProgressReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(queueItem.getId(), locale));
+        progress.setProgressReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
 
         return progress;
     }
@@ -112,7 +112,7 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
         String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.COMPLETED, Lang.JAVA, locale);
         progress.setAfterProgressCompletionMessage(completionMessage);
 
-        progress.setProgressReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(queueItem.getId(), locale));
+        progress.setProgressReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
 
         return progress;
     }

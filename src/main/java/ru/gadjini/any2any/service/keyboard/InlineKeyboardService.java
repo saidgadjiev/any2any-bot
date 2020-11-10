@@ -11,6 +11,7 @@ import ru.gadjini.any2any.request.Arg;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.image.editor.transparency.Color;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
+import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.request.RequestParams;
 
 import java.util.ArrayList;
@@ -24,29 +25,16 @@ public class InlineKeyboardService {
 
     private ButtonFactory buttonFactory;
 
+    private SmartInlineKeyboardService smartInlineKeyboardService;
+
     @Autowired
-    public InlineKeyboardService(ButtonFactory buttonFactory) {
+    public InlineKeyboardService(ButtonFactory buttonFactory, SmartInlineKeyboardService smartInlineKeyboardService) {
         this.buttonFactory = buttonFactory;
-    }
-
-    public InlineKeyboardMarkup getArchiveCreatingKeyboard(int jobId, Locale locale) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelArchiveCreatingQuery(jobId, locale)));
-
-        return inlineKeyboardMarkup;
-    }
-
-    public InlineKeyboardMarkup getArchiveFilesKeyboard(Locale locale) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
-
-        inlineKeyboardMarkup.getKeyboard().add(List.of(buttonFactory.cancelArchiveFiles(locale)));
-
-        return inlineKeyboardMarkup;
+        this.smartInlineKeyboardService = smartInlineKeyboardService;
     }
 
     public InlineKeyboardMarkup getColorsKeyboard(Locale locale, boolean cancelButton) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         List<Color> colors = Arrays.stream(Color.values()).collect(Collectors.toList());
         List<List<Color>> lists = Lists.partition(colors, 5);
@@ -95,7 +83,7 @@ public class InlineKeyboardService {
     }
 
     public InlineKeyboardMarkup getTransparentModeKeyboard(Locale locale) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.delegateButton(MessagesProperties.MESSAGE_IMAGE_EDITOR_NEGATIVE_MODE,
@@ -111,7 +99,7 @@ public class InlineKeyboardService {
     }
 
     public InlineKeyboardMarkup getInaccuracyKeyboard(Locale locale) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.delegateButton("5.0%",
@@ -137,7 +125,7 @@ public class InlineKeyboardService {
     }
 
     public InlineKeyboardMarkup getResizeKeyboard(Locale locale, boolean cancelButton) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.delegateButton("16x16",
@@ -173,7 +161,7 @@ public class InlineKeyboardService {
     }
 
     public InlineKeyboardMarkup getImageFiltersKeyboard(Locale locale, boolean cancelButton) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.blackAndWhiteFilterButton(locale),
@@ -202,7 +190,7 @@ public class InlineKeyboardService {
     }
 
     public InlineKeyboardMarkup getImageEditKeyboard(Locale locale, boolean cancelButton) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.transparencyButton(locale)
@@ -224,7 +212,7 @@ public class InlineKeyboardService {
     }
 
     public InlineKeyboardMarkup getTransparencyKeyboard(Locale locale) {
-        InlineKeyboardMarkup inlineKeyboardMarkup = inlineKeyboardMarkup();
+        InlineKeyboardMarkup inlineKeyboardMarkup = smartInlineKeyboardService.inlineKeyboardMarkup();
 
         inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.delegateButton(MessagesProperties.TRANSPARENT_MODE_COMMAND_DESCRIPTION,
@@ -241,14 +229,6 @@ public class InlineKeyboardService {
                 buttonFactory.delegateButton(MessagesProperties.GO_BACK_CALLBACK_COMMAND_DESCRIPTION,
                         FileUtilsCommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.GO_BACK.getKey(), "g"), locale
                 )));
-
-        return inlineKeyboardMarkup;
-    }
-
-    private InlineKeyboardMarkup inlineKeyboardMarkup() {
-        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
-
-        inlineKeyboardMarkup.setKeyboard(new ArrayList<>());
 
         return inlineKeyboardMarkup;
     }

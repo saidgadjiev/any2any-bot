@@ -13,6 +13,7 @@ import ru.gadjini.telegram.smart.bot.commons.dao.QueueDaoDelegate;
 import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
+import ru.gadjini.telegram.smart.bot.commons.property.QueueProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.utils.JdbcUtils;
@@ -28,12 +29,16 @@ public class ArchiveQueueDao implements QueueDaoDelegate<ArchiveQueueItem> {
 
     private FileLimitProperties fileLimitProperties;
 
+    private QueueProperties queueProperties;
+
     private ObjectMapper objectMapper;
 
     @Autowired
-    public ArchiveQueueDao(JdbcTemplate jdbcTemplate, FileLimitProperties fileLimitProperties, ObjectMapper objectMapper) {
+    public ArchiveQueueDao(JdbcTemplate jdbcTemplate, FileLimitProperties fileLimitProperties,
+                           QueueProperties queueProperties, ObjectMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
         this.fileLimitProperties = fileLimitProperties;
+        this.queueProperties = queueProperties;
         this.objectMapper = objectMapper;
     }
 
@@ -89,15 +94,17 @@ public class ArchiveQueueDao implements QueueDaoDelegate<ArchiveQueueItem> {
     public List<ArchiveQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
         return jdbcTemplate.query(
                 "WITH r AS (\n" +
-                        "    UPDATE archive_queue SET status = 1, last_run_at = now(), started_at = COALESCE(started_at, now()) " +
-                        "WHERE id IN (SELECT id FROM archive_queue WHERE status = 0 " +
+                        "    UPDATE archive_queue SET status = 1, last_run_at = now(), attempts = attempts + 1, " +
+                        "started_at = COALESCE(started_at, now()) " +
+                        "WHERE attempts <= ? AND id IN (SELECT id FROM archive_queue WHERE status = 0 " +
                         "AND total_file_size " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ? ORDER BY created_at LIMIT ?) RETURNING *\n" +
                         ")\n" +
                         "SELECT *, 1 as queue_position\n" +
                         "FROM r cv INNER JOIN (SELECT id, json_agg(files) as files_json FROM archive_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id\n",
                 ps -> {
-                    ps.setLong(1, fileLimitProperties.getLightFileMaxWeight());
-                    ps.setInt(2, limit);
+                    ps.setLong(1, queueProperties.getMaxAttempts());
+                    ps.setLong(2, fileLimitProperties.getLightFileMaxWeight());
+                    ps.setInt(3, limit);
                 },
                 (rs, rowNum) -> map(rs)
         );

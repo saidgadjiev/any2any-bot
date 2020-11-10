@@ -6,8 +6,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.service.archive.ArchiveMessageBuilder;
 import ru.gadjini.any2any.service.archive.ArchiveStep;
-import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.progress.Lang;
+import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueJobConfigurator;
 
 import java.util.Locale;
@@ -17,10 +17,10 @@ public class ArchiveQueueJobConfigurator implements QueueJobConfigurator<Archive
 
     private ArchiveMessageBuilder archiveMessageBuilder;
 
-    private InlineKeyboardService inlineKeyboardService;
+    private SmartInlineKeyboardService inlineKeyboardService;
 
     @Autowired
-    public ArchiveQueueJobConfigurator(ArchiveMessageBuilder messageBuilder, InlineKeyboardService inlineKeyboardService) {
+    public ArchiveQueueJobConfigurator(ArchiveMessageBuilder messageBuilder, SmartInlineKeyboardService inlineKeyboardService) {
         this.archiveMessageBuilder = messageBuilder;
         this.inlineKeyboardService = inlineKeyboardService;
     }
@@ -32,6 +32,6 @@ public class ArchiveQueueJobConfigurator implements QueueJobConfigurator<Archive
 
     @Override
     public InlineKeyboardMarkup getWaitingKeyboard(ArchiveQueueItem queueItem, Locale locale) {
-        return inlineKeyboardService.getArchiveCreatingKeyboard(queueItem.getId(), locale);
+        return inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale);
     }
 }

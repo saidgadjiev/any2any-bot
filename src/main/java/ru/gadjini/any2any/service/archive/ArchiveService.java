@@ -9,12 +9,12 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
-import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.service.queue.ArchiveQueueService;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
+import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueService;
 
@@ -35,14 +35,14 @@ public class ArchiveService {
 
     private QueueService queueService;
 
-    private InlineKeyboardService inlineKeyboardService;
+    private SmartInlineKeyboardService inlineKeyboardService;
 
     private ArchiveMessageBuilder messageBuilder;
 
     @Autowired
     public ArchiveService(@Qualifier("messageLimits") MessageService messageService, UserService userService,
                           ArchiveQueueService archiveQueueService,
-                          QueueService queueService, InlineKeyboardService inlineKeyboardService, ArchiveMessageBuilder messageBuilder) {
+                          QueueService queueService, SmartInlineKeyboardService inlineKeyboardService, ArchiveMessageBuilder messageBuilder) {
         this.messageService = messageService;
         this.userService = userService;
         this.archiveQueueService = archiveQueueService;
@@ -67,7 +67,7 @@ public class ArchiveService {
         messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(queueItem.getUserId()))
                 .text(message)
                 .parseMode(ParseMode.HTML)
-                .replyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(queueItem.getId(), locale)).build(), callback);
+                .replyMarkup(inlineKeyboardService.getWaitingKeyboard(queueItem.getId(), locale)).build(), callback);
     }
 
     private void normalizeFileNames(List<MessageMedia> any2AnyFiles) {

@@ -4,7 +4,6 @@ import ru.gadjini.telegram.smart.bot.commons.command.impl.CallbackDelegate;
 
 public enum Arg {
 
-    PREV_HISTORY_NAME("b"),
     CALLBACK_DELEGATE(CallbackDelegate.ARG_NAME),
     TRANSPARENT_MODE("e"),
     TRANSPARENT_COLOR("f"),
@@ -13,12 +12,7 @@ public enum Arg {
     IMAGE_FILTER("m"),
     INACCURACY("l"),
     IMAGE_SIZE("o"),
-    UPDATE_EDITED_IMAGE("p"),
-    EXTRACT_FILE_ID("r"),
-    JOB_ID("s"),
-    OFFSET("t"),
-    PAGINATION("u"),
-    PREV_LIMIT("v");
+    UPDATE_EDITED_IMAGE("p");
 
     private final String key;
 

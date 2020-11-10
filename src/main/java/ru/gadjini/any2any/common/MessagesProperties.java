@@ -163,8 +163,6 @@ public class MessagesProperties {
 
     public static final String ADMIN_COMMAND_NAME = "admin.command.name";
 
-    public static final String MESSAGE_DOWNLOAD_FILE_PROCESSING = "message.download.file.processing";
-
     public static final String REMOVE_GARBAGE_FILES_COMMAND_NAME = "remove.garbage.files.command.name";
 
     public static final String MESSAGE_COLLECTED_GARBAGE = "message.collected.garbage";
@@ -181,8 +179,6 @@ public class MessagesProperties {
 
     public static final String ARCHIVE_CREATION_STEP = "archive.creation.step";
 
-    public static final String MESSAGE_SPEED = "message.speed";
-
     public static final String CANCEL_ARCHIVE_COMMAND_NAME = "cancel.archive.command.name";
 
     public static final String MESSAGE_FILE_QUEUED = "message.file.queued";
@@ -190,4 +186,6 @@ public class MessagesProperties {
     public static final String WAITING_STEP = "waiting.step";
 
     public static final String MESSAGE_DONT_SEND_NEW_REQUEST = "message.dont.send.new.request";
+
+    public static final String MESSAGE_MAX_FILES_SIZE = "message.max.files.size";
 }

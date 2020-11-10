@@ -30,6 +30,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatCategory;
 import ru.gadjini.telegram.smart.bot.commons.service.format.FormatService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
+import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -39,6 +40,8 @@ import java.util.Set;
 public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, BotCommand {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ArchiveCommand.class);
+
+    private static final long MAX_FILES_SIZE = 2100 * 1024 * 1024L;
 
     private ArchiveService archiveService;
 
@@ -139,7 +142,9 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
                 if (archiveState == null) {
                     archiveState = new ArchiveState();
                 }
-                archiveState.getFiles().add(createFile(message, locale));
+                MessageMedia file = createFile(message, locale);
+                validateTotalSize(archiveState.getFiles().stream().map(MessageMedia::getFileSize).mapToLong(i -> i).sum() + file.getFileSize(), locale);
+                archiveState.getFiles().add(file);
                 commandStateService.setState(message.getChatId(), getHistoryName(), archiveState);
             }
         });
@@ -167,5 +172,13 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
         }
 
         return format;
+    }
+
+    private void validateTotalSize(long size, Locale locale) {
+        if (size > MAX_FILES_SIZE) {
+            throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_MAX_FILES_SIZE, new Object[]{
+                    MemoryUtils.humanReadableByteCount(MAX_FILES_SIZE)
+            }, locale));
+        }
     }
 }

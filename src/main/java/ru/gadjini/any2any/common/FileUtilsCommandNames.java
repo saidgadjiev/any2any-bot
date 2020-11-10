@@ -22,8 +22,6 @@ public class FileUtilsCommandNames {
 
     public static final String FORMATS_COMMAND = "formats";
 
-    public static final String CANCEL_ARCHIVE_QUERY = "u";
-
     public static final String CANCEL_ARCHIVE_FILES = "w";
 
     public static final String ADMIN = "x";
