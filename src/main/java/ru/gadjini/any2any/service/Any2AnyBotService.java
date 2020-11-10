@@ -4,22 +4,24 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.keyboard.CurrReplyKeyboard;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Update;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.buttons.KeyboardRow;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandExecutor;
 import ru.gadjini.telegram.smart.bot.commons.service.command.navigator.CommandNavigator;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
+import java.util.Collections;
 import java.util.Locale;
 
 @Service
@@ -69,9 +71,10 @@ public class Any2AnyBotService {
                     return;
                 } else {
                     messageService.sendMessage(
-                            new HtmlMessage(
-                                    update.getMessage().getChatId(),
-                                    localisationService.getMessage(MessagesProperties.MESSAGE_UNKNOWN_COMMAND, userService.getLocaleOrDefault(update.getMessage().getFrom().getId()))));
+                            SendMessage.builder().chatId(String.valueOf(update.getMessage().getChatId()))
+                                    .text(localisationService.getMessage(MessagesProperties.MESSAGE_UNKNOWN_COMMAND, userService.getLocaleOrDefault(update.getMessage().getFrom().getId())))
+                                    .parseMode(ParseMode.HTML)
+                                    .build());
                     return;
                 }
             }
@@ -109,6 +112,9 @@ public class Any2AnyBotService {
 
         if (replyKeyboardMarkup == null) {
             return true;
+        }
+        if (replyKeyboardMarkup.getKeyboard() == null) {
+            replyKeyboardMarkup.setKeyboard(Collections.emptyList());
         }
 
         for (KeyboardRow keyboardRow : replyKeyboardMarkup.getKeyboard()) {

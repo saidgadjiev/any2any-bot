@@ -6,6 +6,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.archive.ArchiveService;
@@ -19,8 +22,6 @@ import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.job.QueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -99,8 +100,10 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
     @Override
     public boolean processMessage(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-        messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES, locale))
-                .setReplyMarkup(replyKeyboardService.archiveTypesKeyboard(message.getChatId(), locale)));
+        messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                .text(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES, locale))
+                .parseMode(ParseMode.HTML)
+                .replyMarkup(replyKeyboardService.archiveTypesKeyboard(message.getChatId(), locale)).build());
 
         return true;
     }
@@ -122,8 +125,9 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
             if (message.hasText()) {
                 ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false, ArchiveState.class);
                 if (archiveState == null || archiveState.getFiles().isEmpty()) {
-                    messageService.sendMessage(new HtmlMessage(message.getChatId(),
-                            localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale)));
+                    messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                            .text(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale))
+                            .parseMode(ParseMode.HTML).build());
                 } else {
                     Format associatedFormat = checkFormat(text, formatService.getAssociatedFormat(text), locale);
                     archiverJob.removeAndCancelCurrentTasks(message.getChatId());

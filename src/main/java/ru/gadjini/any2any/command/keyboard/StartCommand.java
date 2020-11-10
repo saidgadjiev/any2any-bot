@@ -3,6 +3,10 @@ package ru.gadjini.any2any.command.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.Any2AnyCommandMessageBuilder;
 import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
@@ -10,9 +14,6 @@ import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboard;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
@@ -50,8 +51,10 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     public void processMessage(Message message, String[] params) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
-                new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
-                        .setReplyMarkup(replyKeyboardService.getMainMenu(message.getChat().getId(), locale))
+                SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
+                        .parseMode(ParseMode.HTML)
+                        .replyMarkup(replyKeyboardService.getMainMenu(message.getChat().getId(), locale)).build()
         );
     }
 
@@ -64,7 +67,10 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     public void processNonCommandUpdate(Message message, String text) {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         messageService.sendMessage(
-                new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_SECTION, new Object[]{commandMessageBuilder.getCommandsInfo(locale)}, locale))
+                SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_CHOOSE_SECTION, new Object[]{commandMessageBuilder.getCommandsInfo(locale)}, locale))
+                        .parseMode(ParseMode.HTML)
+                        .build()
         );
     }
 
@@ -82,8 +88,11 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     public void restore(TgMessage message) {
         commandStateService.deleteState(message.getChatId(), getHistoryName());
         Locale locale = userService.getLocaleOrDefault(message.getUser().getId());
-        messageService.sendMessage(new HtmlMessage(message.getChatId(), localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
-                .setReplyMarkup(replyKeyboardService.getMainMenu(message.getChatId(), locale)));
+        messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                .text(localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
+                .replyMarkup(replyKeyboardService.getMainMenu(message.getChatId(), locale))
+                .parseMode(ParseMode.HTML)
+                .build());
     }
 
     @Override

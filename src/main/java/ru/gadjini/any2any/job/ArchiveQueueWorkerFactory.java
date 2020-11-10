@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.service.archive.ArchiveDevice;
@@ -18,8 +20,7 @@ import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Progress;
+import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -81,16 +82,16 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
         throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_TYPE_UNSUPPORTED, new Object[]{format}, locale));
     }
 
-    private Progress progressFilesDownloading(ArchiveQueueItem queueItem, int count, int current, long fileSize) {
+    private Progress progressFilesDownloading(ArchiveQueueItem queueItem, int count, int current) {
         Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
         Progress progress = new Progress();
         progress.setLocale(locale.getLanguage());
         progress.setChatId(queueItem.getUserId());
         progress.setProgressMessageId(queueItem.getProgressMessageId());
-        progress.setProgressMessage(archiveMessageBuilder.buildArchiveProgressMessage(queueItem, count, current, ArchiveStep.DOWNLOADING, fileSize, Lang.PYTHON, locale));
+        progress.setProgressMessage(archiveMessageBuilder.buildArchiveProgressMessage(queueItem, count, current, ArchiveStep.DOWNLOADING, Lang.PYTHON, locale));
 
         if (count == current) {
-            String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.ARCHIVE_CREATION, fileSize, Lang.JAVA, locale);
+            String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.ARCHIVE_CREATION, Lang.JAVA, locale);
             String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
             progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 " + seconds));
             progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(queueItem.getId(), locale));
@@ -100,15 +101,15 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
         return progress;
     }
 
-    private Progress progressArchiveUploading(ArchiveQueueItem queueItem, long fileSize) {
+    private Progress progressArchiveUploading(ArchiveQueueItem queueItem) {
         Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
         Progress progress = new Progress();
         progress.setLocale(locale.getLanguage());
         progress.setChatId(queueItem.getUserId());
         progress.setProgressMessageId(queueItem.getProgressMessageId());
-        progress.setProgressMessage(archiveMessageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.UPLOADING, fileSize, Lang.PYTHON, locale));
+        progress.setProgressMessage(archiveMessageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.UPLOADING, Lang.PYTHON, locale));
 
-        String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.COMPLETED, fileSize, Lang.JAVA, locale);
+        String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.COMPLETED, Lang.JAVA, locale);
         progress.setAfterProgressCompletionMessage(completionMessage);
 
         progress.setProgressReplyMarkup(inlineKeyboardService.getArchiveCreatingKeyboard(queueItem.getId(), locale));
@@ -148,8 +149,8 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
             renameFiles(archiveDevice, archive.getAbsolutePath(), downloadResult.originalFileNames, downloadResult.downloadedNames);
 
             String fileName = Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), item.getType().getExt());
-            mediaMessageService.sendDocument(new SendDocument((long) item.getUserId(), fileName, archive.getFile())
-                    .setProgress(progressArchiveUploading(item, archive.length())));
+            mediaMessageService.sendDocument(new SendDocument(String.valueOf(item.getUserId()), new InputFile(archive.getFile(), fileName)),
+                    progressArchiveUploading(item));
 
             LOGGER.debug("Finish({}, {}, {})", item.getId(), size, item.getType());
         }
@@ -191,8 +192,8 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
             int i = 1;
             for (TgFile tgFile : tgFiles) {
                 SmartTempFile file = fileService.createTempFile(queueItem.getUserId(), tgFile.getFileId(), TAG, FilenameUtils.getExtension(tgFile.getFileName()));
-                fileManager.forceDownloadFileByFileId(tgFile.getFileId(), tgFile.getSize(),
-                        progressFilesDownloading(queueItem, tgFiles.size(), i, tgFile.getSize()), file);
+                fileManager.downloadFileByFileId(tgFile.getFileId(), tgFile.getSize(),
+                        progressFilesDownloading(queueItem, tgFiles.size(), i), file);
                 downloadResult.originalFileNames.put(i, tgFile.getFileName());
                 downloadResult.downloadedNames.put(i++, file.getName());
                 files.add(file);

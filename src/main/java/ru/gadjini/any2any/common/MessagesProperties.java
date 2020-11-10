@@ -163,10 +163,6 @@ public class MessagesProperties {
 
     public static final String ADMIN_COMMAND_NAME = "admin.command.name";
 
-    public static final String DOWNLOAD_FILE_COMMAND_NAME = "download.file.command.name";
-
-    public static final String EXECUTE_CONVERSION_COMMAND_NAME = "execute.conversion.command.name";
-
     public static final String MESSAGE_DOWNLOAD_FILE_PROCESSING = "message.download.file.processing";
 
     public static final String REMOVE_GARBAGE_FILES_COMMAND_NAME = "remove.garbage.files.command.name";
@@ -186,8 +182,6 @@ public class MessagesProperties {
     public static final String ARCHIVE_CREATION_STEP = "archive.creation.step";
 
     public static final String MESSAGE_SPEED = "message.speed";
-
-    public static final String RESET_FILE_LIMIT_COMMAND_NAME = "reset.file.limit.command.name";
 
     public static final String CANCEL_ARCHIVE_COMMAND_NAME = "cancel.archive.command.name";
 

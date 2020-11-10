@@ -5,18 +5,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageCaption;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallbackQuery;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageCaption;
-import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
-import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.any2any.service.image.editor.EditMessageBuilder;
 import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Locale;
@@ -69,10 +69,10 @@ public class InaccuracyState implements State {
     @Override
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
-        messageService.editMessageCaption(new EditMessageCaption(chatId, state.getMessageId(),
-                messageBuilder.getSettingsStr(state) + "\n\n"
+        messageService.editMessageCaption(EditMessageCaption.builder().chatId(String.valueOf(chatId)).messageId(state.getMessageId())
+                .caption(messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_INACCURACY_WELCOME, new Locale(state.getLanguage())))
-                .setReplyMarkup(inlineKeyboardService.getInaccuracyKeyboard(new Locale(state.getLanguage()))));
+                .replyMarkup(inlineKeyboardService.getInaccuracyKeyboard(new Locale(state.getLanguage()))).build());
     }
 
     @Override
@@ -82,16 +82,16 @@ public class InaccuracyState implements State {
         inaccuracy = validateAndGet(inaccuracy, locale);
         if (state.getInaccuracy().equals(inaccuracy)) {
             messageService.sendAnswerCallbackQuery(
-                    new AnswerCallbackQuery(queryId,
-                            localisationService.getMessage(MessagesProperties.MESSAGE_INACCURACY_CHANGED, locale))
+                    AnswerCallbackQuery.builder().callbackQueryId(queryId)
+                            .text(localisationService.getMessage(MessagesProperties.MESSAGE_INACCURACY_CHANGED, locale)).build()
             );
             return;
         }
         state.setInaccuracy(inaccuracy);
         messageService.editMessageCaption(
-                new EditMessageCaption(chatId, state.getMessageId(), messageBuilder.getSettingsStr(state) + "\n\n"
+                EditMessageCaption.builder().chatId(String.valueOf(chatId)).messageId(state.getMessageId()).caption(messageBuilder.getSettingsStr(state) + "\n\n"
                         + localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_INACCURACY_WELCOME, locale))
-                        .setReplyMarkup(inlineKeyboardService.getInaccuracyKeyboard(locale))
+                        .replyMarkup(inlineKeyboardService.getInaccuracyKeyboard(locale)).build()
         );
         commandStateService.setState(chatId, command.getHistoryName(), state);
     }

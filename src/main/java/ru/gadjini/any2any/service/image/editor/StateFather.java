@@ -7,27 +7,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
+import org.telegram.telegrambots.meta.api.objects.media.InputMediaDocument;
 import ru.gadjini.any2any.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
+import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
+import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageMedia;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
-import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
-import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
-import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
-import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
-import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 
 import java.io.File;
 import java.util.Locale;
@@ -174,14 +176,16 @@ public class StateFather implements State {
 
             SmartTempFile file = tempFileService.createTempFile(chatId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
             try {
-                fileManager.forceDownloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFileSize(), file);
+                fileManager.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFileSize(), file);
                 SmartTempFile result = tempFileService.createTempFile(chatId, any2AnyFile.getFileId(), TAG, Format.PNG.getExt());
                 imageDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
                 EditorState state = createState(result.getAbsolutePath(), Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), Format.PNG.getExt()));
                 state.setLanguage(locale.getLanguage());
-                SendFileResult fileResult = mediaMessageService.sendDocument(new SendDocument(chatId, state.getFileName(), result.getFile())
-                        .setCaption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
-                        .setReplyMarkup(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())));
+                SendFileResult fileResult = mediaMessageService.sendDocument(SendDocument.builder().chatId(String.valueOf(chatId))
+                        .document(new InputFile(result.getFile(), state.getFileName()))
+                        .caption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
+                        .replyMarkup(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel()))
+                        .build());
                 state.setMessageId(fileResult.getMessageId());
                 state.setCurrentFileId(fileResult.getFileId());
                 commandStateService.setState(chatId, command.getHistoryName(), state);
@@ -201,10 +205,12 @@ public class StateFather implements State {
         try {
             File file = new File(state.getCurrentFilePath());
             if (file.length() > 0) {
-                mediaMessageService.sendDocument(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath())));
+                mediaMessageService.sendDocument(new SendDocument(String.valueOf(chatId), new InputFile(new File(state.getCurrentFilePath()), state.getFileName())));
                 messageService.deleteMessage(chatId, state.getMessageId());
             } else {
-                mediaMessageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId()));
+                mediaMessageService.editMessageMedia(EditMessageMedia.builder().chatId(String.valueOf(chatId))
+                        .messageId(state.getMessageId())
+                        .media(new InputMediaDocument(state.getCurrentFileId())).build());
             }
             commandStateService.deleteState(chatId, command.getHistoryName());
             LOGGER.debug("State deleted({})", chatId);
@@ -244,10 +250,12 @@ public class StateFather implements State {
             try {
                 File file = new File(state.getCurrentFilePath());
                 if (file.length() > 0) {
-                    mediaMessageService.sendDocument(new SendDocument(chatId, state.getFileName(), new File(state.getCurrentFilePath())));
+                    mediaMessageService.sendDocument(new SendDocument(String.valueOf(chatId), new InputFile(new File(state.getCurrentFilePath()), state.getFileName())));
                     messageService.deleteMessage(chatId, state.getMessageId());
                 } else {
-                    mediaMessageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId()));
+                    mediaMessageService.editMessageMedia(EditMessageMedia.builder().chatId(String.valueOf(chatId))
+                            .messageId(state.getMessageId())
+                            .media(new InputMediaDocument(state.getCurrentFileId())).build());
                 }
             } catch (Exception ex) {
                 LOGGER.error(ex.getMessage(), ex);
@@ -260,15 +268,6 @@ public class StateFather implements State {
 
         if (editorState == null) {
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_MAIN_WELCOME, userService.getLocaleOrDefault((int) chatId)));
-        }
-
-        try {
-            fileManager.restoreFileIfNeed(editorState.getCurrentFilePath(), editorState.getCurrentFileId());
-            if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
-                fileManager.restoreFileIfNeed(editorState.getPrevFilePath(), editorState.getPrevFileId());
-            }
-        } catch (Exception ex) {
-            LOGGER.error(ex.getMessage(), ex);
         }
 
         return editorState;

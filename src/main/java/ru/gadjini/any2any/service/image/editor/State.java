@@ -1,7 +1,7 @@
 package ru.gadjini.any2any.service.image.editor;
 
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import ru.gadjini.any2any.command.keyboard.ImageEditorCommand;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 
 public interface State {

@@ -3,13 +3,13 @@ package ru.gadjini.any2any.command.keyboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.archive.ArchiveState;
 import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
@@ -56,15 +56,16 @@ public class CancelArchiveFilesCommand implements KeyboardBotCommand {
         Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
         if (state != null) {
             commandStateService.deleteState(message.getChatId(), FileUtilsCommandNames.ARCHIVE_COMMAND_NAME);
-            messageService.sendMessage(new HtmlMessage(
-                    message.getChatId(),
-                    state.getFiles().isEmpty()
+            messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                    .text(state.getFiles().isEmpty()
                             ? localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_NOT_FOUND, locale)
                             : localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_DELETED, new Object[]{state.getFiles().size()}, locale)
-            ));
+                    ).parseMode(ParseMode.HTML)
+                    .build()
+            );
         } else {
             messageService.sendMessage(new SendMessage(
-                    message.getChatId(),
+                    String.valueOf(message.getChatId()),
                     localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_NOT_FOUND, locale))
             );
         }

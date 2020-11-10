@@ -7,12 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.any2any.exception.OcrException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendMessage;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -62,18 +61,22 @@ public class OcrService {
             Locale locale = userService.getLocaleOrDefault(userId);
             SmartTempFile file = fileService.createTempFile(userId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
             try {
-                fileManager.forceDownloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFileSize(), file);
+                fileManager.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFileSize(), file);
 
                 String result = ocrDevice.getText(file.getAbsolutePath());
                 if (StringUtils.isBlank(result)) {
-                    messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
+                    messageService.sendMessage(SendMessage.builder()
+                            .chatId(String.valueOf(userId)).text(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale))
+                            .parseMode(ParseMode.HTML).build());
                 } else {
-                    messageService.sendMessage(new SendMessage((long) userId, result));
+                    messageService.sendMessage(new SendMessage(String.valueOf(userId), result));
                 }
                 LOGGER.debug("Finish({}, {})", userId, StringUtils.substring(result, 0, 50));
             } catch (Exception ex) {
-                messageService.sendMessage(new HtmlMessage((long) userId, localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale)));
-                throw new OcrException(ex);
+                LOGGER.error(ex.getMessage(), ex);
+                messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(userId))
+                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale))
+                        .parseMode(ParseMode.HTML).build());
             } finally {
                 file.smartDelete();
             }

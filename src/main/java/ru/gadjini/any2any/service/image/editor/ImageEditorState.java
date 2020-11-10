@@ -4,19 +4,21 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
+import org.telegram.telegrambots.meta.api.objects.media.InputMediaDocument;
 import ru.gadjini.any2any.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
-import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageMedia;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallbackQuery;
-import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
-import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.any2any.service.image.editor.filter.FilterState;
 import ru.gadjini.any2any.service.image.editor.transparency.TransparencyState;
 import ru.gadjini.any2any.service.image.resize.ResizeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
+import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
@@ -80,14 +82,18 @@ public class ImageEditorState implements State {
         messageService.deleteMessage(chatId, editorState.getMessageId());
         Locale locale = new Locale(editorState.getLanguage());
 
-        SendFileResult sendFileResult = mediaMessageService.sendDocument(new SendDocument(chatId, editorState.getCurrentFileId())
-                .setCaption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
-                .setReplyMarkup(inlineKeyboardService.getImageEditKeyboard(locale, editorState.canCancel())));
+        SendFileResult sendFileResult = mediaMessageService.sendDocument(SendDocument.builder()
+                .chatId(String.valueOf(chatId))
+                .document(new InputFile(editorState.getCurrentFileId()))
+                .caption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
+                .replyMarkup(inlineKeyboardService.getImageEditKeyboard(locale, editorState.canCancel()))
+                .build());
 
         editorState.setMessageId(sendFileResult.getMessageId());
         commandStateService.setState(chatId, command.getHistoryName(), editorState);
         if (StringUtils.isNotBlank(queryId)) {
-            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.UPDATE_CALLBACK_ANSWER, locale)));
+            messageService.sendAnswerCallbackQuery(AnswerCallbackQuery.builder().callbackQueryId(queryId)
+                    .text(localisationService.getMessage(MessagesProperties.UPDATE_CALLBACK_ANSWER, locale)).build());
         }
     }
 
@@ -101,13 +107,18 @@ public class ImageEditorState implements State {
             editorState.setPrevFilePath(null);
             editorState.setPrevFileId(null);
 
-            mediaMessageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), editorState.getCurrentFileId())
-                    .setReplyMarkup(inlineKeyboardService.getImageEditKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
+            mediaMessageService.editMessageMedia(EditMessageMedia.builder()
+                    .chatId(String.valueOf(chatId))
+                    .messageId(editorState.getMessageId())
+                    .media(new InputMediaDocument(editorState.getCurrentFileId()))
+                    .replyMarkup(inlineKeyboardService.getImageEditKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel()))
+                    .build());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
             new SmartTempFile(new File(editFilePath)).smartDelete();
         } else {
-            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_CANT_CANCEL_ANSWER, new Locale(editorState.getLanguage()))));
+            messageService.sendAnswerCallbackQuery(AnswerCallbackQuery.builder().callbackQueryId(queryId)
+                    .text(localisationService.getMessage(MessagesProperties.MESSAGE_CANT_CANCEL_ANSWER, new Locale(editorState.getLanguage()))).build());
         }
     }
 
@@ -136,8 +147,11 @@ public class ImageEditorState implements State {
     public void enter(ImageEditorCommand command, long chatId) {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         Locale locale = new Locale(state.getLanguage());
-        mediaMessageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId(),
-                localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale))
-                .setReplyMarkup(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())));
+        mediaMessageService.editMessageMedia(EditMessageMedia.builder()
+                .chatId(String.valueOf(chatId))
+                .messageId(state.getMessageId())
+                .media(InputMediaDocument.builder().media(state.getCurrentFileId()).caption(
+                        localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_EDITOR_WELCOME, locale)).build())
+                .replyMarkup(inlineKeyboardService.getImageEditKeyboard(locale, state.canCancel())).build());
     }
 }

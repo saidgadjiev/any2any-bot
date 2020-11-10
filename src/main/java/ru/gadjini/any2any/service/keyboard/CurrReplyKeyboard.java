@@ -2,10 +2,11 @@ package ru.gadjini.any2any.service.keyboard;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import ru.gadjini.telegram.smart.bot.commons.dao.command.keyboard.ReplyKeyboardDao;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardMarkup;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.replykeyboard.ReplyKeyboardRemove;
 
+import java.util.Collections;
 import java.util.Locale;
 
 @Service
@@ -54,7 +55,9 @@ public class CurrReplyKeyboard implements Any2AnyReplyKeyboardService {
     @Override
     public ReplyKeyboardRemove removeKeyboard(long chatId) {
         ReplyKeyboardRemove replyKeyboardRemove = keyboardService.removeKeyboard(chatId);
-        setCurrentKeyboard(chatId, new ReplyKeyboardMarkup());
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
+        replyKeyboardMarkup.setKeyboard(Collections.emptyList());
+        setCurrentKeyboard(chatId, replyKeyboardMarkup);
 
         return replyKeyboardRemove;
     }

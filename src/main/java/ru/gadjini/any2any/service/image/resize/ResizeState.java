@@ -7,6 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
+import org.telegram.telegrambots.meta.api.objects.media.InputMediaDocument;
 import ru.gadjini.any2any.command.keyboard.ImageEditorCommand;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
@@ -19,10 +25,6 @@ import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.EditMediaResult;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.SendDocument;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.updatemessages.EditMessageMedia;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.AnswerCallbackQuery;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.CallbackQuery;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
@@ -99,16 +101,18 @@ public class ResizeState implements State {
         String size = identifyDevice.getSize(editorState.getCurrentFilePath());
         Locale locale = new Locale(editorState.getLanguage());
 
-        SendFileResult sendFileResult = mediaMessageService.sendDocument(new SendDocument(chatId, editorState.getFileName(), new File(editorState.getCurrentFilePath()))
-                .setCaption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_SIZE, new Object[]{size}, locale) + "\n\n" +
+        SendFileResult sendFileResult = mediaMessageService.sendDocument(SendDocument.builder()
+                .chatId(String.valueOf(chatId)).document(new InputFile(new File(editorState.getCurrentFilePath(), editorState.getFileName())))
+                .caption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_SIZE, new Object[]{size}, locale) + "\n\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_RESIZE_IMAGE_WELCOME, locale))
-                .setReplyMarkup(inlineKeyboardService.getResizeKeyboard(locale, editorState.canCancel())));
+                .replyMarkup(inlineKeyboardService.getResizeKeyboard(locale, editorState.canCancel())).build());
         editorState.setMessageId(sendFileResult.getMessageId());
         editorState.setCurrentFileId(sendFileResult.getFileId());
         commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
         if (StringUtils.isNotBlank(queryId)) {
-            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.UPDATE_CALLBACK_ANSWER, locale)));
+            messageService.sendAnswerCallbackQuery(AnswerCallbackQuery.builder().callbackQueryId(queryId)
+                    .text(localisationService.getMessage(MessagesProperties.UPDATE_CALLBACK_ANSWER, locale)).build());
         }
     }
 
@@ -124,15 +128,22 @@ public class ResizeState implements State {
 
             String size = identifyDevice.getSize(editorState.getCurrentFilePath());
             Locale locale = new Locale(editorState.getLanguage());
-            mediaMessageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), editorState.getCurrentFileId(),
-                    localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_SIZE, new Object[]{size}, locale) + "\n\n" +
-                            localisationService.getMessage(MessagesProperties.MESSAGE_RESIZE_IMAGE_WELCOME, locale))
-                    .setReplyMarkup(inlineKeyboardService.getResizeKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())));
+            mediaMessageService.editMessageMedia(EditMessageMedia.builder()
+                    .chatId(String.valueOf(chatId))
+                    .messageId(editorState.getMessageId())
+                    .media(InputMediaDocument.builder().media(editorState.getCurrentFileId()).caption(
+                            localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_SIZE, new Object[]{size}, locale) + "\n\n" +
+                                    localisationService.getMessage(MessagesProperties.MESSAGE_RESIZE_IMAGE_WELCOME, locale)).build())
+                    .replyMarkup(inlineKeyboardService.getResizeKeyboard(new Locale(editorState.getLanguage()), editorState.canCancel())).build());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
             new SmartTempFile(new File(editFilePath)).smartDelete();
         } else {
-            messageService.sendAnswerCallbackQuery(new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_CANT_CANCEL_ANSWER, new Locale(editorState.getLanguage()))));
+            messageService.sendAnswerCallbackQuery(AnswerCallbackQuery.builder()
+                    .callbackQueryId(queryId)
+                    .text(localisationService.getMessage(MessagesProperties.MESSAGE_CANT_CANCEL_ANSWER, new Locale(editorState.getLanguage())))
+                    .showAlert(true)
+                    .build());
         }
     }
 
@@ -141,10 +152,13 @@ public class ResizeState implements State {
         EditorState state = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         String size = identifyDevice.getSize(state.getCurrentFilePath());
         Locale locale = new Locale(state.getLanguage());
-        mediaMessageService.editMessageMedia(new EditMessageMedia(chatId, state.getMessageId(), state.getCurrentFileId(),
-                localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_SIZE, new Object[]{size}, locale) + "\n\n" +
-                        localisationService.getMessage(MessagesProperties.MESSAGE_RESIZE_IMAGE_WELCOME, locale))
-                .setReplyMarkup(inlineKeyboardService.getResizeKeyboard(new Locale(state.getLanguage()), state.canCancel())));
+        mediaMessageService.editMessageMedia(EditMessageMedia.builder()
+                .chatId(String.valueOf(chatId))
+                .messageId(state.getMessageId())
+                .media(InputMediaDocument.builder().media(state.getCurrentFileId())
+                        .caption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_SIZE, new Object[]{size}, locale) + "\n\n" +
+                                localisationService.getMessage(MessagesProperties.MESSAGE_RESIZE_IMAGE_WELCOME, locale)).build())
+                .replyMarkup(inlineKeyboardService.getResizeKeyboard(new Locale(state.getLanguage()), state.canCancel())).build());
     }
 
     @Override
@@ -163,16 +177,23 @@ public class ResizeState implements State {
             editorState.setCurrentFilePath(result.getAbsolutePath());
             Locale locale = new Locale(editorState.getLanguage());
             String newSize = identifyDevice.getSize(editorState.getCurrentFilePath());
-            EditMediaResult editMediaResult = mediaMessageService.editMessageMedia(new EditMessageMedia(chatId, editorState.getMessageId(), editorState.getFileName(), result.getFile(),
-                    localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_SIZE, new Object[]{newSize}, locale) + "\n\n" +
-                            localisationService.getMessage(MessagesProperties.MESSAGE_RESIZE_IMAGE_WELCOME, locale))
-                    .setReplyMarkup(inlineKeyboardService.getResizeKeyboard(locale, editorState.canCancel())));
+            InputMediaDocument inputMediaDocument = new InputMediaDocument();
+            inputMediaDocument.setMedia(result.getFile(), editorState.getFileName());
+            inputMediaDocument.setCaption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_SIZE, new Object[]{newSize}, locale) + "\n\n" +
+                    localisationService.getMessage(MessagesProperties.MESSAGE_RESIZE_IMAGE_WELCOME, locale));
+            EditMediaResult editMediaResult = mediaMessageService.editMessageMedia(EditMessageMedia.builder()
+                    .chatId(String.valueOf(chatId))
+                    .messageId(editorState.getMessageId())
+                    .media(inputMediaDocument)
+                    .replyMarkup(inlineKeyboardService.getResizeKeyboard(locale, editorState.canCancel())).build());
             editorState.setCurrentFileId(editMediaResult.getFileId());
             commandStateService.setState(chatId, command.getHistoryName(), editorState);
 
             if (StringUtils.isNotBlank(queryId)) {
                 messageService.sendAnswerCallbackQuery(
-                        new AnswerCallbackQuery(queryId, localisationService.getMessage(MessagesProperties.MESSAGE_IMAGES_RESIZED_ANSWER, locale))
+                        AnswerCallbackQuery.builder().callbackQueryId(queryId)
+                                .text(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGES_RESIZED_ANSWER, locale))
+                                .build()
                 );
             }
         });

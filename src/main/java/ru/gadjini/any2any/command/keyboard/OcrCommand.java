@@ -5,6 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
@@ -15,8 +18,6 @@ import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.method.send.HtmlMessage;
-import ru.gadjini.telegram.smart.bot.commons.model.bot.api.object.Message;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.MessageMediaService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -86,9 +87,10 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
 
     private void processMessage0(long chatId, int userId) {
         Locale locale = userService.getLocaleOrDefault(userId);
-        messageService.sendMessage(new HtmlMessage(chatId,
-                localisationService.getMessage(MessagesProperties.MESSAGE_FILE_TO_EXTRACT, locale))
-                .setReplyMarkup(replyKeyboardService.goBack(chatId, locale)));
+        messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(chatId))
+                .text(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_TO_EXTRACT, locale))
+                .parseMode(ParseMode.HTML)
+                .replyMarkup(replyKeyboardService.goBack(chatId, locale)).build());
     }
 
     @Override
@@ -109,8 +111,9 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
     @Override
     public void processNonCommandUpdate(Message message, String text) {
         ocrService.extractText(message.getFrom().getId(), getFile(message));
-        messageService.sendMessage(new HtmlMessage(message.getChatId(),
-                localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_PROCESSING, userService.getLocaleOrDefault(message.getFrom().getId()))));
+        messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                .text(localisationService.getMessage(MessagesProperties.MESSAGE_EXTRACTION_PROCESSING, userService.getLocaleOrDefault(message.getFrom().getId())))
+                .parseMode(ParseMode.HTML).build());
     }
 
     private MessageMedia getFile(Message message) {
