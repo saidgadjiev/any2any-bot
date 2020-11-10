@@ -9,7 +9,6 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
-import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.service.queue.ArchiveQueueService;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -63,7 +62,7 @@ public class ArchiveService {
 
     private void startArchiveCreating(ArchiveQueueItem queueItem, Consumer<Message> callback) {
         Locale locale = userService.getLocaleOrDefault(queueItem.getUserId());
-        String message = messageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.WAITING, Lang.JAVA, locale);
+        String message = messageBuilder.getWaitingMessage(queueItem, locale);
         messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(queueItem.getUserId()))
                 .text(message)
                 .parseMode(ParseMode.HTML)

@@ -14,7 +14,6 @@ import ru.gadjini.any2any.service.archive.ArchiveDevice;
 import ru.gadjini.any2any.service.archive.ArchiveMessageBuilder;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.archive.ArchiveStep;
-import ru.gadjini.any2any.service.progress.Lang;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
@@ -88,10 +87,10 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
         progress.setLocale(locale.getLanguage());
         progress.setChatId(queueItem.getUserId());
         progress.setProgressMessageId(queueItem.getProgressMessageId());
-        progress.setProgressMessage(archiveMessageBuilder.buildArchiveProgressMessage(queueItem, count, current, ArchiveStep.DOWNLOADING, Lang.PYTHON, locale));
+        progress.setProgressMessage(archiveMessageBuilder.buildArchiveProgressMessage(queueItem, count, current, ArchiveStep.DOWNLOADING, locale));
 
         if (count == current) {
-            String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.ARCHIVE_CREATION, Lang.JAVA, locale);
+            String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.ARCHIVE_CREATION, locale);
             String seconds = localisationService.getMessage(MessagesProperties.SECOND_PART, locale);
             progress.setAfterProgressCompletionMessage(String.format(completionMessage, 50, "10 " + seconds));
             progress.setAfterProgressCompletionReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
@@ -107,9 +106,9 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
         progress.setLocale(locale.getLanguage());
         progress.setChatId(queueItem.getUserId());
         progress.setProgressMessageId(queueItem.getProgressMessageId());
-        progress.setProgressMessage(archiveMessageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.UPLOADING, Lang.PYTHON, locale));
+        progress.setProgressMessage(archiveMessageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.UPLOADING, locale));
 
-        String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.COMPLETED, Lang.JAVA, locale);
+        String completionMessage = archiveMessageBuilder.buildArchiveProcessMessage(queueItem, ArchiveStep.COMPLETED, locale);
         progress.setAfterProgressCompletionMessage(completionMessage);
 
         progress.setProgressReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));

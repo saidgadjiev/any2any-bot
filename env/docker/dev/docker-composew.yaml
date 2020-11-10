@@ -7,43 +7,11 @@ services:
     volumes:
       - ../../../data/fileutils/logs:/home/bot/app/logs
       - ../../../data/shr:/tmp/shr
+      - ../../../data/botapi/workdir:/home/bot/app/botapi/workdir
     ports:
       - 5005:5005
     env_file:
       - .env
-    depends_on:
-      - fileutilsmtproto
-      - fileutilsbotapi
-  fileutilsmtproto:
-    container_name: fileutilsmtproto
-    restart: always
-    build: ../../../../fileutils-rest/
-    env_file:
-      - .env
-    volumes:
-      - ../../../data/fileutils/gram:/home/bot/app/gram
-      - ../../../data/shr:/tmp/shr
-    depends_on:
-      - fileutilsbotapi
-  fileutilsbot:
-    container_name: fileutilsbot
-    restart: always
-    build: ../../../../fileutils-bot/
-    env_file:
-      - .env
-    volumes:
-      - ../../../data/fileutils/gram:/home/bot/app/gram
-    depends_on:
-      - fileutilsapp
-  fileutilsbotapi:
-    container_name: fileutilsbotapi
-    restart: always
-    build: ../../../../fileutils-bot-api/
-    env_file:
-      - .env
-    volumes:
-      - ../../../data/fileutils/logs:/app/logs
-      - ../../../data/shr:/tmp/shr
 
 networks:
   default:
