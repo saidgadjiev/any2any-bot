@@ -143,7 +143,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
                     archiveState = new ArchiveState();
                 }
                 MessageMedia file = createFile(message, locale);
-                validateTotalSize(archiveState.getFiles().stream().map(MessageMedia::getFileSize).mapToLong(i -> i).sum() + file.getFileSize(), locale);
+                validateTotalSize(message.getMessageId(), archiveState.getFiles().stream().map(MessageMedia::getFileSize).mapToLong(i -> i).sum() + file.getFileSize(), locale);
                 archiveState.getFiles().add(file);
                 commandStateService.setState(message.getChatId(), getHistoryName(), archiveState);
             }
@@ -174,11 +174,11 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
         return format;
     }
 
-    private void validateTotalSize(long size, Locale locale) {
+    private void validateTotalSize(int messageId, long size, Locale locale) {
         if (size > MAX_FILES_SIZE) {
             throw new UserException(localisationService.getMessage(MessagesProperties.MESSAGE_MAX_FILES_SIZE, new Object[]{
                     MemoryUtils.humanReadableByteCount(MAX_FILES_SIZE)
-            }, locale));
+            }, locale), true).setReplyToMessageId(messageId);
         }
     }
 }
