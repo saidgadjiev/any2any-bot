@@ -15,6 +15,7 @@ import ru.gadjini.any2any.service.archive.ArchiveMessageBuilder;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.archive.ArchiveStep;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
@@ -30,9 +31,9 @@ import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueWorker;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueWorkerFactory;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
 
-import java.util.*;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 @Component
 public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueueItem> {
@@ -127,8 +128,6 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
 
         private final ArchiveQueueItem item;
 
-        private Queue<SmartTempFile> files = new LinkedBlockingQueue<>();
-
         private volatile SmartTempFile archive;
 
         private ArchiveQueueWorker(ArchiveQueueItem item) {
@@ -139,16 +138,29 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
         public void execute() {
             String size = MemoryUtils.humanReadableByteCount(item.getTotalFileSize());
             LOGGER.debug("Start({}, {}, {})", item.getUserId(), size, item.getType());
-            DownloadResult downloadResult = downloadFiles(item, item.getFiles());
+
             Locale locale = userService.getLocaleOrDefault(item.getUserId());
 
             archive = fileService.getTempFile(item.getUserId(), TAG, item.getType().getExt());
             ArchiveDevice archiveDevice = getCandidate(item.getType(), locale);
-            archiveDevice.zip(files.stream().map(SmartTempFile::getAbsolutePath).collect(Collectors.toList()), archive.getAbsolutePath());
-            renameFiles(archiveDevice, archive.getAbsolutePath(), downloadResult.originalFileNames, downloadResult.downloadedNames);
+            boolean addedAllFiles = downloadFiles(item, item.getFiles(), (file, downloadedFileName, originalFileName) -> {
+                try {
+                    archiveDevice.zip(List.of(file.getAbsolutePath()), archive.getAbsolutePath());
+                    archiveDevice.rename(archive.getAbsolutePath(), downloadedFileName, originalFileName);
+
+                    if (archive.length() > TgConstants.LARGE_FILE_SIZE) {
+                        return false;
+                    }
+                } finally {
+                    file.smartDelete();
+                }
+
+                return true;
+            });
 
             String fileName = Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), item.getType().getExt());
-            mediaMessageService.sendDocument(new SendDocument(String.valueOf(item.getUserId()), new InputFile(archive.getFile(), fileName)),
+            mediaMessageService.sendDocument(SendDocument.builder().chatId(String.valueOf(item.getUserId())).document(new InputFile(archive.getFile(), fileName))
+                            .caption(addedAllFiles ? null : localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_SIZE_EXCEEDED, locale)).build(),
                     progressArchiveUploading(item));
 
             LOGGER.debug("Finish({}, {}, {})", item.getId(), size, item.getType());
@@ -157,11 +169,6 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
         @Override
         public void cancel() {
             item.getFiles().forEach(tgFile -> fileManager.cancelDownloading(tgFile.getFileId()));
-            files.forEach(smartTempFile -> {
-                if (!fileManager.cancelUploading(smartTempFile.getAbsolutePath())) {
-                    smartTempFile.smartDelete();
-                }
-            });
 
             if (archive != null && !fileManager.cancelUploading(archive.getAbsolutePath())) {
                 archive.smartDelete();
@@ -170,42 +177,28 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
 
         @Override
         public void finish() {
-            files.forEach(SmartTempFile::smartDelete);
-            files.clear();
-
             if (archive != null) {
                 archive.smartDelete();
             }
         }
 
-        private void renameFiles(ArchiveDevice archiveDevice, String archive,
-                                 Map<Integer, String> originalFileNames, Map<Integer, String> downloadedNames) {
-            for (Map.Entry<Integer, String> entry : downloadedNames.entrySet()) {
-                archiveDevice.rename(archive, entry.getValue(), originalFileNames.get(entry.getKey()));
-            }
-        }
-
-        private DownloadResult downloadFiles(ArchiveQueueItem queueItem, List<TgFile> tgFiles) {
-            DownloadResult downloadResult = new DownloadResult();
-
+        private boolean downloadFiles(ArchiveQueueItem queueItem, List<TgFile> tgFiles, DownloadCallback downloadCallback) {
             int i = 1;
             for (TgFile tgFile : tgFiles) {
                 SmartTempFile file = fileService.createTempFile(queueItem.getUserId(), tgFile.getFileId(), TAG, FilenameUtils.getExtension(tgFile.getFileName()));
                 fileManager.downloadFileByFileId(tgFile.getFileId(), tgFile.getSize(),
                         progressFilesDownloading(queueItem, tgFiles.size(), i), file);
-                downloadResult.originalFileNames.put(i, tgFile.getFileName());
-                downloadResult.downloadedNames.put(i++, file.getName());
-                files.add(file);
+                boolean continueDownload = downloadCallback.onDownload(file, file.getName(), tgFile.getFileName());
+                if (!continueDownload) {
+                    return false;
+                }
             }
 
-            return downloadResult;
+            return true;
         }
+    }
 
-        private class DownloadResult {
-
-            private Map<Integer, String> originalFileNames = new HashMap<>();
-
-            private Map<Integer, String> downloadedNames = new HashMap<>();
-        }
+    private interface DownloadCallback {
+        boolean onDownload(SmartTempFile file, String downloadedFileName, String originalFileName);
     }
 }

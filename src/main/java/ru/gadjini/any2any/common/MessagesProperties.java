@@ -187,5 +187,5 @@ public class MessagesProperties {
 
     public static final String MESSAGE_DONT_SEND_NEW_REQUEST = "message.dont.send.new.request";
 
-    public static final String MESSAGE_MAX_FILES_SIZE = "message.max.files.size";
+    public static final String MESSAGE_ARCHIVE_SIZE_EXCEEDED = "message.archive.size.exceeded";
 }
