@@ -186,7 +186,7 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
             int i = 1;
             for (TgFile tgFile : tgFiles) {
                 SmartTempFile file = fileService.createTempFile(queueItem.getUserId(), tgFile.getFileId(), TAG, FilenameUtils.getExtension(tgFile.getFileName()));
-                fileManager.forceDownloadFileByFileId(tgFile.getFileId(), tgFile.getSize(),
+                fileManager.downloadFileByFileId(tgFile.getFileId(), tgFile.getSize(),
                         progressFilesDownloading(queueItem, tgFiles.size(), i), file);
                 boolean continueDownload = downloadCallback.onDownload(file, file.getName(), tgFile.getFileName());
                 if (!continueDownload) {
