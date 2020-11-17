@@ -96,7 +96,7 @@ public class ArchiveQueueDao implements QueueDaoDelegate<ArchiveQueueItem> {
                 "WITH r AS (\n" +
                         "    UPDATE archive_queue SET status = 1, last_run_at = now(), attempts = attempts + 1, " +
                         "started_at = COALESCE(started_at, now()) " +
-                        "WHERE attempts <= ? AND id IN (SELECT id FROM archive_queue WHERE status = 0 " +
+                        "WHERE id IN (SELECT id FROM archive_queue WHERE status = 0 AND attempts < ? " +
                         "AND total_file_size " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ? ORDER BY created_at LIMIT ?) RETURNING *\n" +
                         ")\n" +
                         "SELECT *, 1 as queue_position\n" +
