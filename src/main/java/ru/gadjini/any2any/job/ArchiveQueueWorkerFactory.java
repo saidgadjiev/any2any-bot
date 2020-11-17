@@ -168,7 +168,7 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
 
         @Override
         public void cancel() {
-            item.getFiles().forEach(tgFile -> fileManager.cancelDownloading(tgFile.getFileId()));
+            item.getFiles().forEach(tgFile -> fileManager.cancelDownloading(tgFile.getFileId(), tgFile.getSize()));
 
             if (archive != null && !fileManager.cancelUploading(archive.getAbsolutePath())) {
                 archive.smartDelete();
@@ -186,7 +186,7 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
             int i = 1;
             for (TgFile tgFile : tgFiles) {
                 SmartTempFile file = fileService.createTempFile(queueItem.getUserId(), tgFile.getFileId(), TAG, FilenameUtils.getExtension(tgFile.getFileName()));
-                fileManager.downloadFileByFileId(tgFile.getFileId(), tgFile.getSize(),
+                fileManager.forceDownloadFileByFileId(tgFile.getFileId(), tgFile.getSize(),
                         progressFilesDownloading(queueItem, tgFiles.size(), i), file);
                 boolean continueDownload = downloadCallback.onDownload(file, file.getName(), tgFile.getFileName());
                 if (!continueDownload) {
