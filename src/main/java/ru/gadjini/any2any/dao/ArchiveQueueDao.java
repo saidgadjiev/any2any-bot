@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
+import ru.gadjini.telegram.smart.bot.commons.dao.QueueDao;
 import ru.gadjini.telegram.smart.bot.commons.dao.QueueDaoDelegate;
 import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
@@ -94,10 +95,10 @@ public class ArchiveQueueDao implements QueueDaoDelegate<ArchiveQueueItem> {
     public List<ArchiveQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
         return jdbcTemplate.query(
                 "WITH r AS (\n" +
-                        "    UPDATE archive_queue SET status = 1, last_run_at = now(), attempts = attempts + 1, " +
-                        "started_at = COALESCE(started_at, now()) " +
-                        "WHERE id IN (SELECT id FROM archive_queue WHERE status = 0 AND attempts < ? " +
-                        "AND total_file_size " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") + " ? ORDER BY created_at LIMIT ?) RETURNING *\n" +
+                        "    UPDATE archive_queue SET" + QueueDao.POLL_UPDATE_LIST +
+                        "WHERE id IN (SELECT id FROM archive_queue qu WHERE status = 0 AND attempts < ? " +
+                        "AND total_file_size " + (weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">") +
+                        " ? " + QueueDao.POLL_ORDER_BY + " LIMIT ?) RETURNING *\n" +
                         ")\n" +
                         "SELECT *, 1 as queue_position\n" +
                         "FROM r cv INNER JOIN (SELECT id, json_agg(files) as files_json FROM archive_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id\n",
