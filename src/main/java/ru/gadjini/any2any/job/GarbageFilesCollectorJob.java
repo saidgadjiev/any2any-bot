@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.service.cleaner.GarbageFileCollector;
 
+import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 
 @Component
@@ -19,6 +20,15 @@ public class GarbageFilesCollectorJob {
     @Autowired
     public GarbageFilesCollectorJob(GarbageFileCollector fileCollector) {
         this.fileCollector = fileCollector;
+    }
+
+    @PostConstruct
+    public void init() {
+        try {
+            run();
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+        }
     }
 
     @Scheduled(cron = "0 0 */10 * * *")
