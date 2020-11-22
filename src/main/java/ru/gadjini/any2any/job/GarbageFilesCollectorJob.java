@@ -31,7 +31,7 @@ public class GarbageFilesCollectorJob {
         }
     }
 
-    @Scheduled(cron = "0 0 */10 * * *")
+    @Scheduled(cron = "0 */30 * * * *")
     public void run() {
         LOGGER.debug("Start({})", LocalDateTime.now());
         int clean = fileCollector.clean();
