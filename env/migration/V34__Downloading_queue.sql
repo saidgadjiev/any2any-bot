@@ -6,3 +6,5 @@ CREATE TABLE IF NOT EXISTS downloading_queue (
     file_path VARCHAR(1014),
     delete_parent_dir BOOLEAN NOT NULL DEFAULT FALSE
 ) inherits (queue);
+
+ALTER TABLE queue ADD COLUMN IF NOT EXISTS next_run_at TIMESTAMP(0) NOT NULL DEFAULT now();
