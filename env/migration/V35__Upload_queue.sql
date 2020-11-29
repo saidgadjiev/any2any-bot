@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS upload_queue
     progress    TEXT,
     method      VARCHAR(64) NOT NULL,
     body        text        NOT NULL,
-    extra       text
+    extra       text,
+    next_run_at TIMESTAMP(0) NOT NULL DEFAULT now()
 ) inherits (queue);
