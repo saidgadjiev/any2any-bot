@@ -1,0 +1,1 @@
+ALTER TABLE downloading_queue ADD COLUMN extra TEXT;
