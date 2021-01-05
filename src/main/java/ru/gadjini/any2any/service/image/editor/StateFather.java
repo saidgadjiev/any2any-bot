@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageCaption;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageMedia;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
@@ -203,15 +204,9 @@ public class StateFather implements State {
             return;
         }
         try {
-            File file = new File(state.getCurrentFilePath());
-            if (file.length() > 0) {
-                mediaMessageService.sendDocument(new SendDocument(String.valueOf(chatId), new InputFile(new File(state.getCurrentFilePath()), state.getFileName())));
-                messageService.deleteMessage(chatId, state.getMessageId());
-            } else {
-                mediaMessageService.editMessageMedia(EditMessageMedia.builder().chatId(String.valueOf(chatId))
-                        .messageId(state.getMessageId())
-                        .media(new InputMediaDocument(state.getCurrentFileId())).build());
-            }
+            messageService.editMessageCaption(EditMessageCaption.builder().chatId(String.valueOf(chatId))
+                    .messageId(state.getMessageId()).build());
+
             commandStateService.deleteState(chatId, command.getHistoryName());
             LOGGER.debug("State deleted({})", chatId);
         } catch (Exception ex) {

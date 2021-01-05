@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
-import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.service.archive.ArchiveMessageBuilder;
@@ -18,7 +17,6 @@ import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
-import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueWorker;
@@ -43,18 +41,20 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
 
     private ArchiveMessageBuilder archiveMessageBuilder;
 
-    private CommandStateService commandStateService;
-
     @Autowired
     public ArchiveQueueWorkerFactory(LocalisationService localisationService, @Qualifier("forceMedia") MediaMessageService mediaMessageService,
                                      UserService userService, SmartInlineKeyboardService inlineKeyboardService,
-                                     ArchiveMessageBuilder archiveMessageBuilder, CommandStateService commandStateService) {
+                                     ArchiveMessageBuilder archiveMessageBuilder) {
         this.localisationService = localisationService;
         this.mediaMessageService = mediaMessageService;
         this.userService = userService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.archiveMessageBuilder = archiveMessageBuilder;
-        this.commandStateService = commandStateService;
+    }
+
+    @Override
+    public QueueWorker createWorker(ArchiveQueueItem item) {
+        return new ArchiveQueueWorker(item);
     }
 
     private Progress progressArchiveUploading(ArchiveQueueItem queueItem) {
@@ -70,11 +70,6 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
         progress.setProgressReplyMarkup(inlineKeyboardService.getProcessingKeyboard(queueItem.getId(), locale));
 
         return progress;
-    }
-
-    @Override
-    public QueueWorker createWorker(ArchiveQueueItem item) {
-        return new ArchiveQueueWorker(item);
     }
 
     public class ArchiveQueueWorker implements QueueWorker {
@@ -104,6 +99,11 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
         }
 
         @Override
+        public void unhandledException(Throwable e) {
+            new SmartTempFile(new File(item.getArchiveFilePath())).smartDelete();
+        }
+
+        @Override
         public void cancel(boolean canceledByUser) {
             if (canceledByUser) {
                 finish();
@@ -113,7 +113,6 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
         @Override
         public void finish() {
             new SmartTempFile(new File(item.getArchiveFilePath())).smartDelete();
-            commandStateService.deleteState(item.getUserId(), FileUtilsCommandNames.ARCHIVE_COMMAND_NAME);
         }
     }
 }

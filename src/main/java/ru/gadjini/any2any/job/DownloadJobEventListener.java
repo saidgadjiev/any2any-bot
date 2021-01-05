@@ -60,9 +60,10 @@ public class DownloadJobEventListener {
             archiveQueueService.setArchiveFilePath(queueItem.getId(), archive.getAbsolutePath());
         }
         ArchiveDevice archiveDevice = getCandidate(queueItem.getType());
+        SmartTempFile downloadedFile = new SmartTempFile(new File(downloadCompleted.getDownloadQueueItem().getFilePath()));
         try {
-            archiveDevice.zip(List.of(downloadCompleted.getDownloadQueueItem().getFilePath()), queueItem.getArchiveFilePath());
-            archiveDevice.rename(queueItem.getArchiveFilePath(), new File(downloadCompleted.getDownloadQueueItem().getFilePath()).getName(),
+            archiveDevice.zip(List.of(downloadedFile.getAbsolutePath()), queueItem.getArchiveFilePath());
+            archiveDevice.rename(queueItem.getArchiveFilePath(), downloadedFile.getName(),
                     downloadCompleted.getDownloadQueueItem().getFile().getFileName());
 
             if (SmartFileUtils.getLength(queueItem.getArchiveFilePath()) > TgConstants.LARGE_FILE_SIZE) {
@@ -70,7 +71,7 @@ public class DownloadJobEventListener {
                 return;
             }
         } finally {
-            new SmartTempFile(new File(downloadCompleted.getDownloadQueueItem().getFilePath())).smartDelete();
+            downloadedFile.smartDelete();
         }
 
         if (downloadCompleted.getDownloadQueueItem().getExtra() != null) {
