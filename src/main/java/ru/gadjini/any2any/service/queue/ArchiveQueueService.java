@@ -46,4 +46,12 @@ public class ArchiveQueueService {
     public void setArchiveFilePath(int id, String archiveFilePath) {
         dao.setArchiveFilePath(id, archiveFilePath);
     }
+
+    public ArchiveQueueItem getArchiveTypeAndArchivePath(int id) {
+        return dao.getArchiveTypeAndArchivePath(id);
+    }
+
+    public void setArchiveIsReady(int id) {
+        dao.setArchiveIsReady(id, true);
+    }
 }

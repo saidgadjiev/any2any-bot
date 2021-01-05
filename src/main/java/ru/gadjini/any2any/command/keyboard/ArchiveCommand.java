@@ -132,6 +132,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
                     Format associatedFormat = checkFormat(text, formatService.getAssociatedFormat(text), locale);
                     archiverJob.removeAndCancelCurrentTasks(message.getChatId());
                     archiveService.createArchive(message.getFrom().getId(), archiveState, associatedFormat);
+                    commandStateService.deleteState(message.getChatId(), FileUtilsCommandNames.ARCHIVE_COMMAND_NAME);
                 }
             } else {
                 ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false, ArchiveState.class);

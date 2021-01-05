@@ -90,7 +90,7 @@ public class ArchiveQueueDao implements WorkQueueDaoDelegate<ArchiveQueueItem> {
         return jdbcTemplate.query(
                 "WITH r AS (\n" +
                         "    UPDATE archive_queue SET" + QueueDao.POLL_UPDATE_LIST +
-                        "WHERE id IN (SELECT id FROM archive_queue qu WHERE status = 0 AND archive_file_path IS NOT NULL " +
+                        "WHERE id IN (SELECT id FROM archive_queue qu WHERE status = 0 AND archive_is_ready " +
                         " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n" +
                         " ? " + QueueDao.POLL_ORDER_BY + " LIMIT ?) RETURNING *\n" +
                         ")\n" +
@@ -193,7 +193,7 @@ public class ArchiveQueueDao implements WorkQueueDaoDelegate<ArchiveQueueItem> {
                 "SELECT COUNT(id) as cnt\n" +
                         "        FROM archive_queue qu WHERE qu.status = 0 " +
                         " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n" +
-                        " AND archive_file_path IS NOT NULL\n"
+                        " AND archive_is_ready\n"
                 ,
                 ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
                 (rs) -> rs.next() ? rs.getLong("cnt") : 0
@@ -208,6 +208,35 @@ public class ArchiveQueueDao implements WorkQueueDaoDelegate<ArchiveQueueItem> {
                         " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n",
                 ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
                 (rs) -> rs.next() ? rs.getLong("cnt") : 0
+        );
+    }
+
+    public ArchiveQueueItem getArchiveTypeAndArchivePath(int id) {
+        return jdbcTemplate.query(
+                "SELECT id, archive_file_path, type FROM archive_queue WHERE id =?",
+                ps -> ps.setInt(1, id),
+                rs -> {
+                    if (rs.next()) {
+                        ArchiveQueueItem archiveQueueItem = new ArchiveQueueItem();
+                        archiveQueueItem.setId(id);
+                        archiveQueueItem.setArchiveFilePath(rs.getString(ArchiveQueueItem.ARCHIVE_FILE_PATH));
+                        archiveQueueItem.setType(Format.valueOf(rs.getString(ArchiveQueueItem.TYPE)));
+
+                        return archiveQueueItem;
+                    }
+
+                    return null;
+                }
+        );
+    }
+
+    public void setArchiveIsReady(int id, boolean ready) {
+        jdbcTemplate.update(
+                "UPDATE archive_queue SET archive_is_ready = ? where id = ?",
+                ps -> {
+                    ps.setBoolean(1, ready);
+                    ps.setInt(2, id);
+                }
         );
     }
 

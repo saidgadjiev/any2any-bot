@@ -18,11 +18,15 @@ public class ArchiveQueueItem extends WorkQueueItem {
 
     public static final String DOWNLOADED_FILES_COUNT = "downloaded_files_count";
 
+    public static final String ARCHIVE_IS_READY = "archive_is_ready";
+
     private List<TgFile> files;
 
     private Format type;
 
     private String archiveFilePath;
+
+    private boolean archiveIsReady;
 
     private int downloadedFilesCount;
 
@@ -58,8 +62,17 @@ public class ArchiveQueueItem extends WorkQueueItem {
         this.downloadedFilesCount = downloadedFilesCount;
     }
 
+    public boolean isArchiveIsReady() {
+        return archiveIsReady;
+    }
+
+    public void setArchiveIsReady(boolean archiveIsReady) {
+        this.archiveIsReady = archiveIsReady;
+    }
+
     @Override
     public long getSize() {
         return files.stream().mapToLong(TgFile::getSize).sum();
     }
+
 }
