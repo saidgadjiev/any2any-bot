@@ -21,27 +21,25 @@ public class ArchiveMessageBuilder implements UpdateQueryStatusCommandMessagePro
     }
 
     @Override
+    public String getUpdateStatusMessage(QueueItem queueItem, Locale locale) {
+        return getWaitingMessage(queueItem, locale);
+    }
+
     public String getWaitingMessage(QueueItem queueItem, Locale locale) {
         return buildArchiveProcessMessage((ArchiveQueueItem) queueItem, ArchiveStep.WAITING, locale);
     }
 
     public String buildArchiveProgressMessage(ArchiveQueueItem queueItem, int count, int current, ArchiveStep archiveStep, Locale locale) {
-        StringBuilder message = new StringBuilder();
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale)).append("\n\n");
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_DOWNLOADING, new Object[]{current - 1, count}, locale)).append("\n");
-        message.append(buildArchiveProcessMessage(archiveStep, locale)).append("\n\n");
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale));
-
-        return message.toString();
+        return localisationService.getMessage(MessagesProperties.MESSAGE_FILE_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale) + "\n\n" +
+                localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_DOWNLOADING, new Object[]{current - 1, count}, locale) + "\n" +
+                buildArchiveProcessMessage(archiveStep, locale) + "\n\n" +
+                localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale);
     }
 
     public String buildArchiveProcessMessage(ArchiveQueueItem queueItem, ArchiveStep archiveStep, Locale locale) {
-        StringBuilder message = new StringBuilder();
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_FILE_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale)).append("\n\n");
-        message.append(buildArchiveProcessMessage(archiveStep, locale)).append("\n\n");
-        message.append(localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale));
-
-        return message.toString();
+        return localisationService.getMessage(MessagesProperties.MESSAGE_FILE_QUEUED, new Object[]{queueItem.getQueuePosition()}, locale) + "\n\n" +
+                buildArchiveProcessMessage(archiveStep, locale) + "\n\n" +
+                localisationService.getMessage(MessagesProperties.MESSAGE_DONT_SEND_NEW_REQUEST, locale);
     }
 
     private String buildArchiveProcessMessage(ArchiveStep archiveStep, Locale locale) {

@@ -15,7 +15,7 @@ import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloader;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Locale;
@@ -27,7 +27,7 @@ public class OcrService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OcrService.class);
 
-    private FileManager fileManager;
+    private FileDownloader fileDownloader;
 
     private ThreadPoolTaskExecutor executor;
 
@@ -42,10 +42,10 @@ public class OcrService {
     private OcrDevice ocrDevice;
 
     @Autowired
-    public OcrService(FileManager fileManager, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
+    public OcrService(FileDownloader fileDownloader, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
                       @Qualifier("messageLimits") MessageService messageService,
                       UserService userService, LocalisationService localisationService, TempFileService fileService, OcrDevice ocrDevice) {
-        this.fileManager = fileManager;
+        this.fileDownloader = fileDownloader;
         this.executor = executor;
         this.messageService = messageService;
         this.userService = userService;
@@ -61,7 +61,7 @@ public class OcrService {
             Locale locale = userService.getLocaleOrDefault(userId);
             SmartTempFile file = fileService.createTempFile(userId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
             try {
-                fileManager.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFileSize(), file);
+                fileDownloader.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFileSize(), file, false);
 
                 String result = ocrDevice.getText(file.getAbsolutePath());
                 if (StringUtils.isBlank(result)) {

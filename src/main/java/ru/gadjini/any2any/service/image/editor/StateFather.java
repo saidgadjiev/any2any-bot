@@ -26,7 +26,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.FileManager;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloader;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
@@ -56,7 +56,7 @@ public class StateFather implements State {
 
     private InlineKeyboardService inlineKeyboardService;
 
-    private FileManager fileManager;
+    private FileDownloader fileDownloader;
 
     private ImageConvertDevice imageDevice;
 
@@ -67,14 +67,14 @@ public class StateFather implements State {
     @Autowired
     public StateFather(CommandStateService commandStateService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
                        @Qualifier("messageLimits") MessageService messageService, @Qualifier("mediaLimits") MediaMessageService mediaMessageService, TempFileService tempFileService,
-                       InlineKeyboardService inlineKeyboardService, FileManager fileManager, ImageConvertDevice imageDevice, LocalisationService localisationService, UserService userService) {
+                       InlineKeyboardService inlineKeyboardService, FileDownloader fileDownloader, ImageConvertDevice imageDevice, LocalisationService localisationService, UserService userService) {
         this.commandStateService = commandStateService;
         this.executor = executor;
         this.messageService = messageService;
         this.mediaMessageService = mediaMessageService;
         this.tempFileService = tempFileService;
         this.inlineKeyboardService = inlineKeyboardService;
-        this.fileManager = fileManager;
+        this.fileDownloader = fileDownloader;
         this.imageDevice = imageDevice;
         this.localisationService = localisationService;
         this.userService = userService;
@@ -176,7 +176,7 @@ public class StateFather implements State {
 
             SmartTempFile file = tempFileService.createTempFile(chatId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
             try {
-                fileManager.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFileSize(), file);
+                fileDownloader.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFileSize(), file, false);
                 SmartTempFile result = tempFileService.createTempFile(chatId, any2AnyFile.getFileId(), TAG, Format.PNG.getExt());
                 imageDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
                 EditorState state = createState(result.getAbsolutePath(), Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), Format.PNG.getExt()));

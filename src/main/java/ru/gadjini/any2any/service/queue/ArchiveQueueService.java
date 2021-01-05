@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.gadjini.any2any.dao.ArchiveQueueDao;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
-import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
@@ -36,13 +35,15 @@ public class ArchiveQueueService {
         for (MessageMedia any2AnyFile : any2AnyFiles) {
             archiveQueueItem.getFiles().add(any2AnyFile.toTgFile());
         }
-        archiveQueueItem.setTotalFileSize(archiveQueueItem.getFiles().stream().map(TgFile::getSize).mapToLong(i -> i).sum());
-
         int id = dao.create(archiveQueueItem);
         archiveQueueItem.setId(id);
-        archiveQueueItem.setQueuePosition(dao.getQueuePosition(archiveQueueItem.getId(), archiveQueueItem.getTotalFileSize() > fileLimitProperties.getLightFileMaxWeight()
+        archiveQueueItem.setQueuePosition(dao.getQueuePosition(archiveQueueItem.getId(), archiveQueueItem.getSize() > fileLimitProperties.getLightFileMaxWeight()
                 ? SmartExecutorService.JobWeight.HEAVY : SmartExecutorService.JobWeight.LIGHT));
 
         return archiveQueueItem;
+    }
+
+    public void setArchiveFilePath(int id, String archiveFilePath) {
+        dao.setArchiveFilePath(id, archiveFilePath);
     }
 }

@@ -1,12 +1,12 @@
 package ru.gadjini.any2any.domain;
 
-import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
+import ru.gadjini.telegram.smart.bot.commons.domain.WorkQueueItem;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
 import java.util.List;
 
-public class ArchiveQueueItem extends QueueItem {
+public class ArchiveQueueItem extends WorkQueueItem {
 
     public static final String NAME = "archive_queue";
 
@@ -14,13 +14,17 @@ public class ArchiveQueueItem extends QueueItem {
 
     public static final String TYPE = "type";
 
-    public static final String TOTAL_FILE_SIZE = "total_file_size";
+    public static final String ARCHIVE_FILE_PATH = "archive_file_path";
 
-    private long totalFileSize;
+    public static final String DOWNLOADED_FILES_COUNT = "downloaded_files_count";
 
     private List<TgFile> files;
 
     private Format type;
+
+    private String archiveFilePath;
+
+    private int downloadedFilesCount;
 
     public List<TgFile> getFiles() {
         return files;
@@ -38,16 +42,24 @@ public class ArchiveQueueItem extends QueueItem {
         this.type = type;
     }
 
-    public long getTotalFileSize() {
-        return totalFileSize;
+    public String getArchiveFilePath() {
+        return archiveFilePath;
     }
 
-    public void setTotalFileSize(long totalFileSize) {
-        this.totalFileSize = totalFileSize;
+    public void setArchiveFilePath(String archiveFilePath) {
+        this.archiveFilePath = archiveFilePath;
+    }
+
+    public int getDownloadedFilesCount() {
+        return downloadedFilesCount;
+    }
+
+    public void setDownloadedFilesCount(int downloadedFilesCount) {
+        this.downloadedFilesCount = downloadedFilesCount;
     }
 
     @Override
     public long getSize() {
-        return getTotalFileSize();
+        return files.stream().mapToLong(TgFile::getSize).sum();
     }
 }

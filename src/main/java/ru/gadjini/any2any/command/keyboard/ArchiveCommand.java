@@ -19,7 +19,7 @@ import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
-import ru.gadjini.telegram.smart.bot.commons.job.QueueJob;
+import ru.gadjini.telegram.smart.bot.commons.job.WorkQueueJob;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.TgMessage;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -42,7 +42,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     private ArchiveService archiveService;
 
-    private QueueJob archiverJob;
+    private WorkQueueJob archiverJob;
 
     private final LocalisationService localisationService;
 
@@ -63,7 +63,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
     private XSync<Long> longXSync;
 
     @Autowired
-    public ArchiveCommand(ArchiveService archiveService, QueueJob archiverJob, LocalisationService localisationService,
+    public ArchiveCommand(ArchiveService archiveService, WorkQueueJob archiverJob, LocalisationService localisationService,
                           @Qualifier("messageLimits") MessageService messageService,
                           CommandStateService commandStateService, @Qualifier("curr") Any2AnyReplyKeyboardService replyKeyboardService,
                           UserService userService, FormatService formatService, MessageMediaService fileService, XSync<Long> longXSync) {
@@ -132,7 +132,6 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
                     Format associatedFormat = checkFormat(text, formatService.getAssociatedFormat(text), locale);
                     archiverJob.removeAndCancelCurrentTasks(message.getChatId());
                     archiveService.createArchive(message.getFrom().getId(), archiveState, associatedFormat);
-                    commandStateService.deleteState(message.getChatId(), FileUtilsCommandNames.ARCHIVE_COMMAND_NAME);
                 }
             } else {
                 ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false, ArchiveState.class);

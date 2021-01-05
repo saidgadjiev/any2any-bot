@@ -9,13 +9,18 @@ import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
+import ru.gadjini.any2any.job.DownloadExtra;
+import ru.gadjini.any2any.service.progress.ProgressBuilder;
 import ru.gadjini.any2any.service.queue.ArchiveQueueService;
+import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
+import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloadService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
-import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueService;
+import ru.gadjini.telegram.smart.bot.commons.service.queue.WorkQueueService;
 
 import java.util.HashSet;
 import java.util.List;
@@ -32,22 +37,30 @@ public class ArchiveService {
 
     private ArchiveQueueService archiveQueueService;
 
-    private QueueService queueService;
+    private WorkQueueService queueService;
 
     private SmartInlineKeyboardService inlineKeyboardService;
 
     private ArchiveMessageBuilder messageBuilder;
 
+    private FileDownloadService fileDownloadService;
+
+    private ProgressBuilder progressBuilder;
+
     @Autowired
     public ArchiveService(@Qualifier("messageLimits") MessageService messageService, UserService userService,
                           ArchiveQueueService archiveQueueService,
-                          QueueService queueService, SmartInlineKeyboardService inlineKeyboardService, ArchiveMessageBuilder messageBuilder) {
+                          WorkQueueService queueService, SmartInlineKeyboardService inlineKeyboardService,
+                          ArchiveMessageBuilder messageBuilder, FileDownloadService fileDownloadService,
+                          ProgressBuilder progressBuilder) {
         this.messageService = messageService;
         this.userService = userService;
         this.archiveQueueService = archiveQueueService;
         this.queueService = queueService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.messageBuilder = messageBuilder;
+        this.fileDownloadService = fileDownloadService;
+        this.progressBuilder = progressBuilder;
     }
 
     public void createArchive(int userId, ArchiveState archiveState, Format format) {
@@ -55,9 +68,26 @@ public class ArchiveService {
 
         ArchiveQueueItem item = archiveQueueService.createItem(userId, archiveState.getFiles(), format);
         startArchiveCreating(item, message -> {
+            createDownloads(item);
             queueService.setProgressMessageId(item.getId(), message.getMessageId());
             item.setProgressMessageId(message.getMessageId());
         });
+    }
+
+    private void createDownloads(ArchiveQueueItem queueItem) {
+        if (queueItem.getFiles().size() > 1) {
+            int i = 0;
+            for (TgFile tgFile : queueItem.getFiles()) {
+                Progress downloadProgress = progressBuilder.progressFilesDownloading(queueItem, i, queueItem.getFiles().size());
+                tgFile.setProgress(downloadProgress);
+                ++i;
+            }
+            DownloadExtra extra = new DownloadExtra(queueItem.getFiles(), 0);
+            fileDownloadService.createDownload(queueItem.getFiles().get(0), queueItem.getId(), queueItem.getUserId(), extra);
+        } else {
+            queueItem.getFiles().get(0).setProgress(progressBuilder.progressFilesDownloading(queueItem, 0, queueItem.getFiles().size()));
+            fileDownloadService.createDownload(queueItem.getFiles().get(0), queueItem.getId(), queueItem.getUserId(), null);
+        }
     }
 
     private void startArchiveCreating(ArchiveQueueItem queueItem, Consumer<Message> callback) {
