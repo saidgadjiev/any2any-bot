@@ -51,6 +51,9 @@ public class DownloadJobEventListener {
     @EventListener
     public void downloadCompleted(DownloadCompleted downloadCompleted) {
         ArchiveQueueItem queueItem = archiveQueueService.getArchiveTypeAndArchivePath(downloadCompleted.getDownloadQueueItem().getProducerId());
+        if (queueItem == null) {
+            return;
+        }
         if (StringUtils.isBlank(queueItem.getArchiveFilePath())) {
             SmartTempFile archive = tempFileService.getTempFile(downloadCompleted.getDownloadQueueItem().getUserId(), TAG, queueItem.getType().getExt());
             queueItem.setArchiveFilePath(archive.getAbsolutePath());
@@ -59,7 +62,7 @@ public class DownloadJobEventListener {
         ArchiveDevice archiveDevice = getCandidate(queueItem.getType());
         try {
             archiveDevice.zip(List.of(downloadCompleted.getDownloadQueueItem().getFilePath()), queueItem.getArchiveFilePath());
-            archiveDevice.rename(queueItem.getArchiveFilePath(), downloadCompleted.getDownloadQueueItem().getFilePath(),
+            archiveDevice.rename(queueItem.getArchiveFilePath(), new File(downloadCompleted.getDownloadQueueItem().getFilePath()).getName(),
                     downloadCompleted.getDownloadQueueItem().getFile().getFileName());
 
             if (SmartFileUtils.getLength(queueItem.getArchiveFilePath()) > TgConstants.LARGE_FILE_SIZE) {

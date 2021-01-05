@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -63,29 +64,30 @@ public class ArchiveService {
         this.progressBuilder = progressBuilder;
     }
 
+    @Transactional
     public void createArchive(int userId, ArchiveState archiveState, Format format) {
         normalizeFileNames(archiveState.getFiles());
 
         ArchiveQueueItem item = archiveQueueService.createItem(userId, archiveState.getFiles(), format);
         startArchiveCreating(item, message -> {
-            createDownloads(item);
             queueService.setProgressMessageId(item.getId(), message.getMessageId());
             item.setProgressMessageId(message.getMessageId());
+            createDownloads(item);
         });
     }
 
     private void createDownloads(ArchiveQueueItem queueItem) {
         if (queueItem.getFiles().size() > 1) {
-            int i = 0;
+            int i = 1;
             for (TgFile tgFile : queueItem.getFiles()) {
-                Progress downloadProgress = progressBuilder.progressFilesDownloading(queueItem, i, queueItem.getFiles().size());
+                Progress downloadProgress = progressBuilder.progressFilesDownloading(queueItem, queueItem.getFiles().size(), i);
                 tgFile.setProgress(downloadProgress);
                 ++i;
             }
             DownloadExtra extra = new DownloadExtra(queueItem.getFiles(), 0);
             fileDownloadService.createDownload(queueItem.getFiles().get(0), queueItem.getId(), queueItem.getUserId(), extra);
         } else {
-            queueItem.getFiles().get(0).setProgress(progressBuilder.progressFilesDownloading(queueItem, 0, queueItem.getFiles().size()));
+            queueItem.getFiles().get(0).setProgress(progressBuilder.progressFilesDownloading(queueItem, queueItem.getFiles().size(), 1));
             fileDownloadService.createDownload(queueItem.getFiles().get(0), queueItem.getId(), queueItem.getUserId(), null);
         }
     }

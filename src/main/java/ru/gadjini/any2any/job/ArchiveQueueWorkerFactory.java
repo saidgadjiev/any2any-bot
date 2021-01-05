@@ -95,8 +95,9 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
             String fileName = Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), item.getType().getExt());
             mediaMessageService.sendDocument(SendDocument.builder().chatId(String.valueOf(item.getUserId()))
                             .document(new InputFile(new File(item.getArchiveFilePath()), fileName))
-                            .caption(item.getDownloadedFilesCount() < item.getFiles().size() ? null :
-                                    localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_SIZE_EXCEEDED, locale)).build(),
+                            .caption(item.getDownloadedFilesCount() < item.getFiles().size()
+                                    ? localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_SIZE_EXCEEDED, locale)
+                                    : null).build(),
                     progressArchiveUploading(item));
 
             LOGGER.debug("Finish({}, {}, {})", item.getId(), size, item.getType());

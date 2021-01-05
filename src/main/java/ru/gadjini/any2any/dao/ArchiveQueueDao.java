@@ -92,14 +92,11 @@ public class ArchiveQueueDao implements WorkQueueDaoDelegate<ArchiveQueueItem> {
                         "    UPDATE archive_queue SET" + QueueDao.POLL_UPDATE_LIST +
                         "WHERE id IN (SELECT id FROM archive_queue qu WHERE status = 0 AND archive_is_ready " +
                         " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n" +
-                        " ? " + QueueDao.POLL_ORDER_BY + " LIMIT ?) RETURNING *\n" +
+                        QueueDao.POLL_ORDER_BY + " LIMIT " + limit + ") RETURNING *\n" +
                         ")\n" +
                         "SELECT *, 1 as queue_position, (SELECT count(*) FROM downloading_queue dq WHERE dq.producer_id = cv.id AND dq.producer = 'archive_queue') as downloaded_files_count\n" +
                         "FROM r cv INNER JOIN (SELECT id, json_agg(files) as files_json FROM archive_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id\n",
-                ps -> {
-                    ps.setLong(1, fileLimitProperties.getLightFileMaxWeight());
-                    ps.setInt(2, limit);
-                },
+                ps -> ps.setLong(1, fileLimitProperties.getLightFileMaxWeight()),
                 (rs, rowNum) -> map(rs)
         );
     }
@@ -263,6 +260,7 @@ public class ArchiveQueueDao implements WorkQueueDaoDelegate<ArchiveQueueItem> {
         item.setType(Format.valueOf(resultSet.getString(ArchiveQueueItem.TYPE)));
         item.setUserId(resultSet.getInt(ArchiveQueueItem.USER_ID));
         item.setProgressMessageId(resultSet.getInt(ArchiveQueueItem.PROGRESS_MESSAGE_ID));
+        item.setArchiveFilePath(resultSet.getString(ArchiveQueueItem.ARCHIVE_FILE_PATH));
         if (columnNames.contains(QueueItem.QUEUE_POSITION)) {
             item.setQueuePosition(resultSet.getInt(QueueItem.QUEUE_POSITION));
         }
