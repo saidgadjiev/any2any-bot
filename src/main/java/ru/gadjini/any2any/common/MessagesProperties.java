@@ -45,8 +45,6 @@ public class MessagesProperties {
 
     public static final String MESSAGE_ARCHIVE_FILES = "message.archive.files";
 
-    public static final String MESSAGE_ARCHIVE_TYPE_UNSUPPORTED = "message.archive.type.unsupported";
-
     public static final String ARCHIVE_FILE_NAME = "archive.file.name";
 
     public static final String MESSAGE_CHOOSE_ARCHIVE_TYPE = "message.choose.archive.type";
@@ -133,8 +131,6 @@ public class MessagesProperties {
 
     public static final String CONVERT_COMMAND_DESCRIPTION = "convert.command.description";
 
-    public static final String QUERIES_COMMAND_DESCRIPTION = "queries.command.description";
-
     public static final String RENAME_COMMAND_DESCRIPTION = "rename.command.description";
 
     public static final String OCR_COMMAND_DESCRIPTION = "ocr.command.description";
@@ -150,8 +146,6 @@ public class MessagesProperties {
     public static final String HELP_COMMAND_DESCRIPTION = "help.command.description";
 
     public static final String MESSAGE_CHOOSE_SECTION = "message.choose.section";
-
-    public static final String FORMATS_COMMAND_DESCRIPTION = "formats.command.description";
 
     public static final String UPDATE_COMMAND_DESCRIPTION = "update.command.description";
 
@@ -172,8 +166,6 @@ public class MessagesProperties {
     public static final String UPLOADING_STEP = "uploading.step";
 
     public static final String ICON_CHECK = "icon.check";
-
-    public static final String MESSAGE_ETA = "message.eta";
 
     public static final String MESSAGE_ARCHIVE_FILES_DOWNLOADING = "message.archive.files.downloading";
 
