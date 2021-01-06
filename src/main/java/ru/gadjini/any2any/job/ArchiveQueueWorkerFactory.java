@@ -3,7 +3,6 @@ package ru.gadjini.any2any.job;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
@@ -17,8 +16,8 @@ import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.FileUploadService;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
-import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueWorker;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.QueueWorkerFactory;
 import ru.gadjini.telegram.smart.bot.commons.utils.MemoryUtils;
@@ -33,23 +32,23 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
 
     private LocalisationService localisationService;
 
-    private MediaMessageService mediaMessageService;
-
     private UserService userService;
 
     private SmartInlineKeyboardService inlineKeyboardService;
 
     private ArchiveMessageBuilder archiveMessageBuilder;
 
+    private FileUploadService fileUploadService;
+
     @Autowired
-    public ArchiveQueueWorkerFactory(LocalisationService localisationService, @Qualifier("forceMedia") MediaMessageService mediaMessageService,
+    public ArchiveQueueWorkerFactory(LocalisationService localisationService,
                                      UserService userService, SmartInlineKeyboardService inlineKeyboardService,
-                                     ArchiveMessageBuilder archiveMessageBuilder) {
+                                     ArchiveMessageBuilder archiveMessageBuilder, FileUploadService fileUploadService) {
         this.localisationService = localisationService;
-        this.mediaMessageService = mediaMessageService;
         this.userService = userService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.archiveMessageBuilder = archiveMessageBuilder;
+        this.fileUploadService = fileUploadService;
     }
 
     @Override
@@ -88,12 +87,12 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
             Locale locale = userService.getLocaleOrDefault(item.getUserId());
 
             String fileName = Any2AnyFileNameUtils.getFileName(localisationService.getMessage(MessagesProperties.ARCHIVE_FILE_NAME, locale), item.getType().getExt());
-            mediaMessageService.sendDocument(SendDocument.builder().chatId(String.valueOf(item.getUserId()))
-                            .document(new InputFile(new File(item.getArchiveFilePath()), fileName))
-                            .caption(item.getDownloadedFilesCount() < item.getFiles().size()
-                                    ? localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_SIZE_EXCEEDED, locale)
-                                    : null).build(),
-                    progressArchiveUploading(item));
+            SendDocument sendDocument = SendDocument.builder().chatId(String.valueOf(item.getUserId()))
+                    .document(new InputFile(new File(item.getArchiveFilePath()), fileName))
+                    .caption(item.getDownloadedFilesCount() < item.getFiles().size()
+                            ? localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_SIZE_EXCEEDED, locale)
+                            : null).build();
+            fileUploadService.createUpload(item.getUserId(), SendDocument.PATH, sendDocument, progressArchiveUploading(item), item.getId());
 
             LOGGER.debug("Finish({}, {}, {})", item.getId(), size, item.getType());
         }
@@ -106,13 +105,8 @@ public class ArchiveQueueWorkerFactory implements QueueWorkerFactory<ArchiveQueu
         @Override
         public void cancel(boolean canceledByUser) {
             if (canceledByUser) {
-                finish();
+                new SmartTempFile(new File(item.getArchiveFilePath())).smartDelete();
             }
-        }
-
-        @Override
-        public void finish() {
-            new SmartTempFile(new File(item.getArchiveFilePath())).smartDelete();
         }
     }
 }
