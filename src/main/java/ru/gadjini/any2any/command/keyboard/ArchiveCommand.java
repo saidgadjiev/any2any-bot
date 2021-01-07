@@ -149,6 +149,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
     @Override
     public void leave(long chatId) {
         archiverJob.removeAndCancelCurrentTasks(chatId);
+        commandStateService.deleteState(chatId, getHistoryName());
     }
 
     private MessageMedia createFile(Message message, Locale locale) {
