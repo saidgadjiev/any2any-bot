@@ -21,4 +21,9 @@ public class WindowsZipRarArchiveDevice extends BaseArchiveDevice {
     public void zip(List<String> files, String out) {
         throw new NotImplementedException("No implementation for windows");
     }
+
+    @Override
+    public void delete(String archive, String fileHeader) {
+        throw new NotImplementedException("No implementation for windows");
+    }
 }

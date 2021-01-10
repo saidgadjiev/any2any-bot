@@ -30,6 +30,11 @@ public class RarArchiveDevice extends BaseArchiveDevice {
     }
 
     @Override
+    public void delete(String archive, String fileHeader) {
+        processExecutor.execute(buildDeleteCommand(archive, fileHeader));
+    }
+
+    @Override
     public String rename(String archive, String fileHeader, String newFileName) {
         String newHeader = buildNewHeader(fileHeader, newFileName);
         processExecutor.execute(buildRenameCommand(archive, fileHeader, newHeader));
@@ -38,13 +43,19 @@ public class RarArchiveDevice extends BaseArchiveDevice {
     }
 
     private String[] buildRenameCommand(String archive, String fileHeader, String newFileHeader) {
-        return new String[] {"rar", "rn", archive, fileHeader, newFileHeader};
+        return new String[] {"rar", "rn", archive, fileHeader, "--", newFileHeader.replaceFirst("@", "")};
     }
 
     private String buildNewHeader(String fileHeader, String newFileName) {
         String path = FilenameUtils.getFullPath(fileHeader);
 
         return path + newFileName;
+    }
+
+    private String[] buildDeleteCommand(String archive, String fileHeader) {
+        return new String[]{
+                "rar", "d", archive, fileHeader
+        };
     }
 
     private String[] buildCommand(List<String> files, String out) {

@@ -3,6 +3,8 @@ package ru.gadjini.any2any.job;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -27,6 +29,8 @@ import java.util.Set;
 public class DownloadJobEventListener {
 
     private static final String TAG = "archive";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DownloadJobEventListener.class);
 
     private Gson gson;
 
@@ -60,15 +64,21 @@ public class DownloadJobEventListener {
             archiveQueueService.setArchiveFilePath(queueItem.getId(), archive.getAbsolutePath());
         }
         ArchiveDevice archiveDevice = getCandidate(queueItem.getType());
+        if (StringUtils.isBlank(downloadCompleted.getDownloadQueueItem().getFilePath())) {
+            LOGGER.error("Null file path({}, {}, {})", downloadCompleted.getDownloadQueueItem().getUserId(),
+                    downloadCompleted.getDownloadQueueItem().getId(), downloadCompleted.getDownloadQueueItem().getFile().getFileId());
+        }
         SmartTempFile downloadedFile = new SmartTempFile(new File(downloadCompleted.getDownloadQueueItem().getFilePath()));
         try {
             archiveDevice.zip(List.of(downloadedFile.getAbsolutePath()), queueItem.getArchiveFilePath());
-            archiveDevice.rename(queueItem.getArchiveFilePath(), downloadedFile.getName(),
-                    downloadCompleted.getDownloadQueueItem().getFile().getFileName());
 
             if (SmartFileUtils.getLength(queueItem.getArchiveFilePath()) > TgConstants.LARGE_FILE_SIZE) {
+                archiveDevice.delete(queueItem.getArchiveFilePath(), downloadedFile.getName());
                 archiveQueueService.setArchiveIsReady(downloadCompleted.getDownloadQueueItem().getProducerId());
                 return;
+            } else {
+                archiveDevice.rename(queueItem.getArchiveFilePath(), downloadedFile.getName(),
+                        downloadCompleted.getDownloadQueueItem().getFile().getFileName());
             }
         } finally {
             downloadedFile.smartDelete();

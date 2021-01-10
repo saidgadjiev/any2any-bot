@@ -30,6 +30,11 @@ public class P7ArchiveDevice extends BaseArchiveDevice {
     }
 
     @Override
+    public void delete(String archive, String fileHeader) {
+        processExecutor.execute(buildDeleteCommand(archive, fileHeader));
+    }
+
+    @Override
     public String rename(String archive, String fileHeader, String newFileName) {
         String newHeader = buildNewHeader(fileHeader, newFileName);
         processExecutor.execute(buildRenameCommand(archive, fileHeader, newHeader));
@@ -57,6 +62,12 @@ public class P7ArchiveDevice extends BaseArchiveDevice {
         command.addAll(files);
 
         return command.toArray(new String[0]);
+    }
+
+    private String[] buildDeleteCommand(String archive, String fileHeader) {
+        return new String[]{
+                "7z", "d", archive, fileHeader
+        };
     }
 
     public static void main(String[] args) {

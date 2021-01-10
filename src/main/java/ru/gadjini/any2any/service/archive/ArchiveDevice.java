@@ -8,6 +8,8 @@ public interface ArchiveDevice {
 
     void zip(List<String> files, String out);
 
+    void delete(String archive, String fileHeader);
+
     default String rename(String archive, String fileHeader, String newFileName) {
         return null;
     }
