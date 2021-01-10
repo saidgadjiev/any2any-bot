@@ -54,15 +54,11 @@ public class GarbageFileCollector {
         if (algorithm != null) {
             if (algorithm.isGarbage(file)) {
                 boolean b = FileUtils.deleteQuietly(file);
-                if (b) {
-                    LOGGER.debug("Garbage file deleted({}, {})", file.getAbsolutePath(), algorithm.getClass().getSimpleName());
-                } else {
+                if (!b) {
                     LOGGER.debug("Garbage file not deleted({}, {})", file.getAbsolutePath(), algorithm.getClass().getSimpleName());
                 }
 
                 return b;
-            } else {
-                LOGGER.debug("Non garbage({}, {})", file.getAbsolutePath(), algorithm.getClass().getSimpleName());
             }
         } else {
             LOGGER.debug("Algorithm not found({})", file.getAbsolutePath());
