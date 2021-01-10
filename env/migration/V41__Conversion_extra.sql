@@ -1,0 +1,1 @@
+ALTER TABLE conversion_queue ADD COLUMN IF NOT EXISTS extra TEXT;
