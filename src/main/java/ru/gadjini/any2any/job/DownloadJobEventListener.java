@@ -74,6 +74,7 @@ public class DownloadJobEventListener {
 
             if (SmartFileUtils.getLength(queueItem.getArchiveFilePath()) > TgConstants.LARGE_FILE_SIZE) {
                 archiveDevice.delete(queueItem.getArchiveFilePath(), downloadedFile.getName());
+                fileDownloadService.deleteDownload(downloadCompleted.getDownloadQueueItem().getId());
                 archiveQueueService.setArchiveIsReady(downloadCompleted.getDownloadQueueItem().getProducerId());
                 return;
             } else {
