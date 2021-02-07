@@ -1,0 +1,1 @@
+ALTER TABLE upload_queue ADD COLUMN file_format VARCHAR(32);
