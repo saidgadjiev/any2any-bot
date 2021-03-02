@@ -4,9 +4,6 @@ alter table downloading_queue
 alter table downloading_queue
     add column if not exists synced_2 boolean not null default false;
 
-alter table downloading_queue
-    add column if not exists synced_3 boolean not null default false;
-
 alter table upload_queue
     add column if not exists synced boolean not null default false;
 
