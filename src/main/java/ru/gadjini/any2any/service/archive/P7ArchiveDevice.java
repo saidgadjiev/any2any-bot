@@ -26,18 +26,30 @@ public class P7ArchiveDevice extends BaseArchiveDevice {
 
     @Override
     public void zip(List<String> files, String out) {
-        processExecutor.execute(buildCommand(files, out));
+        try {
+            processExecutor.execute(buildCommand(files, out));
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void delete(String archive, String fileHeader) {
-        processExecutor.execute(buildDeleteCommand(archive, fileHeader));
+        try {
+            processExecutor.execute(buildDeleteCommand(archive, fileHeader));
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public String rename(String archive, String fileHeader, String newFileName) {
         String newHeader = buildNewHeader(fileHeader, newFileName);
-        processExecutor.execute(buildRenameCommand(archive, fileHeader, newHeader));
+        try {
+            processExecutor.execute(buildRenameCommand(archive, fileHeader, newHeader));
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         return newHeader;
     }

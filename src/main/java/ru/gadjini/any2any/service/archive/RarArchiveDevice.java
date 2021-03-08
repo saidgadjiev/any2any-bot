@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Component;
 import ru.gadjini.any2any.condition.LinuxMacCondition;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 
@@ -26,18 +27,30 @@ public class RarArchiveDevice extends BaseArchiveDevice {
 
     @Override
     public void zip(List<String> files, String out) {
-        processExecutor.execute(buildCommand(files, out));
+        try {
+            processExecutor.execute(buildCommand(files, out));
+        } catch (InterruptedException e) {
+            throw new ProcessException(e);
+        }
     }
 
     @Override
     public void delete(String archive, String fileHeader) {
-        processExecutor.execute(buildDeleteCommand(archive, fileHeader));
+        try {
+            processExecutor.execute(buildDeleteCommand(archive, fileHeader));
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public String rename(String archive, String fileHeader, String newFileName) {
         String newHeader = buildNewHeader(fileHeader, newFileName);
-        processExecutor.execute(buildRenameCommand(archive, fileHeader, newHeader));
+        try {
+            processExecutor.execute(buildRenameCommand(archive, fileHeader, newHeader));
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         return newHeader;
     }

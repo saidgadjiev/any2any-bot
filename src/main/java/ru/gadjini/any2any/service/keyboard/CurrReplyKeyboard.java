@@ -17,7 +17,8 @@ public class CurrReplyKeyboard implements Any2AnyReplyKeyboardService {
 
     private Any2AnyReplyKeyboardService keyboardService;
 
-    public CurrReplyKeyboard(@Qualifier("inMemory") ReplyKeyboardDao replyKeyboardDao, @Qualifier("keyboard") Any2AnyReplyKeyboardService keyboardService) {
+    public CurrReplyKeyboard(@Qualifier("inMemory") ReplyKeyboardDao replyKeyboardDao,
+                             @Qualifier("keyboard") Any2AnyReplyKeyboardService keyboardService) {
         this.replyKeyboardDao = replyKeyboardDao;
         this.keyboardService = keyboardService;
     }
@@ -33,13 +34,17 @@ public class CurrReplyKeyboard implements Any2AnyReplyKeyboardService {
     }
 
     @Override
-    public ReplyKeyboardMarkup languageKeyboard(long chatId, Locale locale) {
-        return setCurrentKeyboard(chatId, (ReplyKeyboardMarkup) keyboardService.languageKeyboard(chatId, locale));
+    public ReplyKeyboardMarkup smartFileFeatureKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.smartFileFeatureKeyboard(chatId, locale));
     }
 
     @Override
-    public ReplyKeyboardMarkup getMainMenu(long chatId, Locale locale) {
-        return setCurrentKeyboard(chatId, (ReplyKeyboardMarkup) keyboardService.getMainMenu(chatId, locale));
+    public ReplyKeyboardMarkup languageKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, keyboardService.languageKeyboard(chatId, locale));
+    }
+
+    public ReplyKeyboardMarkup mainMenuKeyboard(long chatId, Locale locale) {
+        return setCurrentKeyboard(chatId, (ReplyKeyboardMarkup) keyboardService.mainMenuKeyboard(chatId, locale));
     }
 
     @Override

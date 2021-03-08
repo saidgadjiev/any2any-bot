@@ -13,7 +13,8 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloader;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
@@ -59,7 +60,7 @@ public class OcrService {
             LOGGER.debug("Start({}, {})", userId, any2AnyFile.getFileId());
 
             Locale locale = userService.getLocaleOrDefault(userId);
-            SmartTempFile file = fileService.createTempFile(userId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
+            SmartTempFile file = fileService.createTempFile(FileTarget.TEMP, userId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
             try {
                 fileDownloader.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFileSize(), file, false);
 

@@ -53,6 +53,11 @@ public class ReplyKeyboardServiceImpl implements Any2AnyReplyKeyboardService {
     }
 
     @Override
+    public ReplyKeyboardMarkup smartFileFeatureKeyboard(long chatId, Locale locale) {
+        return replyKeyboardMarkup();
+    }
+
+    @Override
     public ReplyKeyboardMarkup languageKeyboard(long chatId, Locale locale) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
@@ -67,7 +72,7 @@ public class ReplyKeyboardServiceImpl implements Any2AnyReplyKeyboardService {
     }
 
     @Override
-    public ReplyKeyboardMarkup getMainMenu(long chatId, Locale locale) {
+    public ReplyKeyboardMarkup mainMenuKeyboard(long chatId, Locale locale) {
         ReplyKeyboardMarkup replyKeyboardMarkup = replyKeyboardMarkup();
 
         replyKeyboardMarkup.getKeyboard().add(keyboardRow(localisationService.getMessage(MessagesProperties.CONVERT_COMMAND_NAME, locale), localisationService.getMessage(MessagesProperties.IMAGE_EDITOR_COMMAND_NAME, locale)));

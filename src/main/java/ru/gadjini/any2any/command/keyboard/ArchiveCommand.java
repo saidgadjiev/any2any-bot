@@ -130,7 +130,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
                             .parseMode(ParseMode.HTML).build());
                 } else {
                     Format associatedFormat = checkFormat(text, formatService.getAssociatedFormat(text), locale);
-                    archiverJob.removeAndCancelCurrentTasks(message.getChatId());
+                    archiverJob.cancelCurrentTasks(message.getChatId());
                     archiveService.createArchive(message.getFrom().getId(), archiveState, associatedFormat);
                     commandStateService.deleteState(message.getChatId(), FileUtilsCommandNames.ARCHIVE_COMMAND_NAME);
                 }
@@ -148,7 +148,7 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     @Override
     public void leave(long chatId) {
-        archiverJob.removeAndCancelCurrentTasks(chatId);
+        archiverJob.cancelCurrentTasks(chatId);
         commandStateService.deleteState(chatId, getHistoryName());
     }
 

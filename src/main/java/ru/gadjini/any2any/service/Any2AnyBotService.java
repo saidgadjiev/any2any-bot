@@ -99,7 +99,7 @@ public class Any2AnyBotService {
         if (commandNavigator.isEmpty(chatId)) {
             commandNavigator.zeroRestore(chatId, (NavigableBotCommand) commandExecutor.getBotCommand(CommandNames.START_COMMAND_NAME));
             Locale locale = userService.getLocaleOrDefault((int) chatId);
-            messageService.sendBotRestartedMessage(chatId, replyKeyboardService.getMainMenu(chatId, locale), locale);
+            messageService.sendBotRestartedMessage(chatId, replyKeyboardService.mainMenuKeyboard(chatId, locale), locale);
 
             return true;
         }

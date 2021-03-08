@@ -54,7 +54,7 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
                 SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                         .text(localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
                         .parseMode(ParseMode.HTML)
-                        .replyMarkup(replyKeyboardService.getMainMenu(message.getChat().getId(), locale)).build()
+                        .replyMarkup(replyKeyboardService.mainMenuKeyboard(message.getChat().getId(), locale)).build()
         );
     }
 
@@ -90,14 +90,14 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
         Locale locale = userService.getLocaleOrDefault(message.getUser().getId());
         messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
                 .text(localisationService.getMessage(MessagesProperties.MESSAGE_MAIN_MENU, locale))
-                .replyMarkup(replyKeyboardService.getMainMenu(message.getChatId(), locale))
+                .replyMarkup(replyKeyboardService.mainMenuKeyboard(message.getChatId(), locale))
                 .parseMode(ParseMode.HTML)
                 .build());
     }
 
     @Override
     public ReplyKeyboard getKeyboard(long chatId) {
-        return replyKeyboardService.getMainMenu(chatId, userService.getLocaleOrDefault((int) chatId));
+        return replyKeyboardService.mainMenuKeyboard(chatId, userService.getLocaleOrDefault((int) chatId));
     }
 
     @Override

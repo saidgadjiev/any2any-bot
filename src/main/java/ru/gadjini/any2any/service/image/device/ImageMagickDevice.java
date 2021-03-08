@@ -2,6 +2,7 @@ package ru.gadjini.any2any.service.image.device;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.gadjini.telegram.smart.bot.commons.exception.ProcessException;
 import ru.gadjini.telegram.smart.bot.commons.service.ProcessExecutor;
 
 import java.util.ArrayList;
@@ -20,47 +21,83 @@ public class ImageMagickDevice implements ImageConvertDevice, ImageIdentifyDevic
 
     @Override
     public void convert(String in, String out, String... options) {
-        processExecutor.execute(getCommand(in, out, options));
+        try {
+            processExecutor.execute(getCommand(in, out, options));
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void negativeTransparent(String in, String out, String inaccuracy, String... colors) {
-        processExecutor.execute(getTransparentRemoveCommand(in, out, true, inaccuracy, colors));
+        try {
+            processExecutor.execute(getTransparentRemoveCommand(in, out, true, inaccuracy, colors));
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void positiveTransparent(String in, String out, String inaccuracy, String color) {
-        processExecutor.execute(getTransparentRemoveCommand(in, out, false, inaccuracy, color));
+        try {
+            processExecutor.execute(getTransparentRemoveCommand(in, out, false, inaccuracy, color));
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void applyBlackAndWhiteFilter(String in, String out) {
-        processExecutor.execute(getBlackAndWhiteFilterCommand(in, out));
+        try {
+            processExecutor.execute(getBlackAndWhiteFilterCommand(in, out));
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public void applyNegativeFilter(String in, String out) {
-        processExecutor.execute(getNegativeFilterCommand(in, out));
+        try {
+            processExecutor.execute(getNegativeFilterCommand(in, out));
+        } catch (InterruptedException e) {
+            throw new ProcessException(e);
+        }
     }
 
     @Override
     public void applySketchFilter(String in, String out) {
-        processExecutor.execute(getSketchFilterCommand(in, out));
+        try {
+            processExecutor.execute(getSketchFilterCommand(in, out));
+        } catch (InterruptedException e) {
+            throw new ProcessException(e);
+        }
     }
 
     @Override
     public void resize(String in, String out, String size) {
-        processExecutor.execute(getResizeCommand(in, out, size));
+        try {
+            processExecutor.execute(getResizeCommand(in, out, size));
+        } catch (InterruptedException e) {
+            throw new ProcessException(e);
+        }
     }
 
     @Override
     public void convertToThumb(String in, String out) {
-        processExecutor.execute(getThumbCommand(in, out));
+        try {
+            processExecutor.execute(getThumbCommand(in, out));
+        } catch (InterruptedException e) {
+            throw new ProcessException(e);
+        }
     }
 
     @Override
     public String getSize(String in) {
-        return processExecutor.executeWithResult(getSizeCommand(in));
+        try {
+            return processExecutor.executeWithResult(getSizeCommand(in));
+        } catch (InterruptedException e) {
+            throw new ProcessException(e);
+        }
     }
 
     private String[] getThumbCommand(String in, String out) {

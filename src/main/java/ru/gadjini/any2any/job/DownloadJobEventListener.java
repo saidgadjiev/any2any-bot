@@ -14,8 +14,9 @@ import ru.gadjini.any2any.service.queue.ArchiveQueueService;
 import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
-import ru.gadjini.telegram.smart.bot.commons.service.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloadService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.event.DownloadCompleted;
 import ru.gadjini.telegram.smart.bot.commons.utils.SmartFileUtils;
@@ -59,7 +60,7 @@ public class DownloadJobEventListener {
             return;
         }
         if (StringUtils.isBlank(queueItem.getArchiveFilePath())) {
-            SmartTempFile archive = tempFileService.getTempFile(downloadCompleted.getDownloadQueueItem().getUserId(), TAG, queueItem.getType().getExt());
+            SmartTempFile archive = tempFileService.getTempFile(FileTarget.TEMP, downloadCompleted.getDownloadQueueItem().getUserId(), TAG, queueItem.getType().getExt());
             queueItem.setArchiveFilePath(archive.getAbsolutePath());
             archiveQueueService.setArchiveFilePath(queueItem.getId(), archive.getAbsolutePath());
         }
