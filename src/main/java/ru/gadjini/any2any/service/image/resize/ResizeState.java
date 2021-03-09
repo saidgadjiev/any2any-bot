@@ -26,9 +26,9 @@ import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.EditMediaResult;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
+import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.TempFileService;
-import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MediaMessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
@@ -103,7 +103,7 @@ public class ResizeState implements State {
         Locale locale = new Locale(editorState.getLanguage());
 
         SendFileResult sendFileResult = mediaMessageService.sendDocument(SendDocument.builder()
-                .chatId(String.valueOf(chatId)).document(new InputFile(new File(editorState.getCurrentFilePath(), editorState.getFileName())))
+                .chatId(String.valueOf(chatId)).document(new InputFile(new File(editorState.getCurrentFilePath()), editorState.getFileName()))
                 .caption(localisationService.getMessage(MessagesProperties.MESSAGE_IMAGE_SIZE, new Object[]{size}, locale) + "\n\n" +
                         localisationService.getMessage(MessagesProperties.MESSAGE_RESIZE_IMAGE_WELCOME, locale))
                 .replyMarkup(inlineKeyboardService.getResizeKeyboard(locale, editorState.canCancel())).build());
@@ -167,7 +167,7 @@ public class ResizeState implements State {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
         validateSize(srcSize, new Locale(editorState.getLanguage()));
         executor.execute(() -> {
-            String targetSize = forceSize(srcSize);
+            String targetSize = prepareToResize(srcSize);
 
             SmartTempFile result = tempFileService.getTempFile(FileTarget.TEMP, chatId, editorState.getCurrentFileId(), TAG, Format.PNG.getExt());
             imageDevice.resize(editorState.getCurrentFilePath(), result.getAbsolutePath(), targetSize);
@@ -215,12 +215,8 @@ public class ResizeState implements State {
         size(command, chatId, null, text);
     }
 
-    private String forceSize(String size) {
-        if (size.endsWith(">")) {
-            return size;
-        }
-
-        return size + ">";
+    private String prepareToResize(String size) {
+        return size.replaceAll("[хХ]", "x");
     }
 
     private void validateSize(String size, Locale locale) {

@@ -6,7 +6,9 @@ services:
     build: ../../../
     volumes:
       - ../../../data/fileutils/logs:/home/bot/app/logs
-      - ../../../data/shr:/tmp/shr
+      - ../../../data/media/downloads:/tmp/media/downloads
+      - ../../../data/media/uploads:/tmp/media/uploads
+      - ../../../data/media/temp:/tmp/media/temp
       - ../../../data/botapi/workdir:/home/bot/app/botapi/workdir
     ports:
       - 5005:5005

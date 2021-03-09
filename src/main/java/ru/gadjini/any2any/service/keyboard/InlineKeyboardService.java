@@ -138,7 +138,9 @@ public class InlineKeyboardService {
                 buttonFactory.delegateButton("480x360",
                         FileUtilsCommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_SIZE.getKey(), "480x360")),
                 buttonFactory.delegateButton("512x512",
-                        FileUtilsCommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_SIZE.getKey(), "640x480")),
+                        FileUtilsCommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_SIZE.getKey(), "512x512"))));
+
+        inlineKeyboardMarkup.getKeyboard().add(List.of(
                 buttonFactory.delegateButton("640x480",
                         FileUtilsCommandNames.IMAGE_EDITOR_COMMAND_NAME, new RequestParams().add(Arg.IMAGE_SIZE.getKey(), "640x480")),
                 buttonFactory.delegateButton("1280x720",
