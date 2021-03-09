@@ -45,7 +45,7 @@ public class ResizeState implements State {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ResizeState.class);
 
-    private static final Pattern SIZE_PATTERN = Pattern.compile("\\d*\\.?\\d+[xX]\\d*\\.?\\d+");
+    private static final Pattern SIZE_PATTERN = Pattern.compile("\\d*\\.?\\d+[xXхХ]\\d*\\.?\\d+");
 
     private CommandStateService commandStateService;
 
@@ -163,12 +163,14 @@ public class ResizeState implements State {
     }
 
     @Override
-    public void size(ImageEditorCommand command, long chatId, String queryId, String size) {
+    public void size(ImageEditorCommand command, long chatId, String queryId, String srcSize) {
         EditorState editorState = commandStateService.getState(chatId, command.getHistoryName(), true, EditorState.class);
-        validateSize(size, new Locale(editorState.getLanguage()));
+        validateSize(srcSize, new Locale(editorState.getLanguage()));
         executor.execute(() -> {
+            String targetSize = forceSize(srcSize);
+
             SmartTempFile result = tempFileService.getTempFile(FileTarget.TEMP, chatId, editorState.getCurrentFileId(), TAG, Format.PNG.getExt());
-            imageDevice.resize(editorState.getCurrentFilePath(), result.getAbsolutePath(), size);
+            imageDevice.resize(editorState.getCurrentFilePath(), result.getAbsolutePath(), targetSize);
             if (StringUtils.isNotBlank(editorState.getPrevFilePath())) {
                 SmartTempFile prevFile = new SmartTempFile(new File(editorState.getPrevFilePath()));
                 prevFile.smartDelete();
@@ -211,6 +213,14 @@ public class ResizeState implements State {
     @Override
     public void userText(ImageEditorCommand command, long chatId, String text) {
         size(command, chatId, null, text);
+    }
+
+    private String forceSize(String size) {
+        if (size.endsWith(">")) {
+            return size;
+        }
+
+        return size + ">";
     }
 
     private void validateSize(String size, Locale locale) {
