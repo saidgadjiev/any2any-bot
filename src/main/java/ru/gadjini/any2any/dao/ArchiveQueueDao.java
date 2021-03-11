@@ -262,6 +262,7 @@ public class ArchiveQueueDao implements WorkQueueDaoDelegate<ArchiveQueueItem> {
         item.setUserId(resultSet.getInt(ArchiveQueueItem.USER_ID));
         item.setProgressMessageId(resultSet.getInt(ArchiveQueueItem.PROGRESS_MESSAGE_ID));
         item.setArchiveFilePath(resultSet.getString(ArchiveQueueItem.ARCHIVE_FILE_PATH));
+        item.setServer(resultSet.getInt(QueueItem.SERVER));
         if (columnNames.contains(QueueItem.QUEUE_POSITION)) {
             item.setQueuePosition(resultSet.getInt(QueueItem.QUEUE_POSITION));
         }
