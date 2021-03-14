@@ -9,12 +9,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import ru.gadjini.any2any.domain.ArchiveQueueItem;
-import ru.gadjini.telegram.smart.bot.commons.configuration.SmartBotConfiguration;
 import ru.gadjini.telegram.smart.bot.commons.dao.QueueDao;
 import ru.gadjini.telegram.smart.bot.commons.dao.WorkQueueDaoDelegate;
 import ru.gadjini.telegram.smart.bot.commons.domain.QueueItem;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.property.FileLimitProperties;
+import ru.gadjini.telegram.smart.bot.commons.property.ServerProperties;
 import ru.gadjini.telegram.smart.bot.commons.service.concurrent.SmartExecutorService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.utils.JdbcUtils;
@@ -32,11 +32,15 @@ public class ArchiveQueueDao implements WorkQueueDaoDelegate<ArchiveQueueItem> {
 
     private ObjectMapper objectMapper;
 
+    private ServerProperties serverProperties;
+
     @Autowired
-    public ArchiveQueueDao(JdbcTemplate jdbcTemplate, FileLimitProperties fileLimitProperties, ObjectMapper objectMapper) {
+    public ArchiveQueueDao(JdbcTemplate jdbcTemplate, FileLimitProperties fileLimitProperties,
+                           ObjectMapper objectMapper, ServerProperties serverProperties) {
         this.jdbcTemplate = jdbcTemplate;
         this.fileLimitProperties = fileLimitProperties;
         this.objectMapper = objectMapper;
+        this.serverProperties = serverProperties;
     }
 
     public int create(ArchiveQueueItem archiveQueueItem) {
@@ -90,7 +94,7 @@ public class ArchiveQueueDao implements WorkQueueDaoDelegate<ArchiveQueueItem> {
     public List<ArchiveQueueItem> poll(SmartExecutorService.JobWeight weight, int limit) {
         return jdbcTemplate.query(
                 "WITH r AS (\n" +
-                        "    UPDATE archive_queue SET" + QueueDao.getUpdateList(SmartBotConfiguration.PRIMARY_SERVER_NUMBER) +
+                        "    UPDATE archive_queue SET" + QueueDao.getUpdateList(serverProperties.getNumber()) +
                         "WHERE id IN (SELECT id FROM archive_queue qu WHERE status = 0 AND archive_is_ready " +
                         " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n" +
                         QueueDao.POLL_ORDER_BY + " LIMIT " + limit + ") RETURNING *\n" +
