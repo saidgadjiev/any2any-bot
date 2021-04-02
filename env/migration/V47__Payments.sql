@@ -17,4 +17,4 @@ create table if not exists paid_subscription
 );
 
 INSERT INTO paid_subscription_plan(currency, price, period, active)
-VALUES ('usd', 1.45, interval '1 months', true);
+VALUES ('usd', 1, interval '1 months', true);
