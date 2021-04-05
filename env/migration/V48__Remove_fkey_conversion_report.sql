@@ -1,0 +1,1 @@
+alter table conversion_report drop constraint if exists file_report_queue_item_id_fkey;
