@@ -97,7 +97,7 @@ public class ArchiveQueueDao implements WorkQueueDaoDelegate<ArchiveQueueItem> {
                         "    UPDATE archive_queue SET" + QueueDao.getUpdateList(serverProperties.getNumber()) +
                         "WHERE id IN (SELECT id FROM archive_queue qu WHERE status = 0 AND archive_is_ready " +
                         " AND (SELECT sum(f.size) from unnest(qu.files) f) " + getSign(weight) + " ?\n" +
-                        QueueDao.POLL_ORDER_BY + " LIMIT " + limit + ") RETURNING *\n" +
+                        " ORDER BY qu.id LIMIT " + limit + ") RETURNING *\n" +
                         ")\n" +
                         "SELECT *, 1 as queue_position, (SELECT count(*) FROM downloading_queue dq WHERE dq.producer_id = cv.id AND dq.producer = 'archive_queue') as downloaded_files_count\n" +
                         "FROM r cv INNER JOIN (SELECT id, json_agg(files) as files_json FROM archive_queue WHERE status = 0 GROUP BY id) cc ON cv.id = cc.id\n",
