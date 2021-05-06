@@ -1,6 +1,5 @@
 package ru.gadjini.any2any.command.keyboard;
 
-import com.antkorwin.xsync.XSync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,13 +60,11 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     private MessageMediaService fileService;
 
-    private XSync<Long> longXSync;
-
     @Autowired
     public ArchiveCommand(ArchiveService archiveService, WorkQueueJob archiverJob, LocalisationService localisationService,
                           @TgMessageLimitsControl MessageService messageService,
                           CommandStateService commandStateService, @KeyboardHolder Any2AnyReplyKeyboardService replyKeyboardService,
-                          UserService userService, FormatService formatService, MessageMediaService fileService, XSync<Long> longXSync) {
+                          UserService userService, FormatService formatService, MessageMediaService fileService) {
         this.archiveService = archiveService;
         this.archiverJob = archiverJob;
         this.localisationService = localisationService;
@@ -77,7 +74,6 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
         this.userService = userService;
         this.formatService = formatService;
         this.fileService = fileService;
-        this.longXSync = longXSync;
         for (Locale locale : localisationService.getSupportedLocales()) {
             this.names.add(localisationService.getMessage(MessagesProperties.ARCHIVE_COMMAND_NAME, locale));
         }
@@ -121,30 +117,28 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     @Override
     public void processNonCommandUpdate(Message message, String text) {
-        longXSync.execute(message.getChatId(), () -> {
-            Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
-            if (message.hasText()) {
-                ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false, ArchiveState.class);
-                if (archiveState == null || archiveState.getFiles().isEmpty()) {
-                    messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
-                            .text(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale))
-                            .parseMode(ParseMode.HTML).build());
-                } else {
-                    Format associatedFormat = checkFormat(text, formatService.getAssociatedFormat(text), locale);
-                    archiverJob.cancelCurrentTasks(message.getChatId());
-                    archiveService.createArchive(message.getFrom().getId(), archiveState, associatedFormat);
-                    commandStateService.deleteState(message.getChatId(), FileUtilsCommandNames.ARCHIVE_COMMAND_NAME);
-                }
+        Locale locale = userService.getLocaleOrDefault(message.getFrom().getId());
+        if (message.hasText()) {
+            ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false, ArchiveState.class);
+            if (archiveState == null || archiveState.getFiles().isEmpty()) {
+                messageService.sendMessage(SendMessage.builder().chatId(String.valueOf(message.getChatId()))
+                        .text(localisationService.getMessage(MessagesProperties.MESSAGE_ARCHIVE_FILES_EMPTY, locale))
+                        .parseMode(ParseMode.HTML).build());
             } else {
-                ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false, ArchiveState.class);
-                if (archiveState == null) {
-                    archiveState = new ArchiveState();
-                }
-                MessageMedia file = createFile(message, locale);
-                archiveState.getFiles().add(file);
-                commandStateService.setState(message.getChatId(), getHistoryName(), archiveState);
+                Format associatedFormat = checkFormat(text, formatService.getAssociatedFormat(text), locale);
+                archiverJob.cancelCurrentTasks(message.getChatId());
+                archiveService.createArchive(message.getFrom().getId(), archiveState, associatedFormat);
+                commandStateService.deleteState(message.getChatId(), FileUtilsCommandNames.ARCHIVE_COMMAND_NAME);
             }
-        });
+        } else {
+            ArchiveState archiveState = commandStateService.getState(message.getChatId(), getHistoryName(), false, ArchiveState.class);
+            if (archiveState == null) {
+                archiveState = new ArchiveState();
+            }
+            MessageMedia file = createFile(message, locale);
+            archiveState.getFiles().add(file);
+            commandStateService.setState(message.getChatId(), getHistoryName(), archiveState);
+        }
     }
 
     @Override

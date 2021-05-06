@@ -9,11 +9,13 @@ import ru.gadjini.telegram.smart.bot.commons.filter.subscription.ChannelSubscrip
 public class BotConfiguration {
 
     @Bean
-    public BotFilter botFilter(UpdateFilter updateFilter, StartCommandFilter startCommandFilter,
+    public BotFilter botFilter(UpdateFilter updateFilter, UserSynchronizedFilter userSynchronizedFilter,
+                               StartCommandFilter startCommandFilter, TechWorkFilter techWorkFilter,
                                MediaFilter mediaFilter, LastActivityFilter activityFilter,
                                ChannelSubscriptionFilter subscriptionFilter, UpdatesHandlerFilter updatesHandler) {
-        updateFilter.setNext(mediaFilter).setNext(startCommandFilter).setNext(subscriptionFilter)
-                .setNext(activityFilter).setNext(updatesHandler);
+        updateFilter.setNext(userSynchronizedFilter).setNext(activityFilter).setNext(mediaFilter)
+                .setNext(startCommandFilter).setNext(subscriptionFilter)
+                .setNext(techWorkFilter).setNext(updatesHandler);
         return updateFilter;
     }
 }
