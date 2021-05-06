@@ -4,7 +4,6 @@ import com.antkorwin.xsync.XSync;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -14,6 +13,8 @@ import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.archive.ArchiveService;
 import ru.gadjini.any2any.service.archive.ArchiveState;
 import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
@@ -64,8 +65,8 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
 
     @Autowired
     public ArchiveCommand(ArchiveService archiveService, WorkQueueJob archiverJob, LocalisationService localisationService,
-                          @Qualifier("messageLimits") MessageService messageService,
-                          CommandStateService commandStateService, @Qualifier("curr") Any2AnyReplyKeyboardService replyKeyboardService,
+                          @TgMessageLimitsControl MessageService messageService,
+                          CommandStateService commandStateService, @KeyboardHolder Any2AnyReplyKeyboardService replyKeyboardService,
                           UserService userService, FormatService formatService, MessageMediaService fileService, XSync<Long> longXSync) {
         this.archiveService = archiveService;
         this.archiverJob = archiverJob;

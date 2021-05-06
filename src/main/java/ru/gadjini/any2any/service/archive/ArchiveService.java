@@ -3,7 +3,6 @@ package ru.gadjini.any2any.service.archive;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
@@ -13,6 +12,7 @@ import ru.gadjini.any2any.domain.ArchiveQueueItem;
 import ru.gadjini.any2any.job.DownloadExtra;
 import ru.gadjini.any2any.service.progress.ProgressBuilder;
 import ru.gadjini.any2any.service.queue.ArchiveQueueService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
@@ -49,7 +49,7 @@ public class ArchiveService {
     private ProgressBuilder progressBuilder;
 
     @Autowired
-    public ArchiveService(@Qualifier("messageLimits") MessageService messageService, UserService userService,
+    public ArchiveService(@TgMessageLimitsControl MessageService messageService, UserService userService,
                           ArchiveQueueService archiveQueueService,
                           WorkQueueService queueService, SmartInlineKeyboardService inlineKeyboardService,
                           ArchiveMessageBuilder messageBuilder, FileDownloadService fileDownloadService,

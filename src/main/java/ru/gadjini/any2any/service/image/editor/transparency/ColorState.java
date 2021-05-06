@@ -21,6 +21,7 @@ import ru.gadjini.any2any.service.image.editor.EditMessageBuilder;
 import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.EditMediaResult;
@@ -68,7 +69,7 @@ public class ColorState implements State {
     private LocalisationService localisationService;
 
     @Autowired
-    public ColorState(CommandStateService commandStateService, @Qualifier("messageLimits") MessageService messageService,
+    public ColorState(CommandStateService commandStateService, @TgMessageLimitsControl MessageService messageService,
                       @Qualifier("mediaLimits") MediaMessageService mediaMessageService, InlineKeyboardService inlineKeyboardService,
                       @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
                       TempFileService fileService, ImageConvertDevice imageDevice, EditMessageBuilder messageBuilder,

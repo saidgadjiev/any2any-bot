@@ -1,7 +1,6 @@
 package ru.gadjini.any2any.command.keyboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -9,6 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.archive.ArchiveState;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
@@ -33,7 +33,7 @@ public class CancelArchiveFilesCommand implements KeyboardBotCommand {
     private Set<String> names = new HashSet<>();
 
     @Autowired
-    public CancelArchiveFilesCommand(CommandStateService commandStateService, @Qualifier("messageLimits") MessageService messageService,
+    public CancelArchiveFilesCommand(CommandStateService commandStateService, @TgMessageLimitsControl MessageService messageService,
                                      LocalisationService localisationService, UserService userService) {
         this.commandStateService = commandStateService;
         this.messageService = messageService;

@@ -1,7 +1,6 @@
 package ru.gadjini.any2any.command.keyboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -10,6 +9,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.Any2AnyCommandMessageBuilder;
 import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.CommandStart;
+import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.common.CommandNames;
@@ -21,6 +23,7 @@ import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
 import java.util.Locale;
 
+@CommandStart
 @Component
 public class StartCommand implements NavigableBotCommand, BotCommand {
 
@@ -37,8 +40,8 @@ public class StartCommand implements NavigableBotCommand, BotCommand {
     private Any2AnyCommandMessageBuilder commandMessageBuilder;
 
     @Autowired
-    public StartCommand(CommandStateService commandStateService, UserService userService, @Qualifier("messageLimits") MessageService messageService,
-                        LocalisationService localisationService, @Qualifier("curr") Any2AnyReplyKeyboardService replyKeyboardService, Any2AnyCommandMessageBuilder commandMessageBuilder) {
+    public StartCommand(CommandStateService commandStateService, UserService userService, @TgMessageLimitsControl MessageService messageService,
+                        LocalisationService localisationService, @KeyboardHolder Any2AnyReplyKeyboardService replyKeyboardService, Any2AnyCommandMessageBuilder commandMessageBuilder) {
         this.commandStateService = commandStateService;
         this.userService = userService;
         this.messageService = messageService;

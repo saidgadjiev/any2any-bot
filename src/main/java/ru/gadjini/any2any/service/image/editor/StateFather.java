@@ -19,6 +19,7 @@ import ru.gadjini.any2any.service.image.device.ImageConvertDevice;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
 import ru.gadjini.any2any.utils.Any2AnyFileNameUtils;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
@@ -40,7 +41,7 @@ import java.util.Set;
 @Service
 public class StateFather implements State {
 
-    public static final String TAG = "father";
+    private static final String TAG = "father";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StateFather.class);
 
@@ -68,7 +69,7 @@ public class StateFather implements State {
 
     @Autowired
     public StateFather(CommandStateService commandStateService, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
-                       @Qualifier("messageLimits") MessageService messageService, @Qualifier("mediaLimits") MediaMessageService mediaMessageService, TempFileService tempFileService,
+                       @TgMessageLimitsControl MessageService messageService, @Qualifier("mediaLimits") MediaMessageService mediaMessageService, TempFileService tempFileService,
                        InlineKeyboardService inlineKeyboardService, FileDownloader fileDownloader, ImageConvertDevice imageDevice, LocalisationService localisationService, UserService userService) {
         this.commandStateService = commandStateService;
         this.executor = executor;
@@ -176,9 +177,12 @@ public class StateFather implements State {
         executor.execute(() -> {
             deleteCurrentState(chatId, command.getHistoryName());
 
-            SmartTempFile file = tempFileService.createTempFile(FileTarget.TEMP, chatId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
+            SmartTempFile file = null;
             try {
-                fileDownloader.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFileSize(), file, false);
+                file = new SmartTempFile(
+                        new File(fileDownloader.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFileSize(), false)),
+                        false
+                );
                 SmartTempFile result = tempFileService.createTempFile(FileTarget.TEMP, chatId, any2AnyFile.getFileId(), TAG, Format.PNG.getExt());
                 imageDevice.convert(file.getAbsolutePath(), result.getAbsolutePath());
                 EditorState state = createState(result.getAbsolutePath(), Any2AnyFileNameUtils.getFileName(any2AnyFile.getFileName(), Format.PNG.getExt()));
@@ -193,7 +197,9 @@ public class StateFather implements State {
                 commandStateService.setState(chatId, command.getHistoryName(), state);
                 LOGGER.debug("New state({}, {}, {})", chatId, any2AnyFile.getFormat(), any2AnyFile.getFileId());
             } finally {
-                file.smartDelete();
+                if (file != null) {
+                    file.smartDelete();
+                }
             }
         });
     }

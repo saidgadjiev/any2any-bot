@@ -3,7 +3,6 @@ package ru.gadjini.any2any.command.keyboard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -16,6 +15,8 @@ import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.image.editor.StateFather;
 import ru.gadjini.any2any.service.image.editor.transparency.ModeState;
 import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.CallbackBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
@@ -57,8 +58,8 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
 
     @Autowired
     public ImageEditorCommand(LocalisationService localisationService,
-                              @Qualifier("messageLimits") MessageService messageService, UserService userService,
-                              @Qualifier("curr") Any2AnyReplyKeyboardService replyKeyboardService,
+                              @TgMessageLimitsControl MessageService messageService, UserService userService,
+                              @KeyboardHolder Any2AnyReplyKeyboardService replyKeyboardService,
                               StateFather stateFather, MessageMediaService messageMediaService) {
         this.localisationService = localisationService;
         this.messageService = messageService;
@@ -124,11 +125,7 @@ public class ImageEditorCommand implements KeyboardBotCommand, NavigableBotComma
     }
 
     @Override
-    public void processMessage(CallbackQuery callbackQuery, RequestParams requestParams) {
-    }
-
-    @Override
-    public void processNonCommandCallback(CallbackQuery callbackQuery, RequestParams requestParams) {
+    public void processNonCommandCallbackQuery(CallbackQuery callbackQuery, RequestParams requestParams) {
         if (requestParams.contains(Arg.GO_BACK.getKey())) {
             stateFather.goBack(this, callbackQuery);
         } else if (requestParams.contains(Arg.UPDATE_EDITED_IMAGE.getKey())) {

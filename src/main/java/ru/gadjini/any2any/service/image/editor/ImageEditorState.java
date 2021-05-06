@@ -15,6 +15,7 @@ import ru.gadjini.any2any.service.image.editor.filter.FilterState;
 import ru.gadjini.any2any.service.image.editor.transparency.TransparencyState;
 import ru.gadjini.any2any.service.image.resize.ResizeState;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -47,7 +48,7 @@ public class ImageEditorState implements State {
 
     @Autowired
     public ImageEditorState(CommandStateService commandStateService,
-                            LocalisationService localisationService, @Qualifier("messageLimits") MessageService messageService,
+                            LocalisationService localisationService, @TgMessageLimitsControl MessageService messageService,
                             @Qualifier("mediaLimits") MediaMessageService mediaMessageService, InlineKeyboardService inlineKeyboardService) {
         this.commandStateService = commandStateService;
         this.localisationService = localisationService;

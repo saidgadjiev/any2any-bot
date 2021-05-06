@@ -3,7 +3,6 @@ package ru.gadjini.any2any.service.image.editor.transparency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageCaption;
@@ -14,6 +13,7 @@ import ru.gadjini.any2any.service.image.editor.EditMessageBuilder;
 import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
@@ -40,7 +40,7 @@ public class InaccuracyState implements State {
 
     @Autowired
     public InaccuracyState(CommandStateService commandStateService, InlineKeyboardService inlineKeyboardService,
-                           @Qualifier("messageLimits") MessageService messageService, EditMessageBuilder messageBuilder, LocalisationService localisationService) {
+                           @TgMessageLimitsControl MessageService messageService, EditMessageBuilder messageBuilder, LocalisationService localisationService) {
         this.commandStateService = commandStateService;
         this.inlineKeyboardService = inlineKeyboardService;
         this.messageService = messageService;

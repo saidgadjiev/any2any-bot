@@ -10,15 +10,15 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
-import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
-import ru.gadjini.telegram.smart.bot.commons.service.file.temp.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloader;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
+import java.io.File;
 import java.util.Locale;
 
 @Service
@@ -38,20 +38,17 @@ public class OcrService {
 
     private LocalisationService localisationService;
 
-    private TempFileService fileService;
-
     private OcrDevice ocrDevice;
 
     @Autowired
     public OcrService(FileDownloader fileDownloader, @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor,
-                      @Qualifier("messageLimits") MessageService messageService,
-                      UserService userService, LocalisationService localisationService, TempFileService fileService, OcrDevice ocrDevice) {
+                      @TgMessageLimitsControl MessageService messageService,
+                      UserService userService, LocalisationService localisationService, OcrDevice ocrDevice) {
         this.fileDownloader = fileDownloader;
         this.executor = executor;
         this.messageService = messageService;
         this.userService = userService;
         this.localisationService = localisationService;
-        this.fileService = fileService;
         this.ocrDevice = ocrDevice;
     }
 
@@ -60,9 +57,12 @@ public class OcrService {
             LOGGER.debug("Start({}, {})", userId, any2AnyFile.getFileId());
 
             Locale locale = userService.getLocaleOrDefault(userId);
-            SmartTempFile file = fileService.createTempFile(FileTarget.TEMP, userId, any2AnyFile.getFileId(), TAG, any2AnyFile.getFormat().getExt());
+            SmartTempFile file = null;
             try {
-                fileDownloader.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFileSize(), file, false);
+                file = new SmartTempFile(
+                        new File(fileDownloader.downloadFileByFileId(any2AnyFile.getFileId(), any2AnyFile.getFileSize(), false)),
+                        false
+                );
 
                 String result = ocrDevice.getText(file.getAbsolutePath());
                 if (StringUtils.isBlank(result)) {
@@ -79,7 +79,9 @@ public class OcrService {
                         .text(localisationService.getMessage(MessagesProperties.MESSAGE_EMPTY_TEXT_EXTRACTED, locale))
                         .parseMode(ParseMode.HTML).build());
             } finally {
-                file.smartDelete();
+                if (file != null) {
+                    file.smartDelete();
+                }
             }
         });
     }

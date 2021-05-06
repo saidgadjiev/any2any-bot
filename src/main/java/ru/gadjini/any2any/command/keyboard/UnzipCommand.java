@@ -1,13 +1,13 @@
 package ru.gadjini.any2any.command.keyboard;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.service.LocalisationService;
@@ -31,7 +31,7 @@ public class UnzipCommand implements KeyboardBotCommand, BotCommand {
 
     @Autowired
     public UnzipCommand(LocalisationService localisationService,
-                        @Qualifier("messageLimits") MessageService messageService,
+                        @TgMessageLimitsControl MessageService messageService,
                         UserService userService) {
         this.localisationService = localisationService;
         this.messageService = messageService;

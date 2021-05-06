@@ -3,7 +3,6 @@ package ru.gadjini.any2any.command.keyboard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -12,6 +11,8 @@ import ru.gadjini.any2any.common.FileUtilsCommandNames;
 import ru.gadjini.any2any.common.MessagesProperties;
 import ru.gadjini.any2any.service.keyboard.Any2AnyReplyKeyboardService;
 import ru.gadjini.any2any.service.ocr.OcrService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.command.api.BotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.KeyboardBotCommand;
 import ru.gadjini.telegram.smart.bot.commons.command.api.NavigableBotCommand;
@@ -49,9 +50,9 @@ public class OcrCommand implements KeyboardBotCommand, NavigableBotCommand, BotC
     private MessageMediaService messageMediaService;
 
     @Autowired
-    public OcrCommand(OcrService ocrService, @Qualifier("curr") Any2AnyReplyKeyboardService replyKeyboardService,
+    public OcrCommand(OcrService ocrService, @KeyboardHolder Any2AnyReplyKeyboardService replyKeyboardService,
                       UserService userService, LocalisationService localisationService,
-                      @Qualifier("messageLimits") MessageService messageService, MessageMediaService messageMediaService) {
+                      @TgMessageLimitsControl MessageService messageService, MessageMediaService messageMediaService) {
         this.ocrService = ocrService;
         this.replyKeyboardService = replyKeyboardService;
         this.userService = userService;

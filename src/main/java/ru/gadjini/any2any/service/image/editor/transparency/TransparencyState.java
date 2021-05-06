@@ -1,7 +1,6 @@
 package ru.gadjini.any2any.service.image.editor.transparency;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageCaption;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -11,6 +10,7 @@ import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.ImageEditorState;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.service.command.CommandStateService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 
@@ -36,7 +36,7 @@ public class TransparencyState implements State {
     private EditMessageBuilder messageBuilder;
 
     @Autowired
-    public TransparencyState(@Qualifier("messageLimits") MessageService messageService,
+    public TransparencyState(@TgMessageLimitsControl MessageService messageService,
                              InlineKeyboardService inlineKeyboardService, CommandStateService commandStateService, EditMessageBuilder messageBuilder) {
         this.messageService = messageService;
         this.inlineKeyboardService = inlineKeyboardService;

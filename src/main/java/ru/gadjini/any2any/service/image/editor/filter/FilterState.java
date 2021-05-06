@@ -18,6 +18,7 @@ import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.ImageEditorState;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.EditMediaResult;
 import ru.gadjini.telegram.smart.bot.commons.model.SendFileResult;
@@ -57,7 +58,7 @@ public class FilterState implements State {
 
     @Autowired
     public FilterState(CommandStateService commandStateService, ImageConvertDevice imageDevice,
-                       TempFileService tempFileService, @Qualifier("messageLimits") MessageService messageService,
+                       TempFileService tempFileService, @TgMessageLimitsControl MessageService messageService,
                        @Qualifier("mediaLimits") MediaMessageService mediaMessageService, InlineKeyboardService inlineKeyboardService, LocalisationService localisationService,
                        @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor) {
         this.commandStateService = commandStateService;

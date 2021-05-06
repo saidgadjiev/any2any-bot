@@ -21,6 +21,7 @@ import ru.gadjini.any2any.service.image.editor.EditorState;
 import ru.gadjini.any2any.service.image.editor.ImageEditorState;
 import ru.gadjini.any2any.service.image.editor.State;
 import ru.gadjini.any2any.service.keyboard.InlineKeyboardService;
+import ru.gadjini.telegram.smart.bot.commons.annotation.TgMessageLimitsControl;
 import ru.gadjini.telegram.smart.bot.commons.exception.UserException;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
 import ru.gadjini.telegram.smart.bot.commons.model.EditMediaResult;
@@ -70,7 +71,7 @@ public class ResizeState implements State {
     @Autowired
     public ResizeState(CommandStateService commandStateService, ImageConvertDevice imageDevice,
                        ImageIdentifyDevice identifyDevice, TempFileService tempFileService,
-                       @Qualifier("messageLimits") MessageService messageService,
+                       @TgMessageLimitsControl MessageService messageService,
                        @Qualifier("mediaLimits") MediaMessageService mediaMessageService, InlineKeyboardService inlineKeyboardService, LocalisationService localisationService,
                        @Qualifier("commonTaskExecutor") ThreadPoolTaskExecutor executor) {
         this.commandStateService = commandStateService;

@@ -4,13 +4,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
+import ru.gadjini.telegram.smart.bot.commons.annotation.KeyboardHolder;
 import ru.gadjini.telegram.smart.bot.commons.dao.command.keyboard.ReplyKeyboardDao;
 
 import java.util.Collections;
 import java.util.Locale;
 
 @Service
-@Qualifier("curr")
+@KeyboardHolder
 public class CurrReplyKeyboard implements Any2AnyReplyKeyboardService {
 
     private ReplyKeyboardDao replyKeyboardDao;
