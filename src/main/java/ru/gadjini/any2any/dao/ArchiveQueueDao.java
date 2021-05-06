@@ -150,27 +150,19 @@ public class ArchiveQueueDao implements WorkQueueDaoDelegate<ArchiveQueueItem> {
 
     @Override
     public List<ArchiveQueueItem> deleteAndGetProcessingOrWaitingByUserId(int userId) {
-        return jdbcTemplate.query("WITH r as(DELETE FROM archive_queue WHERE user_id = ? RETURNING id) SELECT * FROM r",
+        return jdbcTemplate.query("WITH r as(DELETE FROM archive_queue WHERE user_id = ? RETURNING *) SELECT * FROM r",
                 ps -> ps.setInt(1, userId),
-                (rs, num) -> {
-                    ArchiveQueueItem queueItem = new ArchiveQueueItem();
-                    queueItem.setId(rs.getInt(ArchiveQueueItem.ID));
-
-                    return queueItem;
-                });
+                (rs, num) -> mapDeleteItem(rs));
     }
 
     @Override
     public ArchiveQueueItem deleteAndGetById(int id) {
         return jdbcTemplate.query(
-                "DELETE FROM archive_queue WHERE id = ? RETURNING id",
+                "DELETE FROM archive_queue WHERE id = ? RETURNING *",
                 ps -> ps.setInt(1, id),
                 rs -> {
                     if (rs.next()) {
-                        ArchiveQueueItem queueItem = new ArchiveQueueItem();
-                        queueItem.setId(rs.getInt(ArchiveQueueItem.ID));
-
-                        return queueItem;
+                        return mapDeleteItem(rs);
                     }
 
                     return null;
@@ -254,6 +246,16 @@ public class ArchiveQueueDao implements WorkQueueDaoDelegate<ArchiveQueueItem> {
 
     private String getSign(SmartExecutorService.JobWeight weight) {
         return weight.equals(SmartExecutorService.JobWeight.LIGHT) ? "<=" : ">";
+    }
+
+    private ArchiveQueueItem mapDeleteItem(ResultSet rs) throws SQLException {
+        ArchiveQueueItem fileQueueItem = new ArchiveQueueItem();
+
+        fileQueueItem.setId(rs.getInt(ArchiveQueueItem.ID));
+        fileQueueItem.setStatus(ArchiveQueueItem.Status.fromCode(rs.getInt(ArchiveQueueItem.STATUS)));
+        fileQueueItem.setServer(rs.getInt(QueueItem.SERVER));
+
+        return fileQueueItem;
     }
 
     private ArchiveQueueItem map(ResultSet resultSet) throws SQLException {
