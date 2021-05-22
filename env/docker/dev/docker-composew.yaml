@@ -10,12 +10,14 @@ services:
       - ../../../data/media/uploads:/tmp/media/uploads
       - ../../../data/media/temp:/tmp/media/temp
       - ../../../data/botapi/workdir:/home/bot/app/botapi/workdir
+    networks:
+      smartnet:
+        ipv4_address: 170.20.0.5
     ports:
       - 5005:5005
     env_file:
       - .env
 
 networks:
-  default:
-    external:
-      name: fileutils
+  smartnet:
+    external: true

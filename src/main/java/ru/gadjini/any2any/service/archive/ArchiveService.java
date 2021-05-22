@@ -18,11 +18,14 @@ import ru.gadjini.telegram.smart.bot.commons.model.MessageMedia;
 import ru.gadjini.telegram.smart.bot.commons.model.Progress;
 import ru.gadjini.telegram.smart.bot.commons.service.UserService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloadService;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
+import ru.gadjini.telegram.smart.bot.commons.service.file.temp.TempFileService;
 import ru.gadjini.telegram.smart.bot.commons.service.format.Format;
 import ru.gadjini.telegram.smart.bot.commons.service.keyboard.SmartInlineKeyboardService;
 import ru.gadjini.telegram.smart.bot.commons.service.message.MessageService;
 import ru.gadjini.telegram.smart.bot.commons.service.queue.WorkQueueService;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -31,6 +34,8 @@ import java.util.function.Consumer;
 
 @Service
 public class ArchiveService {
+
+    private static final String TAG = "arch";
 
     private MessageService messageService;
 
@@ -48,12 +53,14 @@ public class ArchiveService {
 
     private ProgressBuilder progressBuilder;
 
+    private TempFileService tempFileService;
+
     @Autowired
     public ArchiveService(@TgMessageLimitsControl MessageService messageService, UserService userService,
                           ArchiveQueueService archiveQueueService,
                           WorkQueueService queueService, SmartInlineKeyboardService inlineKeyboardService,
                           ArchiveMessageBuilder messageBuilder, FileDownloadService fileDownloadService,
-                          ProgressBuilder progressBuilder) {
+                          ProgressBuilder progressBuilder, TempFileService tempFileService) {
         this.messageService = messageService;
         this.userService = userService;
         this.archiveQueueService = archiveQueueService;
@@ -62,6 +69,7 @@ public class ArchiveService {
         this.messageBuilder = messageBuilder;
         this.fileDownloadService = fileDownloadService;
         this.progressBuilder = progressBuilder;
+        this.tempFileService = tempFileService;
     }
 
     @Transactional
@@ -82,12 +90,20 @@ public class ArchiveService {
             for (TgFile tgFile : queueItem.getFiles()) {
                 Progress downloadProgress = progressBuilder.progressFilesDownloading(queueItem, queueItem.getFiles().size(), i);
                 tgFile.setProgress(downloadProgress);
+
+                String tempDir = tempFileService.getTempDir(FileTarget.DOWNLOAD, queueItem.getUserId(), TAG);
+                tgFile.setFilePath(new File(tempDir, tgFile.getFileName().replace("@", "")).getAbsolutePath());
+                tgFile.setDeleteParentDir(true);
                 ++i;
             }
             DownloadExtra extra = new DownloadExtra(queueItem.getFiles(), 0);
             fileDownloadService.createDownload(queueItem.getFiles().get(0), queueItem.getId(), queueItem.getUserId(), extra);
         } else {
+            String tempDir = tempFileService.getTempDir(FileTarget.DOWNLOAD, queueItem.getUserId(), TAG);
+            queueItem.getFiles().get(0).setFilePath(new File(tempDir, queueItem.getFiles().get(0).getFileName()).getAbsolutePath());
+            queueItem.getFiles().get(0).setDeleteParentDir(true);
             queueItem.getFiles().get(0).setProgress(progressBuilder.progressFilesDownloading(queueItem, queueItem.getFiles().size(), 1));
+
             fileDownloadService.createDownload(queueItem.getFiles().get(0), queueItem.getId(), queueItem.getUserId(), null);
         }
     }
@@ -119,6 +135,7 @@ public class ArchiveService {
     }
 
     private String normalizeFileName(String fileName, int index) {
+        fileName = fileName.replaceFirst("@", "");
         String ext = FilenameUtils.getExtension(fileName);
         if (StringUtils.isBlank(ext)) {
             return fileName + " (" + index + ")";

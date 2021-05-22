@@ -135,9 +135,11 @@ public class ArchiveCommand implements KeyboardBotCommand, NavigableBotCommand, 
             if (archiveState == null) {
                 archiveState = new ArchiveState();
             }
-            MessageMedia file = createFile(message, locale);
-            archiveState.getFiles().add(file);
-            commandStateService.setState(message.getChatId(), getHistoryName(), archiveState);
+            if (archiveState.getFiles().size() < 100) {
+                MessageMedia file = createFile(message, locale);
+                archiveState.getFiles().add(file);
+                commandStateService.setState(message.getChatId(), getHistoryName(), archiveState);
+            }
         }
     }
 

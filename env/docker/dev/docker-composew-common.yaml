@@ -10,10 +10,15 @@ services:
       - 5431:5432
     env_file:
       - .common.env
+    networks:
+      smartnet:
+        ipv4_address: 170.20.0.2
   redis:
     container_name: redis
     image: redis:alpine
     restart: always
+    ports:
+      - 6378:6379
     command:
       - 'redis-server'
       - '--save 900 1'
@@ -21,6 +26,9 @@ services:
       - '--save 60 10000'
     volumes:
       - ../../../data/redis:/data
+    networks:
+      smartnet:
+        ipv4_address: 170.20.0.3
   botapi:
     container_name: botapi
     restart: always
@@ -30,19 +38,21 @@ services:
       - 8082:8082
     volumes:
       - type: bind
+        source: ../../../data/botapi/logs
+        target: /home/bot/logs
+      - type: bind
         source: ../../../data/botapi/workdir
         target: /home/bot/workdir/1119541928:AAFiil_pWtM2YevKfifi-p8XxR0delkEeuw
-#      - type: bind
-#        source: ../../../data/botapi/logs
-#        target: /home/bot/logs
     env_file:
       - .common.env
+    networks:
+      smartnet:
+        ipv4_address: 170.20.0.4
 
 volumes:
   pgdata:
     external: true
 
 networks:
-  default:
-    external:
-      name: fileutils
+  smartnet:
+    external: true
