@@ -1,7 +1,5 @@
 package ru.gadjini.any2any.job;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +12,7 @@ import ru.gadjini.any2any.service.queue.ArchiveQueueService;
 import ru.gadjini.telegram.smart.bot.commons.common.TgConstants;
 import ru.gadjini.telegram.smart.bot.commons.domain.TgFile;
 import ru.gadjini.telegram.smart.bot.commons.io.SmartTempFile;
+import ru.gadjini.telegram.smart.bot.commons.service.Jackson;
 import ru.gadjini.telegram.smart.bot.commons.service.file.FileDownloadService;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.FileTarget;
 import ru.gadjini.telegram.smart.bot.commons.service.file.temp.TempFileService;
@@ -33,7 +32,7 @@ public class DownloadJobEventListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DownloadJobEventListener.class);
 
-    private Gson gson;
+    private Jackson jackson;
 
     private Set<ArchiveDevice> archiveDevices;
 
@@ -44,9 +43,9 @@ public class DownloadJobEventListener {
     private ArchiveQueueService archiveQueueService;
 
     @Autowired
-    public DownloadJobEventListener(Gson gson, Set<ArchiveDevice> archiveDevices, FileDownloadService fileDownloadService,
+    public DownloadJobEventListener(Jackson jackson, Set<ArchiveDevice> archiveDevices, FileDownloadService fileDownloadService,
                                     TempFileService tempFileService, ArchiveQueueService archiveQueueService) {
-        this.gson = gson;
+        this.jackson = jackson;
         this.archiveDevices = archiveDevices;
         this.fileDownloadService = fileDownloadService;
         this.tempFileService = tempFileService;
@@ -87,7 +86,7 @@ public class DownloadJobEventListener {
         }
 
         if (downloadCompleted.getDownloadQueueItem().getExtra() != null) {
-            DownloadExtra downloadExtra = gson.fromJson((JsonElement) downloadCompleted.getDownloadQueueItem().getExtra(), DownloadExtra.class);
+            DownloadExtra downloadExtra = jackson.convertValue(downloadCompleted.getDownloadQueueItem().getExtra(), DownloadExtra.class);
             ListIterator<TgFile> listIterator = downloadExtra.getFiles().listIterator(downloadExtra.getCurrentFileIndex() + 1);
 
             if (listIterator.hasNext()) {
