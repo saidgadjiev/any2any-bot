@@ -1,0 +1,1 @@
+ALTER TABLE tg_user ADD COLUMN start_parameter VARCHAR(64);
