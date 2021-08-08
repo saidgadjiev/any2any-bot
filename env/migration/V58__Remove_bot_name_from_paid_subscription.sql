@@ -1,0 +1,1 @@
+ALTER TABLE paid_subscription DROP COLUMN IF EXISTS bot_name;
